@@ -1,0 +1,31 @@
+---
+hosts:
+  - hostname: server1
+    ip: 1.1.1.1
+    user: ubuntu
+    role: [controlplane, etcd]
+    docker_socket: /var/run/docker.sock
+  - hostname: server2
+    ip: 2.2.2.2
+    user: ubuntu
+    role: [worker]
+
+services:
+  etcd:
+    version: latest
+    image: quay.io/coreos/etcd
+  kube-api:
+    version: v1.7.5_coreos.0
+    image: quay.io/coreos/hyperkube
+  kube-controller:
+    version: v1.7.5_coreos.0
+    image: quay.io/coreos/hyperkube
+  scheduler:
+    version: v1.7.5_coreos.0
+    image: quay.io/coreos/hyperkube
+  kubelet:
+    version: v1.7.5_coreos.0
+    image: quay.io/coreos/hyperkube
+  kubeproxy:
+    version: v1.7.5_coreos.0
+    image: quay.io/coreos/hyperkube
