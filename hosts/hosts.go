@@ -14,7 +14,6 @@ type Host struct {
 	Role         []string `yaml:"role"`
 	Hostname     string   `yaml:"hostname"`
 	User         string   `yaml:"user"`
-	Sudo         bool     `yaml:"sudo"`
 	DockerSocket string   `yaml:"docker_socket"`
 	DClient      *client.Client
 }
