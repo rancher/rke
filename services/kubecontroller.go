@@ -13,6 +13,8 @@ import (
 type KubeController struct {
 	Version string `yaml:"version"`
 	Image   string `yaml:"image"`
+	ClusterCIDR string `yaml:"cluster_cider"`
+	ServiceClusterIPRange	string `yaml:"service_cluster_ip_range"`
 }
 
 func runKubeController(host hosts.Host, kubeControllerService KubeController) error {
@@ -60,8 +62,8 @@ func doRunKubeController(host hosts.Host, kubeControllerService KubeController) 
 			"--pod-eviction-timeout=5m0s",
 			"--v=2",
 			"--allocate-node-cidrs=true",
-			"--cluster-cidr=10.233.64.0/18",
-			"--service-cluster-ip-range=10.233.0.0/18"},
+			"--cluster-cidr=" + kubeControllerService.ClusterCIDR,
+			"--service-cluster-ip-range=" + kubeControllerService.ServiceClusterIPRange},
 	}
 	hostCfg := &container.HostConfig{
 		RestartPolicy: container.RestartPolicy{Name: "always"},

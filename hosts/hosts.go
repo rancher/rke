@@ -1,6 +1,9 @@
 package hosts
 
-import "github.com/docker/docker/client"
+import (
+	"github.com/docker/docker/client"
+	"github.com/Sirupsen/logrus"
+)
 
 type Hosts struct {
 	Hosts []Host `yaml:"hosts"`
@@ -22,6 +25,7 @@ func DivideHosts(hosts []Host) ([]Host, []Host, []Host) {
 	workerHosts := []Host{}
 	for _, host := range hosts {
 		for _, role := range host.Role {
+			logrus.Debugf("Host: " + host.Hostname + " has role: " + role)
 			if role == "etcd" {
 				etcdHosts = append(etcdHosts, host)
 			}

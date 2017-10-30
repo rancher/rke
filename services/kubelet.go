@@ -14,6 +14,8 @@ import (
 type Kubelet struct {
 	Version string `yaml:"version"`
 	Image   string `yaml:"image"`
+	ClusterDomain	string `yaml:"cluster_domain"`
+	InfraContainerImage string `yaml:"infra_container_image"`
 }
 
 func runKubelet(host hosts.Host, masterHost hosts.Host, kubeletService Kubelet, isMaster bool) error {
@@ -55,9 +57,9 @@ func doRunKubelet(host hosts.Host, masterHost hosts.Host, kubeletService Kubelet
 			"kubelet",
 			"--v=2",
 			"--address=0.0.0.0",
-			"--cluster-domain=cluster.local",
+			"--cluster-domain=" + kubeletService.ClusterDomain,
 			"--hostname-override=" + host.Hostname,
-			"--pod-infra-container-image=gcr.io/google_containers/pause-amd64:3.0",
+			"--pod-infra-container-image=" + kubeletService.InfraContainerImage,
 			"--cgroup-driver=cgroupfs",
 			"--cgroups-per-qos=True",
 			"--enforce-node-allocatable=",

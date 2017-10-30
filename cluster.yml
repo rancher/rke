@@ -17,15 +17,20 @@ services:
   kube-api:
     version: v1.7.5_coreos.0
     image: quay.io/coreos/hyperkube
+    service_cluster_ip_range: 10.233.0.0/18
   kube-controller:
     version: v1.7.5_coreos.0
     image: quay.io/coreos/hyperkube
+    cluster_cider: 10.233.64.0/18
+    service_cluster_ip_range: 10.233.0.0/18
   scheduler:
     version: v1.7.5_coreos.0
     image: quay.io/coreos/hyperkube
   kubelet:
     version: v1.7.5_coreos.0
     image: quay.io/coreos/hyperkube
+    cluster_domain: cluster.local
+    infra_container_image: gcr.io/google_containers/pause-amd64:3.0
   kubeproxy:
     version: v1.7.5_coreos.0
     image: quay.io/coreos/hyperkube

@@ -14,6 +14,7 @@ import (
 type KubeAPI struct {
 	Version string `yaml:"version"`
 	Image   string `yaml:"image"`
+	ServiceClusterIPRange	string `yaml:"service_cluster_ip_range"`
 }
 
 func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService KubeAPI) error {
@@ -57,7 +58,7 @@ func doRunKubeAPI(host hosts.Host, kubeAPIService KubeAPI, etcdConnString string
 			"--insecure-port=8080",
 			"--cloud-provider=",
 			"--allow_privileged=true",
-			"--service-cluster-ip-range=10.233.0.0/18",
+			"--service-cluster-ip-range=" + kubeAPIService.ServiceClusterIPRange,
 			"--admission-control=NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
 			"--runtime-config=batch/v2alpha1",
 			"--runtime-config=authentication.k8s.io/v1beta1=true",
