@@ -39,7 +39,7 @@ func buildKubeAPIConfig(host hosts.Host, kubeAPIService KubeAPI, etcdConnString 
 			"--runtime-config=authentication.k8s.io/v1beta1=true",
 			"--storage-backend=etcd3",
 			"--etcd-servers=" + etcdConnString,
-			"--advertise-address=" + host.IP,
+			"--advertise-address=" + host.ControlPlaneIP,
 			"--client-ca-file=" + pki.CACertPath,
 			"--tls-cert-file=" + pki.KubeAPICertPath,
 			"--tls-private-key-file=" + pki.KubeAPIKeyPath,

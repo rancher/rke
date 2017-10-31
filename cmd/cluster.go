@@ -122,6 +122,11 @@ func parseClusterFile(clusterFile string) (*services.Container, []hosts.Host, er
 			return nil, nil, fmt.Errorf("User for host (%d) is not provided", i+1)
 		} else if len(host.Role) == 0 {
 			return nil, nil, fmt.Errorf("Role for host (%d) is not provided", i+1)
+
+		} else if host.ControlPlaneIP == "" {
+			// if control_plane_ip is not set,
+			// default to the main IP
+			host.ControlPlaneIP = host.IP
 		}
 		for _, role := range host.Role {
 			if role != services.ETCDRole && role != services.ControlRole && role != services.WorkerRole {

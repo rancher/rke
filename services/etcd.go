@@ -32,12 +32,12 @@ func buildEtcdConfig(host hosts.Host, etcdService Etcd) (*container.Config, *con
 		Cmd: []string{"/usr/local/bin/etcd",
 			"--name=etcd-" + host.Hostname,
 			"--data-dir=/etcd-data",
-			"--advertise-client-urls=http://" + host.IP + ":2379,http://" + host.IP + ":4001",
+			"--advertise-client-urls=http://" + host.ControlPlaneIP + ":2379,http://" + host.ControlPlaneIP + ":4001",
 			"--listen-client-urls=http://0.0.0.0:2379",
-			"--initial-advertise-peer-urls=http://" + host.IP + ":2380",
+			"--initial-advertise-peer-urls=http://" + host.ControlPlaneIP + ":2380",
 			"--listen-peer-urls=http://0.0.0.0:2380",
 			"--initial-cluster-token=etcd-cluster-1",
-			"--initial-cluster=etcd-" + host.Hostname + "=http://" + host.IP + ":2380"},
+			"--initial-cluster=etcd-" + host.Hostname + "=http://" + host.ControlPlaneIP + ":2380"},
 	}
 	hostCfg := &container.HostConfig{
 		RestartPolicy: container.RestartPolicy{Name: "always"},
@@ -64,7 +64,7 @@ func buildEtcdConfig(host hosts.Host, etcdService Etcd) (*container.Config, *con
 func getEtcdConnString(hosts []hosts.Host) string {
 	connString := ""
 	for i, host := range hosts {
-		connString += "http://" + host.IP + ":2379"
+		connString += "http://" + host.ControlPlaneIP + ":2379"
 		if i < (len(hosts) - 1) {
 			connString += ","
 		}
