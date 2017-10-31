@@ -10,6 +10,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/urfave/cli"
 )
@@ -19,7 +20,12 @@ func ClusterCommand() cli.Command {
 		cli.StringFlag{
 			Name:   "cluster-file",
 			Usage:  "Specify an alternate cluster YAML file (default: cluster.yml)",
+			Value:  "cluster.yml",
 			EnvVar: "CLUSTER_FILE",
+		},
+		cli.BoolFlag{
+			Name:  "force-crts",
+			Usage: "Force rotating the Kubernetes components certificates",
 		},
 	}
 	return cli.Command{
@@ -42,14 +48,12 @@ func clusterUp(ctx *cli.Context) error {
 	logrus.Infof("Building up Kubernetes cluster")
 	clusterFile, err := resolveClusterFile(ctx)
 	if err != nil {
-		logrus.Errorf("Failed to bring cluster up: %v", err)
-		return err
+		return fmt.Errorf("Failed to bring cluster up: %v", err)
 	}
 	logrus.Debugf("Parsing cluster file [%v]", clusterFile)
 	servicesLookup, k8shosts, err := parseClusterFile(clusterFile)
 	if err != nil {
-		logrus.Errorf("Failed to parse the cluster file: %v", err)
-		return err
+		return fmt.Errorf("Failed to parse the cluster file: %v", err)
 	}
 	for i := range k8shosts {
 		// Set up socket tunneling
@@ -60,36 +64,39 @@ func clusterUp(ctx *cli.Context) error {
 		}
 	}
 	etcdHosts, cpHosts, workerHosts := hosts.DivideHosts(k8shosts)
+	KubernetesServiceIP, err := services.GetKubernetesServiceIp(servicesLookup.Services.KubeAPI.ServiceClusterIPRange)
+	clusterDomain := servicesLookup.Services.Kubelet.ClusterDomain
+	if err != nil {
+		return err
+	}
+	err = pki.StartCertificatesGeneration(ctx, cpHosts, workerHosts, clusterDomain, KubernetesServiceIP)
+	if err != nil {
+		return fmt.Errorf("[Certificates] Failed to generate Kubernetes certificates: %v", err)
+	}
 	err = services.RunEtcdPlane(etcdHosts, servicesLookup.Services.Etcd)
 	if err != nil {
-		logrus.Errorf("[Etcd] Failed to bring up Etcd Plane: %v", err)
-		return err
+		return fmt.Errorf("[Etcd] Failed to bring up Etcd Plane: %v", err)
 	}
 	err = services.RunControlPlane(cpHosts, etcdHosts, servicesLookup.Services)
 	if err != nil {
-		logrus.Errorf("[ControlPlane] Failed to bring up Control Plane: %v", err)
-		return err
+		return fmt.Errorf("[ControlPlane] Failed to bring up Control Plane: %v", err)
 	}
 	err = services.RunWorkerPlane(cpHosts, workerHosts, servicesLookup.Services)
 	if err != nil {
-		logrus.Errorf("[WorkerPlane] Failed to bring up Worker Plane: %v", err)
-		return err
+		return fmt.Errorf("[WorkerPlane] Failed to bring up Worker Plane: %v", err)
 	}
 	return nil
 }
 
 func resolveClusterFile(ctx *cli.Context) (string, error) {
 	clusterFile := ctx.String("cluster-file")
-	if len(clusterFile) == 0 {
-		clusterFile = "cluster.yml"
-	}
 	fp, err := filepath.Abs(clusterFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to lookup current directory name: %v", err)
 	}
 	file, err := os.Open(fp)
 	if err != nil {
-		return "", fmt.Errorf("Can not find cluster.yml: %v", err)
+		return "", fmt.Errorf("Can not find cluster configuration file: %v", err)
 	}
 	defer file.Close()
 	buf, err := ioutil.ReadAll(file)
@@ -101,33 +108,32 @@ func resolveClusterFile(ctx *cli.Context) (string, error) {
 	return clusterFile, nil
 }
 
-func parseClusterFile(clusterFile string) (services.Container, []hosts.Host, error) {
-	logrus.Debugf("cluster file: \n%s", clusterFile)
+func parseClusterFile(clusterFile string) (*services.Container, []hosts.Host, error) {
 	// parse hosts
 	k8shosts := hosts.Hosts{}
 	err := yaml.Unmarshal([]byte(clusterFile), &k8shosts)
 	if err != nil {
-		return services.Container{}, nil, err
+		return nil, nil, err
 	}
 	for i, host := range k8shosts.Hosts {
 		if len(host.Hostname) == 0 {
-			return services.Container{}, nil, fmt.Errorf("Hostname for host (%d) is not provided", i+1)
+			return nil, nil, fmt.Errorf("Hostname for host (%d) is not provided", i+1)
 		} else if len(host.User) == 0 {
-			return services.Container{}, nil, fmt.Errorf("User for host (%d) is not provided", i+1)
+			return nil, nil, fmt.Errorf("User for host (%d) is not provided", i+1)
 		} else if len(host.Role) == 0 {
-			return services.Container{}, nil, fmt.Errorf("Role for host (%d) is not provided", i+1)
+			return nil, nil, fmt.Errorf("Role for host (%d) is not provided", i+1)
 		}
 		for _, role := range host.Role {
-			if role != services.ETCDRole && role != services.MasterRole && role != services.WorkerRole {
-				return services.Container{}, nil, fmt.Errorf("Role [%s] for host (%d) is not recognized", role, i+1)
+			if role != services.ETCDRole && role != services.ControlRole && role != services.WorkerRole {
+				return nil, nil, fmt.Errorf("Role [%s] for host (%d) is not recognized", role, i+1)
 			}
 		}
 	}
 	// parse services
-	k8sPlanes := services.Container{}
-	err = yaml.Unmarshal([]byte(clusterFile), &k8sPlanes)
+	var servicesContainer services.Container
+	err = yaml.Unmarshal([]byte(clusterFile), &servicesContainer)
 	if err != nil {
-		return services.Container{}, nil, err
+		return nil, nil, err
 	}
-	return k8sPlanes, k8shosts.Hosts, nil
+	return &servicesContainer, k8shosts.Hosts, nil
 }

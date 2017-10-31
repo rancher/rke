@@ -1,8 +1,8 @@
 package hosts
 
 import (
-	"github.com/docker/docker/client"
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/docker/client"
 )
 
 type Hosts struct {

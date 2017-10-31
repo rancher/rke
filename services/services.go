@@ -2,14 +2,7 @@ package services
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-
-	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	"github.com/rancher/rke/hosts"
-	"golang.org/x/net/context"
+	"net"
 )
 
 type Container struct {
@@ -26,9 +19,10 @@ type Services struct {
 }
 
 const (
-	ETCDRole                    = "etcd"
-	MasterRole                  = "controlplane"
-	WorkerRole                  = "worker"
+	ETCDRole    = "etcd"
+	ControlRole = "controlplane"
+	WorkerRole  = "worker"
+
 	KubeAPIContainerName        = "kube-api"
 	KubeletContainerName        = "kubelet"
 	KubeproxyContainerName      = "kube-proxy"
@@ -37,32 +31,17 @@ const (
 	EtcdContainerName           = "etcd"
 )
 
-func IsContainerRunning(host hosts.Host, containerName string) (bool, error) {
-	logrus.Debugf("Checking if container %s is running on host [%s]", containerName, host.Hostname)
-	containers, err := host.DClient.ContainerList(context.Background(), types.ContainerListOptions{})
+func GetKubernetesServiceIp(serviceClusterRange string) (net.IP, error) {
+	ip, ipnet, err := net.ParseCIDR(serviceClusterRange)
 	if err != nil {
-		return false, fmt.Errorf("Can't get Docker containers for host [%s]: %v", host.Hostname, err)
-
+		return nil, fmt.Errorf("Failed to get kubernetes service IP: %v", err)
 	}
-	for _, container := range containers {
-		if container.Names[0] == "/"+containerName {
-			return true, nil
+	ip = ip.Mask(ipnet.Mask)
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
 		}
 	}
-	return false, nil
-}
-
-func PullImage(host hosts.Host, containerImage string) error {
-	out, err := host.DClient.ImagePull(context.Background(), containerImage, types.ImagePullOptions{})
-	if err != nil {
-		return fmt.Errorf("Can't pull Docker image %s for host [%s]: %v", containerImage, host.Hostname, err)
-	}
-	defer out.Close()
-	if logrus.GetLevel() == logrus.DebugLevel {
-		io.Copy(os.Stdout, out)
-	} else {
-		io.Copy(ioutil.Discard, out)
-	}
-
-	return nil
+	return ip, nil
 }

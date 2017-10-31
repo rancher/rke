@@ -1,13 +1,10 @@
 package services
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
+	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 )
 
@@ -17,40 +14,19 @@ type Etcd struct {
 }
 
 func RunEtcdPlane(etcdHosts []hosts.Host, etcdService Etcd) error {
-	logrus.Infof("[Etcd] Building up Etcd Plane..")
+	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
 	for _, host := range etcdHosts {
-		isRunning, err := IsContainerRunning(host, EtcdContainerName)
-		if err != nil {
-			return err
-		}
-		if isRunning {
-			logrus.Infof("[Etcd] Container is already running on host [%s]", host.Hostname)
-			return nil
-		}
-		err = runEtcdContainer(host, etcdService)
+		imageCfg, hostCfg := buildEtcdConfig(host, etcdService)
+		err := docker.DoRunContainer(imageCfg, hostCfg, EtcdContainerName, &host, ETCDRole)
 		if err != nil {
 			return err
 		}
 	}
+	logrus.Infof("[%s] Successfully started Etcd Plane..", ETCDRole)
 	return nil
 }
 
-func runEtcdContainer(host hosts.Host, etcdService Etcd) error {
-	logrus.Debugf("[Etcd] Pulling Image on host [%s]", host.Hostname)
-	err := PullImage(host, etcdService.Image+":"+etcdService.Version)
-	if err != nil {
-		return err
-	}
-	logrus.Infof("[Etcd] Successfully pulled Etcd image on host [%s]", host.Hostname)
-	err = doRunEtcd(host, etcdService)
-	if err != nil {
-		return err
-	}
-	logrus.Infof("[Etcd] Successfully ran Etcd container on host [%s]", host.Hostname)
-	return nil
-}
-
-func doRunEtcd(host hosts.Host, etcdService Etcd) error {
+func buildEtcdConfig(host hosts.Host, etcdService Etcd) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: etcdService.Image + ":" + etcdService.Version,
 		Cmd: []string{"/usr/local/bin/etcd",
@@ -82,16 +58,7 @@ func doRunEtcd(host hosts.Host, etcdService Etcd) error {
 			},
 		},
 	}
-	resp, err := host.DClient.ContainerCreate(context.Background(), imageCfg, hostCfg, nil, EtcdContainerName)
-	if err != nil {
-		return fmt.Errorf("Failed to create Etcd container on host [%s]: %v", host.Hostname, err)
-	}
-
-	if err := host.DClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
-		return fmt.Errorf("Failed to start Etcd container on host [%s]: %v", host.Hostname, err)
-	}
-	logrus.Debugf("[Etcd] Successfully started Etcd container: %s", resp.ID)
-	return nil
+	return imageCfg, hostCfg
 }
 
 func getEtcdConnString(hosts []hosts.Host) string {

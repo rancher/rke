@@ -44,7 +44,7 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 }
 
 func (h *Host) TunnelUp(ctx *cli.Context) error {
-	logrus.Infof("[SSH] Start tunnel for host [%s]", h.Hostname)
+	logrus.Infof("[ssh] Start tunnel for host [%s]", h.Hostname)
 
 	dialer := &dialer{
 		host: h,
