@@ -10,7 +10,7 @@ import (
 type KubeController struct {
 	Version               string `yaml:"version"`
 	Image                 string `yaml:"image"`
-	ClusterCIDR           string `yaml:"cluster_cider"`
+	ClusterCIDR           string `yaml:"cluster_cidr"`
 	ServiceClusterIPRange string `yaml:"service_cluster_ip_range"`
 }
 
