@@ -26,6 +26,11 @@ func StartCertificatesGeneration(ctx *cli.Context, cpHosts []hosts.Host, workerH
 	if err != nil {
 		return err
 	}
+	logrus.Infof("[certificates] Generating admin certificates and kubeconfig")
+	err = generateAdminCerts(certs, clusterDomain, cpHosts, forceDeploy)
+	if err != nil {
+		return err
+	}
 	err = deployCertificatesOnMasters(cpHosts, certs, forceDeploy)
 	if err != nil {
 		return err
@@ -103,6 +108,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 		config:      getKubeConfigX509("https://"+cpHosts[0].ControlPlaneIP+":6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
 	}
 
+	// generate Kubelet certificate and key
 	logrus.Infof("[certificates] Generating Node certificate")
 	nodeCrt, nodeKey, err := generateClientCertAndKey(caCrt, caKey, KubeNodeCommonName, []string{KubeNodeOrganizationName})
 	if err != nil {
@@ -115,6 +121,25 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 		config:      getKubeConfigX509("https://"+cpHosts[0].ControlPlaneIP+":6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
 	}
 	return certs, nil
+}
+
+func generateAdminCerts(certs map[string]CertificatePKI, clusterDomain string, cpHosts []hosts.Host, forceDeploy bool) error {
+	// generate API certificate and key
+	caCrt, caKey := certs[CACertName].certificate, certs[CACertName].key
+	kubeAdminCrt, kubeAdminKey, err := generateClientCertAndKey(caCrt, caKey, KubeAdminCommonName, []string{KubeAdminOrganizationName})
+	if err != nil {
+		return err
+	}
+	logrus.Debugf("[certificates] Kube Admin Certificate: %s", string(cert.EncodeCertPEM(kubeAdminCrt)))
+	kubeAdminConfig := getKubeConfigX509WithData(
+		"https://"+cpHosts[0].IP+":6443",
+		KubeAdminCommonName,
+		string(cert.EncodeCertPEM(caCrt)),
+		string(cert.EncodeCertPEM(kubeAdminCrt)),
+		string(cert.EncodePrivateKeyPEM(kubeAdminKey)))
+
+	err = deployAdminConfig(kubeAdminConfig, forceDeploy)
+	return err
 }
 
 func generateClientCertAndKey(caCrt *x509.Certificate, caKey *rsa.PrivateKey, commonName string, orgs []string) (*x509.Certificate, *rsa.PrivateKey, error) {

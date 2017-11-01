@@ -5,6 +5,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -126,4 +128,15 @@ func doRunDeployer(host *hosts.Host, containerEnv []string) error {
 		}
 		return nil
 	}
+}
+
+func deployAdminConfig(kubeConfig string, forceDeploy bool) error {
+	logrus.Debugf("Deploying admin Kubeconfig locally: %s", kubeConfig)
+	if _, err := os.Stat(KubeAdminConfigPath); os.IsNotExist(err) || forceDeploy {
+		err := ioutil.WriteFile(KubeAdminConfigPath, []byte(kubeConfig), 0644)
+		if err != nil {
+			return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
+		}
+	}
+	return nil
 }

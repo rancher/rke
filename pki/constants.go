@@ -52,4 +52,8 @@ const (
 	KubeNodeCertPath         = "/etc/kubernetes/ssl/kube-node.pem"
 	KubeNodeKeyPath          = "/etc/kubernetes/ssl/kube-node-key.pem"
 	KubeNodeConfigPath       = "/etc/kubernetes/ssl/kubecfg-kube-node.yaml"
+
+	KubeAdminCommonName       = "kube-admin"
+	KubeAdminOrganizationName = "system:masters"
+	KubeAdminConfigPath       = "admin.config"
 )
