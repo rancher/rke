@@ -3,11 +3,9 @@ package hosts
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/client"
+	"github.com/rancher/rke/k8s"
+	"k8s.io/client-go/kubernetes"
 )
-
-type Hosts struct {
-	Hosts []Host `yaml:"hosts"`
-}
 
 type Host struct {
 	IP               string   `yaml:"ip"`
@@ -19,23 +17,29 @@ type Host struct {
 	DClient          *client.Client
 }
 
-func DivideHosts(hosts []Host) ([]Host, []Host, []Host) {
-	etcdHosts := []Host{}
-	cpHosts := []Host{}
-	workerHosts := []Host{}
-	for _, host := range hosts {
-		for _, role := range host.Role {
-			logrus.Debugf("Host: " + host.Hostname + " has role: " + role)
-			if role == "etcd" {
-				etcdHosts = append(etcdHosts, host)
+func ReconcileWorkers(currentWorkers []Host, newWorkers []Host, kClient *kubernetes.Clientset) error {
+	for _, currentWorker := range currentWorkers {
+		found := false
+		for _, newWorker := range newWorkers {
+			if currentWorker.Hostname == newWorker.Hostname {
+				found = true
 			}
-			if role == "controlplane" {
-				cpHosts = append(cpHosts, host)
-			}
-			if role == "worker" {
-				workerHosts = append(workerHosts, host)
+		}
+		if !found {
+			if err := deleteWorkerNode(&currentWorker, kClient); err != nil {
+				return err
 			}
 		}
 	}
-	return etcdHosts, cpHosts, workerHosts
+	return nil
+}
+
+func deleteWorkerNode(workerNode *Host, kClient *kubernetes.Clientset) error {
+	logrus.Infof("[hosts] Deleting host [%s] from the cluster", workerNode.Hostname)
+	err := k8s.DeleteNode(kClient, workerNode.Hostname)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("[hosts] Successfully deleted host [%s] from the cluster", workerNode.Hostname)
+	return nil
 }

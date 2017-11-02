@@ -11,6 +11,12 @@ import (
 var VERSION = "v0.1.0-dev"
 
 func main() {
+	if err := mainErr(); err != nil {
+		logrus.Fatal(err)
+	}
+}
+
+func mainErr() error {
 	app := cli.NewApp()
 	app.Name = "rke"
 	app.Version = VERSION
@@ -32,5 +38,5 @@ func main() {
 			Usage: "Debug logging",
 		},
 	}
-	app.Run(os.Args)
+	return app.Run(os.Args)
 }

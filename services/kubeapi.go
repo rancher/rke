@@ -8,25 +8,15 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-type KubeAPI struct {
-	Version               string `yaml:"version"`
-	Image                 string `yaml:"image"`
-	ServiceClusterIPRange string `yaml:"service_cluster_ip_range"`
-}
-
 func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService KubeAPI) error {
 	etcdConnString := getEtcdConnString(etcdHosts)
 	imageCfg, hostCfg := buildKubeAPIConfig(host, kubeAPIService, etcdConnString)
-	err := docker.DoRunContainer(imageCfg, hostCfg, KubeAPIContainerName, &host, ControlRole)
-	if err != nil {
-		return err
-	}
-	return nil
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.Hostname, ControlRole)
 }
 
 func buildKubeAPIConfig(host hosts.Host, kubeAPIService KubeAPI, etcdConnString string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: kubeAPIService.Image + ":" + kubeAPIService.Version,
+		Image: kubeAPIService.Image,
 		Cmd: []string{"/hyperkube",
 			"apiserver",
 			"--insecure-bind-address=0.0.0.0",

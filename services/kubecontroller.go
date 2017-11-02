@@ -7,25 +7,14 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-type KubeController struct {
-	Version               string `yaml:"version"`
-	Image                 string `yaml:"image"`
-	ClusterCIDR           string `yaml:"cluster_cidr"`
-	ServiceClusterIPRange string `yaml:"service_cluster_ip_range"`
-}
-
 func runKubeController(host hosts.Host, kubeControllerService KubeController) error {
 	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService)
-	err := docker.DoRunContainer(imageCfg, hostCfg, KubeControllerContainerName, &host, ControlRole)
-	if err != nil {
-		return err
-	}
-	return nil
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.Hostname, ControlRole)
 }
 
 func buildKubeControllerConfig(kubeControllerService KubeController) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: kubeControllerService.Image + ":" + kubeControllerService.Version,
+		Image: kubeControllerService.Image,
 		Cmd: []string{"/hyperkube",
 			"controller-manager",
 			"--address=0.0.0.0",

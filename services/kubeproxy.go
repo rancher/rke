@@ -7,23 +7,14 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-type Kubeproxy struct {
-	Version string `yaml:"version"`
-	Image   string `yaml:"image"`
-}
-
 func runKubeproxy(host hosts.Host, kubeproxyService Kubeproxy) error {
 	imageCfg, hostCfg := buildKubeproxyConfig(host, kubeproxyService)
-	err := docker.DoRunContainer(imageCfg, hostCfg, KubeproxyContainerName, &host, WorkerRole)
-	if err != nil {
-		return err
-	}
-	return nil
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeproxyContainerName, host.Hostname, WorkerRole)
 }
 
 func buildKubeproxyConfig(host hosts.Host, kubeproxyService Kubeproxy) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: kubeproxyService.Image + ":" + kubeproxyService.Version,
+		Image: kubeproxyService.Image,
 		Cmd: []string{"/hyperkube",
 			"proxy",
 			"--v=2",

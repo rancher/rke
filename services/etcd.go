@@ -8,16 +8,11 @@ import (
 	"github.com/rancher/rke/hosts"
 )
 
-type Etcd struct {
-	Version string `yaml:"version"`
-	Image   string `yaml:"image"`
-}
-
 func RunEtcdPlane(etcdHosts []hosts.Host, etcdService Etcd) error {
 	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
 	for _, host := range etcdHosts {
 		imageCfg, hostCfg := buildEtcdConfig(host, etcdService)
-		err := docker.DoRunContainer(imageCfg, hostCfg, EtcdContainerName, &host, ETCDRole)
+		err := docker.DoRunContainer(host.DClient, imageCfg, hostCfg, EtcdContainerName, host.Hostname, ETCDRole)
 		if err != nil {
 			return err
 		}
@@ -28,7 +23,7 @@ func RunEtcdPlane(etcdHosts []hosts.Host, etcdService Etcd) error {
 
 func buildEtcdConfig(host hosts.Host, etcdService Etcd) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: etcdService.Image + ":" + etcdService.Version,
+		Image: etcdService.Image,
 		Cmd: []string{"/usr/local/bin/etcd",
 			"--name=etcd-" + host.Hostname,
 			"--data-dir=/etcd-data",

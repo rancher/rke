@@ -6,26 +6,26 @@ import (
 	"os"
 	"path/filepath"
 
-	yaml "gopkg.in/yaml.v2"
-
 	"github.com/Sirupsen/logrus"
-	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/rke/services"
 	"github.com/urfave/cli"
+	"k8s.io/client-go/util/cert"
 )
 
 func ClusterCommand() cli.Command {
 	clusterUpFlags := []cli.Flag{
 		cli.StringFlag{
 			Name:   "cluster-file",
-			Usage:  "Specify an alternate cluster YAML file (default: cluster.yml)",
+			Usage:  "Specify an alternate cluster YAML file",
 			Value:  "cluster.yml",
 			EnvVar: "CLUSTER_FILE",
 		},
-		cli.BoolFlag{
-			Name:  "force-crts",
-			Usage: "Force rotating the Kubernetes components certificates",
+		cli.StringFlag{
+			Name:   "auth-type",
+			Usage:  "Specify authentication type",
+			Value:  "x509",
+			EnvVar: "AUTH_TYPE",
 		},
 	}
 	return cli.Command{
@@ -37,55 +37,65 @@ func ClusterCommand() cli.Command {
 			cli.Command{
 				Name:   "up",
 				Usage:  "Bring the cluster up",
-				Action: clusterUp,
+				Action: clusterUpFromCli,
 				Flags:  clusterUpFlags,
 			},
 		},
 	}
 }
 
-func clusterUp(ctx *cli.Context) error {
-	logrus.Infof("Building up Kubernetes cluster")
+func ClusterUp(clusterFile, authType string) (string, string, string, string, error) {
+	logrus.Infof("Building Kubernetes cluster")
+	var ApiURL, caCrt, clientCert, clientKey string
+	kubeCluster, err := cluster.ParseConfig(clusterFile)
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+
+	err = kubeCluster.TunnelHosts()
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+
+	currentCluster, err := kubeCluster.GetClusterState()
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+
+	err = cluster.SetUpAuthentication(kubeCluster, currentCluster, authType)
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+
+	err = kubeCluster.SetUpHosts(authType)
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+
+	err = kubeCluster.DeployClusterPlanes()
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+
+	err = kubeCluster.SaveClusterState(clusterFile)
+	if err != nil {
+		return ApiURL, caCrt, clientCert, clientKey, err
+	}
+	ApiURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].IP + ":6443")
+	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
+	clientCert = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAdminCommonName].Certificate))
+	clientKey = string(cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAdminCommonName].Key))
+	return ApiURL, caCrt, clientCert, clientKey, nil
+}
+
+func clusterUpFromCli(ctx *cli.Context) error {
+	authType := ctx.String("auth-type")
 	clusterFile, err := resolveClusterFile(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to bring cluster up: %v", err)
+		return fmt.Errorf("Failed to resolve cluster file: %v", err)
 	}
-	logrus.Debugf("Parsing cluster file [%v]", clusterFile)
-	servicesLookup, k8shosts, err := parseClusterFile(clusterFile)
-	if err != nil {
-		return fmt.Errorf("Failed to parse the cluster file: %v", err)
-	}
-	for i := range k8shosts {
-		// Set up socket tunneling
-		k8shosts[i].TunnelUp(ctx)
-		defer k8shosts[i].DClient.Close()
-		if err != nil {
-			return err
-		}
-	}
-	etcdHosts, cpHosts, workerHosts := hosts.DivideHosts(k8shosts)
-	KubernetesServiceIP, err := services.GetKubernetesServiceIp(servicesLookup.Services.KubeAPI.ServiceClusterIPRange)
-	clusterDomain := servicesLookup.Services.Kubelet.ClusterDomain
-	if err != nil {
-		return err
-	}
-	err = pki.StartCertificatesGeneration(ctx, cpHosts, workerHosts, clusterDomain, KubernetesServiceIP)
-	if err != nil {
-		return fmt.Errorf("[Certificates] Failed to generate Kubernetes certificates: %v", err)
-	}
-	err = services.RunEtcdPlane(etcdHosts, servicesLookup.Services.Etcd)
-	if err != nil {
-		return fmt.Errorf("[Etcd] Failed to bring up Etcd Plane: %v", err)
-	}
-	err = services.RunControlPlane(cpHosts, etcdHosts, servicesLookup.Services)
-	if err != nil {
-		return fmt.Errorf("[ControlPlane] Failed to bring up Control Plane: %v", err)
-	}
-	err = services.RunWorkerPlane(cpHosts, workerHosts, servicesLookup.Services)
-	if err != nil {
-		return fmt.Errorf("[WorkerPlane] Failed to bring up Worker Plane: %v", err)
-	}
-	return nil
+	_, _, _, _, err = ClusterUp(clusterFile, authType)
+	return err
 }
 
 func resolveClusterFile(ctx *cli.Context) (string, error) {
@@ -106,39 +116,4 @@ func resolveClusterFile(ctx *cli.Context) (string, error) {
 	clusterFile = string(buf)
 
 	return clusterFile, nil
-}
-
-func parseClusterFile(clusterFile string) (*services.Container, []hosts.Host, error) {
-	// parse hosts
-	k8shosts := hosts.Hosts{}
-	err := yaml.Unmarshal([]byte(clusterFile), &k8shosts)
-	if err != nil {
-		return nil, nil, err
-	}
-	for i, host := range k8shosts.Hosts {
-		if len(host.Hostname) == 0 {
-			return nil, nil, fmt.Errorf("Hostname for host (%d) is not provided", i+1)
-		} else if len(host.User) == 0 {
-			return nil, nil, fmt.Errorf("User for host (%d) is not provided", i+1)
-		} else if len(host.Role) == 0 {
-			return nil, nil, fmt.Errorf("Role for host (%d) is not provided", i+1)
-
-		} else if host.AdvertiseAddress == "" {
-			// if control_plane_ip is not set,
-			// default to the main IP
-			k8shosts.Hosts[i].AdvertiseAddress = host.IP
-		}
-		for _, role := range host.Role {
-			if role != services.ETCDRole && role != services.ControlRole && role != services.WorkerRole {
-				return nil, nil, fmt.Errorf("Role [%s] for host (%d) is not recognized", role, i+1)
-			}
-		}
-	}
-	// parse services
-	var servicesContainer services.Container
-	err = yaml.Unmarshal([]byte(clusterFile), &servicesContainer)
-	if err != nil {
-		return nil, nil, err
-	}
-	return &servicesContainer, k8shosts.Hosts, nil
 }

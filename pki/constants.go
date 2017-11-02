@@ -3,6 +3,7 @@ package pki
 const (
 	CrtDownloaderImage     = "husseingalal/crt-downloader:latest"
 	CrtDownloaderContainer = "cert-deployer"
+	CertificatesSecretName = "k8s-certs"
 
 	CACertName    = "kube-ca"
 	CACertENVName = "KUBE_CA"

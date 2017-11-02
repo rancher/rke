@@ -8,25 +8,14 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-type Kubelet struct {
-	Version             string `yaml:"version"`
-	Image               string `yaml:"image"`
-	ClusterDomain       string `yaml:"cluster_domain"`
-	InfraContainerImage string `yaml:"infra_container_image"`
-}
-
 func runKubelet(host hosts.Host, kubeletService Kubelet, isMaster bool) error {
 	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, isMaster)
-	err := docker.DoRunContainer(imageCfg, hostCfg, KubeletContainerName, &host, WorkerRole)
-	if err != nil {
-		return err
-	}
-	return nil
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.Hostname, WorkerRole)
 }
 
 func buildKubeletConfig(host hosts.Host, kubeletService Kubelet, isMaster bool) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: kubeletService.Image + ":" + kubeletService.Version,
+		Image: kubeletService.Image,
 		Cmd: []string{"/hyperkube",
 			"kubelet",
 			"--v=2",

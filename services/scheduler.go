@@ -7,23 +7,14 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-type Scheduler struct {
-	Version string `yaml:"version"`
-	Image   string `yaml:"image"`
-}
-
 func runScheduler(host hosts.Host, schedulerService Scheduler) error {
 	imageCfg, hostCfg := buildSchedulerConfig(host, schedulerService)
-	err := docker.DoRunContainer(imageCfg, hostCfg, SchedulerContainerName, &host, ControlRole)
-	if err != nil {
-		return err
-	}
-	return nil
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.Hostname, ControlRole)
 }
 
 func buildSchedulerConfig(host hosts.Host, schedulerService Scheduler) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: schedulerService.Image + ":" + schedulerService.Version,
+		Image: schedulerService.Image,
 		Cmd: []string{"/hyperkube",
 			"scheduler",
 			"--v=2",

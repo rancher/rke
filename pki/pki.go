@@ -8,38 +8,23 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/hosts"
-	"github.com/urfave/cli"
 	"k8s.io/client-go/util/cert"
 )
 
 type CertificatePKI struct {
-	certificate *x509.Certificate
-	key         *rsa.PrivateKey
-	config      string
+	Certificate *x509.Certificate
+	Key         *rsa.PrivateKey
+	Config      string
 }
 
 // StartCertificatesGeneration ...
-func StartCertificatesGeneration(ctx *cli.Context, cpHosts []hosts.Host, workerHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) error {
-	forceDeploy := ctx.Bool("force-crts")
+func StartCertificatesGeneration(cpHosts []hosts.Host, workerHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
 	logrus.Infof("[certificates] Generating kubernetes certificates")
 	certs, err := generateCerts(cpHosts, clusterDomain, KubernetesServiceIP)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	logrus.Infof("[certificates] Generating admin certificates and kubeconfig")
-	err = generateAdminCerts(certs, clusterDomain, cpHosts, forceDeploy)
-	if err != nil {
-		return err
-	}
-	err = deployCertificatesOnMasters(cpHosts, certs, forceDeploy)
-	if err != nil {
-		return err
-	}
-	err = deployCertificatesOnWorkers(workerHosts, certs, forceDeploy)
-	if err != nil {
-		return err
-	}
-	return nil
+	return certs, nil
 }
 
 func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
@@ -52,8 +37,8 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	}
 	logrus.Debugf("[certificates] CA Certificate: %s", string(cert.EncodeCertPEM(caCrt)))
 	certs[CACertName] = CertificatePKI{
-		certificate: caCrt,
-		key:         caKey,
+		Certificate: caCrt,
+		Key:         caKey,
 	}
 
 	// generate API certificate and key
@@ -65,8 +50,8 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	}
 	logrus.Debugf("[certificates] Kube API Certificate: %s", string(cert.EncodeCertPEM(kubeAPICrt)))
 	certs[KubeAPICertName] = CertificatePKI{
-		certificate: kubeAPICrt,
-		key:         kubeAPIKey,
+		Certificate: kubeAPICrt,
+		Key:         kubeAPIKey,
 	}
 
 	// generate Kube controller-manager certificate and key
@@ -77,9 +62,9 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	}
 	logrus.Debugf("[certificates] Kube Controller Certificate: %s", string(cert.EncodeCertPEM(kubeControllerCrt)))
 	certs[KubeControllerName] = CertificatePKI{
-		certificate: kubeControllerCrt,
-		key:         kubeControllerKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeControllerName, CACertPath, KubeControllerCertPath, KubeControllerKeyPath),
+		Certificate: kubeControllerCrt,
+		Key:         kubeControllerKey,
+		Config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeControllerName, CACertPath, KubeControllerCertPath, KubeControllerKeyPath),
 	}
 
 	// generate Kube scheduler certificate and key
@@ -90,9 +75,9 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	}
 	logrus.Debugf("[certificates] Kube Scheduler Certificate: %s", string(cert.EncodeCertPEM(kubeSchedulerCrt)))
 	certs[KubeSchedulerName] = CertificatePKI{
-		certificate: kubeSchedulerCrt,
-		key:         kubeSchedulerKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeSchedulerName, CACertPath, KubeSchedulerCertPath, KubeSchedulerKeyPath),
+		Certificate: kubeSchedulerCrt,
+		Key:         kubeSchedulerKey,
+		Config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeSchedulerName, CACertPath, KubeSchedulerCertPath, KubeSchedulerKeyPath),
 	}
 
 	// generate Kube Proxy certificate and key
@@ -103,9 +88,9 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	}
 	logrus.Debugf("[certificates] Kube Proxy Certificate: %s", string(cert.EncodeCertPEM(kubeProxyCrt)))
 	certs[KubeProxyName] = CertificatePKI{
-		certificate: kubeProxyCrt,
-		key:         kubeProxyKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
+		Certificate: kubeProxyCrt,
+		Key:         kubeProxyKey,
+		Config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
 	}
 
 	// generate Kubelet certificate and key
@@ -116,30 +101,27 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	}
 	logrus.Debugf("[certificates] Node Certificate: %s", string(cert.EncodeCertPEM(kubeProxyCrt)))
 	certs[KubeNodeName] = CertificatePKI{
-		certificate: nodeCrt,
-		key:         nodeKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
+		Certificate: nodeCrt,
+		Key:         nodeKey,
+		Config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
 	}
-	return certs, nil
-}
-
-func generateAdminCerts(certs map[string]CertificatePKI, clusterDomain string, cpHosts []hosts.Host, forceDeploy bool) error {
-	// generate API certificate and key
-	caCrt, caKey := certs[CACertName].certificate, certs[CACertName].key
+	logrus.Infof("[certificates] Generating admin certificates and kubeconfig")
 	kubeAdminCrt, kubeAdminKey, err := generateClientCertAndKey(caCrt, caKey, KubeAdminCommonName, []string{KubeAdminOrganizationName})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	logrus.Debugf("[certificates] Kube Admin Certificate: %s", string(cert.EncodeCertPEM(kubeAdminCrt)))
-	kubeAdminConfig := getKubeConfigX509WithData(
-		"https://"+cpHosts[0].IP+":6443",
-		KubeAdminCommonName,
-		string(cert.EncodeCertPEM(caCrt)),
-		string(cert.EncodeCertPEM(kubeAdminCrt)),
-		string(cert.EncodePrivateKeyPEM(kubeAdminKey)))
-
-	err = deployAdminConfig(kubeAdminConfig, forceDeploy)
-	return err
+	logrus.Debugf("[certificates] Admin Certificate: %s", string(cert.EncodeCertPEM(kubeAdminCrt)))
+	certs[KubeAdminCommonName] = CertificatePKI{
+		Certificate: kubeAdminCrt,
+		Key:         kubeAdminKey,
+		Config: getKubeConfigX509WithData(
+			"https://"+cpHosts[0].IP+":6443",
+			KubeAdminCommonName,
+			string(cert.EncodeCertPEM(caCrt)),
+			string(cert.EncodeCertPEM(kubeAdminCrt)),
+			string(cert.EncodePrivateKeyPEM(kubeAdminKey))),
+	}
+	return certs, nil
 }
 
 func generateClientCertAndKey(caCrt *x509.Certificate, caKey *rsa.PrivateKey, commonName string, orgs []string) (*x509.Certificate, *rsa.PrivateKey, error) {

@@ -9,7 +9,6 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/client"
-	"github.com/urfave/cli"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -43,7 +42,7 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	return remote, err
 }
 
-func (h *Host) TunnelUp(ctx *cli.Context) error {
+func (h *Host) TunnelUp() error {
 	logrus.Infof("[ssh] Start tunnel for host [%s]", h.Hostname)
 
 	dialer := &dialer{
