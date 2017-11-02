@@ -79,7 +79,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeControllerName] = CertificatePKI{
 		certificate: kubeControllerCrt,
 		key:         kubeControllerKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].ControlPlaneIP+":6443", KubeControllerName, CACertPath, KubeControllerCertPath, KubeControllerKeyPath),
+		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeControllerName, CACertPath, KubeControllerCertPath, KubeControllerKeyPath),
 	}
 
 	// generate Kube scheduler certificate and key
@@ -92,7 +92,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeSchedulerName] = CertificatePKI{
 		certificate: kubeSchedulerCrt,
 		key:         kubeSchedulerKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].ControlPlaneIP+":6443", KubeSchedulerName, CACertPath, KubeSchedulerCertPath, KubeSchedulerKeyPath),
+		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeSchedulerName, CACertPath, KubeSchedulerCertPath, KubeSchedulerKeyPath),
 	}
 
 	// generate Kube Proxy certificate and key
@@ -105,7 +105,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeProxyName] = CertificatePKI{
 		certificate: kubeProxyCrt,
 		key:         kubeProxyKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].ControlPlaneIP+":6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
+		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
 	}
 
 	// generate Kubelet certificate and key
@@ -118,7 +118,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeNodeName] = CertificatePKI{
 		certificate: nodeCrt,
 		key:         nodeKey,
-		config:      getKubeConfigX509("https://"+cpHosts[0].ControlPlaneIP+":6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
+		config:      getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
 	}
 	return certs, nil
 }
@@ -199,8 +199,8 @@ func getAltNames(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP
 	dnsNames := []string{}
 	for _, host := range cpHosts {
 		ips = append(ips, net.ParseIP(host.IP))
-		if host.IP != host.ControlPlaneIP {
-			ips = append(ips, net.ParseIP(host.ControlPlaneIP))
+		if host.IP != host.AdvertiseAddress {
+			ips = append(ips, net.ParseIP(host.AdvertiseAddress))
 		}
 		dnsNames = append(dnsNames, host.Hostname)
 	}

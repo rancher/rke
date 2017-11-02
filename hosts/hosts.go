@@ -10,13 +10,13 @@ type Hosts struct {
 }
 
 type Host struct {
-	IP             string   `yaml:"ip"`
-	ControlPlaneIP string   `yaml:"control_plane_ip"`
-	Role           []string `yaml:"role"`
-	Hostname       string   `yaml:"hostname"`
-	User           string   `yaml:"user"`
-	DockerSocket   string   `yaml:"docker_socket"`
-	DClient        *client.Client
+	IP               string   `yaml:"ip"`
+	AdvertiseAddress string   `yaml:"advertise_address"`
+	Role             []string `yaml:"role"`
+	Hostname         string   `yaml:"hostname"`
+	User             string   `yaml:"user"`
+	DockerSocket     string   `yaml:"docker_socket"`
+	DClient          *client.Client
 }
 
 func DivideHosts(hosts []Host) ([]Host, []Host, []Host) {
