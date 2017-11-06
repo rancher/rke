@@ -26,7 +26,7 @@ func buildKubeletConfig(host hosts.Host, kubeletService Kubelet, isMaster bool) 
 			"--cgroup-driver=cgroupfs",
 			"--cgroups-per-qos=True",
 			"--enforce-node-allocatable=",
-			"--cluster-dns=10.233.0.3",
+			"--cluster-dns=" + kubeletService.ClusterDnsServer,
 			"--network-plugin=cni",
 			"--cni-conf-dir=/etc/cni/net.d",
 			"--cni-bin-dir=/opt/cni/bin",

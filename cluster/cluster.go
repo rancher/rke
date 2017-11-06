@@ -22,6 +22,9 @@ type Cluster struct {
 	KubernetesServiceIP net.IP
 	Certificates        map[string]pki.CertificatePKI
 	ClusterDomain       string
+	NetworkPlugin       string `yaml:"network_plugin"`
+	ClusterCIDR         string
+	ClusterDnsServer    string
 }
 
 const (
@@ -65,6 +68,8 @@ func ParseConfig(clusterFile string) (*Cluster, error) {
 		return nil, fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}
 	c.ClusterDomain = c.Services.Kubelet.ClusterDomain
+	c.ClusterCIDR = c.Services.KubeController.ClusterCIDR
+	c.ClusterDnsServer = c.Services.Kubelet.ClusterDnsServer
 	return c, nil
 }
 
