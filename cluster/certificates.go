@@ -16,7 +16,7 @@ func SetUpAuthentication(kubeCluster, currentCluster *Cluster, authType string) 
 	if authType == X509AuthenticationProvider {
 		var err error
 		if currentCluster != nil {
-			kubeCluster.Certificates, err = getClusterCerts(kubeCluster.KClient)
+			kubeCluster.Certificates, err = getClusterCerts(kubeCluster.KubeClient)
 			if err != nil {
 				return fmt.Errorf("Failed to Get Kubernetes certificates: %v", err)
 			}
@@ -34,7 +34,7 @@ func SetUpAuthentication(kubeCluster, currentCluster *Cluster, authType string) 
 	return nil
 }
 
-func getClusterCerts(kClient *kubernetes.Clientset) (map[string]pki.CertificatePKI, error) {
+func getClusterCerts(kubeClient *kubernetes.Clientset) (map[string]pki.CertificatePKI, error) {
 	logrus.Infof("[certificates] Getting Cluster certificates from Kubernetes")
 	certificatesNames := []string{
 		pki.CACertName,
@@ -47,7 +47,7 @@ func getClusterCerts(kClient *kubernetes.Clientset) (map[string]pki.CertificateP
 	}
 	certMap := make(map[string]pki.CertificatePKI)
 	for _, certName := range certificatesNames {
-		secret, err := k8s.GetSecret(kClient, certName)
+		secret, err := k8s.GetSecret(kubeClient, certName)
 		if err != nil {
 			return nil, err
 		}
@@ -64,10 +64,10 @@ func getClusterCerts(kClient *kubernetes.Clientset) (map[string]pki.CertificateP
 	return certMap, nil
 }
 
-func saveClusterCerts(kClient *kubernetes.Clientset, crts map[string]pki.CertificatePKI) error {
+func saveClusterCerts(kubeClient *kubernetes.Clientset, crts map[string]pki.CertificatePKI) error {
 	logrus.Infof("[certificates] Save kubernetes certificates as secrets")
 	for crtName, crt := range crts {
-		err := saveCertToKubernetes(kClient, crtName, crt)
+		err := saveCertToKubernetes(kubeClient, crtName, crt)
 		if err != nil {
 			return fmt.Errorf("Failed to save certificate [%s] to kubernetes: %v", crtName, err)
 		}
@@ -76,23 +76,23 @@ func saveClusterCerts(kClient *kubernetes.Clientset, crts map[string]pki.Certifi
 	return nil
 }
 
-func saveCertToKubernetes(kClient *kubernetes.Clientset, crtName string, crt pki.CertificatePKI) error {
+func saveCertToKubernetes(kubeClient *kubernetes.Clientset, crtName string, crt pki.CertificatePKI) error {
 	logrus.Debugf("[certificates] Saving certificate [%s] to kubernetes", crtName)
 	timeout := make(chan bool, 1)
 	go func() {
 		for {
-			err := k8s.UpdateSecret(kClient, "Certificate", cert.EncodeCertPEM(crt.Certificate), crtName)
+			err := k8s.UpdateSecret(kubeClient, "Certificate", cert.EncodeCertPEM(crt.Certificate), crtName)
 			if err != nil {
 				time.Sleep(time.Second * 5)
 				continue
 			}
-			err = k8s.UpdateSecret(kClient, "Key", cert.EncodePrivateKeyPEM(crt.Key), crtName)
+			err = k8s.UpdateSecret(kubeClient, "Key", cert.EncodePrivateKeyPEM(crt.Key), crtName)
 			if err != nil {
 				time.Sleep(time.Second * 5)
 				continue
 			}
 			if len(crt.Config) > 0 {
-				err = k8s.UpdateSecret(kClient, "Config", []byte(crt.Config), crtName)
+				err = k8s.UpdateSecret(kubeClient, "Config", []byte(crt.Config), crtName)
 				if err != nil {
 					time.Sleep(time.Second * 5)
 					continue
@@ -108,5 +108,4 @@ func saveCertToKubernetes(kClient *kubernetes.Clientset, crtName string, crt pki
 	case <-time.After(time.Second * KubernetesClientTimeOut):
 		return fmt.Errorf("[certificates] Timeout waiting for kubernetes to be ready")
 	}
-	return nil
 }

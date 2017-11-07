@@ -18,7 +18,7 @@ type Cluster struct {
 	EtcdHosts           []hosts.Host
 	WorkerHosts         []hosts.Host
 	ControlPlaneHosts   []hosts.Host
-	KClient             *kubernetes.Clientset
+	KubeClient          *kubernetes.Clientset
 	KubernetesServiceIP net.IP
 	Certificates        map[string]pki.CertificatePKI
 	ClusterDomain       string
@@ -60,7 +60,7 @@ func ParseConfig(clusterFile string) (*Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)
 	}
-	c.KubernetesServiceIP, err = services.GetKubernetesServiceIp(c.Services.KubeAPI.ServiceClusterIPRange)
+	c.KubernetesServiceIP, err = services.GetKubernetesServiceIP(c.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}

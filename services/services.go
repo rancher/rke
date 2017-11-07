@@ -18,7 +18,7 @@ const (
 	EtcdContainerName           = "etcd"
 )
 
-func GetKubernetesServiceIp(serviceClusterRange string) (net.IP, error) {
+func GetKubernetesServiceIP(serviceClusterRange string) (net.IP, error) {
 	ip, ipnet, err := net.ParseCIDR(serviceClusterRange)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get kubernetes service IP: %v", err)
