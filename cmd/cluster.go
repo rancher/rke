@@ -46,46 +46,46 @@ func ClusterCommand() cli.Command {
 
 func ClusterUp(clusterFile, authType string) (string, string, string, string, error) {
 	logrus.Infof("Building Kubernetes cluster")
-	var ApiURL, caCrt, clientCert, clientKey string
+	var APIURL, caCrt, clientCert, clientKey string
 	kubeCluster, err := cluster.ParseConfig(clusterFile)
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.TunnelHosts()
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	currentCluster, err := kubeCluster.GetClusterState()
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = cluster.SetUpAuthentication(kubeCluster, currentCluster, authType)
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.SetUpHosts(authType)
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.DeployClusterPlanes()
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.SaveClusterState(clusterFile)
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
-	ApiURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].IP + ":6443")
+	APIURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].IP + ":6443")
 	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
 	clientCert = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAdminCommonName].Certificate))
 	clientKey = string(cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAdminCommonName].Key))
-	return ApiURL, caCrt, clientCert, clientKey, nil
+	return APIURL, caCrt, clientCert, clientKey, nil
 }
 
 func clusterUpFromCli(ctx *cli.Context) error {

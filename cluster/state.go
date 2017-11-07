@@ -16,15 +16,15 @@ import (
 func (c *Cluster) SaveClusterState(clusterFile string) error {
 	// Reinitialize kubernetes Client
 	var err error
-	c.KClient, err = k8s.NewClient(pki.KubeAdminConfigPath)
+	c.KubeClient, err = k8s.NewClient(pki.KubeAdminConfigPath)
 	if err != nil {
 		return fmt.Errorf("Failed to re-initialize Kubernetes Client: %v", err)
 	}
-	err = saveClusterCerts(c.KClient, c.Certificates)
+	err = saveClusterCerts(c.KubeClient, c.Certificates)
 	if err != nil {
 		return fmt.Errorf("[certificates] Failed to Save Kubernetes certificates: %v", err)
 	}
-	err = saveStateToKubernetes(c.KClient, pki.KubeAdminConfigPath, []byte(clusterFile))
+	err = saveStateToKubernetes(c.KubeClient, pki.KubeAdminConfigPath, []byte(clusterFile))
 	if err != nil {
 		return fmt.Errorf("[state] Failed to save configuration state: %v", err)
 	}
@@ -34,18 +34,18 @@ func (c *Cluster) SaveClusterState(clusterFile string) error {
 func (c *Cluster) GetClusterState() (*Cluster, error) {
 	var err error
 	var currentCluster *Cluster
-	c.KClient, err = k8s.NewClient(pki.KubeAdminConfigPath)
+	c.KubeClient, err = k8s.NewClient(pki.KubeAdminConfigPath)
 	if err != nil {
 		logrus.Warnf("Failed to initiate new Kubernetes Client: %v", err)
 	} else {
 		// Handle pervious kubernetes state and certificate generation
-		currentCluster = getStateFromKubernetes(c.KClient, pki.KubeAdminConfigPath)
+		currentCluster = getStateFromKubernetes(c.KubeClient, pki.KubeAdminConfigPath)
 		if currentCluster != nil {
 			err = currentCluster.InvertIndexHosts()
 			if err != nil {
 				return nil, fmt.Errorf("Failed to classify hosts from fetched cluster: %v", err)
 			}
-			err = hosts.ReconcileWorkers(currentCluster.WorkerHosts, c.WorkerHosts, c.KClient)
+			err = hosts.ReconcileWorkers(currentCluster.WorkerHosts, c.WorkerHosts, c.KubeClient)
 			if err != nil {
 				return nil, fmt.Errorf("Failed to reconcile hosts: %v", err)
 			}
@@ -54,12 +54,12 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 	return currentCluster, nil
 }
 
-func saveStateToKubernetes(kClient *kubernetes.Clientset, kubeConfigPath string, clusterFile []byte) error {
+func saveStateToKubernetes(kubeClient *kubernetes.Clientset, kubeConfigPath string, clusterFile []byte) error {
 	logrus.Infof("[state] Saving cluster state to Kubernetes")
 	timeout := make(chan bool, 1)
 	go func() {
 		for {
-			err := k8s.UpdateConfigMap(kClient, clusterFile, StateConfigMapName)
+			err := k8s.UpdateConfigMap(kubeClient, clusterFile, StateConfigMapName)
 			if err != nil {
 				time.Sleep(time.Second * 5)
 				continue
@@ -77,7 +77,7 @@ func saveStateToKubernetes(kClient *kubernetes.Clientset, kubeConfigPath string,
 	}
 }
 
-func getStateFromKubernetes(kClient *kubernetes.Clientset, kubeConfigPath string) *Cluster {
+func getStateFromKubernetes(kubeClient *kubernetes.Clientset, kubeConfigPath string) *Cluster {
 	logrus.Infof("[state] Fetching cluster state from Kubernetes")
 	var cfgMap *v1.ConfigMap
 	var currentCluster Cluster
@@ -85,7 +85,7 @@ func getStateFromKubernetes(kClient *kubernetes.Clientset, kubeConfigPath string
 	timeout := make(chan bool, 1)
 	go func() {
 		for {
-			cfgMap, err = k8s.GetConfigMap(kClient, StateConfigMapName)
+			cfgMap, err = k8s.GetConfigMap(kubeClient, StateConfigMapName)
 			if err != nil {
 				time.Sleep(time.Second * 5)
 				continue
@@ -107,5 +107,4 @@ func getStateFromKubernetes(kClient *kubernetes.Clientset, kubeConfigPath string
 		logrus.Warnf("Timed out waiting for kubernetes cluster")
 		return nil
 	}
-	return nil
 }
