@@ -28,7 +28,7 @@ type Kubelet struct {
 	Image               string `yaml:"image"`
 	ClusterDomain       string `yaml:"cluster_domain"`
 	InfraContainerImage string `yaml:"infra_container_image"`
-	ClusterDnsServer    string `yaml:"cluster_dns_server"`
+	ClusterDNSServer    string `yaml:"cluster_dns_server"`
 }
 
 type Kubeproxy struct {

@@ -79,12 +79,12 @@ func ClusterUp(clusterFile, authType string) (string, string, string, string, er
 
 	err = kubeCluster.DeployNetworkPlugin()
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.DeployK8sAddOns()
 	if err != nil {
-		return ApiURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.SaveClusterState(clusterFile)
