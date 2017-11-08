@@ -1,23 +1,11 @@
 package k8s
 
 import (
-	"context"
-	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
-	"github.com/rancher/rke/docker"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/clientcmd"
-)
-
-const (
-	KubectlImage    = "melsayed/kubectl:latest"
-	KubctlContainer = "kubectl"
 )
 
 func NewClient(kubeConfigPath string) (*kubernetes.Clientset, error) {
@@ -99,48 +87,4 @@ func GetSecret(k8sClient *kubernetes.Clientset, secretName string) (*v1.Secret, 
 
 func DeleteNode(k8sClient *kubernetes.Clientset, nodeName string) error {
 	return k8sClient.Nodes().Delete(nodeName, &metav1.DeleteOptions{})
-}
-
-func RunKubectlCmd(dClient *client.Client, hostname string, cmd []string, withEnv []string) error {
-
-	logrus.Debugf("[kubectl] Using host [%s] for deployment", hostname)
-	logrus.Debugf("[kubectl] Pulling kubectl image..")
-
-	if err := docker.PullImage(dClient, hostname, KubectlImage); err != nil {
-		return err
-	}
-	env := []string{}
-	if withEnv != nil {
-		env = append(env, withEnv...)
-	}
-	imageCfg := &container.Config{
-		Image: KubectlImage,
-		Env:   env,
-		Cmd:   cmd,
-	}
-	logrus.Debugf("[kubectl] Creating kubectl container..")
-	resp, err := dClient.ContainerCreate(context.Background(), imageCfg, nil, nil, KubctlContainer)
-	if err != nil {
-		return fmt.Errorf("Failed to create kubectl container on host [%s]: %v", hostname, err)
-	}
-	logrus.Debugf("[kubectl] Container %s created..", resp.ID)
-	if err := dClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
-		return fmt.Errorf("Failed to start kubectl container on host [%s]: %v", hostname, err)
-	}
-	logrus.Debugf("[kubectl] running command: %s", cmd)
-	statusCh, errCh := dClient.ContainerWait(context.Background(), resp.ID, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return fmt.Errorf("Failed to execute kubectl container on host [%s]: %v", hostname, err)
-		}
-	case status := <-statusCh:
-		if status.StatusCode != 0 {
-			return fmt.Errorf("kubectl command failed on host [%s]: exit status %v", hostname, status.StatusCode)
-		}
-	}
-	if err := dClient.ContainerRemove(context.Background(), resp.ID, types.ContainerRemoveOptions{}); err != nil {
-		return fmt.Errorf("Failed to remove kubectl container on host[%s]: %v", hostname, err)
-	}
-	return nil
 }
