@@ -1,4 +1,5 @@
 ---
+network_plugin: flannel
 hosts:
   - hostname: server1
     ip: 1.1.1.1
@@ -27,6 +28,7 @@ services:
   kubelet:
     image: quay.io/coreos/hyperkube:v1.7.5_coreos.0
     cluster_domain: cluster.local
+    cluster_dns_server: 10.233.0.3
     infra_container_image: gcr.io/google_containers/pause-amd64:3.0
   kubeproxy:
     image: quay.io/coreos/hyperkube:v1.7.5_coreos.0
