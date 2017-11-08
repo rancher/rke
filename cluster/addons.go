@@ -9,15 +9,13 @@ import (
 )
 
 const (
-	ClusterDnsServerIPEnvName = "RKE_DNS_SERVER"
+	ClusterDNSServerIPEnvName = "RKE_DNS_SERVER"
 	ClusterDomainEnvName      = "RKE_CLUSTER_DOMAIN"
 )
 
 func (c *Cluster) DeployK8sAddOns() error {
-	if err := c.deployKubeDNS(); err != nil {
-		return err
-	}
-	return nil
+	err := c.deployKubeDNS()
+	return err
 }
 
 func (c *Cluster) deployKubeDNS() error {
@@ -27,7 +25,7 @@ func (c *Cluster) deployKubeDNS() error {
 
 	env := []string{
 		fmt.Sprintf("%s=%s", pki.KubeAdminConfigENVName, c.Certificates[pki.KubeAdminCommonName].Config),
-		fmt.Sprintf("%s=%s", ClusterDnsServerIPEnvName, c.ClusterDnsServer),
+		fmt.Sprintf("%s=%s", ClusterDNSServerIPEnvName, c.ClusterDNSServer),
 		fmt.Sprintf("%s=%s", ClusterDomainEnvName, c.ClusterDomain),
 	}
 

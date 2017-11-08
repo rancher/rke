@@ -24,7 +24,7 @@ type Cluster struct {
 	ClusterDomain       string
 	NetworkPlugin       string `yaml:"network_plugin"`
 	ClusterCIDR         string
-	ClusterDnsServer    string
+	ClusterDNSServer    string
 }
 
 const (
@@ -69,7 +69,7 @@ func ParseConfig(clusterFile string) (*Cluster, error) {
 	}
 	c.ClusterDomain = c.Services.Kubelet.ClusterDomain
 	c.ClusterCIDR = c.Services.KubeController.ClusterCIDR
-	c.ClusterDnsServer = c.Services.Kubelet.ClusterDnsServer
+	c.ClusterDNSServer = c.Services.Kubelet.ClusterDNSServer
 	return c, nil
 }
 
