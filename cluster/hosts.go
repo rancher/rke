@@ -38,13 +38,16 @@ func (c *Cluster) InvertIndexHosts() error {
 	for _, host := range c.Hosts {
 		for _, role := range host.Role {
 			logrus.Debugf("Host: " + host.Hostname + " has role: " + role)
+			newHost := hosts.Host{
+				RKEConfigHost: host,
+			}
 			switch role {
 			case services.ETCDRole:
-				c.EtcdHosts = append(c.EtcdHosts, host)
+				c.EtcdHosts = append(c.EtcdHosts, newHost)
 			case services.ControlRole:
-				c.ControlPlaneHosts = append(c.ControlPlaneHosts, host)
+				c.ControlPlaneHosts = append(c.ControlPlaneHosts, newHost)
 			case services.WorkerRole:
-				c.WorkerHosts = append(c.WorkerHosts, host)
+				c.WorkerHosts = append(c.WorkerHosts, newHost)
 			default:
 				return fmt.Errorf("Failed to recognize host [%s] role %s", host.Hostname, role)
 			}
@@ -53,8 +56,8 @@ func (c *Cluster) InvertIndexHosts() error {
 	return nil
 }
 
-func (c *Cluster) SetUpHosts(authType string) error {
-	if authType == X509AuthenticationProvider {
+func (c *Cluster) SetUpHosts() error {
+	if c.AuthType == X509AuthenticationProvider {
 		logrus.Infof("[certificates] Deploying kubernetes certificates to Cluster nodes")
 		err := pki.DeployCertificatesOnMasters(c.ControlPlaneHosts, c.Certificates)
 		if err != nil {

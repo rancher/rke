@@ -2,10 +2,11 @@ package services
 
 import (
 	"github.com/Sirupsen/logrus"
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
 )
 
-func RunControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlServices Services) error {
+func RunControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlServices v1.RKEConfigServices) error {
 	logrus.Infof("[%s] Building up Controller Plane..", ControlRole)
 	for _, host := range controlHosts {
 		// run kubeapi

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
@@ -8,12 +9,12 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-func runKubelet(host hosts.Host, kubeletService Kubelet, isMaster bool) error {
+func runKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) error {
 	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, isMaster)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.Hostname, WorkerRole)
 }
 
-func buildKubeletConfig(host hosts.Host, kubeletService Kubelet, isMaster bool) (*container.Config, *container.HostConfig) {
+func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeletService.Image,
 		Cmd: []string{"/hyperkube",

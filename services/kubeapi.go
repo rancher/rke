@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
@@ -8,13 +9,13 @@ import (
 	"github.com/rancher/rke/pki"
 )
 
-func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService KubeAPI) error {
+func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {
 	etcdConnString := getEtcdConnString(etcdHosts)
 	imageCfg, hostCfg := buildKubeAPIConfig(host, kubeAPIService, etcdConnString)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.Hostname, ControlRole)
 }
 
-func buildKubeAPIConfig(host hosts.Host, kubeAPIService KubeAPI, etcdConnString string) (*container.Config, *container.HostConfig) {
+func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeAPIService.Image,
 		Cmd: []string{"/hyperkube",

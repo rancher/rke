@@ -12,8 +12,8 @@ import (
 	"k8s.io/client-go/util/cert"
 )
 
-func SetUpAuthentication(kubeCluster, currentCluster *Cluster, authType string) error {
-	if authType == X509AuthenticationProvider {
+func SetUpAuthentication(kubeCluster, currentCluster *Cluster) error {
+	if kubeCluster.AuthType == X509AuthenticationProvider {
 		var err error
 		if currentCluster != nil {
 			kubeCluster.Certificates, err = getClusterCerts(kubeCluster.KubeClient)
