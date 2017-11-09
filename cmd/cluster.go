@@ -21,12 +21,6 @@ func ClusterCommand() cli.Command {
 			Value:  "cluster.yml",
 			EnvVar: "CLUSTER_FILE",
 		},
-		cli.StringFlag{
-			Name:   "auth-type",
-			Usage:  "Specify authentication type",
-			Value:  "x509",
-			EnvVar: "AUTH_TYPE",
-		},
 	}
 	return cli.Command{
 		Name:      "cluster",
@@ -44,7 +38,7 @@ func ClusterCommand() cli.Command {
 	}
 }
 
-func ClusterUp(clusterFile, authType string) (string, string, string, string, error) {
+func ClusterUp(clusterFile string) (string, string, string, string, error) {
 	logrus.Infof("Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
 	kubeCluster, err := cluster.ParseConfig(clusterFile)
@@ -62,12 +56,12 @@ func ClusterUp(clusterFile, authType string) (string, string, string, string, er
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
-	err = cluster.SetUpAuthentication(kubeCluster, currentCluster, authType)
+	err = cluster.SetUpAuthentication(kubeCluster, currentCluster)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
-	err = kubeCluster.SetUpHosts(authType)
+	err = kubeCluster.SetUpHosts()
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
@@ -99,12 +93,11 @@ func ClusterUp(clusterFile, authType string) (string, string, string, string, er
 }
 
 func clusterUpFromCli(ctx *cli.Context) error {
-	authType := ctx.String("auth-type")
 	clusterFile, err := resolveClusterFile(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to resolve cluster file: %v", err)
 	}
-	_, _, _, _, err = ClusterUp(clusterFile, authType)
+	_, _, _, _, err = ClusterUp(clusterFile)
 	return err
 }
 
