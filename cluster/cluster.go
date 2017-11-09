@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
@@ -13,8 +14,7 @@ import (
 )
 
 type Cluster struct {
-	Services            services.Services `yaml:"services"`
-	Hosts               []hosts.Host      `yaml:"hosts"`
+	v1.RKEConfig        `yaml:",inline"`
 	EtcdHosts           []hosts.Host
 	WorkerHosts         []hosts.Host
 	ControlPlaneHosts   []hosts.Host
@@ -22,7 +22,6 @@ type Cluster struct {
 	KubernetesServiceIP net.IP
 	Certificates        map[string]pki.CertificatePKI
 	ClusterDomain       string
-	NetworkPlugin       string `yaml:"network_plugin"`
 	ClusterCIDR         string
 	ClusterDNSServer    string
 }
