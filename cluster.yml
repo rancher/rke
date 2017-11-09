@@ -1,4 +1,5 @@
 ---
+auth_type: x509
 network_plugin: flannel
 hosts:
   - hostname: server1

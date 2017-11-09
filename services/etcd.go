@@ -2,13 +2,14 @@ package services
 
 import (
 	"github.com/Sirupsen/logrus"
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 )
 
-func RunEtcdPlane(etcdHosts []hosts.Host, etcdService Etcd) error {
+func RunEtcdPlane(etcdHosts []hosts.Host, etcdService v1.ETCDService) error {
 	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
 	for _, host := range etcdHosts {
 		imageCfg, hostCfg := buildEtcdConfig(host, etcdService)
@@ -21,7 +22,7 @@ func RunEtcdPlane(etcdHosts []hosts.Host, etcdService Etcd) error {
 	return nil
 }
 
-func buildEtcdConfig(host hosts.Host, etcdService Etcd) (*container.Config, *container.HostConfig) {
+func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: etcdService.Image,
 		Cmd: []string{"/usr/local/bin/etcd",

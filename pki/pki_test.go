@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
 )
 
@@ -17,10 +18,13 @@ const (
 func TestPKI(t *testing.T) {
 	cpHosts := []hosts.Host{
 		hosts.Host{
-			IP:               "1.1.1.1",
-			AdvertiseAddress: "192.168.1.5",
-			Role:             []string{"controlplane"},
-			Hostname:         "server1",
+			RKEConfigHost: v1.RKEConfigHost{
+				IP:               "1.1.1.1",
+				AdvertiseAddress: "192.168.1.5",
+				Role:             []string{"controlplane"},
+				Hostname:         "server1",
+			},
+			DClient: nil,
 		},
 	}
 	certificateMap, err := StartCertificatesGeneration(cpHosts, cpHosts, FakeClusterDomain, net.ParseIP(FakeKubernetesServiceIP))

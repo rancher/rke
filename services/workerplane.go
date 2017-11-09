@@ -2,10 +2,11 @@ package services
 
 import (
 	"github.com/Sirupsen/logrus"
+	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
 )
 
-func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerServices Services) error {
+func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerServices v1.RKEConfigServices) error {
 	logrus.Infof("[%s] Building up Worker Plane..", WorkerRole)
 	for _, host := range controlHosts {
 		// only one master for now
