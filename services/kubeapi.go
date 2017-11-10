@@ -51,5 +51,6 @@ func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdC
 			},
 		},
 	}
+	imageCfg.Cmd = append(imageCfg.Cmd, kubeAPIService.ExtraArgs...)
 	return imageCfg, hostCfg
 }
