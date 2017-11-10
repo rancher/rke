@@ -16,38 +16,38 @@ import (
 	"k8s.io/client-go/util/cert"
 )
 
-func convertCrtToENV(name string, certificate *x509.Certificate) string {
+func ConvertCrtToENV(name string, certificate *x509.Certificate) string {
 	encodedCrt := cert.EncodeCertPEM(certificate)
 	return fmt.Sprintf("%s=%s", name, string(encodedCrt))
 }
 
-func convertKeyToENV(name string, key *rsa.PrivateKey) string {
+func ConvertKeyToENV(name string, key *rsa.PrivateKey) string {
 	encodedKey := cert.EncodePrivateKeyPEM(key)
 	return fmt.Sprintf("%s=%s", name, string(encodedKey))
 }
 
-func convertConfigToENV(name string, config string) string {
+func ConvertConfigToENV(name string, config string) string {
 	return fmt.Sprintf("%s=%s", name, config)
 }
 
 func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
 	env := []string{
-		convertCrtToENV(CACertENVName, crtMap[CACertName].Certificate),
-		convertKeyToENV(CAKeyENVName, crtMap[CACertName].Key),
-		convertCrtToENV(KubeAPICertENVName, crtMap[KubeAPICertName].Certificate),
-		convertKeyToENV(KubeAPIKeyENVName, crtMap[KubeAPICertName].Key),
-		convertCrtToENV(KubeControllerCertENVName, crtMap[KubeControllerName].Certificate),
-		convertKeyToENV(KubeControllerKeyENVName, crtMap[KubeControllerName].Key),
-		convertConfigToENV(KubeControllerConfigENVName, crtMap[KubeControllerName].Config),
-		convertCrtToENV(KubeSchedulerCertENVName, crtMap[KubeSchedulerName].Certificate),
-		convertKeyToENV(KubeSchedulerKeyENVName, crtMap[KubeSchedulerName].Key),
-		convertConfigToENV(KubeSchedulerConfigENVName, crtMap[KubeSchedulerName].Config),
-		convertCrtToENV(KubeProxyCertENVName, crtMap[KubeProxyName].Certificate),
-		convertKeyToENV(KubeProxyKeyENVName, crtMap[KubeProxyName].Key),
-		convertConfigToENV(KubeProxyConfigENVName, crtMap[KubeProxyName].Config),
-		convertCrtToENV(KubeNodeCertENVName, crtMap[KubeNodeName].Certificate),
-		convertKeyToENV(KubeNodeKeyENVName, crtMap[KubeNodeName].Key),
-		convertConfigToENV(KubeNodeConfigENVName, crtMap[KubeNodeName].Config),
+		ConvertCrtToENV(CACertENVName, crtMap[CACertName].Certificate),
+		ConvertKeyToENV(CAKeyENVName, crtMap[CACertName].Key),
+		ConvertCrtToENV(KubeAPICertENVName, crtMap[KubeAPICertName].Certificate),
+		ConvertKeyToENV(KubeAPIKeyENVName, crtMap[KubeAPICertName].Key),
+		ConvertCrtToENV(KubeControllerCertENVName, crtMap[KubeControllerName].Certificate),
+		ConvertKeyToENV(KubeControllerKeyENVName, crtMap[KubeControllerName].Key),
+		ConvertConfigToENV(KubeControllerConfigENVName, crtMap[KubeControllerName].Config),
+		ConvertCrtToENV(KubeSchedulerCertENVName, crtMap[KubeSchedulerName].Certificate),
+		ConvertKeyToENV(KubeSchedulerKeyENVName, crtMap[KubeSchedulerName].Key),
+		ConvertConfigToENV(KubeSchedulerConfigENVName, crtMap[KubeSchedulerName].Config),
+		ConvertCrtToENV(KubeProxyCertENVName, crtMap[KubeProxyName].Certificate),
+		ConvertKeyToENV(KubeProxyKeyENVName, crtMap[KubeProxyName].Key),
+		ConvertConfigToENV(KubeProxyConfigENVName, crtMap[KubeProxyName].Config),
+		ConvertCrtToENV(KubeNodeCertENVName, crtMap[KubeNodeName].Certificate),
+		ConvertKeyToENV(KubeNodeKeyENVName, crtMap[KubeNodeName].Key),
+		ConvertConfigToENV(KubeNodeConfigENVName, crtMap[KubeNodeName].Config),
 	}
 	for i := range cpHosts {
 		err := doRunDeployer(&cpHosts[i], env)
@@ -60,13 +60,13 @@ func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]Certifi
 
 func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
 	env := []string{
-		convertCrtToENV(CACertENVName, crtMap[CACertName].Certificate),
-		convertCrtToENV(KubeProxyCertENVName, crtMap[KubeProxyName].Certificate),
-		convertKeyToENV(KubeProxyKeyENVName, crtMap[KubeProxyName].Key),
-		convertConfigToENV(KubeProxyConfigENVName, crtMap[KubeProxyName].Config),
-		convertCrtToENV(KubeNodeCertENVName, crtMap[KubeNodeName].Certificate),
-		convertKeyToENV(KubeNodeKeyENVName, crtMap[KubeNodeName].Key),
-		convertConfigToENV(KubeNodeConfigENVName, crtMap[KubeNodeName].Config),
+		ConvertCrtToENV(CACertENVName, crtMap[CACertName].Certificate),
+		ConvertCrtToENV(KubeProxyCertENVName, crtMap[KubeProxyName].Certificate),
+		ConvertKeyToENV(KubeProxyKeyENVName, crtMap[KubeProxyName].Key),
+		ConvertConfigToENV(KubeProxyConfigENVName, crtMap[KubeProxyName].Config),
+		ConvertCrtToENV(KubeNodeCertENVName, crtMap[KubeNodeName].Certificate),
+		ConvertKeyToENV(KubeNodeKeyENVName, crtMap[KubeNodeName].Key),
+		ConvertConfigToENV(KubeNodeConfigENVName, crtMap[KubeNodeName].Config),
 	}
 	for i := range workerHosts {
 		err := doRunDeployer(&workerHosts[i], env)
