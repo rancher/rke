@@ -31,6 +31,6 @@ func buildKubeproxyConfig(host hosts.Host, kubeproxyService v1.KubeproxyService)
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 		Privileged:    true,
 	}
-
+	imageCfg.Cmd = append(imageCfg.Cmd, kubeproxyService.ExtraArgs...)
 	return imageCfg, hostCfg
 }
