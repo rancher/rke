@@ -23,12 +23,20 @@ type KubectlCommand struct {
 
 func (c *Cluster) buildClusterConfigEnv() []string {
 	// This needs to be updated when add more configuration
-	return []string{
-		pki.ConvertConfigToENV(pki.KubeAdminConfigENVName, c.Certificates[pki.KubeAdminCommonName].Config),
-		pki.ConvertConfigToENV(ClusterCIDREnvName, c.ClusterCIDR),
-		pki.ConvertConfigToENV(ClusterDNSServerIPEnvName, c.ClusterDNSServer),
-		pki.ConvertConfigToENV(ClusterDomainEnvName, c.ClusterDomain),
+	environmentMap := map[string]string{
+		ClusterCIDREnvName:        c.ClusterCIDR,
+		ClusterDNSServerIPEnvName: c.ClusterDNSServer,
+		ClusterDomainEnvName:      c.ClusterDomain,
 	}
+	adminConfig := c.Certificates[pki.KubeAdminCommonName]
+	//build ClusterConfigEnv
+	env := []string{
+		adminConfig.ConfigToEnv(),
+	}
+	for k, v := range environmentMap {
+		env = append(env, fmt.Sprintf("%s=%s", k, v))
+	}
+	return env
 }
 
 func (c *Cluster) RunKubectlCmd(kubectlCmd *KubectlCommand) error {

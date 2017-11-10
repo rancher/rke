@@ -2,8 +2,6 @@ package pki
 
 import (
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"time"
@@ -13,42 +11,24 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
-	"k8s.io/client-go/util/cert"
 )
 
-func ConvertCrtToENV(name string, certificate *x509.Certificate) string {
-	encodedCrt := cert.EncodeCertPEM(certificate)
-	return fmt.Sprintf("%s=%s", name, string(encodedCrt))
-}
-
-func ConvertKeyToENV(name string, key *rsa.PrivateKey) string {
-	encodedKey := cert.EncodePrivateKeyPEM(key)
-	return fmt.Sprintf("%s=%s", name, string(encodedKey))
-}
-
-func ConvertConfigToENV(name string, config string) string {
-	return fmt.Sprintf("%s=%s", name, config)
-}
-
 func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
-	env := []string{
-		ConvertCrtToENV(CACertENVName, crtMap[CACertName].Certificate),
-		ConvertKeyToENV(CAKeyENVName, crtMap[CACertName].Key),
-		ConvertCrtToENV(KubeAPICertENVName, crtMap[KubeAPICertName].Certificate),
-		ConvertKeyToENV(KubeAPIKeyENVName, crtMap[KubeAPICertName].Key),
-		ConvertCrtToENV(KubeControllerCertENVName, crtMap[KubeControllerName].Certificate),
-		ConvertKeyToENV(KubeControllerKeyENVName, crtMap[KubeControllerName].Key),
-		ConvertConfigToENV(KubeControllerConfigENVName, crtMap[KubeControllerName].Config),
-		ConvertCrtToENV(KubeSchedulerCertENVName, crtMap[KubeSchedulerName].Certificate),
-		ConvertKeyToENV(KubeSchedulerKeyENVName, crtMap[KubeSchedulerName].Key),
-		ConvertConfigToENV(KubeSchedulerConfigENVName, crtMap[KubeSchedulerName].Config),
-		ConvertCrtToENV(KubeProxyCertENVName, crtMap[KubeProxyName].Certificate),
-		ConvertKeyToENV(KubeProxyKeyENVName, crtMap[KubeProxyName].Key),
-		ConvertConfigToENV(KubeProxyConfigENVName, crtMap[KubeProxyName].Config),
-		ConvertCrtToENV(KubeNodeCertENVName, crtMap[KubeNodeName].Certificate),
-		ConvertKeyToENV(KubeNodeKeyENVName, crtMap[KubeNodeName].Key),
-		ConvertConfigToENV(KubeNodeConfigENVName, crtMap[KubeNodeName].Config),
+	// list of certificates that should be deployed on the masters
+	crtList := []string{
+		CACertName,
+		KubeAPICertName,
+		KubeControllerName,
+		KubeSchedulerName,
+		KubeProxyName,
+		KubeNodeName,
 	}
+	env := []string{}
+	for _, crtName := range crtList {
+		c := crtMap[crtName]
+		env = append(env, c.ToEnv()...)
+	}
+
 	for i := range cpHosts {
 		err := doRunDeployer(&cpHosts[i], env)
 		if err != nil {
@@ -59,15 +39,18 @@ func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]Certifi
 }
 
 func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
-	env := []string{
-		ConvertCrtToENV(CACertENVName, crtMap[CACertName].Certificate),
-		ConvertCrtToENV(KubeProxyCertENVName, crtMap[KubeProxyName].Certificate),
-		ConvertKeyToENV(KubeProxyKeyENVName, crtMap[KubeProxyName].Key),
-		ConvertConfigToENV(KubeProxyConfigENVName, crtMap[KubeProxyName].Config),
-		ConvertCrtToENV(KubeNodeCertENVName, crtMap[KubeNodeName].Certificate),
-		ConvertKeyToENV(KubeNodeKeyENVName, crtMap[KubeNodeName].Key),
-		ConvertConfigToENV(KubeNodeConfigENVName, crtMap[KubeNodeName].Config),
+	// list of certificates that should be deployed on the workers
+	crtList := []string{
+		CACertName,
+		KubeProxyName,
+		KubeNodeName,
 	}
+	env := []string{}
+	for _, crtName := range crtList {
+		c := crtMap[crtName]
+		env = append(env, c.ToEnv()...)
+	}
+
 	for i := range workerHosts {
 		err := doRunDeployer(&workerHosts[i], env)
 		if err != nil {
