@@ -108,3 +108,18 @@ func getStateFromKubernetes(kubeClient *kubernetes.Clientset, kubeConfigPath str
 		return nil
 	}
 }
+
+func GetK8sVersion() (string, error) {
+	logrus.Debugf("[version] Using admin.config to connect to Kubernetes cluster..")
+	k8sClient, err := k8s.NewClient(pki.KubeAdminConfigPath)
+	if err != nil {
+		return "", fmt.Errorf("Failed to create Kubernetes Client: %v", err)
+	}
+	discoveryClient := k8sClient.DiscoveryClient
+	logrus.Debugf("[version] Getting Kubernetes server version..")
+	serverVersion, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return "", fmt.Errorf("Failed to get Kubernetes server version: %v", err)
+	}
+	return fmt.Sprintf("%#v", *serverVersion), nil
+}
