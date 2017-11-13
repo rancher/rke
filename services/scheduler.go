@@ -29,5 +29,6 @@ func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService)
 		},
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 	}
+	imageCfg.Cmd = append(imageCfg.Cmd, schedulerService.ExtraArgs...)
 	return imageCfg, hostCfg
 }

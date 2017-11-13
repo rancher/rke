@@ -67,5 +67,6 @@ func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMas
 			},
 		},
 	}
+	imageCfg.Cmd = append(imageCfg.Cmd, kubeletService.ExtraArgs...)
 	return imageCfg, hostCfg
 }

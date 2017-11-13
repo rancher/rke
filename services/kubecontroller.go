@@ -38,5 +38,6 @@ func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (
 		},
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 	}
+	imageCfg.Cmd = append(imageCfg.Cmd, kubeControllerService.ExtraArgs...)
 	return imageCfg, hostCfg
 }
