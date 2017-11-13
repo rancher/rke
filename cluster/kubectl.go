@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/pki"
+	"github.com/sirupsen/logrus"
 )
 
 const (

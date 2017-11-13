@@ -1,12 +1,12 @@
 package services
 
 import (
-	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/types/io.cattle.cluster/v1"
 )
 
 func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {

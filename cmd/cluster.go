@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"k8s.io/client-go/util/cert"
 )
