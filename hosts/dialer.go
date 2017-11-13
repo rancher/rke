@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/client"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 

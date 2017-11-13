@@ -3,10 +3,10 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	"github.com/sirupsen/logrus"
 )
 
 func (c *Cluster) TunnelHosts() error {

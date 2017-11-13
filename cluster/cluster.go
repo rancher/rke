@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 )
