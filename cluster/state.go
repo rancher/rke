@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/pki"
+	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
+	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
 )
 
 func (c *Cluster) SaveClusterState(clusterFile string) error {

@@ -6,8 +6,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/types/client/cluster/v1"
 )
 
 const (
