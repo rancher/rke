@@ -54,6 +54,7 @@ func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService) (*container.Co
 			},
 		},
 	}
+	imageCfg.Cmd = append(imageCfg.Cmd, etcdService.ExtraArgs...)
 	return imageCfg, hostCfg
 }
 
