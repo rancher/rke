@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/hosts"
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/cert"
 )
 

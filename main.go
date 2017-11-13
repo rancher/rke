@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/cmd"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 

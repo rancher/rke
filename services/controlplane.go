@@ -1,9 +1,9 @@
 package services
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/sirupsen/logrus"
 )
 
 func RunControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlServices v1.RKEConfigServices) error {

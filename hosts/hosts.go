@@ -1,10 +1,10 @@
 package hosts
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/alena1108/cluster-controller/client/v1"
 	"github.com/docker/docker/client"
 	"github.com/rancher/rke/k8s"
+	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
 

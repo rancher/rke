@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/pki"
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/cert"
 )
