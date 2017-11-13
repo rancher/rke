@@ -34,6 +34,12 @@ func ClusterCommand() cli.Command {
 				Action: clusterUpFromCli,
 				Flags:  clusterUpFlags,
 			},
+			cli.Command{
+				Name:   "version",
+				Usage:  "Show Cluster Kubernetes version",
+				Action: getClusterVersion,
+				Flags:  []cli.Flag{},
+			},
 		},
 	}
 }
@@ -119,4 +125,13 @@ func resolveClusterFile(ctx *cli.Context) (string, error) {
 	clusterFile = string(buf)
 
 	return clusterFile, nil
+}
+
+func getClusterVersion(ctx *cli.Context) error {
+	serverVersion, err := cluster.GetK8sVersion()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Server Version: %s\n", serverVersion)
+	return nil
 }
