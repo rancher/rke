@@ -1,16 +1,18 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
 func runKubeproxy(host hosts.Host, kubeproxyService v1.KubeproxyService) error {
 	imageCfg, hostCfg := buildKubeproxyConfig(host, kubeproxyService)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeproxyContainerName, host.Hostname, WorkerRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeproxyContainerName, host.AdvertisedHostname, WorkerRole)
 }
 
 func buildKubeproxyConfig(host hosts.Host, kubeproxyService v1.KubeproxyService) (*container.Config, *container.HostConfig) {
@@ -31,6 +33,9 @@ func buildKubeproxyConfig(host hosts.Host, kubeproxyService v1.KubeproxyService)
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 		Privileged:    true,
 	}
-	imageCfg.Cmd = append(imageCfg.Cmd, kubeproxyService.ExtraArgs...)
+	for arg, value := range kubeproxyService.ExtraArgs {
+		cmd := fmt.Sprintf("--%s=%s", arg, value)
+		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+	}
 	return imageCfg, hostCfg
 }

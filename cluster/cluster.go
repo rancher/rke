@@ -7,23 +7,23 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 )
 
 type Cluster struct {
-	v1.RKEConfig        `yaml:",inline"`
-	EtcdHosts           []hosts.Host
-	WorkerHosts         []hosts.Host
-	ControlPlaneHosts   []hosts.Host
-	KubeClient          *kubernetes.Clientset
-	KubernetesServiceIP net.IP
-	Certificates        map[string]pki.CertificatePKI
-	ClusterDomain       string
-	ClusterCIDR         string
-	ClusterDNSServer    string
+	v1.RancherKubernetesEngineConfig `yaml:",inline"`
+	EtcdHosts                        []hosts.Host
+	WorkerHosts                      []hosts.Host
+	ControlPlaneHosts                []hosts.Host
+	KubeClient                       *kubernetes.Clientset
+	KubernetesServiceIP              net.IP
+	Certificates                     map[string]pki.CertificatePKI
+	ClusterDomain                    string
+	ClusterCIDR                      string
+	ClusterDNSServer                 string
 }
 
 const (
@@ -80,7 +80,7 @@ func parseClusterFile(clusterFile string) (*Cluster, error) {
 		return nil, err
 	}
 	for i, host := range kubeCluster.Hosts {
-		if len(host.Hostname) == 0 {
+		if len(host.AdvertisedHostname) == 0 {
 			return nil, fmt.Errorf("Hostname for host (%d) is not provided", i+1)
 		} else if len(host.User) == 0 {
 			return nil, fmt.Errorf("User for host (%d) is not provided", i+1)

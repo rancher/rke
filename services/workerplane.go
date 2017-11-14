@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
 )
 
