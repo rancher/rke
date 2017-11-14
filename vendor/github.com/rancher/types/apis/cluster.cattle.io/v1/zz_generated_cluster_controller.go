@@ -15,11 +15,11 @@ import (
 var (
 	ClusterGroupVersionKind = schema.GroupVersionKind{
 		Version: "v1",
-		Group:   "io.cattle.cluster",
+		Group:   "cluster.cattle.io",
 		Kind:    "Cluster",
 	}
 	ClusterResource = metav1.APIResource{
-		Name:         "",
+		Name:         "clusters",
 		SingularName: "cluster",
 		Namespaced:   false,
 		Kind:         ClusterGroupVersionKind.Kind,
@@ -27,9 +27,9 @@ var (
 )
 
 type ClusterList struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Items             []Cluster
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Cluster
 }
 
 type ClusterHandlerFunc func(key string, obj *Cluster) error
