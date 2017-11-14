@@ -13,7 +13,7 @@ import (
 )
 
 func SetUpAuthentication(kubeCluster, currentCluster *Cluster) error {
-	if kubeCluster.AuthType == X509AuthenticationProvider {
+	if kubeCluster.Authentication.Strategy == X509AuthenticationProvider {
 		var err error
 		if currentCluster != nil {
 			kubeCluster.Certificates, err = getClusterCerts(kubeCluster.KubeClient)
@@ -55,9 +55,12 @@ func getClusterCerts(kubeClient *kubernetes.Clientset) (map[string]pki.Certifica
 		secretKey, _ := cert.ParsePrivateKeyPEM(secret.Data["Key"])
 		secretConfig := string(secret.Data["Config"])
 		certMap[certName] = pki.CertificatePKI{
-			Certificate: secretCert[0],
-			Key:         secretKey.(*rsa.PrivateKey),
-			Config:      secretConfig,
+			Certificate:   secretCert[0],
+			Key:           secretKey.(*rsa.PrivateKey),
+			Config:        secretConfig,
+			EnvName:       string(secret.Data["EnvName"]),
+			ConfigEnvName: string(secret.Data["ConfigEnvName"]),
+			KeyEnvName:    string(secret.Data["KeyEnvName"]),
 		}
 	}
 	logrus.Infof("[certificates] Successfully fetched Cluster certificates from Kubernetes")
@@ -91,7 +94,22 @@ func saveCertToKubernetes(kubeClient *kubernetes.Clientset, crtName string, crt 
 				time.Sleep(time.Second * 5)
 				continue
 			}
+			err = k8s.UpdateSecret(kubeClient, "EnvName", []byte(crt.EnvName), crtName)
+			if err != nil {
+				time.Sleep(time.Second * 5)
+				continue
+			}
+			err = k8s.UpdateSecret(kubeClient, "KeyEnvName", []byte(crt.KeyEnvName), crtName)
+			if err != nil {
+				time.Sleep(time.Second * 5)
+				continue
+			}
 			if len(crt.Config) > 0 {
+				err = k8s.UpdateSecret(kubeClient, "ConfigEnvName", []byte(crt.ConfigEnvName), crtName)
+				if err != nil {
+					time.Sleep(time.Second * 5)
+					continue
+				}
 				err = k8s.UpdateSecret(kubeClient, "Config", []byte(crt.Config), crtName)
 				if err != nil {
 					time.Sleep(time.Second * 5)

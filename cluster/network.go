@@ -11,10 +11,10 @@ const (
 )
 
 func (c *Cluster) DeployNetworkPlugin() error {
-	logrus.Infof("[network] Setting up network plugin: %s", c.NetworkPlugin)
+	logrus.Infof("[network] Setting up network plugin: %s", c.Network.Plugin)
 
 	kubectlCmd := &KubectlCommand{
-		Cmd: []string{"apply -f /network/" + c.NetworkPlugin + ".yaml"},
+		Cmd: []string{"apply -f /network/" + c.Network.Plugin + ".yaml"},
 	}
 	logrus.Infof("[network] Executing the deploy command..")
 	err := c.RunKubectlCmd(kubectlCmd)
