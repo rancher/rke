@@ -3,7 +3,7 @@ package hosts
 import (
 	"github.com/docker/docker/client"
 	"github.com/rancher/rke/k8s"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -17,7 +17,7 @@ func ReconcileWorkers(currentWorkers []Host, newWorkers []Host, kubeClient *kube
 	for _, currentWorker := range currentWorkers {
 		found := false
 		for _, newWorker := range newWorkers {
-			if currentWorker.Hostname == newWorker.Hostname {
+			if currentWorker.AdvertisedHostname == newWorker.AdvertisedHostname {
 				found = true
 			}
 		}
@@ -31,11 +31,11 @@ func ReconcileWorkers(currentWorkers []Host, newWorkers []Host, kubeClient *kube
 }
 
 func deleteWorkerNode(workerNode *Host, kubeClient *kubernetes.Clientset) error {
-	logrus.Infof("[hosts] Deleting host [%s] from the cluster", workerNode.Hostname)
-	err := k8s.DeleteNode(kubeClient, workerNode.Hostname)
+	logrus.Infof("[hosts] Deleting host [%s] from the cluster", workerNode.AdvertisedHostname)
+	err := k8s.DeleteNode(kubeClient, workerNode.AdvertisedHostname)
 	if err != nil {
 		return err
 	}
-	logrus.Infof("[hosts] Successfully deleted host [%s] from the cluster", workerNode.Hostname)
+	logrus.Infof("[hosts] Successfully deleted host [%s] from the cluster", workerNode.AdvertisedHostname)
 	return nil
 }

@@ -37,7 +37,7 @@ func (c *Cluster) InvertIndexHosts() error {
 	c.ControlPlaneHosts = make([]hosts.Host, 0)
 	for _, host := range c.Hosts {
 		for _, role := range host.Role {
-			logrus.Debugf("Host: " + host.Hostname + " has role: " + role)
+			logrus.Debugf("Host: " + host.AdvertisedHostname + " has role: " + role)
 			newHost := hosts.Host{
 				RKEConfigHost: host,
 			}
@@ -49,7 +49,7 @@ func (c *Cluster) InvertIndexHosts() error {
 			case services.WorkerRole:
 				c.WorkerHosts = append(c.WorkerHosts, newHost)
 			default:
-				return fmt.Errorf("Failed to recognize host [%s] role %s", host.Hostname, role)
+				return fmt.Errorf("Failed to recognize host [%s] role %s", host.AdvertisedHostname, role)
 			}
 		}
 	}
@@ -57,7 +57,7 @@ func (c *Cluster) InvertIndexHosts() error {
 }
 
 func (c *Cluster) SetUpHosts() error {
-	if c.AuthType == X509AuthenticationProvider {
+	if c.Authentication.Strategy == X509AuthenticationProvider {
 		logrus.Infof("[certificates] Deploying kubernetes certificates to Cluster nodes")
 		err := pki.DeployCertificatesOnMasters(c.ControlPlaneHosts, c.Certificates)
 		if err != nil {

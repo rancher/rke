@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/types/client/cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
 const (
@@ -19,10 +19,10 @@ func TestPKI(t *testing.T) {
 	cpHosts := []hosts.Host{
 		hosts.Host{
 			RKEConfigHost: v1.RKEConfigHost{
-				IP:               "1.1.1.1",
-				AdvertiseAddress: "192.168.1.5",
-				Role:             []string{"controlplane"},
-				Hostname:         "server1",
+				IP:                 "1.1.1.1",
+				AdvertiseAddress:   "192.168.1.5",
+				Role:               []string{"controlplane"},
+				AdvertisedHostname: "server1",
 			},
 			DClient: nil,
 		},

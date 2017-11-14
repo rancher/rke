@@ -1,16 +1,18 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
 func runKubeController(host hosts.Host, kubeControllerService v1.KubeControllerService) error {
 	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.Hostname, ControlRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.AdvertisedHostname, ControlRole)
 }
 
 func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (*container.Config, *container.HostConfig) {
@@ -38,6 +40,9 @@ func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (
 		},
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 	}
-	imageCfg.Cmd = append(imageCfg.Cmd, kubeControllerService.ExtraArgs...)
+	for arg, value := range kubeControllerService.ExtraArgs {
+		cmd := fmt.Sprintf("--%s=%s", arg, value)
+		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+	}
 	return imageCfg, hostCfg
 }

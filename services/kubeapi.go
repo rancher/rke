@@ -1,18 +1,20 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
 func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {
 	etcdConnString := getEtcdConnString(etcdHosts)
 	imageCfg, hostCfg := buildKubeAPIConfig(host, kubeAPIService, etcdConnString)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.Hostname, ControlRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.AdvertisedHostname, ControlRole)
 }
 
 func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
@@ -51,6 +53,10 @@ func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdC
 			},
 		},
 	}
-	imageCfg.Cmd = append(imageCfg.Cmd, kubeAPIService.ExtraArgs...)
+
+	for arg, value := range kubeAPIService.ExtraArgs {
+		cmd := fmt.Sprintf("--%s=%s", arg, value)
+		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+	}
 	return imageCfg, hostCfg
 }
