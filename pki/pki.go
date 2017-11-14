@@ -240,7 +240,7 @@ func getAltNames(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP
 		if host.IP != host.AdvertiseAddress {
 			ips = append(ips, net.ParseIP(host.AdvertiseAddress))
 		}
-		dnsNames = append(dnsNames, host.Hostname)
+		dnsNames = append(dnsNames, host.AdvertisedHostname)
 	}
 	ips = append(ips, net.ParseIP("127.0.0.1"))
 	ips = append(ips, KubernetesServiceIP)

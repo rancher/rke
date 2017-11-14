@@ -14,12 +14,10 @@ const (
 	ClusterConditionProvisioned = "Provisioned"
 	// ClusterConditionUpdating Cluster is being updating (upgrading, scaling up)
 	ClusterConditionUpdating = "Updating"
-	// ClusterConditionSufficientDisk true when all cluster nodes have sufficient disk
-	ClusterConditionSufficientDisk = "SufficientDisk"
-	// ClusterConditionSufficientMemory true when all cluster nodes have sufficient memory
-	ClusterConditionSufficientMemory = "SufficientMemory"
-	// ClusterConditionNoDiskPressure true when all cluster nodes have no disk pressure
+	// ClusterConditionNoDiskPressure true when all cluster nodes have sufficient disk
 	ClusterConditionNoDiskPressure = "NoDiskPressure"
+	// ClusterConditionNoMemoryPressure true when all cluster nodes have sufficient memory
+	ClusterConditionNoMemoryPressure = "NoMemoryPressure"
 	// More conditions can be added if unredlying controllers request it
 )
 
@@ -37,9 +35,9 @@ type Cluster struct {
 }
 
 type ClusterSpec struct {
-	GKEConfig *GKEConfig `json:"gkeConfig,omitempty"`
-	AKSConfig *AKSConfig `json:"aksConfig,omitempty"`
-	RKEConfig *RKEConfig `json:"rkeConfig,omitempty"`
+	GoogleKubernetesEngineConfig  *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
+	AzureKubernetesServiceConfig  *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
+	RancherKubernetesEngineConfig *RancherKubernetesEngineConfig `json:"rancherKubernetesEngineConfig,omitempty"`
 }
 
 type ClusterStatus struct {
@@ -54,6 +52,7 @@ type ClusterStatus struct {
 	CACert              string          `json:"caCert,omitempty"`
 	Capacity            v1.ResourceList `json:"capacity,omitempty"`
 	Allocatable         v1.ResourceList `json:"allocatable,omitempty"`
+	AppliedSpec         ClusterSpec     `json:"clusterSpec,omitempty"`
 }
 
 type ClusterComponentStatus struct {
@@ -74,7 +73,7 @@ type ClusterCondition struct {
 	Reason string `json:"reason,omitempty"`
 }
 
-type GKEConfig struct {
+type GoogleKubernetesEngineConfig struct {
 	// ProjectID is the ID of your project to use when creating a cluster
 	ProjectID string `json:"projectId,omitempty"`
 	// The zone to launch the cluster
@@ -83,14 +82,16 @@ type GKEConfig struct {
 	ClusterIpv4Cidr string `json:"clusterIpv4Cidr,omitempty"`
 	// An optional description of this cluster
 	Description string `json:"description,omitempty"`
-	// The number of nodes to create in this cluster
-	InitialNodeCount int64 `json:"initialNodeCount,omitempty"`
+	// The number of nodes in this cluster
+	NodeCount int64 `json:"nodeCount,omitempty"`
 	// Size of the disk attached to each node
 	DiskSizeGb int64 `json:"diskSizeGb,omitempty"`
 	// The name of a Google Compute Engine
 	MachineType string `json:"machineType,omitempty"`
-	// the initial kubernetes version
-	InitialClusterVersion string `json:"initialClusterVersion,omitempty"`
+	// Node kubernetes version
+	NodeVersion string `json:"nodeVersion,omitempty"`
+	// the master kubernetes version
+	MasterVersion string `json:"masterVersion,omitempty"`
 	// The map of Kubernetes labels (key/value pairs) to be applied
 	// to each node.
 	Labels map[string]string `json:"labels,omitempty"`
@@ -98,112 +99,114 @@ type GKEConfig struct {
 	CredentialPath string `json:"credentialPath,omitempty"`
 	// Enable alpha feature
 	EnableAlphaFeature bool `json:"enableAlphaFeature,omitempty"`
-	// NodePool id
-	NodePoolID string `json:"nodePoolId,omitempty"`
-
-	// Update Config
-	UpdateConfig gkeUpdateConfig `json:"updateConfig,omitempty"`
 }
 
-type gkeUpdateConfig struct {
-	// the number of node
-	NodeCount int64 `json:"nodeCount,omitempty"`
-	// Master kubernetes version
-	MasterVersion string `json:"masterVersion,omitempty"`
-	// Node kubernetes version
-	NodeVersion string `json:"nodeVersion,omitempty"`
-}
-
-type AKSConfig struct {
+type AzureKubernetesServiceConfig struct {
 	//TBD
 }
 
-type RKEConfig struct {
+type RancherKubernetesEngineConfig struct {
 	// Kubernetes nodes
-	Hosts []RKEConfigHost `yaml:"hosts"`
+	Hosts []RKEConfigHost `yaml:"hosts" json:"hosts,omitempty"`
 	// Kubernetes components
-	Services RKEConfigServices `yaml:"services"`
-	// Network plugin used in the kubernetes cluster (flannel, calico)
-	NetworkPlugin string `yaml:"network_plugin"`
-	// Authentication type used in the cluster (default: x509)
-	AuthType string `yaml:"auth_type"`
+	Services RKEConfigServices `yaml:"services" json:"services,omitempty"`
+	// Network configuration used in the kubernetes cluster (flannel, calico)
+	Network NetworkConfig `yaml:"network" json:"network,omitempty"`
+	// Authentication configuration used in the cluster (default: x509)
+	Authentication AuthConfig `yaml:"auth" json:"auth,omitempty"`
 }
 
 type RKEConfigHost struct {
 	// SSH IP address of the host
-	IP string `yaml:"ip"`
+	IP string `yaml:"ip" json:"ip,omitempty"`
 	// Advertised address that will be used for components communication
-	AdvertiseAddress string `yaml:"advertise_address"`
+	AdvertiseAddress string `yaml:"advertise_address" json:"advertiseAddress,omitempty"`
 	// Host role in kubernetes cluster (controlplane, worker, or etcd)
-	Role []string `yaml:"role"`
+	Role []string `yaml:"role" json:"role,omitempty"`
 	// Hostname of the host
-	Hostname string `yaml:"hostname"`
+	AdvertisedHostname string `yaml:"advertised_hostname" json:"advertisedHostname,omitempty"`
 	// SSH usesr that will be used by RKE
-	User string `yaml:"user"`
+	User string `yaml:"user" json:"user,omitempty"`
 	// Docker socket on the host that will be used in tunneling
-	DockerSocket string `yaml:"docker_socket"`
+	DockerSocket string `yaml:"docker_socket" json:"dockerSocket,omitempty"`
 }
 
 type RKEConfigServices struct {
 	// Etcd Service
-	Etcd ETCDService `yaml:"etcd"`
+	Etcd ETCDService `yaml:"etcd" json:"etcd,omitempty"`
 	// KubeAPI Service
-	KubeAPI KubeAPIService `yaml:"kube-api"`
+	KubeAPI KubeAPIService `yaml:"kube-api" json:"kube-api,omitempty"`
 	// KubeController Service
-	KubeController KubeControllerService `yaml:"kube-controller"`
+	KubeController KubeControllerService `yaml:"kube-controller" json:"kube-controller,omitempty"`
 	// Scheduler Service
-	Scheduler SchedulerService `yaml:"scheduler"`
+	Scheduler SchedulerService `yaml:"scheduler" json:"scheduler,omitempty"`
 	// Kubelet Service
-	Kubelet KubeletService `yaml:"kubelet"`
+	Kubelet KubeletService `yaml:"kubelet" json:"kubelet,omitempty"`
 	// KubeProxy Service
-	Kubeproxy KubeproxyService `yaml:"kubeproxy"`
+	Kubeproxy KubeproxyService `yaml:"kubeproxy" json:"kubeproxy,omitempty"`
 }
 
 type ETCDService struct {
 	// Base service properties
-	baseService `yaml:",inline"`
+	BaseService `yaml:",inline" json:",inline"`
 }
 
 type KubeAPIService struct {
 	// Base service properties
-	baseService `yaml:",inline"`
+	BaseService `yaml:",inline" json:",inline"`
 	// Virtual IP range that will be used by Kubernetes services
-	ServiceClusterIPRange string `yaml:"service_cluster_ip_range"`
+	ServiceClusterIPRange string `yaml:"service_cluster_ip_range" json:"serviceClusterIpRange,omitempty"`
 }
 
 type KubeControllerService struct {
 	// Base service properties
-	baseService `yaml:",inline"`
+	BaseService `yaml:",inline" json:",inline"`
 	// CIDR Range for Pods in cluster
-	ClusterCIDR string `yaml:"cluster_cidr"`
+	ClusterCIDR string `yaml:"cluster_cidr" json:"clusterCidr,omitempty"`
 	// Virtual IP range that will be used by Kubernetes services
-	ServiceClusterIPRange string `yaml:"service_cluster_ip_range"`
+	ServiceClusterIPRange string `yaml:"service_cluster_ip_range" json:"serviceClusterIpRange,omitempty"`
 }
 
 type KubeletService struct {
 	// Base service properties
-	baseService `yaml:",inline"`
+	BaseService `yaml:",inline" json:",inline"`
 	// Domain of the cluster (default: "cluster.local")
-	ClusterDomain string `yaml:"cluster_domain"`
+	ClusterDomain string `yaml:"cluster_domain" json:"clusterDomain,omitempty"`
 	// The image whose network/ipc namespaces containers in each pod will use
-	InfraContainerImage string `yaml:"infra_container_image"`
+	InfraContainerImage string `yaml:"infra_container_image" json:"infraContainerImage,omitempty"`
 	// Cluster DNS service ip
-	ClusterDNSServer string `yaml:"cluster_dns_server"`
+	ClusterDNSServer string `yaml:"cluster_dns_server" json:"clusterDnsServer,omitempty"`
 }
 
 type KubeproxyService struct {
 	// Base service properties
-	baseService `yaml:",inline"`
+	BaseService `yaml:",inline" json:",inline"`
 }
 
 type SchedulerService struct {
 	// Base service properties
-	baseService `yaml:",inline"`
+	BaseService `yaml:",inline" json:",inline"`
 }
 
-type baseService struct {
+type BaseService struct {
 	// Docker image of the service
-	Image string `yaml:"image"`
+	Image string `yaml:"image" json:"image,omitempty"`
+	// Extra arguments that are added to the services
+	ExtraArgs map[string]string `yaml:"extra_args" json:"extraArgs,omitempty"`
+}
+
+type NetworkConfig struct {
+	// Network Plugin That will be used in kubernetes cluster
+	Plugin string `yaml:"plugin" json:"plugin,omitempty"`
+	// Plugin options to configure network properties
+	Options map[string]string `yaml:"options" json:"options,omitempty"`
+}
+
+type AuthConfig struct {
+	// Authentication strategy that will be used in kubernetes cluster
+	Strategy string `yaml:"strategy" json:"strategy,omitempty"`
+	// Authentication options
+	Options map[string]string `yaml:"options" json:"options,omitempty"`
 }
 
 type ClusterNode struct {

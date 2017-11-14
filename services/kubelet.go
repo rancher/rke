@@ -1,17 +1,19 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
 func runKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) error {
 	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, isMaster)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.Hostname, WorkerRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.AdvertisedHostname, WorkerRole)
 }
 
 func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {
@@ -22,7 +24,7 @@ func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMas
 			"--v=2",
 			"--address=0.0.0.0",
 			"--cluster-domain=" + kubeletService.ClusterDomain,
-			"--hostname-override=" + host.Hostname,
+			"--hostname-override=" + host.AdvertisedHostname,
 			"--pod-infra-container-image=" + kubeletService.InfraContainerImage,
 			"--cgroup-driver=cgroupfs",
 			"--cgroups-per-qos=True",
@@ -67,6 +69,9 @@ func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMas
 			},
 		},
 	}
-	imageCfg.Cmd = append(imageCfg.Cmd, kubeletService.ExtraArgs...)
+	for arg, value := range kubeletService.ExtraArgs {
+		cmd := fmt.Sprintf("--%s=%s", arg, value)
+		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+	}
 	return imageCfg, hostCfg
 }

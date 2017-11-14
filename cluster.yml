@@ -1,6 +1,15 @@
 ---
-auth_type: x509
-network_plugin: flannel
+
+auth:
+  strategy: x509
+  options:
+    foo: bar
+
+network:
+  plugin:
+  options:
+    foo: bar
+
 hosts:
   - hostname: server1
     ip: 1.1.1.1

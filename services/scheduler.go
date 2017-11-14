@@ -1,16 +1,18 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/io.cattle.cluster/v1"
+	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
 func runScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
 	imageCfg, hostCfg := buildSchedulerConfig(host, schedulerService)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.Hostname, ControlRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.AdvertisedHostname, ControlRole)
 }
 
 func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {
@@ -29,6 +31,9 @@ func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService)
 		},
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 	}
-	imageCfg.Cmd = append(imageCfg.Cmd, schedulerService.ExtraArgs...)
+	for arg, value := range schedulerService.ExtraArgs {
+		cmd := fmt.Sprintf("--%s=%s", arg, value)
+		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+	}
 	return imageCfg, hostCfg
 }

@@ -61,8 +61,8 @@ func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]Cer
 }
 
 func doRunDeployer(host *hosts.Host, containerEnv []string) error {
-	logrus.Debugf("[certificates] Pulling Certificate downloader Image on host [%s]", host.Hostname)
-	err := docker.PullImage(host.DClient, host.Hostname, CrtDownloaderImage)
+	logrus.Debugf("[certificates] Pulling Certificate downloader Image on host [%s]", host.AdvertisedHostname)
+	err := docker.PullImage(host.DClient, host.AdvertisedHostname, CrtDownloaderImage)
 	if err != nil {
 		return err
 	}
@@ -79,15 +79,15 @@ func doRunDeployer(host *hosts.Host, containerEnv []string) error {
 	}
 	resp, err := host.DClient.ContainerCreate(context.Background(), imageCfg, hostCfg, nil, CrtDownloaderContainer)
 	if err != nil {
-		return fmt.Errorf("Failed to create Certificates deployer container on host [%s]: %v", host.Hostname, err)
+		return fmt.Errorf("Failed to create Certificates deployer container on host [%s]: %v", host.AdvertisedHostname, err)
 	}
 
 	if err := host.DClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
-		return fmt.Errorf("Failed to start Certificates deployer container on host [%s]: %v", host.Hostname, err)
+		return fmt.Errorf("Failed to start Certificates deployer container on host [%s]: %v", host.AdvertisedHostname, err)
 	}
 	logrus.Debugf("[certificates] Successfully started Certificate deployer container: %s", resp.ID)
 	for {
-		isDeployerRunning, err := docker.IsContainerRunning(host.DClient, host.Hostname, CrtDownloaderContainer)
+		isDeployerRunning, err := docker.IsContainerRunning(host.DClient, host.AdvertisedHostname, CrtDownloaderContainer)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func doRunDeployer(host *hosts.Host, containerEnv []string) error {
 			continue
 		}
 		if err := host.DClient.ContainerRemove(context.Background(), resp.ID, types.ContainerRemoveOptions{}); err != nil {
-			return fmt.Errorf("Failed to delete Certificates deployer container on host[%s]: %v", host.Hostname, err)
+			return fmt.Errorf("Failed to delete Certificates deployer container on host[%s]: %v", host.AdvertisedHostname, err)
 		}
 		return nil
 	}
