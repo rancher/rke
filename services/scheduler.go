@@ -8,11 +8,36 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/sirupsen/logrus"
 )
 
 func runScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
 	imageCfg, hostCfg := buildSchedulerConfig(host, schedulerService)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.AdvertisedHostname, ControlRole)
+}
+func upgradeScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
+	logrus.Debugf("[upgrade/Scheduler] Checking for deployed version")
+	containerInspect, err := docker.InspectContainer(host.DClient, host.AdvertisedHostname, SchedulerContainerName)
+	if err != nil {
+		return err
+	}
+	if containerInspect.Config.Image == schedulerService.Image {
+		logrus.Infof("[upgrade/Scheduler] Scheduler is already up to date")
+		return nil
+	}
+	logrus.Debugf("[upgrade/Scheduler] Stopping old container")
+	oldContainerName := "old-" + SchedulerContainerName
+	if err := docker.StopRenameContainer(host.DClient, host.AdvertisedHostname, SchedulerContainerName, oldContainerName); err != nil {
+		return err
+	}
+	// Container doesn't exist now!, lets deploy it!
+	logrus.Debugf("[upgrade/Scheduler] Deploying new container")
+	if err := runScheduler(host, schedulerService); err != nil {
+		return err
+	}
+	logrus.Debugf("[upgrade/Scheduler] Removing old container")
+	err = docker.RemoveContainer(host.DClient, host.AdvertisedHostname, oldContainerName)
+	return err
 }
 
 func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {
