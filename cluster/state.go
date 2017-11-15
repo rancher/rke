@@ -41,6 +41,10 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 		// Handle pervious kubernetes state and certificate generation
 		currentCluster = getStateFromKubernetes(c.KubeClient, pki.KubeAdminConfigPath)
 		if currentCluster != nil {
+			currentCluster.Certificates, err = getClusterCerts(c.KubeClient)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to Get Kubernetes certificates: %v", err)
+			}
 			err = currentCluster.InvertIndexHosts()
 			if err != nil {
 				return nil, fmt.Errorf("Failed to classify hosts from fetched cluster: %v", err)

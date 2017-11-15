@@ -2,6 +2,8 @@ package services
 
 import (
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/k8s"
+	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
 )
@@ -32,5 +34,57 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 		}
 	}
 	logrus.Infof("[%s] Successfully started Worker Plane..", WorkerRole)
+	return nil
+}
+
+func UpgradeWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerServices v1.RKEConfigServices) error {
+	logrus.Infof("[%s] Upgrading Worker Plane..", WorkerRole)
+	k8sClient, err := k8s.NewClient(pki.KubeAdminConfigPath)
+	if err != nil {
+		return err
+	}
+	for _, host := range controlHosts {
+		// cordone the node
+		logrus.Debugf("[upgrade] Cordoning node: %s", host.AdvertisedHostname)
+		if err = k8s.CordonUncordon(k8sClient, host.AdvertisedHostname, true); err != nil {
+			return err
+		}
+		err = upgradeKubelet(host, workerServices.Kubelet, true)
+		if err != nil {
+			return err
+		}
+		err = upgradeKubeproxy(host, workerServices.Kubeproxy)
+		if err != nil {
+			return err
+		}
+
+		logrus.Debugf("[upgrade] Uncordoning node: %s", host.AdvertisedHostname)
+		if err = k8s.CordonUncordon(k8sClient, host.AdvertisedHostname, false); err != nil {
+			return err
+		}
+	}
+	for _, host := range workerHosts {
+		// cordone the node
+		logrus.Debugf("[upgrade] Cordoning node: %s", host.AdvertisedHostname)
+		if err = k8s.CordonUncordon(k8sClient, host.AdvertisedHostname, true); err != nil {
+			return err
+		}
+		// upgrade kubelet
+		err := upgradeKubelet(host, workerServices.Kubelet, false)
+		if err != nil {
+			return err
+		}
+		// upgrade kubeproxy
+		err = upgradeKubeproxy(host, workerServices.Kubeproxy)
+		if err != nil {
+			return err
+		}
+
+		logrus.Debugf("[upgrade] Uncordoning node: %s", host.AdvertisedHostname)
+		if err = k8s.CordonUncordon(k8sClient, host.AdvertisedHostname, false); err != nil {
+			return err
+		}
+	}
+	logrus.Infof("[%s] Successfully upgraded Worker Plane..", WorkerRole)
 	return nil
 }

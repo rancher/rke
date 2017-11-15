@@ -28,3 +28,26 @@ func RunControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlS
 	logrus.Infof("[%s] Successfully started Controller Plane..", ControlRole)
 	return nil
 }
+
+func UpgradeControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlServices v1.RKEConfigServices) error {
+	logrus.Infof("[%s] Upgrading the Controller Plane..", ControlRole)
+	for _, host := range controlHosts {
+		// upgrade KubeAPI
+		if err := upgradeKubeAPI(host, etcdHosts, controlServices.KubeAPI); err != nil {
+			return err
+		}
+
+		// upgrade KubeController
+		if err := upgradeKubeController(host, controlServices.KubeController); err != nil {
+			return nil
+		}
+
+		// upgrade scheduler
+		err := upgradeScheduler(host, controlServices.Scheduler)
+		if err != nil {
+			return err
+		}
+	}
+	logrus.Infof("[%s] Successfully upgraded Controller Plane..", ControlRole)
+	return nil
+}
