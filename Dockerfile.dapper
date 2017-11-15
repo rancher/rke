@@ -22,7 +22,7 @@ RUN wget -O - ${!DOCKER_URL} > /usr/bin/docker && chmod +x /usr/bin/docker
 
 ENV DAPPER_SOURCE /go/src/github.com/rancher/rke/
 ENV DAPPER_RUN_ARGS --privileged -v /var/lib/docker
-ENV DAPPER_OUTPUT ./bin ./dist
+ENV DAPPER_OUTPUT ./bin ./dist ./build/bin
 ENV DAPPER_DOCKER_SOCKET true
 ENV DAPPER_ENV TAG REPO GOOS CROSS
 ENV TRASH_CACHE ${DAPPER_SOURCE}/.trash-cache
