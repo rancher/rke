@@ -9,12 +9,38 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/sirupsen/logrus"
 )
 
 func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {
 	etcdConnString := getEtcdConnString(etcdHosts)
 	imageCfg, hostCfg := buildKubeAPIConfig(host, kubeAPIService, etcdConnString)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.AdvertisedHostname, ControlRole)
+}
+
+func upgradeKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {
+	logrus.Debugf("[upgrade/KubeAPI] Checking for deployed version")
+	containerInspect, err := docker.InspectContainer(host.DClient, host.AdvertisedHostname, KubeAPIContainerName)
+	if err != nil {
+		return err
+	}
+	if containerInspect.Config.Image == kubeAPIService.Image {
+		logrus.Infof("[upgrade/KubeAPI] KubeAPI is already up to date")
+		return nil
+	}
+	logrus.Debugf("[upgrade/KubeAPI] Stopping old container")
+	oldContainerName := "old-" + KubeAPIContainerName
+	if err := docker.StopRenameContainer(host.DClient, host.AdvertisedHostname, KubeAPIContainerName, oldContainerName); err != nil {
+		return err
+	}
+	// Container doesn't exist now!, lets deploy it!
+	logrus.Debugf("[upgrade/KubeAPI] Deploying new container")
+	if err := runKubeAPI(host, etcdHosts, kubeAPIService); err != nil {
+		return err
+	}
+	logrus.Debugf("[upgrade/KubeAPI] Removing old container")
+	err = docker.RemoveContainer(host.DClient, host.AdvertisedHostname, oldContainerName)
+	return err
 }
 
 func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {

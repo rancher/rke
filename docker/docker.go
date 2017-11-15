@@ -77,3 +77,65 @@ func RemoveContainer(dClient *client.Client, hostname string, containerName stri
 	}
 	return nil
 }
+
+func StopContainer(dClient *client.Client, hostname string, containerName string) error {
+	err := dClient.ContainerStop(context.Background(), containerName, nil)
+	if err != nil {
+		return fmt.Errorf("Can't stop Docker container %s for host [%s]: %v", containerName, hostname, err)
+	}
+	return nil
+}
+
+func RenameContainer(dClient *client.Client, hostname string, oldContainerName string, newContainerName string) error {
+	err := dClient.ContainerRename(context.Background(), oldContainerName, newContainerName)
+	if err != nil {
+		return fmt.Errorf("Can't rename Docker container %s for host [%s]: %v", oldContainerName, hostname, err)
+	}
+	return nil
+}
+
+func StartContainer(dClient *client.Client, hostname string, containerName string) error {
+	if err := dClient.ContainerStart(context.Background(), containerName, types.ContainerStartOptions{}); err != nil {
+		return fmt.Errorf("Failed to start %s container on host [%s]: %v", containerName, hostname, err)
+	}
+	return nil
+}
+
+func CreateContiner(dClient *client.Client, hostname string, containerName string, imageCfg *container.Config, hostCfg *container.HostConfig) (container.ContainerCreateCreatedBody, error) {
+	created, err := dClient.ContainerCreate(context.Background(), imageCfg, hostCfg, nil, containerName)
+	if err != nil {
+		return container.ContainerCreateCreatedBody{}, fmt.Errorf("Failed to create %s container on host [%s]: %v", containerName, hostname, err)
+	}
+	return created, nil
+}
+
+func InspectContainer(dClient *client.Client, hostname string, containerName string) (types.ContainerJSON, error) {
+	inspection, err := dClient.ContainerInspect(context.Background(), containerName)
+	if err != nil {
+		return types.ContainerJSON{}, fmt.Errorf("Failed to inspect %s container on host [%s]: %v", containerName, hostname, err)
+	}
+	return inspection, nil
+}
+
+func StopRenameContainer(dClient *client.Client, hostname string, oldContainerName string, newContainerName string) error {
+	if err := StopContainer(dClient, hostname, oldContainerName); err != nil {
+		return err
+	}
+	if err := WaitForContainer(dClient, oldContainerName); err != nil {
+		return nil
+	}
+	err := RenameContainer(dClient, hostname, oldContainerName, newContainerName)
+	return err
+}
+
+func WaitForContainer(dClient *client.Client, containerName string) error {
+	statusCh, errCh := dClient.ContainerWait(context.Background(), containerName, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return fmt.Errorf("Error wating for container [%s]: %v", containerName, err)
+		}
+	case <-statusCh:
+	}
+	return nil
+}

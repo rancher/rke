@@ -9,11 +9,37 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/sirupsen/logrus"
 )
 
 func runKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) error {
 	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, isMaster)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.AdvertisedHostname, WorkerRole)
+}
+
+func upgradeKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) error {
+	logrus.Debugf("[upgrade/Kubelet] Checking for deployed version")
+	containerInspect, err := docker.InspectContainer(host.DClient, host.AdvertisedHostname, KubeletContainerName)
+	if err != nil {
+		return err
+	}
+	if containerInspect.Config.Image == kubeletService.Image {
+		logrus.Infof("[upgrade/Kubelet] Kubelet is already up to date")
+		return nil
+	}
+	logrus.Debugf("[upgrade/Kubelet] Stopping old container")
+	oldContainerName := "old-" + KubeletContainerName
+	if err := docker.StopRenameContainer(host.DClient, host.AdvertisedHostname, KubeletContainerName, oldContainerName); err != nil {
+		return err
+	}
+	// Container doesn't exist now!, lets deploy it!
+	logrus.Debugf("[upgrade/Kubelet] Deploying new container")
+	if err := runKubelet(host, kubeletService, isMaster); err != nil {
+		return err
+	}
+	logrus.Debugf("[upgrade/Kubelet] Removing old container")
+	err = docker.RemoveContainer(host.DClient, host.AdvertisedHostname, oldContainerName)
+	return err
 }
 
 func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {

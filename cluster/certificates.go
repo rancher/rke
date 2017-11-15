@@ -16,10 +16,7 @@ func SetUpAuthentication(kubeCluster, currentCluster *Cluster) error {
 	if kubeCluster.Authentication.Strategy == X509AuthenticationProvider {
 		var err error
 		if currentCluster != nil {
-			kubeCluster.Certificates, err = getClusterCerts(kubeCluster.KubeClient)
-			if err != nil {
-				return fmt.Errorf("Failed to Get Kubernetes certificates: %v", err)
-			}
+			kubeCluster.Certificates = currentCluster.Certificates
 		} else {
 			kubeCluster.Certificates, err = pki.StartCertificatesGeneration(
 				kubeCluster.ControlPlaneHosts,
