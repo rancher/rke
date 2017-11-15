@@ -3,6 +3,7 @@ package cluster
 import (
 	"fmt"
 	"net"
+	"path/filepath"
 
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
@@ -15,6 +16,8 @@ import (
 
 type Cluster struct {
 	v1.RancherKubernetesEngineConfig `yaml:",inline"`
+	ConfigPath                       string `yaml:"config_path"`
+	LocalKubeConfigPath              string
 	EtcdHosts                        []hosts.Host
 	WorkerHosts                      []hosts.Host
 	ControlPlaneHosts                []hosts.Host
@@ -28,6 +31,7 @@ type Cluster struct {
 
 const (
 	X509AuthenticationProvider = "x509"
+	DefaultClusterConfig       = "cluster.yml"
 	StateConfigMapName         = "cluster-state"
 	UpdateStateTimeout         = 30
 	GetStateTimeout            = 30
@@ -69,6 +73,10 @@ func ParseConfig(clusterFile string) (*Cluster, error) {
 	c.ClusterDomain = c.Services.Kubelet.ClusterDomain
 	c.ClusterCIDR = c.Services.KubeController.ClusterCIDR
 	c.ClusterDNSServer = c.Services.Kubelet.ClusterDNSServer
+	if len(c.ConfigPath) == 0 {
+		c.ConfigPath = DefaultClusterConfig
+	}
+	c.LocalKubeConfigPath = GetLocalKubeConfig(c.ConfigPath)
 	return c, nil
 }
 
@@ -99,4 +107,11 @@ func parseClusterFile(clusterFile string) (*Cluster, error) {
 		}
 	}
 	return &kubeCluster, nil
+}
+
+func GetLocalKubeConfig(configPath string) string {
+	baseDir := filepath.Dir(configPath)
+	fileName := filepath.Base(configPath)
+	baseDir += "/"
+	return fmt.Sprintf("%s%s%s", baseDir, pki.KubeAdminConfigPrefix, fileName)
 }

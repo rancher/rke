@@ -56,6 +56,6 @@ const (
 
 	KubeAdminCommonName       = "kube-admin"
 	KubeAdminOrganizationName = "system:masters"
-	KubeAdminConfigPath       = "admin.config"
+	KubeAdminConfigPrefix     = ".kube_config_"
 	KubeAdminConfigENVName    = "KUBECFG_ADMIN"
 )
