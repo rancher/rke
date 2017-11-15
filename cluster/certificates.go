@@ -22,6 +22,7 @@ func SetUpAuthentication(kubeCluster, currentCluster *Cluster) error {
 				kubeCluster.ControlPlaneHosts,
 				kubeCluster.WorkerHosts,
 				kubeCluster.ClusterDomain,
+				kubeCluster.LocalKubeConfigPath,
 				kubeCluster.KubernetesServiceIP)
 			if err != nil {
 				return fmt.Errorf("Failed to generate Kubernetes certificates: %v", err)

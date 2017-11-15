@@ -13,8 +13,9 @@ import (
 
 func RunEtcdPlane(etcdHosts []hosts.Host, etcdService v1.ETCDService) error {
 	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
+	initCluster := getEtcdInitialCluster(etcdHosts)
 	for _, host := range etcdHosts {
-		imageCfg, hostCfg := buildEtcdConfig(host, etcdService)
+		imageCfg, hostCfg := buildEtcdConfig(host, etcdService, initCluster)
 		err := docker.DoRunContainer(host.DClient, imageCfg, hostCfg, EtcdContainerName, host.AdvertisedHostname, ETCDRole)
 		if err != nil {
 			return err
@@ -24,7 +25,7 @@ func RunEtcdPlane(etcdHosts []hosts.Host, etcdService v1.ETCDService) error {
 	return nil
 }
 
-func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService) (*container.Config, *container.HostConfig) {
+func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService, initCluster string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: etcdService.Image,
 		Cmd: []string{"/usr/local/bin/etcd",
@@ -35,7 +36,8 @@ func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService) (*container.Co
 			"--initial-advertise-peer-urls=http://" + host.AdvertiseAddress + ":2380",
 			"--listen-peer-urls=http://0.0.0.0:2380",
 			"--initial-cluster-token=etcd-cluster-1",
-			"--initial-cluster=etcd-" + host.AdvertisedHostname + "=http://" + host.AdvertiseAddress + ":2380"},
+			"--initial-cluster=" + initCluster,
+			"--initial-cluster-state=new"},
 	}
 	hostCfg := &container.HostConfig{
 		RestartPolicy: container.RestartPolicy{Name: "always"},
@@ -73,4 +75,15 @@ func getEtcdConnString(hosts []hosts.Host) string {
 		}
 	}
 	return connString
+}
+
+func getEtcdInitialCluster(hosts []hosts.Host) string {
+	initialCluster := ""
+	for i, host := range hosts {
+		initialCluster += fmt.Sprintf("etcd-%s=http://%s:2380", host.AdvertisedHostname, host.AdvertiseAddress)
+		if i < (len(hosts) - 1) {
+			initialCluster += ","
+		}
+	}
+	return initialCluster
 }

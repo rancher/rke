@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/rancher/rke/k8s"
-	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +11,7 @@ import (
 func (c *Cluster) ClusterUpgrade() error {
 	// make sure all nodes are Ready
 	logrus.Debugf("[upgrade] Checking node status")
-	if err := checkK8sNodesState(); err != nil {
+	if err := checkK8sNodesState(c.LocalKubeConfigPath); err != nil {
 		return err
 	}
 	// upgrade Contol Plane
@@ -24,15 +23,15 @@ func (c *Cluster) ClusterUpgrade() error {
 
 	// upgrade Worker Plane
 	logrus.Infof("[upgrade] Upgrading Worker Plane Services")
-	if err := services.UpgradeWorkerPlane(c.ControlPlaneHosts, c.WorkerHosts, c.Services); err != nil {
+	if err := services.UpgradeWorkerPlane(c.ControlPlaneHosts, c.WorkerHosts, c.Services, c.LocalKubeConfigPath); err != nil {
 		return err
 	}
 	logrus.Infof("[upgrade] Worker Plane Services updgraded successfully")
 	return nil
 }
 
-func checkK8sNodesState() error {
-	k8sClient, err := k8s.NewClient(pki.KubeAdminConfigPath)
+func checkK8sNodesState(localConfigPath string) error {
+	k8sClient, err := k8s.NewClient(localConfigPath)
 	if err != nil {
 		return err
 	}
