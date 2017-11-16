@@ -49,6 +49,7 @@ func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (
 			"controller-manager",
 			"--address=0.0.0.0",
 			"--cloud-provider=",
+			"--leader-elect=true",
 			"--kubeconfig=" + pki.KubeControllerConfigPath,
 			"--enable-hostpath-provisioner=false",
 			"--node-monitor-grace-period=40s",
@@ -65,6 +66,7 @@ func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
+		NetworkMode:   "host",
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 	}
 	for arg, value := range kubeControllerService.ExtraArgs {

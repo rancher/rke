@@ -18,7 +18,7 @@ func ClusterCommand() cli.Command {
 		cli.StringFlag{
 			Name:   "cluster-file",
 			Usage:  "Specify an alternate cluster YAML file",
-			Value:  "cluster.yml",
+			Value:  cluster.DefaultClusterConfig,
 			EnvVar: "CLUSTER_FILE",
 		},
 	}
@@ -46,7 +46,7 @@ func ClusterCommand() cli.Command {
 				Name:   "version",
 				Usage:  "Show Cluster Kubernetes version",
 				Action: getClusterVersion,
-				Flags:  []cli.Flag{},
+				Flags:  clusterUpFlags,
 			},
 			cli.Command{
 				Name:   "upgrade",
@@ -136,13 +136,21 @@ func resolveClusterFile(ctx *cli.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %v", err)
 	}
-	clusterFile = string(buf)
+	clusterFileBuff := string(buf)
 
-	return clusterFile, nil
+	/*
+		This is a hacky way to add config path to cluster object without messing with
+		ClusterUp function and to avoid conflict with calls from kontainer-engine, basically
+		i add config path (cluster.yml by default) to a field into the config buffer
+		to be parsed later and added as ConfigPath field into cluster object.
+	*/
+	clusterFileBuff = fmt.Sprintf("%s\nconfig_path: %s\n", clusterFileBuff, clusterFile)
+	return clusterFileBuff, nil
 }
 
 func getClusterVersion(ctx *cli.Context) error {
-	serverVersion, err := cluster.GetK8sVersion()
+	localKubeConfig := cluster.GetLocalKubeConfig(ctx.String("cluster-file"))
+	serverVersion, err := cluster.GetK8sVersion(localKubeConfig)
 	if err != nil {
 		return err
 	}

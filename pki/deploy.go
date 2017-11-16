@@ -102,9 +102,9 @@ func doRunDeployer(host *hosts.Host, containerEnv []string) error {
 	}
 }
 
-func DeployAdminConfig(kubeConfig string) error {
+func DeployAdminConfig(kubeConfig, localConfigPath string) error {
 	logrus.Debugf("Deploying admin Kubeconfig locally: %s", kubeConfig)
-	err := ioutil.WriteFile(KubeAdminConfigPath, []byte(kubeConfig), 0644)
+	err := ioutil.WriteFile(localConfigPath, []byte(kubeConfig), 0640)
 	if err != nil {
 		return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
 	}

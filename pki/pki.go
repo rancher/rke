@@ -27,16 +27,16 @@ type CertificatePKI struct {
 }
 
 // StartCertificatesGeneration ...
-func StartCertificatesGeneration(cpHosts []hosts.Host, workerHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
+func StartCertificatesGeneration(cpHosts []hosts.Host, workerHosts []hosts.Host, clusterDomain, localConfigPath string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
 	logrus.Infof("[certificates] Generating kubernetes certificates")
-	certs, err := generateCerts(cpHosts, clusterDomain, KubernetesServiceIP)
+	certs, err := generateCerts(cpHosts, clusterDomain, localConfigPath, KubernetesServiceIP)
 	if err != nil {
 		return nil, err
 	}
 	return certs, nil
 }
 
-func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
+func generateCerts(cpHosts []hosts.Host, clusterDomain, localConfigPath string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
 	certs := make(map[string]CertificatePKI)
 	// generate CA certificate and key
 	logrus.Infof("[certificates] Generating CA kubernetes certificates")
@@ -83,7 +83,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeControllerName] = CertificatePKI{
 		Certificate:   kubeControllerCrt,
 		Key:           kubeControllerKey,
-		Config:        getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeControllerName, CACertPath, KubeControllerCertPath, KubeControllerKeyPath),
+		Config:        getKubeConfigX509("https://127.0.0.1:6443", KubeControllerName, CACertPath, KubeControllerCertPath, KubeControllerKeyPath),
 		Name:          KubeControllerName,
 		CommonName:    KubeControllerCommonName,
 		EnvName:       KubeControllerCertENVName,
@@ -104,7 +104,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeSchedulerName] = CertificatePKI{
 		Certificate:   kubeSchedulerCrt,
 		Key:           kubeSchedulerKey,
-		Config:        getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeSchedulerName, CACertPath, KubeSchedulerCertPath, KubeSchedulerKeyPath),
+		Config:        getKubeConfigX509("https://127.0.0.1:6443", KubeSchedulerName, CACertPath, KubeSchedulerCertPath, KubeSchedulerKeyPath),
 		Name:          KubeSchedulerName,
 		CommonName:    KubeSchedulerCommonName,
 		EnvName:       KubeSchedulerCertENVName,
@@ -125,7 +125,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeProxyName] = CertificatePKI{
 		Certificate:   kubeProxyCrt,
 		Key:           kubeProxyKey,
-		Config:        getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
+		Config:        getKubeConfigX509("https://127.0.0.1:6443", KubeProxyName, CACertPath, KubeProxyCertPath, KubeProxyKeyPath),
 		Name:          KubeProxyName,
 		CommonName:    KubeProxyCommonName,
 		EnvName:       KubeProxyCertENVName,
@@ -146,7 +146,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 	certs[KubeNodeName] = CertificatePKI{
 		Certificate:   nodeCrt,
 		Key:           nodeKey,
-		Config:        getKubeConfigX509("https://"+cpHosts[0].AdvertiseAddress+":6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
+		Config:        getKubeConfigX509("https://127.0.0.1:6443", KubeNodeName, CACertPath, KubeNodeCertPath, KubeNodeKeyPath),
 		Name:          KubeNodeName,
 		CommonName:    KubeNodeCommonName,
 		OUName:        KubeNodeOrganizationName,
@@ -175,7 +175,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain string, KubernetesService
 		CommonName:    KubeAdminCommonName,
 		OUName:        KubeAdminOrganizationName,
 		ConfigEnvName: KubeAdminConfigENVName,
-		ConfigPath:    KubeAdminConfigPath,
+		ConfigPath:    localConfigPath,
 	}
 	return certs, nil
 }
