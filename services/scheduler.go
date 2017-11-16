@@ -45,6 +45,7 @@ func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService)
 		Image: schedulerService.Image,
 		Cmd: []string{"/hyperkube",
 			"scheduler",
+			"--leader-elect=true",
 			"--v=2",
 			"--address=0.0.0.0",
 			"--kubeconfig=" + pki.KubeSchedulerConfigPath,
@@ -54,6 +55,7 @@ func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService)
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
+		NetworkMode:   "host",
 		RestartPolicy: container.RestartPolicy{Name: "always"},
 	}
 	for arg, value := range schedulerService.ExtraArgs {
