@@ -188,6 +188,12 @@ func ClusterUpgrade(clusterFile string) (string, string, string, string, error) 
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
+
+	err = kubeCluster.SaveClusterState(clusterFile)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, err
+	}
+
 	logrus.Infof("Cluster upgraded successfully")
 
 	APIURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].IP + ":6443")
