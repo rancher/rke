@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
@@ -13,7 +12,8 @@ import (
 )
 
 type dialer struct {
-	host *Host
+	host   *Host
+	signer ssh.Signer
 }
 
 const (
@@ -23,7 +23,7 @@ const (
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	sshAddr := d.host.IP + ":22"
 	// Build SSH client configuration
-	cfg, err := makeSSHConfig(d.host.User)
+	cfg, err := makeSSHConfig(d.host.User, d.signer)
 	if err != nil {
 		logrus.Fatalf("Error configuring SSH: %v", err)
 	}
@@ -42,11 +42,12 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	return remote, err
 }
 
-func (h *Host) TunnelUp() error {
+func (h *Host) TunnelUp(signer ssh.Signer) error {
 	logrus.Infof("[ssh] Start tunnel for host [%s]", h.AdvertisedHostname)
 
 	dialer := &dialer{
-		host: h,
+		host:   h,
+		signer: signer,
 	}
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -64,26 +65,21 @@ func (h *Host) TunnelUp() error {
 	return nil
 }
 
-func privateKeyPath() string {
-	return os.Getenv("HOME") + "/.ssh/id_rsa"
-}
-
-// Get private key for ssh authentication
-func parsePrivateKey(keyPath string) (ssh.Signer, error) {
+func ParsePrivateKey(keyPath string) (ssh.Signer, error) {
 	buff, _ := ioutil.ReadFile(keyPath)
 	return ssh.ParsePrivateKey(buff)
 }
 
-func makeSSHConfig(user string) (*ssh.ClientConfig, error) {
-	key, err := parsePrivateKey(privateKeyPath())
-	if err != nil {
-		return nil, err
-	}
+func ParsePrivateKeyWithPassPhrase(keyPath string, passphrase []byte) (ssh.Signer, error) {
+	buff, _ := ioutil.ReadFile(keyPath)
+	return ssh.ParsePrivateKeyWithPassphrase(buff, passphrase)
+}
 
+func makeSSHConfig(user string, signer ssh.Signer) (*ssh.ClientConfig, error) {
 	config := ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(key),
+			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
