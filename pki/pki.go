@@ -166,7 +166,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain, localConfigPath string, 
 	certs[KubeAdminCommonName] = CertificatePKI{
 		Certificate: kubeAdminCrt,
 		Key:         kubeAdminKey,
-		Config: getKubeConfigX509WithData(
+		Config: GetKubeConfigX509WithData(
 			"https://"+cpHosts[0].IP+":6443",
 			KubeAdminCommonName,
 			string(cert.EncodeCertPEM(caCrt)),
