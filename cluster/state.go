@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
@@ -47,10 +46,6 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 			err = currentCluster.InvertIndexHosts()
 			if err != nil {
 				return nil, fmt.Errorf("Failed to classify hosts from fetched cluster: %v", err)
-			}
-			err = hosts.ReconcileWorkers(currentCluster.WorkerHosts, c.WorkerHosts, c.KubeClient)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to reconcile hosts: %v", err)
 			}
 		}
 	}

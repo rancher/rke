@@ -13,6 +13,15 @@ const (
 	NginxProxyEnvName = "CP_HOSTS"
 )
 
+func RollingUpdateNginxProxy(cpHosts []hosts.Host, workerHosts []hosts.Host) error {
+	nginxProxyEnv := buildProxyEnv(cpHosts)
+	for _, host := range workerHosts {
+		imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
+		return docker.DoRollingUpdateContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.AdvertisedHostname, WorkerRole)
+	}
+	return nil
+}
+
 func runNginxProxy(host hosts.Host, cpHosts []hosts.Host) error {
 	nginxProxyEnv := buildProxyEnv(cpHosts)
 	imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
