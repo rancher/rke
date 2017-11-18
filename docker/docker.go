@@ -40,6 +40,35 @@ func DoRunContainer(dClient *client.Client, imageCfg *container.Config, hostCfg 
 	return nil
 }
 
+func DoRollingUpdateContainer(dClient *client.Client, imageCfg *container.Config, hostCfg *container.HostConfig, containerName, hostname, plane string) error {
+	logrus.Debugf("[%s] Checking for deployed %s", plane, containerName)
+	isRunning, err := IsContainerRunning(dClient, hostname, containerName)
+	if err != nil {
+		return err
+	}
+	if !isRunning {
+		logrus.Infof("[%s] Container %s is not running on host [%s]", plane, containerName, hostname)
+		return nil
+	}
+	logrus.Debugf("[%s] Stopping old container", plane)
+	oldContainerName := "old-" + containerName
+	if err := StopRenameContainer(dClient, hostname, containerName, oldContainerName); err != nil {
+		return err
+	}
+	logrus.Infof("[%s] Successfully stopped old container %s on host [%s]", plane, containerName, hostname)
+	_, err = CreateContiner(dClient, hostname, containerName, imageCfg, hostCfg)
+	if err != nil {
+		return fmt.Errorf("Failed to create %s container on host [%s]: %v", containerName, hostname, err)
+	}
+	if err := StartContainer(dClient, hostname, containerName); err != nil {
+		return fmt.Errorf("Failed to start %s container on host [%s]: %v", containerName, hostname, err)
+	}
+	logrus.Infof("[%s] Successfully updated %s container on host [%s]", plane, containerName, hostname)
+	logrus.Debugf("[%s] Removing old container", plane)
+	err = RemoveContainer(dClient, hostname, oldContainerName)
+	return err
+}
+
 func IsContainerRunning(dClient *client.Client, hostname string, containerName string) (bool, error) {
 	logrus.Debugf("Checking if container %s is running on host [%s]", containerName, hostname)
 	containers, err := dClient.ContainerList(context.Background(), types.ContainerListOptions{})

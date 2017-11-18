@@ -24,7 +24,7 @@ users:
     client-key: ` + keyPath + ``
 }
 
-func getKubeConfigX509WithData(kubernetesURL string, componentName string, cacrt string, crt string, key string) string {
+func GetKubeConfigX509WithData(kubernetesURL string, componentName string, cacrt string, crt string, key string) string {
 	return `apiVersion: v1
 kind: Config
 clusters:

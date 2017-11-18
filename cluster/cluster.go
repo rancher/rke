@@ -6,12 +6,14 @@ import (
 	"path/filepath"
 
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/util/cert"
 )
 
 type Cluster struct {
@@ -114,4 +116,62 @@ func GetLocalKubeConfig(configPath string) string {
 	fileName := filepath.Base(configPath)
 	baseDir += "/"
 	return fmt.Sprintf("%s%s%s", baseDir, pki.KubeAdminConfigPrefix, fileName)
+}
+
+func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
+	logrus.Infof("[reconcile] Reconciling cluster state")
+	if currentCluster == nil {
+		logrus.Infof("[reconcile] This is newly generated cluster")
+		return nil
+	}
+	if err := rebuildLocalAdminConfig(kubeCluster); err != nil {
+		return err
+	}
+	kubeClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
+	}
+
+	logrus.Infof("[reconcile] Check Control plane hosts to be deleted")
+	cpToDelete := hosts.GetToDeleteHosts(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
+	for _, toDeleteHost := range cpToDelete {
+		hosts.DeleteNode(&toDeleteHost, kubeClient)
+	}
+
+	logrus.Infof("[reconcile] Check worker hosts to be deleted")
+	wpToDelete := hosts.GetToDeleteHosts(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
+	for _, toDeleteHost := range wpToDelete {
+		hosts.DeleteNode(&toDeleteHost, kubeClient)
+	}
+
+	// Rolling update on change for nginx Proxy
+	cpChanged := hosts.IsHostListChanged(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
+	if cpChanged {
+		logrus.Infof("[reconcile] Rolling update nginx hosts with new list of control plane hosts")
+		err = services.RollingUpdateNginxProxy(kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
+		if err != nil {
+			return fmt.Errorf("Failed to rolling update Nginx hosts with new control plane hosts")
+		}
+	}
+	logrus.Infof("[reconcile] Reconciled cluster state successfully")
+	return nil
+}
+
+func rebuildLocalAdminConfig(kubeCluster *Cluster) error {
+	logrus.Infof("[reconcile] Rebuilding and update local kube config")
+	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCommonName]
+	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
+	newConfig := pki.GetKubeConfigX509WithData(
+		"https://"+kubeCluster.ControlPlaneHosts[0].IP+":6443",
+		pki.KubeAdminCommonName,
+		string(cert.EncodeCertPEM(caCrt)),
+		string(cert.EncodeCertPEM(currentKubeConfig.Certificate)),
+		string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key)))
+	err := pki.DeployAdminConfig(newConfig, kubeCluster.LocalKubeConfigPath)
+	if err != nil {
+		return fmt.Errorf("Failed to redeploy local admin config with new host")
+	}
+	currentKubeConfig.Config = newConfig
+	kubeCluster.Certificates[pki.KubeAdminCommonName] = currentKubeConfig
+	return nil
 }
