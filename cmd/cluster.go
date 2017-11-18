@@ -105,6 +105,11 @@ func ClusterUp(clusterFile string) (string, string, string, string, error) {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
+	err = kubeCluster.DeployUserAddOns()
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, err
+	}
+
 	APIURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].IP + ":6443")
 	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
 	clientCert = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAdminCommonName].Certificate))

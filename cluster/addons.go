@@ -2,13 +2,16 @@ package cluster
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/rancher/rke/addons"
+	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	ClusterDNSServerIPEnvName = "RKE_DNS_SERVER"
-	ClusterDomainEnvName      = "RKE_CLUSTER_DOMAIN"
+	KubeDNSAddonResourceName = "rke-kubedns-addon"
+	UserAddonResourceName    = "rke-user-addon"
 )
 
 func (c *Cluster) DeployK8sAddOns() error {
@@ -16,18 +19,84 @@ func (c *Cluster) DeployK8sAddOns() error {
 	return err
 }
 
-func (c *Cluster) deployKubeDNS() error {
-	logrus.Infof("[plugins] Setting up KubeDNS")
+func (c *Cluster) DeployUserAddOns() error {
+	logrus.Infof("[addons] Setting up user addons..")
+	if c.Addons == "" {
+		logrus.Infof("[addons] No user addons configured..")
+		return nil
+	}
 
-	kubectlCmd := &KubectlCommand{
-		Cmd: []string{"apply -f /addons/kubedns*.yaml"},
+	if err := c.doAddonDeploy(c.Addons, UserAddonResourceName); err != nil {
+		return err
 	}
-	logrus.Infof("[plugins] Executing the deploy command..")
-	err := c.RunKubectlCmd(kubectlCmd)
-	if err != nil {
-		return fmt.Errorf("Failed to run kubectl command: %v", err)
-	}
-	logrus.Infof("[plugins] kubeDNS deployed successfully..")
+	logrus.Infof("[addons] User addon deployed successfully..")
 	return nil
 
+}
+
+func (c *Cluster) deployKubeDNS() error {
+	logrus.Infof("[addons] Setting up KubeDNS")
+
+	kubeDNSYaml := addons.GetKubeDNSManifest(c.ClusterDNSServer, c.ClusterDomain)
+
+	if err := c.doAddonDeploy(kubeDNSYaml, KubeDNSAddonResourceName); err != nil {
+		return err
+	}
+	logrus.Infof("[addons] KubeDNS deployed successfully..")
+	return nil
+
+}
+
+func (c *Cluster) doAddonDeploy(addonYaml, resourceName string) error {
+
+	err := c.StoreAddonConfigMap(addonYaml, resourceName)
+	if err != nil {
+		return fmt.Errorf("Failed to save addon ConfigMap: %v", err)
+	}
+
+	logrus.Infof("[addons] Executing deploy job..")
+
+	addonJob := addons.GetAddonsExcuteJob(resourceName, c.ControlPlaneHosts[0].AdvertisedHostname, c.Services.KubeAPI.Image)
+	err = c.ApplySystemAddonExcuteJob(addonJob)
+	if err != nil {
+		return fmt.Errorf("Failed to deploy addon execute job: %v", err)
+	}
+	return nil
+}
+
+func (c *Cluster) StoreAddonConfigMap(addonYaml string, addonName string) error {
+	logrus.Infof("[addons] Saving addon ConfigMap to Kubernetes")
+	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath)
+	if err != nil {
+		return err
+	}
+	timeout := make(chan bool, 1)
+	go func() {
+		for {
+			err := k8s.UpdateConfigMap(kubeClient, []byte(addonYaml), addonName)
+			if err != nil {
+				time.Sleep(time.Second * 5)
+				fmt.Println(err)
+				continue
+			}
+			logrus.Infof("[addons] Successfully Saved addon to Kubernetes ConfigMap: %s", addonName)
+			timeout <- true
+			break
+		}
+	}()
+	select {
+	case <-timeout:
+		return nil
+	case <-time.After(time.Second * UpdateStateTimeout):
+		return fmt.Errorf("[addons] Timeout waiting for kubernetes to be ready")
+	}
+}
+
+func (c *Cluster) ApplySystemAddonExcuteJob(addonJob string) error {
+
+	if err := k8s.ApplyK8sSystemJob(addonJob, c.LocalKubeConfigPath); err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
