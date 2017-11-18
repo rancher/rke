@@ -31,7 +31,7 @@ type Cluster struct {
 	Spec ClusterSpec `json:"spec"`
 	// Most recent observed status of the cluster. More info:
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
-	Status *ClusterStatus `json:"status"`
+	Status ClusterStatus `json:"status"`
 }
 
 type ClusterSpec struct {
@@ -46,13 +46,13 @@ type ClusterStatus struct {
 	Conditions []ClusterCondition `json:"conditions,omitempty"`
 	//Component statuses will represent cluster's components (etcd/controller/scheduler) health
 	// https://kubernetes.io/docs/api-reference/v1.8/#componentstatus-v1-core
-	ComponentStatuses   []ClusterComponentStatus
-	APIEndpoint         string          `json:"apiEndpoint,omitempty"`
-	ServiceAccountToken string          `json:"serviceAccountToken,omitempty"`
-	CACert              string          `json:"caCert,omitempty"`
-	Capacity            v1.ResourceList `json:"capacity,omitempty"`
-	Allocatable         v1.ResourceList `json:"allocatable,omitempty"`
-	AppliedSpec         ClusterSpec     `json:"clusterSpec,omitempty"`
+	ComponentStatuses   []ClusterComponentStatus `json:"componentStatuses,omitempty"`
+	APIEndpoint         string                   `json:"apiEndpoint,omitempty"`
+	ServiceAccountToken string                   `json:"serviceAccountToken,omitempty"`
+	CACert              string                   `json:"caCert,omitempty"`
+	Capacity            v1.ResourceList          `json:"capacity,omitempty"`
+	Allocatable         v1.ResourceList          `json:"allocatable,omitempty"`
+	AppliedSpec         ClusterSpec              `json:"appliedSpec,omitempty"`
 }
 
 type ClusterComponentStatus struct {
@@ -114,6 +114,8 @@ type RancherKubernetesEngineConfig struct {
 	Network NetworkConfig `yaml:"network" json:"network,omitempty"`
 	// Authentication configuration used in the cluster (default: x509)
 	Authentication AuthConfig `yaml:"auth" json:"auth,omitempty"`
+	// YAML manifest for user provided addons to be deployed on the cluster
+	Addons string `yaml:"addons" json:"addons,omitempty"`
 }
 
 type RKEConfigHost struct {
@@ -135,9 +137,9 @@ type RKEConfigServices struct {
 	// Etcd Service
 	Etcd ETCDService `yaml:"etcd" json:"etcd,omitempty"`
 	// KubeAPI Service
-	KubeAPI KubeAPIService `yaml:"kube-api" json:"kube-api,omitempty"`
+	KubeAPI KubeAPIService `yaml:"kube-api" json:"kubeApi,omitempty"`
 	// KubeController Service
-	KubeController KubeControllerService `yaml:"kube-controller" json:"kube-controller,omitempty"`
+	KubeController KubeControllerService `yaml:"kube-controller" json:"kubeController,omitempty"`
 	// Scheduler Service
 	Scheduler SchedulerService `yaml:"scheduler" json:"scheduler,omitempty"`
 	// Kubelet Service
