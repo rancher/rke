@@ -2,28 +2,37 @@ package cluster
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
 
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func (c *Cluster) TunnelHosts() error {
+	key, err := checkEncryptedKey()
+	if err != nil {
+		return fmt.Errorf("Failed to parse the private key: %v", err)
+	}
 	for i := range c.EtcdHosts {
-		err := c.EtcdHosts[i].TunnelUp()
+		err := c.EtcdHosts[i].TunnelUp(key)
 		if err != nil {
 			return fmt.Errorf("Failed to set up SSH tunneling for Etcd hosts: %v", err)
 		}
 	}
 	for i := range c.ControlPlaneHosts {
-		err := c.ControlPlaneHosts[i].TunnelUp()
+		err := c.ControlPlaneHosts[i].TunnelUp(key)
 		if err != nil {
 			return fmt.Errorf("Failed to set up SSH tunneling for Control hosts: %v", err)
 		}
 	}
 	for i := range c.WorkerHosts {
-		err := c.WorkerHosts[i].TunnelUp()
+		err := c.WorkerHosts[i].TunnelUp(key)
 		if err != nil {
 			return fmt.Errorf("Failed to set up SSH tunneling for Worker hosts: %v", err)
 		}
@@ -74,4 +83,30 @@ func (c *Cluster) SetUpHosts() error {
 		logrus.Infof("[certificates] Successfully deployed kubernetes certificates to Cluster nodes")
 	}
 	return nil
+}
+
+func checkEncryptedKey() (ssh.Signer, error) {
+	logrus.Infof("[ssh] Checking private key")
+	key, err := hosts.ParsePrivateKey(privateKeyPath())
+	if err != nil {
+		if strings.Contains(err.Error(), "decode encrypted private keys") {
+			fmt.Printf("Passphrase for Private SSH Key: ")
+			passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
+			fmt.Printf("\n")
+			if err != nil {
+				return nil, err
+			}
+			key, err = hosts.ParsePrivateKeyWithPassPhrase(privateKeyPath(), passphrase)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	return key, nil
+}
+
+func privateKeyPath() string {
+	return os.Getenv("HOME") + "/.ssh/id_rsa"
 }
