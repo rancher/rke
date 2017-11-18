@@ -44,3 +44,17 @@ services:
     infra_container_image: gcr.io/google_containers/pause-amd64:3.0
   kubeproxy:
     image: quay.io/coreos/hyperkube:v1.7.5_coreos.0
+
+addons: |-
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: my-nginx
+      namespace: default
+    spec:
+      containers:
+      - name: my-nginx
+        image: nginx
+        ports:
+        - containerPort: 80
