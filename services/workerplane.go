@@ -92,3 +92,34 @@ func UpgradeWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, wor
 	logrus.Infof("[%s] Successfully upgraded Worker Plane..", WorkerRole)
 	return nil
 }
+
+func RemoveWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host) error {
+	logrus.Infof("[%s] Tearing down Worker Plane..", WorkerRole)
+	for _, host := range controlHosts {
+		err := removeKubelet(host)
+		if err != nil {
+			return err
+		}
+		err = removeKubeproxy(host)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, host := range workerHosts {
+		err := removeKubelet(host)
+		if err != nil {
+			return err
+		}
+		err = removeKubeproxy(host)
+		if err != nil {
+			return err
+		}
+		err = removeNginxProxy(host)
+		if err != nil {
+			return err
+		}
+	}
+	logrus.Infof("[%s] Successfully teared down Worker Plane..", WorkerRole)
+	return nil
+}

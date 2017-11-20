@@ -1,7 +1,11 @@
 package hosts
 
 import (
+	"fmt"
+
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
@@ -11,6 +15,41 @@ import (
 type Host struct {
 	v1.RKEConfigHost
 	DClient *client.Client
+}
+
+const (
+	ToCleanEtcdDir       = "/var/lib/etcd"
+	ToCleanSSLDir        = "/etc/kubernetes/ssl"
+	ToCleanCNIConf       = "/etc/cni"
+	ToCleanCNIBin        = "/opt/cni"
+	CleanerContainerName = "kube-cleaner"
+	CleanerImage         = "alpine:latest"
+)
+
+func (h *Host) CleanUp() error {
+	logrus.Infof("[down] Cleaning up host [%s]", h.AdvertisedHostname)
+	toCleanDirs := []string{
+		ToCleanEtcdDir,
+		ToCleanSSLDir,
+		ToCleanCNIConf,
+		ToCleanCNIBin,
+	}
+	logrus.Infof("[down] Running cleaner container on host [%s]", h.AdvertisedHostname)
+	imageCfg, hostCfg := buildCleanerConfig(h, toCleanDirs)
+	if err := docker.DoRunContainer(h.DClient, imageCfg, hostCfg, CleanerContainerName, h.AdvertisedHostname, CleanerContainerName); err != nil {
+		return err
+	}
+
+	if err := docker.WaitForContainer(h.DClient, CleanerContainerName); err != nil {
+		return err
+	}
+
+	logrus.Infof("[down] Removing cleaner container on host [%s]", h.AdvertisedHostname)
+	if err := docker.RemoveContainer(h.DClient, h.AdvertisedHostname, CleanerContainerName); err != nil {
+		return err
+	}
+	logrus.Infof("[down] Successfully cleaned up host [%s]", h.AdvertisedHostname)
+	return nil
 }
 
 func DeleteNode(toDeleteHost *Host, kubeClient *kubernetes.Clientset) error {
@@ -69,4 +108,20 @@ func IsHostListChanged(currentHosts, configHosts []Host) bool {
 		}
 	}
 	return changed
+}
+
+func buildCleanerConfig(host *Host, toCleanDirs []string) (*container.Config, *container.HostConfig) {
+	cmd := append([]string{"rm", "-rf"}, toCleanDirs...)
+	imageCfg := &container.Config{
+		Image: CleanerImage,
+		Cmd:   cmd,
+	}
+	bindMounts := []string{}
+	for _, vol := range toCleanDirs {
+		bindMounts = append(bindMounts, fmt.Sprintf("%s:%s", vol, vol))
+	}
+	hostCfg := &container.HostConfig{
+		Binds: bindMounts,
+	}
+	return imageCfg, hostCfg
 }
