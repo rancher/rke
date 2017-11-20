@@ -40,6 +40,11 @@ func upgradeKubeproxy(host hosts.Host, kubeproxyService v1.KubeproxyService) err
 	err = docker.RemoveContainer(host.DClient, host.AdvertisedHostname, oldContainerName)
 	return err
 }
+
+func removeKubeproxy(host hosts.Host) error {
+	return docker.DoRemoveContainer(host.DClient, KubeproxyContainerName, host.AdvertisedHostname)
+}
+
 func buildKubeproxyConfig(host hosts.Host, kubeproxyService v1.KubeproxyService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeproxyService.Image,

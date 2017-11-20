@@ -51,3 +51,26 @@ func UpgradeControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, cont
 	logrus.Infof("[%s] Successfully upgraded Controller Plane..", ControlRole)
 	return nil
 }
+
+func RemoveControlPlane(controlHosts []hosts.Host) error {
+	logrus.Infof("[%s] Tearing down the Controller Plane..", ControlRole)
+	for _, host := range controlHosts {
+		// remove KubeAPI
+		if err := removeKubeAPI(host); err != nil {
+			return err
+		}
+
+		// remove KubeController
+		if err := removeKubeController(host); err != nil {
+			return nil
+		}
+
+		// remove scheduler
+		err := removeScheduler(host)
+		if err != nil {
+			return err
+		}
+	}
+	logrus.Infof("[%s] Successfully teared down Controller Plane..", ControlRole)
+	return nil
+}
