@@ -28,6 +28,10 @@ func runNginxProxy(host hosts.Host, cpHosts []hosts.Host) error {
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.AdvertisedHostname, WorkerRole)
 }
 
+func removeNginxProxy(host hosts.Host) error {
+	return docker.DoRemoveContainer(host.DClient, NginxProxyContainerName, host.AdvertisedHostname)
+}
+
 func buildNginxProxyConfig(host hosts.Host, nginxProxyEnv string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: NginxProxyImage,

@@ -42,6 +42,10 @@ func upgradeKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster 
 	return err
 }
 
+func removeKubelet(host hosts.Host) error {
+	return docker.DoRemoveContainer(host.DClient, KubeletContainerName, host.AdvertisedHostname)
+}
+
 func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeletService.Image,

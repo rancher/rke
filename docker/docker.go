@@ -69,6 +69,32 @@ func DoRollingUpdateContainer(dClient *client.Client, imageCfg *container.Config
 	return err
 }
 
+func DoRemoveContainer(dClient *client.Client, containerName, hostname string) error {
+	logrus.Infof("[down/%s] Checking if container is running on host [%s]", containerName, hostname)
+	// not using the wrapper to check if the error is a NotFound error
+	_, err := dClient.ContainerInspect(context.Background(), containerName)
+	if err != nil {
+		if client.IsErrNotFound(err) {
+			logrus.Infof("[down/%s] Container doesn't exist on host [%s]", containerName, hostname)
+			return nil
+		}
+		return err
+	}
+	logrus.Infof("[down/%s] Stopping container on host [%s]", containerName, hostname)
+	err = StopContainer(dClient, hostname, containerName)
+	if err != nil {
+		return err
+	}
+
+	logrus.Infof("[down/%s] Removing container on host [%s]", containerName, hostname)
+	err = RemoveContainer(dClient, hostname, containerName)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("[down/%s] Sucessfully removed container on host [%s]", containerName, hostname)
+	return nil
+}
+
 func IsContainerRunning(dClient *client.Client, hostname string, containerName string) (bool, error) {
 	logrus.Debugf("Checking if container %s is running on host [%s]", containerName, hostname)
 	containers, err := dClient.ContainerList(context.Background(), types.ContainerListOptions{})

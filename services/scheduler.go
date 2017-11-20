@@ -15,6 +15,7 @@ func runScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
 	imageCfg, hostCfg := buildSchedulerConfig(host, schedulerService)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.AdvertisedHostname, ControlRole)
 }
+
 func upgradeScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
 	logrus.Debugf("[upgrade/Scheduler] Checking for deployed version")
 	containerInspect, err := docker.InspectContainer(host.DClient, host.AdvertisedHostname, SchedulerContainerName)
@@ -38,6 +39,10 @@ func upgradeScheduler(host hosts.Host, schedulerService v1.SchedulerService) err
 	logrus.Debugf("[upgrade/Scheduler] Removing old container")
 	err = docker.RemoveContainer(host.DClient, host.AdvertisedHostname, oldContainerName)
 	return err
+}
+
+func removeScheduler(host hosts.Host) error {
+	return docker.DoRemoveContainer(host.DClient, SchedulerContainerName, host.AdvertisedHostname)
 }
 
 func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {

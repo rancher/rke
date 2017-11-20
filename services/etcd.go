@@ -25,6 +25,18 @@ func RunEtcdPlane(etcdHosts []hosts.Host, etcdService v1.ETCDService) error {
 	return nil
 }
 
+func RemoveEtcdPlane(etcdHosts []hosts.Host) error {
+	logrus.Infof("[%s] Tearing down Etcd Plane..", ETCDRole)
+	for _, host := range etcdHosts {
+		err := docker.DoRemoveContainer(host.DClient, EtcdContainerName, host.AdvertisedHostname)
+		if err != nil {
+			return err
+		}
+	}
+	logrus.Infof("[%s] Successfully teared down Etcd Plane..", ETCDRole)
+	return nil
+}
+
 func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService, initCluster string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: etcdService.Image,
