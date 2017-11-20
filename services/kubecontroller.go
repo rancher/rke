@@ -42,6 +42,10 @@ func upgradeKubeController(host hosts.Host, kubeControllerService v1.KubeControl
 
 }
 
+func removeKubeController(host hosts.Host) error {
+	return docker.DoRemoveContainer(host.DClient, KubeControllerContainerName, host.AdvertisedHostname)
+}
+
 func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeControllerService.Image,

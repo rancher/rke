@@ -43,6 +43,10 @@ func upgradeKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.K
 	return err
 }
 
+func removeKubeAPI(host hosts.Host) error {
+	return docker.DoRemoveContainer(host.DClient, KubeAPIContainerName, host.AdvertisedHostname)
+}
+
 func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeAPIService.Image,
