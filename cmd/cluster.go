@@ -144,13 +144,17 @@ func ClusterUpgrade(clusterFile string) (string, string, string, string, error) 
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
-	logrus.Debugf("Setting up upgrade tunnels")
+
+	if currentCluster == nil {
+		return APIURL, caCrt, clientCert, clientKey, fmt.Errorf("Failed to get the current state of Kubernetes cluster")
+	}
 	/*
 		kubeCluster is the cluster.yaml definition. It should have updated configuration
 		currentCluster is the current state fetched from kubernetes
 		we add currentCluster certs to kubeCluster, kubeCluster would have the latest configuration from cluster.yaml and the certs to connect to k8s and apply the upgrade
 	*/
 	kubeCluster.Certificates = currentCluster.Certificates
+	logrus.Debugf("Setting up upgrade tunnels")
 	err = kubeCluster.TunnelHosts()
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
