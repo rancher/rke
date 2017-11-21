@@ -22,10 +22,7 @@ func (c *Cluster) ClusterDown() error {
 	}
 
 	// Clean up all hosts
-	if err := cleanUpHosts(c.ControlPlaneHosts, c.WorkerHosts, c.EtcdHosts); err != nil {
-		return err
-	}
-	return nil
+	return cleanUpHosts(c.ControlPlaneHosts, c.WorkerHosts, c.EtcdHosts)
 }
 
 func cleanUpHosts(cpHosts, workerHosts, etcdHosts []hosts.Host) error {
