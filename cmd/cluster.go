@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
@@ -220,6 +221,7 @@ func clusterDownFromCli(ctx *cli.Context) error {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Printf("Are you sure you want to remove Kubernetes cluster [y/n]: ")
 		input, err := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
 		if err != nil {
 			return err
 		}
