@@ -56,7 +56,7 @@ func DeleteNode(toDeleteHost *Host, kubeClient *kubernetes.Clientset) error {
 	logrus.Infof("[hosts] Cordoning host [%s]", toDeleteHost.AdvertisedHostname)
 	err := k8s.CordonUncordon(kubeClient, toDeleteHost.AdvertisedHostname, true)
 	if err != nil {
-		return nil
+		return err
 	}
 	logrus.Infof("[hosts] Deleting host [%s] from the cluster", toDeleteHost.AdvertisedHostname)
 	err = k8s.DeleteNode(kubeClient, toDeleteHost.AdvertisedHostname)

@@ -32,6 +32,26 @@ func SetUpAuthentication(kubeCluster, currentCluster *Cluster) error {
 	return nil
 }
 
+func regenerateAPICertificate(c *Cluster, certificates map[string]pki.CertificatePKI) (map[string]pki.CertificatePKI, error) {
+	logrus.Debugf("[certificates] Regenerating kubeAPI certificate")
+	kubeAPIAltNames := pki.GetAltNames(c.ControlPlaneHosts, c.ClusterDomain, c.KubernetesServiceIP)
+	caCrt := certificates[pki.CACertName].Certificate
+	caKey := certificates[pki.CACertName].Key
+	kubeAPICert, kubeAPIKey, err := pki.GenerateKubeAPICertAndKey(caCrt, caKey, kubeAPIAltNames)
+	if err != nil {
+		return nil, err
+	}
+	certificates[pki.KubeAPICertName] = pki.CertificatePKI{
+		Certificate:   kubeAPICert,
+		Key:           kubeAPIKey,
+		Config:        certificates[pki.KubeAPICertName].Config,
+		EnvName:       certificates[pki.KubeAPICertName].EnvName,
+		ConfigEnvName: certificates[pki.KubeAPICertName].ConfigEnvName,
+		KeyEnvName:    certificates[pki.KubeAPICertName].KeyEnvName,
+	}
+	return certificates, nil
+}
+
 func getClusterCerts(kubeClient *kubernetes.Clientset) (map[string]pki.CertificatePKI, error) {
 	logrus.Infof("[certificates] Getting Cluster certificates from Kubernetes")
 	certificatesNames := []string{
