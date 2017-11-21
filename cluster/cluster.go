@@ -68,6 +68,12 @@ func ParseConfig(clusterFile string) (*Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)
 	}
+
+	err = c.ValidateCluster()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to validate cluster: %v", err)
+	}
+
 	c.KubernetesServiceIP, err = services.GetKubernetesServiceIP(c.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
@@ -135,13 +141,17 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 	logrus.Infof("[reconcile] Check Control plane hosts to be deleted")
 	cpToDelete := hosts.GetToDeleteHosts(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
 	for _, toDeleteHost := range cpToDelete {
-		hosts.DeleteNode(&toDeleteHost, kubeClient)
+		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
+			return fmt.Errorf("Failed to delete controlplane node %s from cluster", toDeleteHost.AdvertisedHostname)
+		}
 	}
 
 	logrus.Infof("[reconcile] Check worker hosts to be deleted")
 	wpToDelete := hosts.GetToDeleteHosts(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
 	for _, toDeleteHost := range wpToDelete {
-		hosts.DeleteNode(&toDeleteHost, kubeClient)
+		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
+			return fmt.Errorf("Failed to delete worker node %s from cluster", toDeleteHost.AdvertisedHostname)
+		}
 	}
 
 	// Rolling update on change for nginx Proxy
