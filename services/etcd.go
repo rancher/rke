@@ -78,7 +78,7 @@ func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService, initCluster st
 	return imageCfg, hostCfg
 }
 
-func getEtcdConnString(hosts []hosts.Host) string {
+func GetEtcdConnString(hosts []hosts.Host) string {
 	connString := ""
 	for i, host := range hosts {
 		connString += "http://" + host.AdvertiseAddress + ":2379"
