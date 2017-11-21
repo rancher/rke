@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/rancher/rke/k8s"
@@ -32,20 +33,31 @@ func (c *Cluster) SaveClusterState(clusterFile string) error {
 func (c *Cluster) GetClusterState() (*Cluster, error) {
 	var err error
 	var currentCluster *Cluster
-	c.KubeClient, err = k8s.NewClient(c.LocalKubeConfigPath)
-	if err != nil {
-		logrus.Warnf("Failed to initiate new Kubernetes Client: %v", err)
-	} else {
-		// Handle pervious kubernetes state and certificate generation
+
+	// check if local kubeconfig file exists
+	if _, err = os.Stat(c.LocalKubeConfigPath); !os.IsNotExist(err) {
+		logrus.Infof("[state] Found local kube config file, trying to get state from cluster")
+
+		// initiate kubernetes client
+		c.KubeClient, err = k8s.NewClient(c.LocalKubeConfigPath)
+		if err != nil {
+			logrus.Warnf("Failed to initiate new Kubernetes Client: %v", err)
+			return nil, nil
+		}
+		// Get pervious kubernetes state
 		currentCluster = getStateFromKubernetes(c.KubeClient, c.LocalKubeConfigPath)
+		// Get previous kubernetes certificates
 		if currentCluster != nil {
 			currentCluster.Certificates, err = getClusterCerts(c.KubeClient)
 			if err != nil {
 				return nil, fmt.Errorf("Failed to Get Kubernetes certificates: %v", err)
 			}
-			err = currentCluster.InvertIndexHosts()
-			if err != nil {
+			if err := currentCluster.InvertIndexHosts(); err != nil {
 				return nil, fmt.Errorf("Failed to classify hosts from fetched cluster: %v", err)
+			}
+			currentCluster.Certificates, err = regenerateAPICertificate(c, currentCluster.Certificates)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to regenerate KubeAPI certificate %v", err)
 			}
 		}
 	}
@@ -102,7 +114,7 @@ func getStateFromKubernetes(kubeClient *kubernetes.Clientset, kubeConfigPath str
 		}
 		return &currentCluster
 	case <-time.After(time.Second * GetStateTimeout):
-		logrus.Warnf("Timed out waiting for kubernetes cluster")
+		logrus.Infof("Timed out waiting for kubernetes cluster to get state")
 		return nil
 	}
 }

@@ -57,8 +57,8 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain, localConfigPath string, 
 
 	// generate API certificate and key
 	logrus.Infof("[certificates] Generating Kubernetes API server certificates")
-	kubeAPIAltNames := getAltNames(cpHosts, clusterDomain, KubernetesServiceIP)
-	kubeAPICrt, kubeAPIKey, err := generateKubeAPICertAndKey(caCrt, caKey, kubeAPIAltNames)
+	kubeAPIAltNames := GetAltNames(cpHosts, clusterDomain, KubernetesServiceIP)
+	kubeAPICrt, kubeAPIKey, err := GenerateKubeAPICertAndKey(caCrt, caKey, kubeAPIAltNames)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func generateClientCertAndKey(caCrt *x509.Certificate, caKey *rsa.PrivateKey, co
 	return clientCert, rootKey, nil
 }
 
-func generateKubeAPICertAndKey(caCrt *x509.Certificate, caKey *rsa.PrivateKey, altNames *cert.AltNames) (*x509.Certificate, *rsa.PrivateKey, error) {
+func GenerateKubeAPICertAndKey(caCrt *x509.Certificate, caKey *rsa.PrivateKey, altNames *cert.AltNames) (*x509.Certificate, *rsa.PrivateKey, error) {
 	rootKey, err := cert.NewPrivateKey()
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to generate private key for kube-apiserver certificate: %v", err)
@@ -232,7 +232,7 @@ func generateCACertAndKey() (*x509.Certificate, *rsa.PrivateKey, error) {
 	return kubeCACert, rootKey, nil
 }
 
-func getAltNames(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) *cert.AltNames {
+func GetAltNames(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) *cert.AltNames {
 	ips := []net.IP{}
 	dnsNames := []string{}
 	for _, host := range cpHosts {
