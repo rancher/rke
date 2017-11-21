@@ -14,8 +14,12 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const (
+	DefaultSSHKeyPath = "/.ssh/id_rsa"
+)
+
 func (c *Cluster) TunnelHosts() error {
-	key, err := checkEncryptedKey()
+	key, err := checkEncryptedKey(c.SSHKeyPath)
 	if err != nil {
 		return fmt.Errorf("Failed to parse the private key: %v", err)
 	}
@@ -85,9 +89,9 @@ func (c *Cluster) SetUpHosts() error {
 	return nil
 }
 
-func checkEncryptedKey() (ssh.Signer, error) {
+func checkEncryptedKey(sshKeyPath string) (ssh.Signer, error) {
 	logrus.Infof("[ssh] Checking private key")
-	key, err := hosts.ParsePrivateKey(privateKeyPath())
+	key, err := hosts.ParsePrivateKey(privateKeyPath(sshKeyPath))
 	if err != nil {
 		if strings.Contains(err.Error(), "decode encrypted private keys") {
 			fmt.Printf("Passphrase for Private SSH Key: ")
@@ -96,7 +100,7 @@ func checkEncryptedKey() (ssh.Signer, error) {
 			if err != nil {
 				return nil, err
 			}
-			key, err = hosts.ParsePrivateKeyWithPassPhrase(privateKeyPath(), passphrase)
+			key, err = hosts.ParsePrivateKeyWithPassPhrase(privateKeyPath(sshKeyPath), passphrase)
 			if err != nil {
 				return nil, err
 			}
@@ -107,6 +111,9 @@ func checkEncryptedKey() (ssh.Signer, error) {
 	return key, nil
 }
 
-func privateKeyPath() string {
-	return os.Getenv("HOME") + "/.ssh/id_rsa"
+func privateKeyPath(sshKeyPath string) string {
+	if len(sshKeyPath) == 0 {
+		return os.Getenv("HOME") + DefaultSSHKeyPath
+	}
+	return sshKeyPath
 }
