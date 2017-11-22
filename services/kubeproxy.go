@@ -48,8 +48,7 @@ func removeKubeproxy(host hosts.Host) error {
 func buildKubeproxyConfig(host hosts.Host, kubeproxyService v1.KubeproxyService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeproxyService.Image,
-		Cmd: []string{"/hyperkube",
-			"proxy",
+		Entrypoint: []string{"kube-proxy",
 			"--v=2",
 			"--healthz-bind-address=0.0.0.0",
 			"--kubeconfig=" + pki.KubeProxyConfigPath,
