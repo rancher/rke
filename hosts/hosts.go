@@ -22,6 +22,7 @@ const (
 	ToCleanSSLDir        = "/etc/kubernetes/ssl"
 	ToCleanCNIConf       = "/etc/cni"
 	ToCleanCNIBin        = "/opt/cni"
+	ToCleanCalicoRun     = "/var/run/calico"
 	CleanerContainerName = "kube-cleaner"
 	CleanerImage         = "alpine:latest"
 )
@@ -33,6 +34,7 @@ func (h *Host) CleanUp() error {
 		ToCleanSSLDir,
 		ToCleanCNIConf,
 		ToCleanCNIBin,
+		ToCleanCalicoRun,
 	}
 	logrus.Infof("[down] Running cleaner container on host [%s]", h.AdvertisedHostname)
 	imageCfg, hostCfg := buildCleanerConfig(h, toCleanDirs)
