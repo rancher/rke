@@ -116,6 +116,8 @@ type RancherKubernetesEngineConfig struct {
 	Authentication AuthConfig `yaml:"auth" json:"auth,omitempty"`
 	// YAML manifest for user provided addons to be deployed on the cluster
 	Addons string `yaml:"addons" json:"addons,omitempty"`
+	// SSH Private Key Path
+	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
 }
 
 type RKEConfigHost struct {
