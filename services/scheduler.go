@@ -48,8 +48,7 @@ func removeScheduler(host hosts.Host) error {
 func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: schedulerService.Image,
-		Cmd: []string{"/hyperkube",
-			"scheduler",
+		Entrypoint: []string{"kube-scheduler",
 			"--leader-elect=true",
 			"--v=2",
 			"--address=0.0.0.0",
