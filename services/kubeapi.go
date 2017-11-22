@@ -50,8 +50,7 @@ func removeKubeAPI(host hosts.Host) error {
 func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeAPIService.Image,
-		Cmd: []string{"/hyperkube",
-			"apiserver",
+		Entrypoint: []string{"kube-apiserver",
 			"--insecure-bind-address=127.0.0.1",
 			"--insecure-port=8080",
 			"--secure-port=6443",

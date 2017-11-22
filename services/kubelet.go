@@ -49,8 +49,7 @@ func removeKubelet(host hosts.Host) error {
 func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeletService.Image,
-		Cmd: []string{"/hyperkube",
-			"kubelet",
+		Entrypoint: []string{"kubelet",
 			"--v=2",
 			"--address=0.0.0.0",
 			"--cluster-domain=" + kubeletService.ClusterDomain,
