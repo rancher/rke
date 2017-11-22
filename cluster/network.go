@@ -52,6 +52,6 @@ func (c *Cluster) doCanalDeploy() error {
 	canalConfig["clientCA"] = pki.CACertPath
 	canalConfig["kubeCfg"] = pki.KubeNodeConfigPath
 	canalConfig["clusterCIDR"] = c.ClusterCIDR
-	pluginYaml := network.GetCanalManifest(calicoConfig)
+	pluginYaml := network.GetCanalManifest(canalConfig)
 	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
 }

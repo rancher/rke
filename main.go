@@ -31,6 +31,7 @@ func mainErr() error {
 	app.Email = ""
 	app.Commands = []cli.Command{
 		cmd.ClusterCommand(),
+		cmd.ConfigCommand(),
 	}
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
