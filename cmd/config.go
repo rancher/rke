@@ -82,10 +82,7 @@ func clusterConfig(ctx *cli.Context) error {
 	// Generate empty configuration file
 	if ctx.Bool("empty") {
 		cluster.Hosts = make([]v1.RKEConfigHost, 1)
-		if err := writeConfig(&cluster, configFile, print); err != nil {
-			return err
-		}
-		return nil
+		return writeConfig(&cluster, configFile, print)
 	}
 
 	// Get number of hosts
