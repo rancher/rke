@@ -5,8 +5,12 @@ auth:
   options:
     foo: bar
 
+# supported plugins are:
+# flannel
+# calico
+# canal
 network:
-  plugin:
+  plugin: flannel
   options:
     foo: bar
 
@@ -30,7 +34,7 @@ services:
     image: quay.io/coreos/hyperkube:v1.7.5_coreos.0
     service_cluster_ip_range: 10.233.0.0/18
     extra_args:
-      - --v=4
+      v: 4
   kube-controller:
     image: quay.io/coreos/hyperkube:v1.7.5_coreos.0
     cluster_cidr: 10.233.64.0/18
@@ -45,6 +49,7 @@ services:
   kubeproxy:
     image: quay.io/coreos/hyperkube:v1.7.5_coreos.0
 
+# all addon manifests MUST specify a namespace
 addons: |-
     ---
     apiVersion: v1
