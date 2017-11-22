@@ -49,8 +49,7 @@ func removeKubeController(host hosts.Host) error {
 func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeControllerService.Image,
-		Cmd: []string{"/hyperkube",
-			"controller-manager",
+		Entrypoint: []string{"kube-controller-manager",
 			"--address=0.0.0.0",
 			"--cloud-provider=",
 			"--leader-elect=true",
