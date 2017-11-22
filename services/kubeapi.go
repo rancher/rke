@@ -55,6 +55,7 @@ func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdC
 			"--insecure-port=8080",
 			"--secure-port=6443",
 			"--cloud-provider=",
+			"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
 			"--allow_privileged=true",
 			"--service-cluster-ip-range=" + kubeAPIService.ServiceClusterIPRange,
 			"--admission-control=ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
