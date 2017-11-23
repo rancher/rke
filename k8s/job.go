@@ -36,8 +36,9 @@ func ApplyK8sSystemJob(jobYaml, kubeConfigPath string) error {
 		return err
 	}
 	existingJob := &v1.Job{}
+	logrus.Debugf("[k8s] waiting for job %s to complete..", job.Name)
 	for retries := 0; retries <= 5; retries++ {
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second * 5)
 		existingJob, err = k8sClient.BatchV1().Jobs(job.Namespace).Get(job.Name, metav1.GetOptions{})
 		if err != nil {
 			return fmt.Errorf("Failed to update job status: %v", err)
