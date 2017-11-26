@@ -37,7 +37,8 @@ func regenerateAPICertificate(c *Cluster, certificates map[string]pki.Certificat
 	kubeAPIAltNames := pki.GetAltNames(c.ControlPlaneHosts, c.ClusterDomain, c.KubernetesServiceIP)
 	caCrt := certificates[pki.CACertName].Certificate
 	caKey := certificates[pki.CACertName].Key
-	kubeAPICert, kubeAPIKey, err := pki.GenerateKubeAPICertAndKey(caCrt, caKey, kubeAPIAltNames)
+	kubeAPIKey := certificates[pki.KubeAPICertName].Key
+	kubeAPICert, err := pki.GenerateCertWithKey(pki.KubeAPICertName, kubeAPIKey, caCrt, caKey, kubeAPIAltNames)
 	if err != nil {
 		return nil, err
 	}
