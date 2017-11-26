@@ -216,6 +216,20 @@ func GenerateKubeAPICertAndKey(caCrt *x509.Certificate, caKey *rsa.PrivateKey, a
 	return kubeCACert, rootKey, nil
 }
 
+func GenerateCertWithKey(commonName string, key *rsa.PrivateKey, caCrt *x509.Certificate, caKey *rsa.PrivateKey, altNames *cert.AltNames) (*x509.Certificate, error) {
+	caConfig := cert.Config{
+		CommonName: commonName,
+		Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth,
+			x509.ExtKeyUsageServerAuth},
+		AltNames: *altNames,
+	}
+	cert, err := cert.NewSignedCert(caConfig, key, caCrt, caKey)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to generate certificate with existing key: %v", err)
+	}
+	return cert, nil
+}
+
 func generateCACertAndKey() (*x509.Certificate, *rsa.PrivateKey, error) {
 	rootKey, err := cert.NewPrivateKey()
 	if err != nil {
