@@ -90,9 +90,11 @@ func (c *Cluster) SetUpHosts() error {
 }
 
 func CheckEtcdHostsChanged(kubeCluster, currentCluster *Cluster) error {
-	etcdChanged := hosts.IsHostListChanged(currentCluster.EtcdHosts, kubeCluster.EtcdHosts)
-	if etcdChanged {
-		return fmt.Errorf("Adding or removing Etcd nodes is not supported")
+	if currentCluster != nil {
+		etcdChanged := hosts.IsHostListChanged(currentCluster.EtcdHosts, kubeCluster.EtcdHosts)
+		if etcdChanged {
+			return fmt.Errorf("Adding or removing Etcd nodes is not supported")
+		}
 	}
 	return nil
 }
