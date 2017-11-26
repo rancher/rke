@@ -25,19 +25,19 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	// Build SSH client configuration
 	cfg, err := makeSSHConfig(d.host.User, d.signer)
 	if err != nil {
-		logrus.Fatalf("Error configuring SSH: %v", err)
+		return nil, fmt.Errorf("Error configuring SSH: %v", err)
 	}
 	// Establish connection with SSH server
 	conn, err := ssh.Dial("tcp", sshAddr, cfg)
 	if err != nil {
-		logrus.Fatalf("Error establishing SSH connection: %v", err)
+		return nil, fmt.Errorf("Error establishing SSH connection: %v", err)
 	}
 	if len(d.host.DockerSocket) == 0 {
 		d.host.DockerSocket = "/var/run/docker.sock"
 	}
 	remote, err := conn.Dial("unix", d.host.DockerSocket)
 	if err != nil {
-		logrus.Fatalf("Error connecting to Docker socket on host [%s]: %v", d.host.AdvertisedHostname, err)
+		return nil, fmt.Errorf("Error connecting to Docker socket on host [%s]: %v", d.host.AdvertisedHostname, err)
 	}
 	return remote, err
 }
