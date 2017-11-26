@@ -28,7 +28,7 @@ const (
 )
 
 func (h *Host) CleanUp() error {
-	logrus.Infof("[down] Cleaning up host [%s]", h.AdvertisedHostname)
+	logrus.Infof("[hosts] Cleaning up host [%s]", h.AdvertisedHostname)
 	toCleanDirs := []string{
 		ToCleanEtcdDir,
 		ToCleanSSLDir,
@@ -36,7 +36,7 @@ func (h *Host) CleanUp() error {
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
 	}
-	logrus.Infof("[down] Running cleaner container on host [%s]", h.AdvertisedHostname)
+	logrus.Infof("[hosts] Running cleaner container on host [%s]", h.AdvertisedHostname)
 	imageCfg, hostCfg := buildCleanerConfig(h, toCleanDirs)
 	if err := docker.DoRunContainer(h.DClient, imageCfg, hostCfg, CleanerContainerName, h.AdvertisedHostname, CleanerContainerName); err != nil {
 		return err
@@ -46,11 +46,11 @@ func (h *Host) CleanUp() error {
 		return err
 	}
 
-	logrus.Infof("[down] Removing cleaner container on host [%s]", h.AdvertisedHostname)
+	logrus.Infof("[hosts] Removing cleaner container on host [%s]", h.AdvertisedHostname)
 	if err := docker.RemoveContainer(h.DClient, h.AdvertisedHostname, CleanerContainerName); err != nil {
 		return err
 	}
-	logrus.Infof("[down] Successfully cleaned up host [%s]", h.AdvertisedHostname)
+	logrus.Infof("[hosts] Successfully cleaned up host [%s]", h.AdvertisedHostname)
 	return nil
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/cert"
@@ -137,12 +138,18 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 	if err != nil {
 		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
 	}
+	key, _ := checkEncryptedKey(kubeCluster.SSHKeyPath)
 
 	logrus.Infof("[reconcile] Check Control plane hosts to be deleted")
 	cpToDelete := hosts.GetToDeleteHosts(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
 	for _, toDeleteHost := range cpToDelete {
 		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
 			return fmt.Errorf("Failed to delete controlplane node %s from cluster", toDeleteHost.AdvertisedHostname)
+		}
+		// attempting to clean up the host
+		if err := reconcileHostCleaner(toDeleteHost, key, false); err != nil {
+			logrus.Warnf("[reconcile] Couldn't clean up controlplane node [%s]: %v", toDeleteHost.AdvertisedHostname, err)
+			continue
 		}
 	}
 
@@ -151,6 +158,11 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 	for _, toDeleteHost := range wpToDelete {
 		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
 			return fmt.Errorf("Failed to delete worker node %s from cluster", toDeleteHost.AdvertisedHostname)
+		}
+		// attempting to clean up the host
+		if err := reconcileHostCleaner(toDeleteHost, key, true); err != nil {
+			logrus.Warnf("[reconcile] Couldn't clean up worker node [%s]: %v", toDeleteHost.AdvertisedHostname, err)
+			continue
 		}
 	}
 
@@ -164,6 +176,23 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 		}
 	}
 	logrus.Infof("[reconcile] Reconciled cluster state successfully")
+	return nil
+}
+
+func reconcileHostCleaner(toDeleteHost hosts.Host, key ssh.Signer, worker bool) error {
+	if err := toDeleteHost.TunnelUp(key); err != nil {
+		return fmt.Errorf("Not able to reach the host: %v", err)
+	}
+	if err := services.RemoveControlPlane([]hosts.Host{toDeleteHost}); err != nil {
+		return fmt.Errorf("Couldn't remove control plane: %v", err)
+	}
+
+	if err := services.RemoveWorkerPlane(nil, []hosts.Host{toDeleteHost}); err != nil {
+		return fmt.Errorf("Couldn't remove worker plane: %v", err)
+	}
+	if err := toDeleteHost.CleanUp(); err != nil {
+		return fmt.Errorf("Not able to clean the host: %v", err)
+	}
 	return nil
 }
 
