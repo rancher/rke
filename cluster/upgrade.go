@@ -3,6 +3,7 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/services"
 	"github.com/sirupsen/logrus"
@@ -46,5 +47,21 @@ func checkK8sNodesState(localConfigPath string) error {
 		}
 	}
 	logrus.Infof("[upgrade] All nodes are Ready")
+	return nil
+}
+
+func CheckHostsChangedOnUpgrade(kubeCluster, currentCluster *Cluster) error {
+	etcdChanged := hosts.IsHostListChanged(currentCluster.EtcdHosts, kubeCluster.EtcdHosts)
+	if etcdChanged {
+		return fmt.Errorf("Adding or removing Etcd nodes while upgrade is not supported")
+	}
+	cpChanged := hosts.IsHostListChanged(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
+	if cpChanged {
+		return fmt.Errorf("Adding or removing Control plane nodes while upgrade is not supported")
+	}
+	workerChanged := hosts.IsHostListChanged(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
+	if workerChanged {
+		return fmt.Errorf("Adding or removing Worker plane nodes while upgrade is not supported")
+	}
 	return nil
 }

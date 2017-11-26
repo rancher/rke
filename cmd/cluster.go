@@ -82,6 +82,10 @@ func ClusterUp(clusterFile string) (string, string, string, string, error) {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
+	if err := cluster.CheckEtcdHostsChanged(kubeCluster, currentCluster); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, err
+	}
+
 	err = cluster.SetUpAuthentication(kubeCluster, currentCluster)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
@@ -147,6 +151,10 @@ func ClusterUpgrade(clusterFile string) (string, string, string, string, error) 
 
 	if currentCluster == nil {
 		return APIURL, caCrt, clientCert, clientKey, fmt.Errorf("Failed to get the current state of Kubernetes cluster")
+	}
+	// check if user try to add/remove hosts during upgrade
+	if err := cluster.CheckHostsChangedOnUpgrade(kubeCluster, currentCluster); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, err
 	}
 	/*
 		kubeCluster is the cluster.yaml definition. It should have updated configuration
