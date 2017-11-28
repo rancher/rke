@@ -25,7 +25,7 @@ type GenericController interface {
 	Informer() cache.SharedIndexInformer
 	AddHandler(handler HandlerFunc)
 	Enqueue(namespace, name string)
-	Start(threadiness int, ctx context.Context) error
+	Start(ctx context.Context, threadiness int) error
 }
 
 type genericController struct {
@@ -69,12 +69,12 @@ func (g *genericController) AddHandler(handler HandlerFunc) {
 	g.handlers = append(g.handlers, handler)
 }
 
-func (g *genericController) Start(threadiness int, ctx context.Context) error {
+func (g *genericController) Start(ctx context.Context, threadiness int) error {
 	g.Lock()
 	defer g.Unlock()
 
 	if !g.running {
-		go g.run(threadiness, ctx)
+		go g.run(ctx, threadiness)
 	}
 
 	g.running = true
@@ -88,7 +88,7 @@ func (g *genericController) queueObject(obj interface{}) {
 	}
 }
 
-func (g *genericController) run(threadiness int, ctx context.Context) {
+func (g *genericController) run(ctx context.Context, threadiness int) {
 	defer utilruntime.HandleCrash()
 	defer g.queue.ShutDown()
 

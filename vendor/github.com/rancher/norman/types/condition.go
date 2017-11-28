@@ -1,108 +1,108 @@
 package types
 
-var (
-	COND_EQ      = QueryConditionType{"eq", 1}
-	COND_NE      = QueryConditionType{"ne", 1}
-	COND_NULL    = QueryConditionType{"null", 0}
-	COND_NOTNULL = QueryConditionType{"notnull", 0}
-	COND_IN      = QueryConditionType{"in", -1}
-	COND_NOTIN   = QueryConditionType{"notin", -1}
-	COND_OR      = QueryConditionType{"or", 1}
-	COND_AND     = QueryConditionType{"and", 1}
+import (
+	"github.com/rancher/norman/types/convert"
+)
 
-	mods = map[string]QueryConditionType{
-		COND_EQ.Name:      COND_EQ,
-		COND_NE.Name:      COND_NE,
-		COND_NULL.Name:    COND_NULL,
-		COND_NOTNULL.Name: COND_NOTNULL,
-		COND_IN.Name:      COND_IN,
-		COND_NOTIN.Name:   COND_NOTIN,
-		COND_OR.Name:      COND_OR,
-		COND_AND.Name:     COND_AND,
+var (
+	CondEQ      = QueryConditionType{ModifierEQ, 1}
+	CondNE      = QueryConditionType{ModifierNE, 1}
+	CondNull    = QueryConditionType{ModifierNull, 0}
+	CondNotNull = QueryConditionType{ModifierNotNull, 0}
+	CondIn      = QueryConditionType{ModifierIn, -1}
+	CondNotIn   = QueryConditionType{ModifierNotIn, -1}
+	CondOr      = QueryConditionType{ModifierType("or"), 1}
+	CondAnd     = QueryConditionType{ModifierType("and"), 1}
+
+	mods = map[ModifierType]QueryConditionType{
+		CondEQ.Name:      CondEQ,
+		CondNE.Name:      CondNE,
+		CondNull.Name:    CondNull,
+		CondNotNull.Name: CondNotNull,
+		CondIn.Name:      CondIn,
+		CondNotIn.Name:   CondNotIn,
+		CondOr.Name:      CondOr,
+		CondAnd.Name:     CondAnd,
 	}
 )
 
 type QueryConditionType struct {
-	Name string
+	Name ModifierType
 	Args int
 }
 
 type QueryCondition struct {
 	Field         string
-	Values        []interface{}
+	Value         string
+	Values        map[string]bool
 	conditionType QueryConditionType
 	left, right   *QueryCondition
+}
+
+func (q *QueryCondition) Valid(data map[string]interface{}) bool {
+	switch q.conditionType {
+	case CondAnd:
+		if q.left == nil || q.right == nil {
+			return false
+		}
+		return q.left.Valid(data) && q.right.Valid(data)
+	case CondOr:
+		if q.left == nil || q.right == nil {
+			return false
+		}
+		return q.left.Valid(data) || q.right.Valid(data)
+	case CondEQ:
+		return q.Value == convert.ToString(data[q.Field])
+	case CondNE:
+		return q.Value != convert.ToString(data[q.Field])
+	case CondIn:
+		return q.Values[convert.ToString(data[q.Field])]
+	case CondNotIn:
+		return !q.Values[convert.ToString(data[q.Field])]
+	case CondNotNull:
+		return convert.ToString(data[q.Field]) != ""
+	case CondNull:
+		return convert.ToString(data[q.Field]) == ""
+	}
+
+	return false
 }
 
 func (q *QueryCondition) ToCondition() Condition {
 	cond := Condition{
 		Modifier: q.conditionType.Name,
 	}
-	if q.conditionType.Args == 1 && len(q.Values) > 0 {
-		cond.Value = q.Values[0]
+	if q.conditionType.Args == 1 {
+		cond.Value = q.Value
 	} else if q.conditionType.Args == -1 {
-		cond.Value = q.Values
+		stringValues := []string{}
+		for val := range q.Values {
+			stringValues = append(stringValues, val)
+		}
+		cond.Value = stringValues
 	}
 
 	return cond
 }
 
-func ValidMod(mod string) bool {
+func ValidMod(mod ModifierType) bool {
 	_, ok := mods[mod]
 	return ok
 }
 
-func NewConditionFromString(field, mod string, values ...interface{}) *QueryCondition {
-	return &QueryCondition{
+func NewConditionFromString(field string, mod ModifierType, values ...string) *QueryCondition {
+	q := &QueryCondition{
 		Field:         field,
-		Values:        values,
 		conditionType: mods[mod],
+		Values:        map[string]bool{},
 	}
-}
 
-func NewCondition(mod QueryConditionType, values ...interface{}) *QueryCondition {
-	return &QueryCondition{
-		Values:        values,
-		conditionType: mod,
+	for i, value := range values {
+		if i == 0 {
+			q.Value = value
+		}
+		q.Values[value] = true
 	}
-}
 
-func NE(value interface{}) *QueryCondition {
-	return NewCondition(COND_NE, value)
-}
-
-func EQ(value interface{}) *QueryCondition {
-	return NewCondition(COND_EQ, value)
-}
-
-func NULL(value interface{}) *QueryCondition {
-	return NewCondition(COND_NULL)
-}
-
-func NOTNULL(value interface{}) *QueryCondition {
-	return NewCondition(COND_NOTNULL)
-}
-
-func IN(values ...interface{}) *QueryCondition {
-	return NewCondition(COND_IN, values...)
-}
-
-func NOTIN(values ...interface{}) *QueryCondition {
-	return NewCondition(COND_NOTIN, values...)
-}
-
-func (c *QueryCondition) AND(right *QueryCondition) *QueryCondition {
-	return &QueryCondition{
-		conditionType: COND_AND,
-		left:          c,
-		right:         right,
-	}
-}
-
-func (c *QueryCondition) OR(right *QueryCondition) *QueryCondition {
-	return &QueryCondition{
-		conditionType: COND_OR,
-		left:          c,
-		right:         right,
-	}
+	return q
 }

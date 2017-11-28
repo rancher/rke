@@ -35,6 +35,13 @@ func NewObjectClient(namespace string, restClient rest.Interface, apiResource *m
 	}
 }
 
+func (p *ObjectClient) getAPIPrefix() string {
+	if p.gvk.Group == "" {
+		return "api"
+	}
+	return "apis"
+}
+
 func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 	ns := p.ns
 	if obj, ok := o.(metav1.Object); ok && obj.GetNamespace() != "" {
@@ -42,7 +49,7 @@ func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 	}
 	result := p.Factory.Object()
 	err := p.restClient.Post().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		Body(o).
@@ -54,7 +61,7 @@ func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 func (p *ObjectClient) Get(name string, opts metav1.GetOptions) (runtime.Object, error) {
 	result := p.Factory.Object()
 	err := p.restClient.Get().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
@@ -74,7 +81,7 @@ func (p *ObjectClient) Update(name string, o runtime.Object) (runtime.Object, er
 		return result, errors.New("object missing name")
 	}
 	err := p.restClient.Put().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		Name(name).
@@ -86,7 +93,7 @@ func (p *ObjectClient) Update(name string, o runtime.Object) (runtime.Object, er
 
 func (p *ObjectClient) Delete(name string, opts *metav1.DeleteOptions) error {
 	return p.restClient.Delete().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		Name(name).
@@ -98,7 +105,7 @@ func (p *ObjectClient) Delete(name string, opts *metav1.DeleteOptions) error {
 func (p *ObjectClient) List(opts metav1.ListOptions) (runtime.Object, error) {
 	result := p.Factory.List()
 	return result, p.restClient.Get().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
@@ -108,7 +115,7 @@ func (p *ObjectClient) List(opts metav1.ListOptions) (runtime.Object, error) {
 
 func (p *ObjectClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	r, err := p.restClient.Get().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		Prefix("watch").
 		Namespace(p.ns).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
@@ -127,7 +134,7 @@ func (p *ObjectClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 
 func (p *ObjectClient) DeleteCollection(deleteOptions *metav1.DeleteOptions, listOptions metav1.ListOptions) error {
 	return p.restClient.Delete().
-		Prefix("apis", p.gvk.Group, p.gvk.Version).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		VersionedParams(&listOptions, dynamic.VersionedParameterEncoderWithV1Fallback).

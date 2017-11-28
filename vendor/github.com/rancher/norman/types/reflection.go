@@ -6,13 +6,19 @@ import (
 	"strconv"
 	"strings"
 
+	"net/http"
+
 	"github.com/rancher/norman/types/convert"
+	"github.com/rancher/norman/types/definition"
+	"github.com/rancher/norman/types/slice"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
+	namespacedType = reflect.TypeOf(Namespaced{})
 	resourceType   = reflect.TypeOf(Resource{})
+	typeType       = reflect.TypeOf(metav1.TypeMeta{})
 	metaType       = reflect.TypeOf(metav1.ObjectMeta{})
 	blacklistNames = map[string]bool{
 		"links":   true,
@@ -20,10 +26,17 @@ var (
 	}
 )
 
-func (s *Schemas) AddMapperForType(version *APIVersion, obj interface{}, mapper Mapper) *Schemas {
+func (s *Schemas) AddMapperForType(version *APIVersion, obj interface{}, mapper ...Mapper) *Schemas {
+	if len(mapper) == 0 {
+		return s
+	}
+
 	t := reflect.TypeOf(obj)
 	typeName := convert.LowerTitle(t.Name())
-	return s.AddMapper(version, typeName, mapper)
+	if len(mapper) == 1 {
+		return s.AddMapper(version, typeName, mapper[0])
+	}
+	return s.AddMapper(version, typeName, Mappers(mapper))
 }
 
 func (s *Schemas) MustImport(version *APIVersion, obj interface{}, externalOverrides ...interface{}) *Schemas {
@@ -35,8 +48,13 @@ func (s *Schemas) MustImport(version *APIVersion, obj interface{}, externalOverr
 	return s
 }
 
+func (s *Schemas) MustImportAndCustomize(version *APIVersion, obj interface{}, f func(*Schema), externalOverrides ...interface{}) *Schemas {
+	return s.MustImport(version, obj, externalOverrides...).
+		MustCustomizeType(version, obj, f)
+}
+
 func (s *Schemas) Import(version *APIVersion, obj interface{}, externalOverrides ...interface{}) (*Schema, error) {
-	types := []reflect.Type{}
+	var types []reflect.Type
 	for _, override := range externalOverrides {
 		types = append(types, reflect.TypeOf(override))
 	}
@@ -60,6 +78,54 @@ func (s *Schemas) newSchemaFromType(version *APIVersion, t reflect.Type, typeNam
 	return schema, nil
 }
 
+func (s *Schemas) setupFilters(schema *Schema) {
+	if !slice.ContainsString(schema.CollectionMethods, http.MethodGet) {
+		return
+	}
+	for fieldName, field := range schema.ResourceFields {
+		var mods []ModifierType
+		switch field.Type {
+		case "enum":
+			mods = []ModifierType{ModifierEQ, ModifierNE, ModifierIn, ModifierNotIn}
+		case "string":
+			mods = []ModifierType{ModifierEQ, ModifierNE, ModifierIn, ModifierNotIn}
+		case "int":
+			mods = []ModifierType{ModifierEQ, ModifierNE, ModifierIn, ModifierNotIn}
+		case "boolean":
+			mods = []ModifierType{ModifierEQ, ModifierNE}
+		default:
+			if definition.IsReferenceType(field.Type) {
+				mods = []ModifierType{ModifierEQ, ModifierNE, ModifierIn, ModifierNotIn}
+			}
+		}
+
+		if len(mods) > 0 {
+			if schema.CollectionFilters == nil {
+				schema.CollectionFilters = map[string]Filter{}
+			}
+			schema.CollectionFilters[fieldName] = Filter{
+				Modifiers: mods,
+			}
+		}
+	}
+}
+
+func (s *Schemas) MustCustomizeType(version *APIVersion, obj interface{}, f func(*Schema)) *Schemas {
+	name := convert.LowerTitle(reflect.TypeOf(obj).Name())
+	schema := s.Schema(version, name)
+	if schema == nil {
+		panic("Failed to find schema " + name)
+	}
+
+	f(schema)
+
+	if schema.SubContext != "" {
+		s.schemasBySubContext[schema.SubContext] = schema
+	}
+
+	return s
+}
+
 func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...reflect.Type) (*Schema, error) {
 	typeName := convert.LowerTitle(t.Name())
 
@@ -75,8 +141,13 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 		return nil, err
 	}
 
-	mapper := s.mapper(&schema.Version, schema.ID)
-	if mapper != nil {
+	mappers := s.mapper(&schema.Version, schema.ID)
+	if schema.CanList() {
+		mappers = append(s.DefaultMappers, mappers...)
+	}
+	mappers = append(mappers, s.DefaultPostMappers...)
+
+	if len(mappers) > 0 {
 		copy, err := s.newSchemaFromType(version, t, typeName)
 		if err != nil {
 			return nil, err
@@ -90,13 +161,15 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 		}
 	}
 
-	if mapper == nil {
-		mapper = &TypeMapper{}
+	mapper := &typeMapper{
+		Mappers: mappers,
 	}
 
 	if err := mapper.ModifySchema(schema, s); err != nil {
 		return nil, err
 	}
+
+	s.setupFilters(schema)
 
 	schema.Mapper = mapper
 	s.AddSchema(schema)
@@ -114,6 +187,9 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 		schema.ResourceMethods = []string{"GET", "PUT", "DELETE"}
 	}
 
+	hasType := false
+	hasMeta := false
+
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
@@ -128,12 +204,23 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 			continue
 		}
 
+		if field.Anonymous && jsonName == "" && field.Type == typeType {
+			hasType = true
+		}
+
+		if field.Anonymous && jsonName == "metadata" && field.Type == metaType {
+			hasMeta = true
+		}
+
 		if field.Anonymous && jsonName == "" {
 			t := field.Type
 			if t.Kind() == reflect.Ptr {
 				t = t.Elem()
 			}
 			if t.Kind() == reflect.Struct {
+				if t == namespacedType {
+					schema.Scope = NamespaceScope
+				}
 				if err := s.readFields(schema, t); err != nil {
 					return err
 				}
@@ -144,6 +231,9 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 		fieldName := jsonName
 		if fieldName == "" {
 			fieldName = convert.LowerTitle(field.Name)
+			if strings.HasSuffix(fieldName, "ID") {
+				fieldName = strings.TrimSuffix(fieldName, "ID") + "Id"
+			}
 		}
 
 		if blacklistNames[fieldName] {
@@ -156,6 +246,7 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 		schemaField := Field{
 			Create:   true,
 			Update:   true,
+			Nullable: true,
 			CodeName: field.Name,
 		}
 
@@ -177,13 +268,13 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 			schemaField.Type = inferedType
 		}
 
-		if field.Type == metaType {
-			schema.CollectionMethods = []string{"GET", "POST"}
-			schema.ResourceMethods = []string{"GET", "PUT", "DELETE"}
-		}
-
 		logrus.Debugf("Setting field %s.%s: %#v", schema.ID, fieldName, schemaField)
 		schema.ResourceFields[fieldName] = schemaField
+	}
+
+	if hasType && hasMeta {
+		schema.CollectionMethods = []string{"GET", "POST"}
+		schema.ResourceMethods = []string{"GET", "PUT", "DELETE"}
 	}
 
 	return nil
