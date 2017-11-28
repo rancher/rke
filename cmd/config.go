@@ -179,7 +179,7 @@ func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigHost, error) {
 	}
 	host.User = sshUser
 
-	dockerSocketPath, err := getConfig(reader, fmt.Sprintf("Docker socker path on host (%s)", advertisedHostname), "/var/run/docker.sock")
+	dockerSocketPath, err := getConfig(reader, fmt.Sprintf("Docker socket path on host (%s)", advertisedHostname), "/var/run/docker.sock")
 	if err != nil {
 		return nil, err
 	}
