@@ -202,7 +202,7 @@ func getServiceConfig(reader *bufio.Reader) (*v1.RKEConfigServices, error) {
 	}
 	servicesConfig.Etcd.Image = etcdImage
 
-	kubeImage, err := getConfig(reader, "Kubernetes Docker image", "quay.io/coreos/hyperkube:v1.7.5_coreos.0")
+	kubeImage, err := getConfig(reader, "Kubernetes Docker image", "rancher/k8s:v1.8.3-rancher2")
 	if err != nil {
 		return nil, err
 	}
