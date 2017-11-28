@@ -17,7 +17,9 @@ func RollingUpdateNginxProxy(cpHosts []hosts.Host, workerHosts []hosts.Host) err
 	nginxProxyEnv := buildProxyEnv(cpHosts)
 	for _, host := range workerHosts {
 		imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
-		return docker.DoRollingUpdateContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole)
+		if err := docker.DoRollingUpdateContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole); err != nil {
+			return err
+		}
 	}
 	return nil
 }
