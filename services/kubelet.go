@@ -13,11 +13,11 @@ import (
 
 func runKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) error {
 	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, isMaster)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.AdvertisedHostname, WorkerRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.Address, WorkerRole)
 }
 
 func removeKubelet(host hosts.Host) error {
-	return docker.DoRemoveContainer(host.DClient, KubeletContainerName, host.AdvertisedHostname)
+	return docker.DoRemoveContainer(host.DClient, KubeletContainerName, host.Address)
 }
 
 func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {
@@ -27,11 +27,11 @@ func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMas
 			"--v=2",
 			"--address=0.0.0.0",
 			"--cluster-domain=" + kubeletService.ClusterDomain,
-			"--hostname-override=" + host.AdvertisedHostname,
 			"--pod-infra-container-image=" + kubeletService.InfraContainerImage,
 			"--cgroup-driver=cgroupfs",
 			"--cgroups-per-qos=True",
 			"--enforce-node-allocatable=",
+			"--hostname-override=" + host.HostnameOverride,
 			"--cluster-dns=" + kubeletService.ClusterDNSServer,
 			"--network-plugin=cni",
 			"--cni-conf-dir=/etc/cni/net.d",

@@ -21,7 +21,7 @@ const (
 )
 
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
-	sshAddr := d.host.IP + ":22"
+	sshAddr := d.host.Address + ":22"
 	// Build SSH client configuration
 	cfg, err := makeSSHConfig(d.host.User, d.signer)
 	if err != nil {
@@ -37,13 +37,13 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	}
 	remote, err := conn.Dial("unix", d.host.DockerSocket)
 	if err != nil {
-		return nil, fmt.Errorf("Error connecting to Docker socket on host [%s]: %v", d.host.AdvertisedHostname, err)
+		return nil, fmt.Errorf("Error connecting to Docker socket on host [%s]: %v", d.host.Address, err)
 	}
 	return remote, err
 }
 
 func (h *Host) TunnelUp(signer ssh.Signer) error {
-	logrus.Infof("[ssh] Start tunnel for host [%s]", h.AdvertisedHostname)
+	logrus.Infof("[ssh] Start tunnel for host [%s]", h.Address)
 
 	dialer := &dialer{
 		host:   h,
@@ -57,10 +57,10 @@ func (h *Host) TunnelUp(signer ssh.Signer) error {
 
 	// set Docker client
 	var err error
-	logrus.Debugf("Connecting to Docker API for host [%s]", h.AdvertisedHostname)
+	logrus.Debugf("Connecting to Docker API for host [%s]", h.Address)
 	h.DClient, err = client.NewClient("unix:///var/run/docker.sock", DockerAPIVersion, httpClient, nil)
 	if err != nil {
-		return fmt.Errorf("Can't connect to Docker for host [%s]: %v", h.AdvertisedHostname, err)
+		return fmt.Errorf("Can't connect to Docker for host [%s]: %v", h.Address, err)
 	}
 	return nil
 }

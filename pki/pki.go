@@ -167,7 +167,7 @@ func generateCerts(cpHosts []hosts.Host, clusterDomain, localConfigPath string, 
 		Certificate: kubeAdminCrt,
 		Key:         kubeAdminKey,
 		Config: GetKubeConfigX509WithData(
-			"https://"+cpHosts[0].IP+":6443",
+			"https://"+cpHosts[0].Address+":6443",
 			KubeAdminCommonName,
 			string(cert.EncodeCertPEM(caCrt)),
 			string(cert.EncodeCertPEM(kubeAdminCrt)),
@@ -250,11 +250,25 @@ func GetAltNames(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP
 	ips := []net.IP{}
 	dnsNames := []string{}
 	for _, host := range cpHosts {
-		ips = append(ips, net.ParseIP(host.IP))
-		if host.IP != host.AdvertiseAddress {
-			ips = append(ips, net.ParseIP(host.AdvertiseAddress))
+		// Check if node address is a valid IP
+		if nodeIP := net.ParseIP(host.Address); nodeIP != nil {
+			ips = append(ips, nodeIP)
+		} else {
+			dnsNames = append(dnsNames, host.Address)
 		}
-		dnsNames = append(dnsNames, host.AdvertisedHostname)
+
+		// Check if node internal address is a valid IP
+		if len(host.InternalAddress) != 0 && host.InternalAddress != host.Address {
+			if internalIP := net.ParseIP(host.InternalAddress); internalIP != nil {
+				ips = append(ips, internalIP)
+			} else {
+				dnsNames = append(dnsNames, host.InternalAddress)
+			}
+		}
+		// Add hostname to the ALT dns names
+		if len(host.HostnameOverride) != 0 && host.HostnameOverride != host.Address {
+			dnsNames = append(dnsNames, host.HostnameOverride)
+		}
 	}
 	ips = append(ips, net.ParseIP("127.0.0.1"))
 	ips = append(ips, KubernetesServiceIP)
