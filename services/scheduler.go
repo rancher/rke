@@ -12,11 +12,11 @@ import (
 
 func runScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
 	imageCfg, hostCfg := buildSchedulerConfig(host, schedulerService)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.AdvertisedHostname, ControlRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.Address, ControlRole)
 }
 
 func removeScheduler(host hosts.Host) error {
-	return docker.DoRemoveContainer(host.DClient, SchedulerContainerName, host.AdvertisedHostname)
+	return docker.DoRemoveContainer(host.DClient, SchedulerContainerName, host.Address)
 }
 
 func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {

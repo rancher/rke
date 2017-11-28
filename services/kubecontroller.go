@@ -12,11 +12,11 @@ import (
 
 func runKubeController(host hosts.Host, kubeControllerService v1.KubeControllerService) error {
 	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.AdvertisedHostname, ControlRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.Address, ControlRole)
 }
 
 func removeKubeController(host hosts.Host) error {
-	return docker.DoRemoveContainer(host.DClient, KubeControllerContainerName, host.AdvertisedHostname)
+	return docker.DoRemoveContainer(host.DClient, KubeControllerContainerName, host.Address)
 }
 
 func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (*container.Config, *container.HostConfig) {

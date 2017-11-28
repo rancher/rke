@@ -48,11 +48,11 @@ func (c *Cluster) InvertIndexHosts() error {
 	c.EtcdHosts = make([]hosts.Host, 0)
 	c.WorkerHosts = make([]hosts.Host, 0)
 	c.ControlPlaneHosts = make([]hosts.Host, 0)
-	for _, host := range c.Hosts {
+	for _, host := range c.Nodes {
 		for _, role := range host.Role {
-			logrus.Debugf("Host: " + host.AdvertisedHostname + " has role: " + role)
+			logrus.Debugf("Host: " + host.Address + " has role: " + role)
 			newHost := hosts.Host{
-				RKEConfigHost: host,
+				RKEConfigNode: host,
 			}
 			switch role {
 			case services.ETCDRole:
@@ -62,7 +62,7 @@ func (c *Cluster) InvertIndexHosts() error {
 			case services.WorkerRole:
 				c.WorkerHosts = append(c.WorkerHosts, newHost)
 			default:
-				return fmt.Errorf("Failed to recognize host [%s] role %s", host.AdvertisedHostname, role)
+				return fmt.Errorf("Failed to recognize host [%s] role %s", host.Address, role)
 			}
 		}
 	}

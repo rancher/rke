@@ -17,7 +17,7 @@ func RollingUpdateNginxProxy(cpHosts []hosts.Host, workerHosts []hosts.Host) err
 	nginxProxyEnv := buildProxyEnv(cpHosts)
 	for _, host := range workerHosts {
 		imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
-		return docker.DoRollingUpdateContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.AdvertisedHostname, WorkerRole)
+		return docker.DoRollingUpdateContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole)
 	}
 	return nil
 }
@@ -25,11 +25,11 @@ func RollingUpdateNginxProxy(cpHosts []hosts.Host, workerHosts []hosts.Host) err
 func runNginxProxy(host hosts.Host, cpHosts []hosts.Host) error {
 	nginxProxyEnv := buildProxyEnv(cpHosts)
 	imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.AdvertisedHostname, WorkerRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole)
 }
 
 func removeNginxProxy(host hosts.Host) error {
-	return docker.DoRemoveContainer(host.DClient, NginxProxyContainerName, host.AdvertisedHostname)
+	return docker.DoRemoveContainer(host.DClient, NginxProxyContainerName, host.Address)
 }
 
 func buildNginxProxyConfig(host hosts.Host, nginxProxyEnv string) (*container.Config, *container.HostConfig) {
@@ -48,7 +48,7 @@ func buildNginxProxyConfig(host hosts.Host, nginxProxyEnv string) (*container.Co
 func buildProxyEnv(cpHosts []hosts.Host) string {
 	proxyEnv := ""
 	for i, cpHost := range cpHosts {
-		proxyEnv += fmt.Sprintf("%s", cpHost.AdvertiseAddress)
+		proxyEnv += fmt.Sprintf("%s", cpHost.InternalAddress)
 		if i < (len(cpHosts) - 1) {
 			proxyEnv += ","
 		}

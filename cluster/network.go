@@ -11,16 +11,19 @@ import (
 
 const (
 	NetworkPluginResourceName = "rke-netwok-plugin"
+	FlannelNetworkPlugin      = "flannel"
+	CalicoNetworkPlugin       = "calico"
+	CanalNetworkPlugin        = "canal"
 )
 
 func (c *Cluster) DeployNetworkPlugin() error {
 	logrus.Infof("[network] Setting up network plugin: %s", c.Network.Plugin)
 	switch c.Network.Plugin {
-	case "flannel":
+	case FlannelNetworkPlugin:
 		return c.doFlannelDeploy()
-	case "calico":
+	case CalicoNetworkPlugin:
 		return c.doCalicoDeploy()
-	case "canal":
+	case CanalNetworkPlugin:
 		return c.doCanalDeploy()
 	default:
 		return fmt.Errorf("[network] Unsupported network plugin: %s", c.Network.Plugin)
