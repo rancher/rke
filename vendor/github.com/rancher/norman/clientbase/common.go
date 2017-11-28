@@ -55,7 +55,7 @@ func IsNotFound(err error) bool {
 	return apiError.StatusCode == http.StatusNotFound
 }
 
-func newApiError(resp *http.Response, url string) *APIError {
+func newAPIError(resp *http.Response, url string) *APIError {
 	contents, err := ioutil.ReadAll(resp.Body)
 	var body string
 	if err != nil {
@@ -161,7 +161,7 @@ func NewAPIClient(opts *ClientOpts) (APIBaseClient, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return result, newApiError(resp, opts.URL)
+		return result, newAPIError(resp, opts.URL)
 	}
 
 	schemasURLs := resp.Header.Get("X-API-Schemas")
@@ -184,7 +184,7 @@ func NewAPIClient(opts *ClientOpts) (APIBaseClient, error) {
 		defer resp.Body.Close()
 
 		if resp.StatusCode != 200 {
-			return result, newApiError(resp, opts.URL)
+			return result, newAPIError(resp, opts.URL)
 		}
 	}
 
@@ -244,7 +244,7 @@ func (a *APIBaseClient) Post(url string, createObj interface{}, respObject inter
 func (a *APIBaseClient) GetLink(resource types.Resource, link string, respObject interface{}) error {
 	url := resource.Links[link]
 	if url == "" {
-		return fmt.Errorf("Failed to find link: %s", link)
+		return fmt.Errorf("failed to find link: %s", link)
 	}
 
 	return a.Ops.DoGet(url, &types.ListOpts{}, respObject)
@@ -270,12 +270,12 @@ func (a *APIBaseClient) Delete(existing *types.Resource) error {
 }
 
 func (a *APIBaseClient) Reload(existing *types.Resource, output interface{}) error {
-	selfUrl, ok := existing.Links[SELF]
+	selfURL, ok := existing.Links[SELF]
 	if !ok {
-		return errors.New(fmt.Sprintf("Failed to find self URL of [%v]", existing))
+		return fmt.Errorf("failed to find self URL of [%v]", existing)
 	}
 
-	return a.Ops.DoGet(selfUrl, NewListOpts(), output)
+	return a.Ops.DoGet(selfURL, NewListOpts(), output)
 }
 
 func (a *APIBaseClient) Action(schemaType string, action string,

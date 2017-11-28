@@ -14,11 +14,11 @@ import (
 func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {
 	etcdConnString := GetEtcdConnString(etcdHosts)
 	imageCfg, hostCfg := buildKubeAPIConfig(host, kubeAPIService, etcdConnString)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.AdvertisedHostname, ControlRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.Address, ControlRole)
 }
 
 func removeKubeAPI(host hosts.Host) error {
-	return docker.DoRemoveContainer(host.DClient, KubeAPIContainerName, host.AdvertisedHostname)
+	return docker.DoRemoveContainer(host.DClient, KubeAPIContainerName, host.Address)
 }
 
 func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
@@ -26,17 +26,18 @@ func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdC
 		Image: kubeAPIService.Image,
 		Entrypoint: []string{"kube-apiserver",
 			"--insecure-bind-address=127.0.0.1",
+			"--bind-address=0.0.0.0",
 			"--insecure-port=8080",
 			"--secure-port=6443",
 			"--cloud-provider=",
 			"--allow_privileged=true",
+			"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
 			"--service-cluster-ip-range=" + kubeAPIService.ServiceClusterIPRange,
 			"--admission-control=ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
 			"--runtime-config=batch/v2alpha1",
 			"--runtime-config=authentication.k8s.io/v1beta1=true",
 			"--storage-backend=etcd3",
 			"--etcd-servers=" + etcdConnString,
-			"--advertise-address=" + host.AdvertiseAddress,
 			"--client-ca-file=" + pki.CACertPath,
 			"--tls-cert-file=" + pki.KubeAPICertPath,
 			"--tls-private-key-file=" + pki.KubeAPIKeyPath,

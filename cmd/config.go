@@ -42,7 +42,11 @@ func ConfigCommand() cli.Command {
 
 func getConfig(reader *bufio.Reader, text, def string) (string, error) {
 	for {
-		fmt.Printf("%s [%s]: ", text, def)
+		if def == "" {
+			fmt.Printf("%s [%s]: ", text, "none")
+		} else {
+			fmt.Printf("%s [%s]: ", text, def)
+		}
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			return "", err
@@ -81,9 +85,16 @@ func clusterConfig(ctx *cli.Context) error {
 
 	// Generate empty configuration file
 	if ctx.Bool("empty") {
-		cluster.Hosts = make([]v1.RKEConfigHost, 1)
+		cluster.Nodes = make([]v1.RKEConfigNode, 1)
 		return writeConfig(&cluster, configFile, print)
 	}
+
+	// Get number of hosts
+	sshKeyPath, err := getConfig(reader, "SSH Private Key Path", "~/.ssh/id_rsa")
+	if err != nil {
+		return err
+	}
+	cluster.SSHKeyPath = sshKeyPath
 
 	// Get number of hosts
 	numberOfHostsString, err := getConfig(reader, "Number of Hosts", "3")
@@ -96,13 +107,13 @@ func clusterConfig(ctx *cli.Context) error {
 	}
 
 	// Get Hosts config
-	cluster.Hosts = make([]v1.RKEConfigHost, 0)
+	cluster.Nodes = make([]v1.RKEConfigNode, 0)
 	for i := 0; i < numberOfHostsInt; i++ {
 		hostCfg, err := getHostConfig(reader, i)
 		if err != nil {
 			return err
 		}
-		cluster.Hosts = append(cluster.Hosts, *hostCfg)
+		cluster.Nodes = append(cluster.Nodes, *hostCfg)
 	}
 
 	// Get Network config
@@ -129,27 +140,21 @@ func clusterConfig(ctx *cli.Context) error {
 	return writeConfig(&cluster, configFile, print)
 }
 
-func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigHost, error) {
-	host := v1.RKEConfigHost{}
-	advertisedHostname, err := getConfig(reader, fmt.Sprintf("Hostname of host (%d)", index+1), "")
+func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigNode, error) {
+	host := v1.RKEConfigNode{}
+	address, err := getConfig(reader, fmt.Sprintf("SSH Address of host (%d)", index+1), "")
 	if err != nil {
 		return nil, err
 	}
-	host.AdvertisedHostname = advertisedHostname
+	host.Address = address
 
-	sshIP, err := getConfig(reader, fmt.Sprintf("SSH IP of host (%s)", advertisedHostname), "")
+	sshUser, err := getConfig(reader, fmt.Sprintf("SSH User of host (%s)", address), "ubuntu")
 	if err != nil {
 		return nil, err
 	}
-	host.IP = sshIP
+	host.User = sshUser
 
-	advertisedIP, err := getConfig(reader, fmt.Sprintf("Advertised IP of host (%s)", advertisedHostname), "")
-	if err != nil {
-		return nil, err
-	}
-	host.AdvertiseAddress = advertisedIP
-
-	isControlHost, err := getConfig(reader, fmt.Sprintf("Is host (%s) a control host (y/n)?", advertisedHostname), "y")
+	isControlHost, err := getConfig(reader, fmt.Sprintf("Is host (%s) a control host (y/n)?", address), "y")
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +162,7 @@ func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigHost, error) {
 		host.Role = append(host.Role, services.ControlRole)
 	}
 
-	isWorkerHost, err := getConfig(reader, fmt.Sprintf("Is host (%s) a worker host (y/n)?", advertisedHostname), "n")
+	isWorkerHost, err := getConfig(reader, fmt.Sprintf("Is host (%s) a worker host (y/n)?", address), "n")
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +170,7 @@ func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigHost, error) {
 		host.Role = append(host.Role, services.WorkerRole)
 	}
 
-	isEtcdHost, err := getConfig(reader, fmt.Sprintf("Is host (%s) an Etcd host (y/n)?", advertisedHostname), "n")
+	isEtcdHost, err := getConfig(reader, fmt.Sprintf("Is host (%s) an Etcd host (y/n)?", address), "n")
 	if err != nil {
 		return nil, err
 	}
@@ -173,13 +178,19 @@ func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigHost, error) {
 		host.Role = append(host.Role, services.ETCDRole)
 	}
 
-	sshUser, err := getConfig(reader, fmt.Sprintf("SSH User of host (%s)", advertisedHostname), "ubuntu")
+	hostnameOverride, err := getConfig(reader, fmt.Sprintf("Override Hostname of host (%s)", address), "")
 	if err != nil {
 		return nil, err
 	}
-	host.User = sshUser
+	host.HostnameOverride = hostnameOverride
 
-	dockerSocketPath, err := getConfig(reader, fmt.Sprintf("Docker socket path on host (%s)", advertisedHostname), "/var/run/docker.sock")
+	internalAddress, err := getConfig(reader, fmt.Sprintf("Internal IP of host (%s)", address), "")
+	if err != nil {
+		return nil, err
+	}
+	host.InternalAddress = internalAddress
+
+	dockerSocketPath, err := getConfig(reader, fmt.Sprintf("Docker socket path on host (%s)", address), "/var/run/docker.sock")
 	if err != nil {
 		return nil, err
 	}

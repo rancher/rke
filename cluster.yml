@@ -14,18 +14,18 @@ network:
   options:
     foo: bar
 
-hosts:
-  - advertised_hostname: server1
-    ip: 1.1.1.1
+nodes:
+  - address: 1.1.1.1
     user: ubuntu
     role: [controlplane, etcd]
-    docker_socket: /var/run/docker.sock
-    advertise_address: 10.1.1.1
-  - advertised_hostname: server2
-    ip: 2.2.2.2
+  - address: 2.2.2.2
     user: ubuntu
     role: [worker]
-    advertise_address: 10.2.2.2
+  - address: example.com
+    user: ubuntu
+    role: [worker]
+    hostname_override: node3
+    internal_address: 192.168.1.6
 
 services:
   etcd:

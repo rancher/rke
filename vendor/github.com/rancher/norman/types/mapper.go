@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/pkg/errors"
 	"github.com/rancher/norman/types/definition"
 )
 
@@ -11,14 +10,37 @@ type Mapper interface {
 	ModifySchema(schema *Schema, schemas *Schemas) error
 }
 
-type TypeMapper struct {
+type Mappers []Mapper
+
+func (m Mappers) FromInternal(data map[string]interface{}) {
+	for _, mapper := range m {
+		mapper.FromInternal(data)
+	}
+}
+
+func (m Mappers) ToInternal(data map[string]interface{}) {
+	for i := len(m) - 1; i >= 0; i-- {
+		m[i].ToInternal(data)
+	}
+}
+
+func (m Mappers) ModifySchema(schema *Schema, schemas *Schemas) error {
+	for _, mapper := range m {
+		if err := mapper.ModifySchema(schema, schemas); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type typeMapper struct {
 	Mappers         []Mapper
 	typeName        string
 	subSchemas      map[string]*Schema
 	subArraySchemas map[string]*Schema
 }
 
-func (t *TypeMapper) FromInternal(data map[string]interface{}) {
+func (t *typeMapper) FromInternal(data map[string]interface{}) {
 	for fieldName, schema := range t.subSchemas {
 		if schema.Mapper == nil {
 			continue
@@ -38,19 +60,29 @@ func (t *TypeMapper) FromInternal(data map[string]interface{}) {
 		}
 	}
 
-	for _, mapper := range t.Mappers {
-		mapper.FromInternal(data)
-	}
+	Mappers(t.Mappers).FromInternal(data)
 
 	if data != nil {
-		data["type"] = t.typeName
+		if _, ok := data["type"]; !ok {
+			data["type"] = t.typeName
+		}
+		name, _ := data["name"].(string)
+		namespace, _ := data["namespace"].(string)
+
+		if _, ok := data["id"]; !ok {
+			if name != "" {
+				if namespace == "" {
+					data["id"] = name
+				} else {
+					data["id"] = namespace + ":" + name
+				}
+			}
+		}
 	}
 }
 
-func (t *TypeMapper) ToInternal(data map[string]interface{}) {
-	for i := len(t.Mappers) - 1; i >= 0; i-- {
-		t.Mappers[i].ToInternal(data)
-	}
+func (t *typeMapper) ToInternal(data map[string]interface{}) {
+	Mappers(t.Mappers).ToInternal(data)
 
 	for fieldName, schema := range t.subArraySchemas {
 		if schema.Mapper == nil {
@@ -71,7 +103,7 @@ func (t *TypeMapper) ToInternal(data map[string]interface{}) {
 	}
 }
 
-func (t *TypeMapper) ModifySchema(schema *Schema, schemas *Schemas) error {
+func (t *typeMapper) ModifySchema(schema *Schema, schemas *Schemas) error {
 	t.subSchemas = map[string]*Schema{}
 	t.subArraySchemas = map[string]*Schema{}
 	t.typeName = schema.ID
@@ -94,11 +126,5 @@ func (t *TypeMapper) ModifySchema(schema *Schema, schemas *Schemas) error {
 		}
 	}
 
-	for _, mapper := range t.Mappers {
-		if err := mapper.ModifySchema(schema, schemas); err != nil {
-			return errors.Wrapf(err, "mapping type %s", schema.ID)
-		}
-	}
-
-	return nil
+	return Mappers(t.Mappers).ModifySchema(schema, schemas)
 }

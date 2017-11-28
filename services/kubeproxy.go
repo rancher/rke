@@ -12,11 +12,11 @@ import (
 
 func runKubeproxy(host hosts.Host, kubeproxyService v1.KubeproxyService) error {
 	imageCfg, hostCfg := buildKubeproxyConfig(host, kubeproxyService)
-	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeproxyContainerName, host.AdvertisedHostname, WorkerRole)
+	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeproxyContainerName, host.Address, WorkerRole)
 }
 
 func removeKubeproxy(host hosts.Host) error {
-	return docker.DoRemoveContainer(host.DClient, KubeproxyContainerName, host.AdvertisedHostname)
+	return docker.DoRemoveContainer(host.DClient, KubeproxyContainerName, host.Address)
 }
 
 func buildKubeproxyConfig(host hosts.Host, kubeproxyService v1.KubeproxyService) (*container.Config, *container.HostConfig) {
