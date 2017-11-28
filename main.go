@@ -30,7 +30,9 @@ func mainErr() error {
 	app.Author = "Rancher Labs, Inc."
 	app.Email = ""
 	app.Commands = []cli.Command{
-		cmd.ClusterCommand(),
+		cmd.UpCommand(),
+		cmd.RemoveCommand(),
+		cmd.VersionCommand(),
 		cmd.ConfigCommand(),
 	}
 	app.Flags = []cli.Flag{

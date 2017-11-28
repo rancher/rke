@@ -5,7 +5,7 @@ import (
 	"github.com/rancher/rke/services"
 )
 
-func (c *Cluster) ClusterDown() error {
+func (c *Cluster) ClusterRemove() error {
 	// Remove Worker Plane
 	if err := services.RemoveWorkerPlane(c.ControlPlaneHosts, c.WorkerHosts); err != nil {
 		return err
