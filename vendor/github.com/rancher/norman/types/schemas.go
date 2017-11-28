@@ -13,23 +13,41 @@ type SchemaCollection struct {
 	Data []Schema
 }
 
+type SchemaInitFunc func(*Schemas) *Schemas
+
 type Schemas struct {
-	schemasByPath map[string]map[string]*Schema
-	mappers       map[string]map[string]Mapper
-	versions      []APIVersion
-	schemas       []*Schema
-	errors        []error
+	schemasByPath       map[string]map[string]*Schema
+	schemasBySubContext map[string]*Schema
+	mappers             map[string]map[string][]Mapper
+	DefaultMappers      []Mapper
+	DefaultPostMappers  []Mapper
+	versions            []APIVersion
+	schemas             []*Schema
+	errors              []error
 }
 
 func NewSchemas() *Schemas {
 	return &Schemas{
-		schemasByPath: map[string]map[string]*Schema{},
-		mappers:       map[string]map[string]Mapper{},
+		schemasByPath:       map[string]map[string]*Schema{},
+		schemasBySubContext: map[string]*Schema{},
+		mappers:             map[string]map[string][]Mapper{},
 	}
+}
+
+func (s *Schemas) Init(initFunc SchemaInitFunc) *Schemas {
+	return initFunc(s)
 }
 
 func (s *Schemas) Err() error {
 	return NewErrors(s.errors)
+}
+
+func (s *Schemas) SubContext(subContext string) *Schema {
+	return s.schemasBySubContext[subContext]
+}
+
+func (s *Schemas) SubContextSchemas() map[string]*Schema {
+	return s.schemasBySubContext
 }
 
 func (s *Schemas) AddSchemas(schema *Schemas) *Schemas {
@@ -40,7 +58,7 @@ func (s *Schemas) AddSchemas(schema *Schemas) *Schemas {
 }
 
 func (s *Schemas) AddSchema(schema *Schema) *Schemas {
-	schema.Type = "schema"
+	schema.Type = "/v1-meta/schemas/schema"
 	if schema.ID == "" {
 		s.errors = append(s.errors, fmt.Errorf("ID is not set on schema: %v", schema))
 		return s
@@ -58,6 +76,9 @@ func (s *Schemas) AddSchema(schema *Schema) *Schemas {
 	if schema.CodeNamePlural == "" {
 		schema.CodeNamePlural = name.GuessPluralName(schema.CodeName)
 	}
+	if schema.BaseType == "" {
+		schema.BaseType = schema.ID
+	}
 
 	schemas, ok := s.schemasByPath[schema.Version.Path]
 	if !ok {
@@ -71,20 +92,21 @@ func (s *Schemas) AddSchema(schema *Schema) *Schemas {
 		s.schemas = append(s.schemas, schema)
 	}
 
+	if schema.SubContext != "" {
+		s.schemasBySubContext[schema.SubContext] = schema
+	}
+
 	return s
 }
 
 func (s *Schemas) AddMapper(version *APIVersion, schemaID string, mapper Mapper) *Schemas {
 	mappers, ok := s.mappers[version.Path]
 	if !ok {
-		mappers = map[string]Mapper{}
+		mappers = map[string][]Mapper{}
 		s.mappers[version.Path] = mappers
 	}
 
-	if _, ok := mappers[schemaID]; !ok {
-		mappers[schemaID] = mapper
-	}
-
+	mappers[schemaID] = append(mappers[schemaID], mapper)
 	return s
 }
 
@@ -100,7 +122,7 @@ func (s *Schemas) Schemas() []*Schema {
 	return s.schemas
 }
 
-func (s *Schemas) mapper(version *APIVersion, name string) Mapper {
+func (s *Schemas) mapper(version *APIVersion, name string) []Mapper {
 	var (
 		path string
 	)
@@ -133,10 +155,10 @@ func (s *Schemas) Schema(version *APIVersion, name string) *Schema {
 		path string
 	)
 
-	if strings.Contains(name, "/") {
-		idx := strings.LastIndex(name, "/")
-		path = name[0:idx]
-		name = name[idx+1:]
+	if strings.Contains(name, "/schemas/") {
+		parts := strings.SplitN(name, "/schemas/", 2)
+		path = parts[0]
+		name = parts[1]
 	} else if version != nil {
 		path = version.Path
 	} else {

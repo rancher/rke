@@ -27,12 +27,23 @@ type Sort struct {
 	Name    string            `json:"name,omitempty"`
 	Order   SortOrder         `json:"order,omitempty"`
 	Reverse string            `json:"reverse,omitempty"`
-	Links   map[string]string `json:"sortLinks,omitempty"`
+	Links   map[string]string `json:"links,omitempty"`
 }
 
+var (
+	ModifierEQ      ModifierType = "eq"
+	ModifierNE      ModifierType = "ne"
+	ModifierNull    ModifierType = "null"
+	ModifierNotNull ModifierType = "notnull"
+	ModifierIn      ModifierType = "in"
+	ModifierNotIn   ModifierType = "notin"
+)
+
+type ModifierType string
+
 type Condition struct {
-	Modifier string      `json:"modifier,omitempty"`
-	Value    interface{} `json:"value,omitempty"`
+	Modifier ModifierType `json:"modifier,omitempty"`
+	Value    interface{}  `json:"value,omitempty"`
 }
 
 type Pagination struct {
@@ -40,6 +51,7 @@ type Pagination struct {
 	First    string `json:"first,omitempty"`
 	Previous string `json:"previous,omitempty"`
 	Next     string `json:"next,omitempty"`
+	Last     string `json:"last,omitempty"`
 	Limit    *int64 `json:"limit,omitempty"`
 	Total    *int64 `json:"total,omitempty"`
 	Partial  bool   `json:"partial,omitempty"`
@@ -59,12 +71,20 @@ type APIVersion struct {
 	SubContexts map[string]bool `json:"subContext,omitempty"`
 }
 
+type Namespaced struct{}
+
+var NamespaceScope TypeScope = "namespace"
+
+type TypeScope string
+
 type Schema struct {
 	ID                string            `json:"id,omitempty"`
 	CodeName          string            `json:"-"`
 	CodeNamePlural    string            `json:"-"`
 	PkgName           string            `json:"-"`
 	Type              string            `json:"type,omitempty"`
+	BaseType          string            `json:"baseType,omitempty"`
+	SubContext        string            `json:"-,omitempty"`
 	Links             map[string]string `json:"links"`
 	Version           APIVersion        `json:"version"`
 	PluralName        string            `json:"pluralName,omitempty"`
@@ -75,6 +95,7 @@ type Schema struct {
 	CollectionFields  map[string]Field  `json:"collectionFields,omitempty"`
 	CollectionActions map[string]Action `json:"collectionActions,omitempty"`
 	CollectionFilters map[string]Filter `json:"collectionFilters,omitempty"`
+	Scope             TypeScope         `json:"-"`
 
 	InternalSchema *Schema        `json:"-"`
 	Mapper         Mapper         `json:"-"`
@@ -115,7 +136,7 @@ type Action struct {
 }
 
 type Filter struct {
-	Modifiers []string `json:"modifiers,omitempty"`
+	Modifiers []ModifierType `json:"modifiers,omitempty"`
 }
 
 type ListOpts struct {

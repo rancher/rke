@@ -34,7 +34,7 @@ func (a *APIOperations) DoDelete(url string) error {
 	io.Copy(ioutil.Discard, resp.Body)
 
 	if resp.StatusCode >= 300 {
-		return newApiError(resp, url)
+		return newAPIError(resp, url)
 	}
 
 	return nil
@@ -68,7 +68,7 @@ func (a *APIOperations) DoGet(url string, opts *types.ListOpts, respObject inter
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return newApiError(resp, url)
+		return newAPIError(resp, url)
 	}
 
 	byteContent, err := ioutil.ReadAll(resp.Body)
@@ -97,16 +97,16 @@ func (a *APIOperations) DoList(schemaType string, opts *types.ListOpts, respObje
 		return errors.New("Resource type [" + schemaType + "] is not listable")
 	}
 
-	collectionUrl, ok := schema.Links[COLLECTION]
+	collectionURL, ok := schema.Links[COLLECTION]
 	if !ok {
 		return errors.New("Failed to find collection URL for [" + schemaType + "]")
 	}
 
-	return a.DoGet(collectionUrl, opts, respObject)
+	return a.DoGet(collectionURL, opts, respObject)
 }
 
-func (a *APIOperations) DoNext(nextUrl string, respObject interface{}) error {
-	return a.DoGet(nextUrl, nil, respObject)
+func (a *APIOperations) DoNext(nextURL string, respObject interface{}) error {
+	return a.DoGet(nextURL, nil, respObject)
 }
 
 func (a *APIOperations) DoModify(method string, url string, createObj interface{}, respObject interface{}) error {
@@ -136,7 +136,7 @@ func (a *APIOperations) DoModify(method string, url string, createObj interface{
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 {
-		return newApiError(resp, url)
+		return newAPIError(resp, url)
 	}
 
 	byteContent, err := ioutil.ReadAll(resp.Body)
@@ -170,16 +170,16 @@ func (a *APIOperations) DoCreate(schemaType string, createObj interface{}, respO
 		return errors.New("Resource type [" + schemaType + "] is not creatable")
 	}
 
-	var collectionUrl string
-	collectionUrl, ok = schema.Links[COLLECTION]
+	var collectionURL string
+	collectionURL, ok = schema.Links[COLLECTION]
 	if !ok {
 		// return errors.New("Failed to find collection URL for [" + schemaType + "]")
 		// This is a hack to address https://github.com/rancher/cattle/issues/254
 		re := regexp.MustCompile("schemas.*")
-		collectionUrl = re.ReplaceAllString(schema.Links[SELF], schema.PluralName)
+		collectionURL = re.ReplaceAllString(schema.Links[SELF], schema.PluralName)
 	}
 
-	return a.DoModify("POST", collectionUrl, createObj, respObject)
+	return a.DoModify("POST", collectionURL, createObj, respObject)
 }
 
 func (a *APIOperations) DoUpdate(schemaType string, existing *types.Resource, updates interface{}, respObject interface{}) error {
@@ -187,9 +187,9 @@ func (a *APIOperations) DoUpdate(schemaType string, existing *types.Resource, up
 		return errors.New("Existing object is nil")
 	}
 
-	selfUrl, ok := existing.Links[SELF]
+	selfURL, ok := existing.Links[SELF]
 	if !ok {
-		return errors.New(fmt.Sprintf("Failed to find self URL of [%v]", existing))
+		return fmt.Errorf("failed to find self URL of [%v]", existing)
 	}
 
 	if updates == nil {
@@ -209,7 +209,7 @@ func (a *APIOperations) DoUpdate(schemaType string, existing *types.Resource, up
 		return errors.New("Resource type [" + schemaType + "] is not updatable")
 	}
 
-	return a.DoModify("PUT", selfUrl, updates, respObject)
+	return a.DoModify("PUT", selfURL, updates, respObject)
 }
 
 func (a *APIOperations) DoByID(schemaType string, id string, respObject interface{}) error {
@@ -222,12 +222,12 @@ func (a *APIOperations) DoByID(schemaType string, id string, respObject interfac
 		return errors.New("Resource type [" + schemaType + "] can not be looked up by ID")
 	}
 
-	collectionUrl, ok := schema.Links[COLLECTION]
+	collectionURL, ok := schema.Links[COLLECTION]
 	if !ok {
 		return errors.New("Failed to find collection URL for [" + schemaType + "]")
 	}
 
-	return a.DoGet(collectionUrl+"/"+id, nil, respObject)
+	return a.DoGet(collectionURL+"/"+id, nil, respObject)
 }
 
 func (a *APIOperations) DoResourceDelete(schemaType string, existing *types.Resource) error {
@@ -240,12 +240,12 @@ func (a *APIOperations) DoResourceDelete(schemaType string, existing *types.Reso
 		return errors.New("Resource type [" + schemaType + "] can not be deleted")
 	}
 
-	selfUrl, ok := existing.Links[SELF]
+	selfURL, ok := existing.Links[SELF]
 	if !ok {
-		return errors.New(fmt.Sprintf("Failed to find self URL of [%v]", existing))
+		return fmt.Errorf("failed to find self URL of [%v]", existing)
 	}
 
-	return a.DoDelete(selfUrl)
+	return a.DoDelete(selfURL)
 }
 
 func (a *APIOperations) DoAction(schemaType string, action string,
@@ -255,9 +255,9 @@ func (a *APIOperations) DoAction(schemaType string, action string,
 		return errors.New("Existing object is nil")
 	}
 
-	actionUrl, ok := existing.Actions[action]
+	actionURL, ok := existing.Actions[action]
 	if !ok {
-		return errors.New(fmt.Sprintf("Action [%v] not available on [%v]", action, existing))
+		return fmt.Errorf("action [%v] not available on [%v]", action, existing)
 	}
 
 	_, ok = a.Types[schemaType]
@@ -278,7 +278,7 @@ func (a *APIOperations) DoAction(schemaType string, action string,
 		input = bytes.NewBuffer(bodyContent)
 	}
 
-	req, err := http.NewRequest("POST", actionUrl, input)
+	req, err := http.NewRequest("POST", actionURL, input)
 	if err != nil {
 		return err
 	}
@@ -295,7 +295,7 @@ func (a *APIOperations) DoAction(schemaType string, action string,
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 {
-		return newApiError(resp, actionUrl)
+		return newAPIError(resp, actionURL)
 	}
 
 	byteContent, err := ioutil.ReadAll(resp.Body)

@@ -27,12 +27,14 @@ func (r *RawResource) MarshalJSON() ([]byte, error) {
 	if r.ID != "" {
 		data["id"] = r.ID
 	}
+
 	data["type"] = r.Type
+	data["baseType"] = r.Schema.BaseType
 	data["links"] = r.Links
 	if r.ActionLinks {
 		data["actionLinks"] = r.Actions
 	} else {
-		data["action"] = r.Actions
+		data["actions"] = r.Actions
 	}
 	return json.Marshal(data)
 }
@@ -41,11 +43,18 @@ type ActionHandler func(actionName string, action *Action, request *APIContext) 
 
 type RequestHandler func(request *APIContext) error
 
+type QueryFilter func(opts QueryOptions, data []map[string]interface{}) []map[string]interface{}
+
 type Validator func(request *APIContext, data map[string]interface{}) error
 
 type Formatter func(request *APIContext, resource *RawResource)
 
 type ErrorHandler func(request *APIContext, err error)
+
+type SubContextAttributeProvider interface {
+	Query(apiContext *APIContext, schema *Schema) []*QueryCondition
+	Create(apiContext *APIContext, schema *Schema) map[string]interface{}
+}
 
 type ResponseWriter interface {
 	Write(apiContext *APIContext, code int, obj interface{})
@@ -57,22 +66,24 @@ type AccessControl interface {
 }
 
 type APIContext struct {
-	Action             string
-	ID                 string
-	Type               string
-	Link               string
-	Method             string
-	Schema             *Schema
-	Schemas            *Schemas
-	Version            *APIVersion
-	ResponseFormat     string
-	ReferenceValidator ReferenceValidator
-	ResponseWriter     ResponseWriter
-	QueryOptions       *QueryOptions
-	Body               map[string]interface{}
-	URLBuilder         URLBuilder
-	AccessControl      AccessControl
-	SubContext         map[string]interface{}
+	Action                      string
+	ID                          string
+	Type                        string
+	Link                        string
+	Method                      string
+	Schema                      *Schema
+	Schemas                     *Schemas
+	Version                     *APIVersion
+	ResponseFormat              string
+	ReferenceValidator          ReferenceValidator
+	ResponseWriter              ResponseWriter
+	QueryFilter                 QueryFilter
+	SubContextAttributeProvider SubContextAttributeProvider
+	//QueryOptions                *QueryOptions
+	URLBuilder    URLBuilder
+	AccessControl AccessControl
+	SubContext    map[string]string
+	Attributes    map[string]interface{}
 
 	Request  *http.Request
 	Response http.ResponseWriter
@@ -80,6 +91,30 @@ type APIContext struct {
 
 func (r *APIContext) WriteResponse(code int, obj interface{}) {
 	r.ResponseWriter.Write(r, code, obj)
+}
+
+func (r *APIContext) FilterList(opts QueryOptions, obj []map[string]interface{}) []map[string]interface{} {
+	return r.QueryFilter(opts, obj)
+}
+
+func (r *APIContext) FilterObject(opts QueryOptions, obj map[string]interface{}) map[string]interface{} {
+	opts.Pagination = nil
+	result := r.QueryFilter(opts, []map[string]interface{}{obj})
+	if len(result) == 0 {
+		return nil
+	}
+	return result[0]
+}
+
+func (r *APIContext) Filter(opts QueryOptions, obj interface{}) interface{} {
+	switch v := obj.(type) {
+	case []map[string]interface{}:
+		return r.FilterList(opts, v)
+	case map[string]interface{}:
+		return r.FilterObject(opts, v)
+	}
+
+	return nil
 }
 
 var (
@@ -100,20 +135,21 @@ type ReferenceValidator interface {
 
 type URLBuilder interface {
 	Current() string
-	Collection(schema *Schema) string
+	Collection(schema *Schema, versionOverride *APIVersion) string
+	SubContextCollection(subContext *Schema, contextName string, schema *Schema) string
+	SchemaLink(schema *Schema) string
 	ResourceLink(resource *RawResource) string
 	RelativeToRoot(path string) string
-	//Link(resource Resource, name string) string
-	//ReferenceLink(resource Resource) string
-	//ReferenceByIdLink(resourceType string, id string) string
-	Version(version string) string
+	Version(version APIVersion) string
+	Marker(marker string) string
 	ReverseSort(order SortOrder) string
+	Sort(field string) string
 	SetSubContext(subContext string)
 }
 
 type Store interface {
 	ByID(apiContext *APIContext, schema *Schema, id string) (map[string]interface{}, error)
-	List(apiContext *APIContext, schema *Schema, opt *QueryOptions) ([]map[string]interface{}, error)
+	List(apiContext *APIContext, schema *Schema, opt QueryOptions) ([]map[string]interface{}, error)
 	Create(apiContext *APIContext, schema *Schema, data map[string]interface{}) (map[string]interface{}, error)
 	Update(apiContext *APIContext, schema *Schema, data map[string]interface{}, id string) (map[string]interface{}, error)
 	Delete(apiContext *APIContext, schema *Schema, id string) error
