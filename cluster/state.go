@@ -52,6 +52,9 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 			if err != nil {
 				return nil, fmt.Errorf("Failed to Get Kubernetes certificates: %v", err)
 			}
+			// setting cluster defaults for the fetched cluster as well
+			currentCluster.setClusterDefaults()
+
 			if err := currentCluster.InvertIndexHosts(); err != nil {
 				return nil, fmt.Errorf("Failed to classify hosts from fetched cluster: %v", err)
 			}
