@@ -20,9 +20,17 @@ func DoRunContainer(dClient *client.Client, imageCfg *container.Config, hostCfg 
 	}
 	if isRunning {
 		logrus.Infof("[%s] Container %s is already running on host [%s]", plane, containerName, hostname)
+		isUpgradable, err := IsContainerUpgradable(dClient, imageCfg, containerName, hostname, plane)
+		if err != nil {
+			return err
+		}
+		if isUpgradable {
+			return DoRollingUpdateContainer(dClient, imageCfg, hostCfg, containerName, hostname, plane)
+		}
 		return nil
 	}
-	logrus.Debugf("[%s] Pulling Image on host [%s]", plane, hostname)
+
+	logrus.Infof("[%s] Pulling Image on host [%s]", plane, hostname)
 	err = PullImage(dClient, hostname, imageCfg.Image)
 	if err != nil {
 		return err
@@ -50,6 +58,12 @@ func DoRollingUpdateContainer(dClient *client.Client, imageCfg *container.Config
 		logrus.Infof("[%s] Container %s is not running on host [%s]", plane, containerName, hostname)
 		return nil
 	}
+	logrus.Infof("[%s] Pulling Image on host [%s]", plane, hostname)
+	err = PullImage(dClient, hostname, imageCfg.Image)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("[%s] Successfully pulled %s image on host [%s]", plane, containerName, hostname)
 	logrus.Debugf("[%s] Stopping old container", plane)
 	oldContainerName := "old-" + containerName
 	if err := StopRenameContainer(dClient, hostname, containerName, oldContainerName); err != nil {
@@ -70,28 +84,28 @@ func DoRollingUpdateContainer(dClient *client.Client, imageCfg *container.Config
 }
 
 func DoRemoveContainer(dClient *client.Client, containerName, hostname string) error {
-	logrus.Infof("[down/%s] Checking if container is running on host [%s]", containerName, hostname)
+	logrus.Infof("[remove/%s] Checking if container is running on host [%s]", containerName, hostname)
 	// not using the wrapper to check if the error is a NotFound error
 	_, err := dClient.ContainerInspect(context.Background(), containerName)
 	if err != nil {
 		if client.IsErrNotFound(err) {
-			logrus.Infof("[down/%s] Container doesn't exist on host [%s]", containerName, hostname)
+			logrus.Infof("[remove/%s] Container doesn't exist on host [%s]", containerName, hostname)
 			return nil
 		}
 		return err
 	}
-	logrus.Infof("[down/%s] Stopping container on host [%s]", containerName, hostname)
+	logrus.Infof("[remove/%s] Stopping container on host [%s]", containerName, hostname)
 	err = StopContainer(dClient, hostname, containerName)
 	if err != nil {
 		return err
 	}
 
-	logrus.Infof("[down/%s] Removing container on host [%s]", containerName, hostname)
+	logrus.Infof("[remove/%s] Removing container on host [%s]", containerName, hostname)
 	err = RemoveContainer(dClient, hostname, containerName)
 	if err != nil {
 		return err
 	}
-	logrus.Infof("[down/%s] Sucessfully removed container on host [%s]", containerName, hostname)
+	logrus.Infof("[remove/%s] Sucessfully removed container on host [%s]", containerName, hostname)
 	return nil
 }
 
@@ -193,4 +207,20 @@ func WaitForContainer(dClient *client.Client, containerName string) error {
 	case <-statusCh:
 	}
 	return nil
+}
+
+func IsContainerUpgradable(dClient *client.Client, imageCfg *container.Config, containerName string, hostname string, plane string) (bool, error) {
+	logrus.Debugf("[%s] Checking if container %s is eligible for upgrade on host [%s]", plane, containerName, hostname)
+	// this should be moved to a higher layer.
+
+	containerInspect, err := InspectContainer(dClient, hostname, containerName)
+	if err != nil {
+		return false, err
+	}
+	if containerInspect.Config.Image == imageCfg.Image {
+		logrus.Debugf("[%s] Container %s is not eligible for updgrade on host [%s]", plane, containerName, hostname)
+		return false, nil
+	}
+	logrus.Debugf("[%s] Container %s is eligible for updgrade on host [%s]", plane, containerName, hostname)
+	return true, nil
 }

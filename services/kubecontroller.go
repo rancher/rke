@@ -8,38 +8,11 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
-	"github.com/sirupsen/logrus"
 )
 
 func runKubeController(host hosts.Host, kubeControllerService v1.KubeControllerService) error {
 	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.AdvertisedHostname, ControlRole)
-}
-
-func upgradeKubeController(host hosts.Host, kubeControllerService v1.KubeControllerService) error {
-	logrus.Debugf("[upgrade/KubeController] Checking for deployed version")
-	containerInspect, err := docker.InspectContainer(host.DClient, host.AdvertisedHostname, KubeControllerContainerName)
-	if err != nil {
-		return err
-	}
-	if containerInspect.Config.Image == kubeControllerService.Image {
-		logrus.Infof("[upgrade/KubeController] KubeController is already up to date")
-		return nil
-	}
-	logrus.Debugf("[upgrade/KubeController] Stopping old container")
-	oldContainerName := "old-" + KubeControllerContainerName
-	if err := docker.StopRenameContainer(host.DClient, host.AdvertisedHostname, KubeControllerContainerName, oldContainerName); err != nil {
-		return err
-	}
-	// Container doesn't exist now!, lets deploy it!
-	logrus.Debugf("[upgrade/KubeController] Deploying new container")
-	if err := runKubeController(host, kubeControllerService); err != nil {
-		return err
-	}
-	logrus.Debugf("[upgrade/KubeController] Removing old container")
-	err = docker.RemoveContainer(host.DClient, host.AdvertisedHostname, oldContainerName)
-	return err
-
 }
 
 func removeKubeController(host hosts.Host) error {
