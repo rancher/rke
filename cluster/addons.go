@@ -56,7 +56,7 @@ func (c *Cluster) doAddonDeploy(addonYaml, resourceName string) error {
 
 	logrus.Infof("[addons] Executing deploy job..")
 
-	addonJob := addons.GetAddonsExcuteJob(resourceName, c.ControlPlaneHosts[0].AdvertisedHostname, c.Services.KubeAPI.Image)
+	addonJob := addons.GetAddonsExcuteJob(resourceName, c.ControlPlaneHosts[0].HostnameOverride, c.Services.KubeAPI.Image)
 	err = c.ApplySystemAddonExcuteJob(addonJob)
 	if err != nil {
 		return fmt.Errorf("Failed to deploy addon execute job: %v", err)

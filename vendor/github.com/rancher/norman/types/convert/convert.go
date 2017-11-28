@@ -132,12 +132,12 @@ func ToStringSlice(data interface{}) []string {
 	return nil
 }
 
-func ToObj(data interface{}, obj interface{}) error {
+func ToObj(data interface{}, into interface{}) error {
 	bytes, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(bytes, obj)
+	return json.Unmarshal(bytes, into)
 }
 
 func EncodeToMap(obj interface{}) (map[string]interface{}, error) {

@@ -33,12 +33,19 @@ type Cluster struct {
 }
 
 const (
-	X509AuthenticationProvider = "x509"
-	DefaultClusterConfig       = "cluster.yml"
-	StateConfigMapName         = "cluster-state"
-	UpdateStateTimeout         = 30
-	GetStateTimeout            = 30
-	KubernetesClientTimeOut    = 30
+	X509AuthenticationProvider   = "x509"
+	DefaultClusterConfig         = "cluster.yml"
+	DefaultServiceClusterIPRange = "10.233.0.0/18"
+	DefaultClusterCIDR           = "10.233.64.0/18"
+	DefaultClusterDNSService     = "10.233.0.3"
+	DefaultClusterDomain         = "cluster.local"
+	DefaultInfraContainerImage   = "gcr.io/google_containers/pause-amd64:3.0"
+	DefaultAuthStrategy          = "x509"
+	DefaultNetworkPlugin         = "flannel"
+	StateConfigMapName           = "cluster-state"
+	UpdateStateTimeout           = 30
+	GetStateTimeout              = 30
+	KubernetesClientTimeOut      = 30
 )
 
 func (c *Cluster) DeployClusterPlanes() error {
@@ -96,26 +103,46 @@ func parseClusterFile(clusterFile string) (*Cluster, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i, host := range kubeCluster.Hosts {
-		if len(host.AdvertisedHostname) == 0 {
-			return nil, fmt.Errorf("Hostname for host (%d) is not provided", i+1)
-		} else if len(host.User) == 0 {
-			return nil, fmt.Errorf("User for host (%d) is not provided", i+1)
-		} else if len(host.Role) == 0 {
-			return nil, fmt.Errorf("Role for host (%d) is not provided", i+1)
+	// Setting cluster Defaults
+	kubeCluster.setClusterDefaults()
 
-		} else if host.AdvertiseAddress == "" {
-			// if control_plane_ip is not set,
-			// default to the main IP
-			kubeCluster.Hosts[i].AdvertiseAddress = host.IP
+	return &kubeCluster, nil
+}
+
+func (c *Cluster) setClusterDefaults() {
+	for i, host := range c.Nodes {
+		if len(host.InternalAddress) == 0 {
+			c.Nodes[i].InternalAddress = c.Nodes[i].Address
 		}
-		for _, role := range host.Role {
-			if role != services.ETCDRole && role != services.ControlRole && role != services.WorkerRole {
-				return nil, fmt.Errorf("Role [%s] for host (%d) is not recognized", role, i+1)
-			}
+		if len(host.HostnameOverride) == 0 {
+			// This is a temporary modification
+			c.Nodes[i].HostnameOverride = c.Nodes[i].Address
 		}
 	}
-	return &kubeCluster, nil
+	if len(c.Services.KubeAPI.ServiceClusterIPRange) == 0 {
+		c.Services.KubeAPI.ServiceClusterIPRange = DefaultServiceClusterIPRange
+	}
+	if len(c.Services.KubeController.ServiceClusterIPRange) == 0 {
+		c.Services.KubeController.ServiceClusterIPRange = DefaultServiceClusterIPRange
+	}
+	if len(c.Services.KubeController.ClusterCIDR) == 0 {
+		c.Services.KubeController.ClusterCIDR = DefaultClusterCIDR
+	}
+	if len(c.Services.Kubelet.ClusterDNSServer) == 0 {
+		c.Services.Kubelet.ClusterDNSServer = DefaultClusterDNSService
+	}
+	if len(c.Services.Kubelet.ClusterDomain) == 0 {
+		c.Services.Kubelet.ClusterDomain = DefaultClusterDomain
+	}
+	if len(c.Services.Kubelet.InfraContainerImage) == 0 {
+		c.Services.Kubelet.InfraContainerImage = DefaultInfraContainerImage
+	}
+	if len(c.Authentication.Strategy) == 0 {
+		c.Authentication.Strategy = DefaultAuthStrategy
+	}
+	if len(c.Network.Plugin) == 0 {
+		c.Network.Plugin = DefaultNetworkPlugin
+	}
 }
 
 func GetLocalKubeConfig(configPath string) string {
@@ -144,11 +171,11 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 	cpToDelete := hosts.GetToDeleteHosts(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
 	for _, toDeleteHost := range cpToDelete {
 		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
-			return fmt.Errorf("Failed to delete controlplane node %s from cluster", toDeleteHost.AdvertisedHostname)
+			return fmt.Errorf("Failed to delete controlplane node %s from cluster", toDeleteHost.Address)
 		}
 		// attempting to clean up the host
 		if err := reconcileHostCleaner(toDeleteHost, key, false); err != nil {
-			logrus.Warnf("[reconcile] Couldn't clean up controlplane node [%s]: %v", toDeleteHost.AdvertisedHostname, err)
+			logrus.Warnf("[reconcile] Couldn't clean up controlplane node [%s]: %v", toDeleteHost.Address, err)
 			continue
 		}
 	}
@@ -157,11 +184,11 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 	wpToDelete := hosts.GetToDeleteHosts(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
 	for _, toDeleteHost := range wpToDelete {
 		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
-			return fmt.Errorf("Failed to delete worker node %s from cluster", toDeleteHost.AdvertisedHostname)
+			return fmt.Errorf("Failed to delete worker node %s from cluster", toDeleteHost.Address)
 		}
 		// attempting to clean up the host
 		if err := reconcileHostCleaner(toDeleteHost, key, true); err != nil {
-			logrus.Warnf("[reconcile] Couldn't clean up worker node [%s]: %v", toDeleteHost.AdvertisedHostname, err)
+			logrus.Warnf("[reconcile] Couldn't clean up worker node [%s]: %v", toDeleteHost.Address, err)
 			continue
 		}
 	}
@@ -201,7 +228,7 @@ func rebuildLocalAdminConfig(kubeCluster *Cluster) error {
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCommonName]
 	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
 	newConfig := pki.GetKubeConfigX509WithData(
-		"https://"+kubeCluster.ControlPlaneHosts[0].IP+":6443",
+		"https://"+kubeCluster.ControlPlaneHosts[0].Address+":6443",
 		pki.KubeAdminCommonName,
 		string(cert.EncodeCertPEM(caCrt)),
 		string(cert.EncodeCertPEM(currentKubeConfig.Certificate)),

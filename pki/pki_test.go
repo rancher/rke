@@ -18,11 +18,11 @@ const (
 func TestPKI(t *testing.T) {
 	cpHosts := []hosts.Host{
 		hosts.Host{
-			RKEConfigHost: v1.RKEConfigHost{
-				IP:                 "1.1.1.1",
-				AdvertiseAddress:   "192.168.1.5",
-				Role:               []string{"controlplane"},
-				AdvertisedHostname: "server1",
+			RKEConfigNode: v1.RKEConfigNode{
+				Address:          "1.1.1.1",
+				InternalAddress:  "192.168.1.5",
+				Role:             []string{"controlplane"},
+				HostnameOverride: "server1",
 			},
 			DClient: nil,
 		},
@@ -73,8 +73,8 @@ func TestPKI(t *testing.T) {
 	// Test ALT IPs
 	kubeAPIAltIPs := []net.IP{
 		net.ParseIP("127.0.0.1"),
-		net.ParseIP(cpHosts[0].AdvertiseAddress),
-		net.ParseIP(cpHosts[0].IP),
+		net.ParseIP(cpHosts[0].InternalAddress),
+		net.ParseIP(cpHosts[0].Address),
 		net.ParseIP(FakeKubernetesServiceIP),
 	}
 

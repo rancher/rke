@@ -38,7 +38,7 @@ type ClusterNodeController interface {
 	Informer() cache.SharedIndexInformer
 	AddHandler(handler ClusterNodeHandlerFunc)
 	Enqueue(namespace, name string)
-	Start(threadiness int, ctx context.Context) error
+	Start(ctx context.Context, threadiness int) error
 }
 
 type ClusterNodeInterface interface {

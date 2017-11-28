@@ -107,7 +107,7 @@ type AzureKubernetesServiceConfig struct {
 
 type RancherKubernetesEngineConfig struct {
 	// Kubernetes nodes
-	Hosts []RKEConfigHost `yaml:"hosts" json:"hosts,omitempty"`
+	Nodes []RKEConfigNode `yaml:"nodes" json:"nodes,omitempty"`
 	// Kubernetes components
 	Services RKEConfigServices `yaml:"services" json:"services,omitempty"`
 	// Network configuration used in the kubernetes cluster (flannel, calico)
@@ -120,18 +120,18 @@ type RancherKubernetesEngineConfig struct {
 	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
 }
 
-type RKEConfigHost struct {
-	// SSH IP address of the host
-	IP string `yaml:"ip" json:"ip,omitempty"`
-	// Advertised address that will be used for components communication
-	AdvertiseAddress string `yaml:"advertise_address" json:"advertiseAddress,omitempty"`
-	// Host role in kubernetes cluster (controlplane, worker, or etcd)
+type RKEConfigNode struct {
+	// IP or FQDN that is fully resolvable and used for SSH communication
+	Address string `yaml:"address" json:"address,omitempty"`
+	// Optional - Internal address that will be used for components communication
+	InternalAddress string `yaml:"internal_address" json:"internalAddress,omitempty"`
+	// Node role in kubernetes cluster (controlplane, worker, or etcd)
 	Role []string `yaml:"role" json:"role,omitempty"`
-	// Hostname of the host
-	AdvertisedHostname string `yaml:"advertised_hostname" json:"advertisedHostname,omitempty"`
+	// Optional - Hostname of the node
+	HostnameOverride string `yaml:"hostname_override" json:"hostnameOverride,omitempty"`
 	// SSH usesr that will be used by RKE
 	User string `yaml:"user" json:"user,omitempty"`
-	// Docker socket on the host that will be used in tunneling
+	// Optional - Docker socket on the node that will be used in tunneling
 	DockerSocket string `yaml:"docker_socket" json:"dockerSocket,omitempty"`
 }
 
