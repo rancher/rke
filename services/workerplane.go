@@ -10,29 +10,33 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 	logrus.Infof("[%s] Building up Worker Plane..", WorkerRole)
 	for _, host := range controlHosts {
 		// only one master for now
-		err := runKubelet(host, workerServices.Kubelet, true)
-		if err != nil {
+		if err := runKubelet(host, workerServices.Kubelet, true); err != nil {
 			return err
 		}
-		err = runKubeproxy(host, workerServices.Kubeproxy)
-		if err != nil {
+		if err := runKubeproxy(host, workerServices.Kubeproxy); err != nil {
 			return err
 		}
 	}
 	for _, host := range workerHosts {
 		// run nginx proxy
-		err := runNginxProxy(host, controlHosts)
-		if err != nil {
-			return err
+		isControlPlaneHost := false
+		for _, role := range host.Role {
+			if role == ControlRole {
+				isControlPlaneHost = true
+				break
+			}
+		}
+		if !isControlPlaneHost {
+			if err := runNginxProxy(host, controlHosts); err != nil {
+				return err
+			}
 		}
 		// run kubelet
-		err = runKubelet(host, workerServices.Kubelet, false)
-		if err != nil {
+		if err := runKubelet(host, workerServices.Kubelet, false); err != nil {
 			return err
 		}
 		// run kubeproxy
-		err = runKubeproxy(host, workerServices.Kubeproxy)
-		if err != nil {
+		if err := runKubeproxy(host, workerServices.Kubeproxy); err != nil {
 			return err
 		}
 	}
@@ -43,27 +47,22 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 func RemoveWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host) error {
 	logrus.Infof("[%s] Tearing down Worker Plane..", WorkerRole)
 	for _, host := range controlHosts {
-		err := removeKubelet(host)
-		if err != nil {
+		if err := removeKubelet(host); err != nil {
 			return err
 		}
-		err = removeKubeproxy(host)
-		if err != nil {
+		if err := removeKubeproxy(host); err != nil {
 			return err
 		}
 	}
 
 	for _, host := range workerHosts {
-		err := removeKubelet(host)
-		if err != nil {
+		if err := removeKubelet(host); err != nil {
 			return err
 		}
-		err = removeKubeproxy(host)
-		if err != nil {
+		if err := removeKubeproxy(host); err != nil {
 			return err
 		}
-		err = removeNginxProxy(host)
-		if err != nil {
+		if err := removeNginxProxy(host); err != nil {
 			return err
 		}
 	}
