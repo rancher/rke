@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -108,5 +109,14 @@ func DeployAdminConfig(kubeConfig, localConfigPath string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
 	}
+	return nil
+}
+
+func RemoveAdminConfig(localConfigPath string) error {
+	logrus.Infof("Removing local admin Kubeconfig: %s", localConfigPath)
+	if err := os.Remove(localConfigPath); err != nil {
+		return fmt.Errorf("Failed to remove local admin Kubeconfig file: %v", err)
+	}
+	logrus.Infof("Local admin Kubeconfig removed successfully")
 	return nil
 }
