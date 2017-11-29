@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	NginxProxyImage   = "husseingalal/nginx-nodeporxy:dev"
+	NginxProxyImage   = "rancher/rke-nginx-proxy:0.1.0"
 	NginxProxyEnvName = "CP_HOSTS"
 )
 
