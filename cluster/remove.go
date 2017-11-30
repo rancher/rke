@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 )
 
@@ -22,7 +23,11 @@ func (c *Cluster) ClusterRemove() error {
 	}
 
 	// Clean up all hosts
-	return cleanUpHosts(c.ControlPlaneHosts, c.WorkerHosts, c.EtcdHosts)
+	if err := cleanUpHosts(c.ControlPlaneHosts, c.WorkerHosts, c.EtcdHosts); err != nil {
+		return err
+	}
+
+	return pki.RemoveAdminConfig(c.LocalKubeConfigPath)
 }
 
 func cleanUpHosts(cpHosts, workerHosts, etcdHosts []hosts.Host) error {
