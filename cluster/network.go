@@ -36,6 +36,8 @@ func (c *Cluster) DeployNetworkPlugin() error {
 		return c.doCalicoDeploy()
 	case CanalNetworkPlugin:
 		return c.doCanalDeploy()
+	case WeaveNetworkPlugin:
+		return c.doWeaveDeploy()
 	default:
 		return fmt.Errorf("[network] Unsupported network plugin: %s", c.Network.Plugin)
 	}
@@ -75,6 +77,12 @@ func (c *Cluster) doCanalDeploy() error {
 		network.FlannelImage: c.Network.Options[CanalFlannelImage],
 	}
 	pluginYaml := network.GetCanalManifest(canalConfig)
+	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
+}
+
+func (c *Cluster) doWeaveDeploy() error {
+	weaveConfig := make(map[string]string)
+	pluginYaml := network.GetWeaveManifest(weaveConfig)
 	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
 }
 
