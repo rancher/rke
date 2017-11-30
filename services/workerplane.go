@@ -10,7 +10,7 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 	logrus.Infof("[%s] Building up Worker Plane..", WorkerRole)
 	for _, host := range controlHosts {
 		// only one master for now
-		if err := runKubelet(host, workerServices.Kubelet, true); err != nil {
+		if err := runKubelet(host, workerServices.Kubelet); err != nil {
 			return err
 		}
 		if err := runKubeproxy(host, workerServices.Kubeproxy); err != nil {
@@ -32,7 +32,7 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 			}
 		}
 		// run kubelet
-		if err := runKubelet(host, workerServices.Kubelet, false); err != nil {
+		if err := runKubelet(host, workerServices.Kubelet); err != nil {
 			return err
 		}
 		// run kubeproxy
