@@ -9,6 +9,7 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -56,13 +57,19 @@ func (h *Host) CleanUp() error {
 
 func DeleteNode(toDeleteHost *Host, kubeClient *kubernetes.Clientset) error {
 	logrus.Infof("[hosts] Cordoning host [%s]", toDeleteHost.Address)
-	err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, true)
-	if err != nil {
+	if _, err := k8s.GetNode(kubeClient, toDeleteHost.HostnameOverride); err != nil {
+		if apierrors.IsNotFound(err) {
+			logrus.Warnf("[hosts] Can't find node by name [%s]", toDeleteHost.Address)
+			return nil
+		}
+		return err
+
+	}
+	if err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, true); err != nil {
 		return err
 	}
 	logrus.Infof("[hosts] Deleting host [%s] from the cluster", toDeleteHost.Address)
-	err = k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride)
-	if err != nil {
+	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride); err != nil {
 		return err
 	}
 	logrus.Infof("[hosts] Successfully deleted host [%s] from the cluster", toDeleteHost.Address)
