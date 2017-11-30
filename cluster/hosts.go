@@ -3,6 +3,7 @@ package cluster
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -124,6 +125,8 @@ func checkEncryptedKey(sshKeyPath string) (ssh.Signer, error) {
 func privateKeyPath(sshKeyPath string) string {
 	if len(sshKeyPath) == 0 {
 		return os.Getenv("HOME") + DefaultSSHKeyPath
+	} else if sshKeyPath[:2] == "~/" {
+		return filepath.Join(os.Getenv("HOME"), sshKeyPath[2:])
 	}
 	return sshKeyPath
 }
