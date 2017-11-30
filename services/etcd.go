@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RunEtcdPlane(etcdHosts []hosts.Host, etcdService v1.ETCDService) error {
+func RunEtcdPlane(etcdHosts []*hosts.Host, etcdService v1.ETCDService) error {
 	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
 	initCluster := getEtcdInitialCluster(etcdHosts)
 	for _, host := range etcdHosts {
@@ -25,7 +25,7 @@ func RunEtcdPlane(etcdHosts []hosts.Host, etcdService v1.ETCDService) error {
 	return nil
 }
 
-func RemoveEtcdPlane(etcdHosts []hosts.Host) error {
+func RemoveEtcdPlane(etcdHosts []*hosts.Host) error {
 	logrus.Infof("[%s] Tearing down Etcd Plane..", ETCDRole)
 	for _, host := range etcdHosts {
 		err := docker.DoRemoveContainer(host.DClient, EtcdContainerName, host.Address)
@@ -37,7 +37,7 @@ func RemoveEtcdPlane(etcdHosts []hosts.Host) error {
 	return nil
 }
 
-func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService, initCluster string) (*container.Config, *container.HostConfig) {
+func buildEtcdConfig(host *hosts.Host, etcdService v1.ETCDService, initCluster string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: etcdService.Image,
 		Cmd: []string{"/usr/local/bin/etcd",
@@ -72,13 +72,13 @@ func buildEtcdConfig(host hosts.Host, etcdService v1.ETCDService, initCluster st
 	}
 	for arg, value := range etcdService.ExtraArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+		imageCfg.Entrypoint = append(imageCfg.Entrypoint, cmd)
 	}
 
 	return imageCfg, hostCfg
 }
 
-func GetEtcdConnString(hosts []hosts.Host) string {
+func GetEtcdConnString(hosts []*hosts.Host) string {
 	connString := ""
 	for i, host := range hosts {
 		connString += "http://" + host.InternalAddress + ":2379"
@@ -89,7 +89,7 @@ func GetEtcdConnString(hosts []hosts.Host) string {
 	return connString
 }
 
-func getEtcdInitialCluster(hosts []hosts.Host) string {
+func getEtcdInitialCluster(hosts []*hosts.Host) string {
 	initialCluster := ""
 	for i, host := range hosts {
 		initialCluster += fmt.Sprintf("etcd-%s=http://%s:2380", host.HostnameOverride, host.InternalAddress)

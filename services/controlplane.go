@@ -6,9 +6,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RunControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlServices v1.RKEConfigServices) error {
+func RunControlPlane(controlHosts []*hosts.Host, etcdHosts []*hosts.Host, controlServices v1.RKEConfigServices) error {
 	logrus.Infof("[%s] Building up Controller Plane..", ControlRole)
 	for _, host := range controlHosts {
+
+		if host.IsWorker {
+			if err := removeNginxProxy(host); err != nil {
+				return err
+			}
+		}
 		// run kubeapi
 		err := runKubeAPI(host, etcdHosts, controlServices.KubeAPI)
 		if err != nil {
@@ -29,7 +35,7 @@ func RunControlPlane(controlHosts []hosts.Host, etcdHosts []hosts.Host, controlS
 	return nil
 }
 
-func RemoveControlPlane(controlHosts []hosts.Host) error {
+func RemoveControlPlane(controlHosts []*hosts.Host, force bool) error {
 	logrus.Infof("[%s] Tearing down the Controller Plane..", ControlRole)
 	for _, host := range controlHosts {
 		// remove KubeAPI
@@ -46,6 +52,20 @@ func RemoveControlPlane(controlHosts []hosts.Host) error {
 		err := removeScheduler(host)
 		if err != nil {
 			return err
+		}
+
+		// check if the host already is a worker
+		if host.IsWorker {
+			logrus.Infof("[%s] Host [%s] is already a worker host, skipping delete kubelet and kubeproxy.", ControlRole, host.Address)
+		} else {
+			// remove KubeAPI
+			if err := removeKubelet(host); err != nil {
+				return err
+			}
+			// remove KubeController
+			if err := removeKubeproxy(host); err != nil {
+				return nil
+			}
 		}
 	}
 	logrus.Infof("[%s] Successfully teared down Controller Plane..", ControlRole)
