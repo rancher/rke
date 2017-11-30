@@ -44,7 +44,6 @@ func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMas
 		},
 	}
 	if isMaster {
-		imageCfg.Cmd = append(imageCfg.Cmd, "--register-with-taints=node-role.kubernetes.io/master=:NoSchedule")
 		imageCfg.Cmd = append(imageCfg.Cmd, "--node-labels=node-role.kubernetes.io/master=true")
 	}
 	hostCfg := &container.HostConfig{
