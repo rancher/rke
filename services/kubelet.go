@@ -11,8 +11,8 @@ import (
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
-func runKubelet(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) error {
-	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, isMaster)
+func runKubelet(host hosts.Host, kubeletService v1.KubeletService) error {
+	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeletContainerName, host.Address, WorkerRole)
 }
 
@@ -20,7 +20,7 @@ func removeKubelet(host hosts.Host) error {
 	return docker.DoRemoveContainer(host.DClient, KubeletContainerName, host.Address)
 }
 
-func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMaster bool) (*container.Config, *container.HostConfig) {
+func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeletService.Image,
 		Entrypoint: []string{"kubelet",
@@ -43,8 +43,15 @@ func buildKubeletConfig(host hosts.Host, kubeletService v1.KubeletService, isMas
 			"--require-kubeconfig=True",
 		},
 	}
-	if isMaster {
-		imageCfg.Cmd = append(imageCfg.Cmd, "--node-labels=node-role.kubernetes.io/master=true")
+	for _, role := range host.Role {
+		switch role {
+		case ETCDRole:
+			imageCfg.Cmd = append(imageCfg.Cmd, "--node-labels=node-role.kubernetes.io/etcd=true")
+		case ControlRole:
+			imageCfg.Cmd = append(imageCfg.Cmd, "--node-labels=node-role.kubernetes.io/master=true")
+		case WorkerRole:
+			imageCfg.Cmd = append(imageCfg.Cmd, "--node-labels=node-role.kubernetes.io/worker=true")
+		}
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
