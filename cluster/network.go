@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	NetworkPluginResourceName = "rke-netwok-plugin"
+	NetworkPluginResourceName = "rke-network-plugin"
 	FlannelNetworkPlugin      = "flannel"
 	CalicoNetworkPlugin       = "calico"
 	CanalNetworkPlugin        = "canal"
