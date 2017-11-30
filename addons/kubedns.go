@@ -1,7 +1,38 @@
 package addons
 
 func GetKubeDNSManifest(clusterDNSServer, clusterDomain string) string {
-	return `
+	return `---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: kube-dns-autoscaler
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns-autoscaler
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns-autoscaler
+    spec:
+      containers:
+      - name: autoscaler
+        image: gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0
+        resources:
+            requests:
+                cpu: "20m"
+                memory: "10Mi"
+        command:
+          - /cluster-proportional-autoscaler
+          - --namespace=kube-system
+          - --configmap=kube-dns-autoscaler
+          - --target=Deployment/kube-dns
+          # When cluster is using large nodes(with more cores), "coresPerReplica" should dominate.
+          # If using small nodes, "nodesPerReplica" should dominate.
+          - --default-params={"linear":{"coresPerReplica":128,"nodesPerReplica":4,"min":1}}
+          - --logtostderr=true
+          - --v=2
+
 ---
 apiVersion: v1
 kind: ServiceAccount
