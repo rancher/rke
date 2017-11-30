@@ -123,7 +123,7 @@ func getStateFromKubernetes(kubeClient *kubernetes.Clientset, kubeConfigPath str
 }
 
 func GetK8sVersion(localConfigPath string) (string, error) {
-	logrus.Debugf("[version] Using admin.config to connect to Kubernetes cluster..")
+	logrus.Debugf("[version] Using %s to connect to Kubernetes cluster..", localConfigPath)
 	k8sClient, err := k8s.NewClient(localConfigPath)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create Kubernetes Client: %v", err)

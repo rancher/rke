@@ -16,8 +16,8 @@ const (
 )
 
 func TestPKI(t *testing.T) {
-	cpHosts := []hosts.Host{
-		hosts.Host{
+	cpHosts := []*hosts.Host{
+		&hosts.Host{
 			RKEConfigNode: v1.RKEConfigNode{
 				Address:          "1.1.1.1",
 				InternalAddress:  "192.168.1.5",

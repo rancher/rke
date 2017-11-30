@@ -10,16 +10,16 @@ import (
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 )
 
-func runScheduler(host hosts.Host, schedulerService v1.SchedulerService) error {
+func runScheduler(host *hosts.Host, schedulerService v1.SchedulerService) error {
 	imageCfg, hostCfg := buildSchedulerConfig(host, schedulerService)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.Address, ControlRole)
 }
 
-func removeScheduler(host hosts.Host) error {
+func removeScheduler(host *hosts.Host) error {
 	return docker.DoRemoveContainer(host.DClient, SchedulerContainerName, host.Address)
 }
 
-func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {
+func buildSchedulerConfig(host *hosts.Host, schedulerService v1.SchedulerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: schedulerService.Image,
 		Entrypoint: []string{"kube-scheduler",
@@ -38,7 +38,7 @@ func buildSchedulerConfig(host hosts.Host, schedulerService v1.SchedulerService)
 	}
 	for arg, value := range schedulerService.ExtraArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+		imageCfg.Entrypoint = append(imageCfg.Entrypoint, cmd)
 	}
 	return imageCfg, hostCfg
 }
