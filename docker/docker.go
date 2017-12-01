@@ -7,12 +7,17 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"regexp"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
 )
+
+var K8sDockerVersions = map[string][]string{
+	"1.8": {"1.12.6", "1.13.1", "17.03.2"},
+}
 
 func DoRunContainer(dClient *client.Client, imageCfg *container.Config, hostCfg *container.HostConfig, containerName string, hostname string, plane string) error {
 	isRunning, err := IsContainerRunning(dClient, hostname, containerName)
@@ -223,5 +228,17 @@ func IsContainerUpgradable(dClient *client.Client, imageCfg *container.Config, c
 		return true, nil
 	}
 	logrus.Debugf("[%s] Container [%s] is not eligible for updgrade on host [%s]", plane, containerName, hostname)
+	return false, nil
+}
+
+func IsSupportedDockerVersion(info types.Info, K8sVersion string) (bool, error) {
+	// Docker versions are not semver compliant since stable/edge version (17.03 and higher) so we need to check if the reported ServerVersion starts with a compatible version
+	for _, DockerVersion := range K8sDockerVersions[K8sVersion] {
+		DockerVersionRegexp := regexp.MustCompile("^" + DockerVersion)
+		if DockerVersionRegexp.MatchString(info.ServerVersion) {
+			return true, nil
+		}
+
+	}
 	return false, nil
 }
