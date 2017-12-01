@@ -75,7 +75,7 @@ func doRunDeployer(host *hosts.Host, containerEnv []string) error {
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
-		Privileged:    true,
+		Privileged: true,
 	}
 	resp, err := host.DClient.ContainerCreate(context.Background(), imageCfg, hostCfg, nil, CrtDownloaderContainer)
 	if err != nil {
