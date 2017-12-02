@@ -42,6 +42,7 @@ const (
 	DefaultInfraContainerImage   = "gcr.io/google_containers/pause-amd64:3.0"
 	DefaultAuthStrategy          = "x509"
 	DefaultNetworkPlugin         = "flannel"
+	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
 	StateConfigMapName           = "cluster-state"
 	UpdateStateTimeout           = 30
 	GetStateTimeout              = 30
@@ -110,6 +111,9 @@ func parseClusterFile(clusterFile string) (*Cluster, error) {
 }
 
 func (c *Cluster) setClusterDefaults() {
+	if len(c.SSHKeyPath) == 0 {
+		c.SSHKeyPath = DefaultClusterSSHKeyPath
+	}
 	for i, host := range c.Nodes {
 		if len(host.InternalAddress) == 0 {
 			c.Nodes[i].InternalAddress = c.Nodes[i].Address
@@ -117,6 +121,9 @@ func (c *Cluster) setClusterDefaults() {
 		if len(host.HostnameOverride) == 0 {
 			// This is a temporary modification
 			c.Nodes[i].HostnameOverride = c.Nodes[i].Address
+		}
+		if len(host.SSHKeyPath) == 0 {
+			c.Nodes[i].SSHKeyPath = c.SSHKeyPath
 		}
 	}
 	if len(c.Services.KubeAPI.ServiceClusterIPRange) == 0 {
