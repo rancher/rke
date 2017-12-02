@@ -35,6 +35,8 @@ type Cluster struct {
 }
 
 type ClusterSpec struct {
+	DisplayName                   string                         `json:"displayName"`
+	Description                   string                         `json:"description"`
 	GoogleKubernetesEngineConfig  *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
 	AzureKubernetesServiceConfig  *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
 	RancherKubernetesEngineConfig *RancherKubernetesEngineConfig `json:"rancherKubernetesEngineConfig,omitempty"`
@@ -53,10 +55,12 @@ type ClusterStatus struct {
 	Capacity            v1.ResourceList          `json:"capacity,omitempty"`
 	Allocatable         v1.ResourceList          `json:"allocatable,omitempty"`
 	AppliedSpec         ClusterSpec              `json:"appliedSpec,omitempty"`
+	Requested           v1.ResourceList          `json:"requested,omitempty"`
+	Limits              v1.ResourceList          `json:"limits,omitempty"`
 }
 
 type ClusterComponentStatus struct {
-	Name       string
+	Name       string                  `json:"name"`
 	Conditions []v1.ComponentCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,2,rep,name=conditions"`
 }
 
@@ -95,8 +99,8 @@ type GoogleKubernetesEngineConfig struct {
 	// The map of Kubernetes labels (key/value pairs) to be applied
 	// to each node.
 	Labels map[string]string `json:"labels,omitempty"`
-	// The path to the credential file(key.json)
-	CredentialPath string `json:"credentialPath,omitempty"`
+	// The content of the credential file(key.json)
+	Credential string `json:"credential,omitempty"`
 	// Enable alpha feature
 	EnableAlphaFeature bool `json:"enableAlphaFeature,omitempty"`
 }
@@ -116,8 +120,8 @@ type RancherKubernetesEngineConfig struct {
 	Authentication AuthConfig `yaml:"auth" json:"auth,omitempty"`
 	// YAML manifest for user provided addons to be deployed on the cluster
 	Addons string `yaml:"addons" json:"addons,omitempty"`
-	// SSH Private Key Path
-	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
+	// List of images used internally for proxy, cert downlaod and kubedns
+	RKEImages map[string]string `yaml:"rke_images" json:"rke_images,omitempty"`
 }
 
 type RKEConfigNode struct {
@@ -133,6 +137,10 @@ type RKEConfigNode struct {
 	User string `yaml:"user" json:"user,omitempty"`
 	// Optional - Docker socket on the node that will be used in tunneling
 	DockerSocket string `yaml:"docker_socket" json:"dockerSocket,omitempty"`
+	// SSH Private Key
+	SSHKey string `yaml:"ssh_key" json:"sshKey,omitempty"`
+	// SSH Private Key Path
+	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
 }
 
 type RKEConfigServices struct {
@@ -212,7 +220,172 @@ type AuthConfig struct {
 	// Authentication options
 	Options map[string]string `yaml:"options" json:"options,omitempty"`
 }
-
 type ClusterNode struct {
-	v1.Node
+	metav1.TypeMeta `json:",inline"`
+	// Standard object’s metadata. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	// Specification of the desired behavior of the cluster node. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	v1.NodeSpec `json:"spec,omitempty"`
+	// Most recent observed status of the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Status      ClusterNodeStatus `json:"status"`
+	NodeName    string
+	ClusterName string
+}
+
+type ClusterNodeStatus struct {
+	v1.NodeStatus
+	Requested v1.ResourceList `json:"requested,omitempty"`
+	Limits    v1.ResourceList `json:"limits,omitempty"`
+}
+
+type MachineTemplate struct {
+	metav1.TypeMeta `json:",inline"`
+	// Standard object’s metadata. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	// Specification of the desired behavior of the the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Spec MachineTemplateSpec `json:"spec"`
+	// Most recent observed status of the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Status MachineTemplateStatus `json:"status"`
+}
+
+type MachineTemplateStatus struct {
+	Conditions []MachineTemplateCondition `json:"conditions"`
+}
+
+type MachineTemplateCondition struct {
+	// Type of cluster condition.
+	Type string `json:"type"`
+	// Status of the condition, one of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status"`
+	// The last time this condition was updated.
+	LastUpdateTime string `json:"lastUpdateTime,omitempty"`
+	// Last time the condition transitioned from one status to another.
+	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
+	// The reason for the condition's last transition.
+	Reason string `json:"reason,omitempty"`
+}
+
+type MachineTemplateSpec struct {
+	DisplayName  string            `json:"displayName"`
+	Description  string            `json:"description"`
+	FlavorPrefix string            `json:"flavorPrefix"`
+	Driver       string            `json:"driver"`
+	SecretValues map[string]string `json:"secretValues"`
+	SecretName   string            `norman:"type=reference[/v1-cluster/schemas/globalSecret]"`
+	PublicValues map[string]string `json:"publicValues"`
+}
+
+type Machine struct {
+	metav1.TypeMeta `json:",inline"`
+	// Standard object’s metadata. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	// Specification of the desired behavior of the the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Spec MachineSpec `json:"spec"`
+	// Most recent observed status of the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Status MachineStatus `json:"status"`
+}
+
+type MachineStatus struct {
+	Conditions []MachineCondition `json:"conditions"`
+}
+
+type MachineCondition struct {
+	// Type of cluster condition.
+	Type string `json:"type"`
+	// Status of the condition, one of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status"`
+	// The last time this condition was updated.
+	LastUpdateTime string `json:"lastUpdateTime,omitempty"`
+	// Last time the condition transitioned from one status to another.
+	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
+	// The reason for the condition's last transition.
+	Reason string `json:"reason,omitempty"`
+}
+
+type MachineSpec struct {
+	ClusterName         string `norman:"type=reference[cluster]"`
+	ExternalID          string `json:"externalId"`
+	MachineTemplateName string `norman:"type=reference[machineTemplate]"`
+	DisplayName         string `json:"displayName"`
+	Description         string `json:"description"`
+	Hostname            string `json:"hostname"`
+	Driver              string `json:"driver"`
+
+	MachineGeneralParams `json:",inline"`
+	AmazonEC2Config      AmazonEC2Config    `json:"amazonEc2Config"`
+	AzureConfig          AzureConfig        `json:"azureConfig"`
+	DigitalOceanConfig   DigitalOceanConfig `json:"digitalOceanConfig"`
+}
+
+type AmazonEC2Config struct {
+}
+
+type AzureConfig struct {
+}
+
+type DigitalOceanConfig struct {
+}
+
+type MachineGeneralParams struct {
+	AuthCertificateAuthority string            `json:"authCertificateAuthority"`
+	AuthKey                  string            `json:"authKey"`
+	EngineInstallURL         string            `json:"engineInstallURL"`
+	DockerVersion            string            `json:"dockerVersion"`
+	EngineOpt                map[string]string `json:"engineOpt"`
+	EngineInsecureRegistry   []string          `json:"engineInsecureRegistry"`
+	EngineRegistryMirror     []string          `json:"engineRegistryMirror"`
+	EngineLabel              map[string]string `json:"engineLabel"`
+	EngineStorageDriver      string            `json:"engineStorageDriver"`
+	EngineEnv                map[string]string `json:"engineEnv"`
+}
+
+type MachineDriver struct {
+	metav1.TypeMeta `json:",inline"`
+	// Standard object’s metadata. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	// Specification of the desired behavior of the the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Spec MachineDriverSpec `json:"spec"`
+	// Most recent observed status of the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Status MachineDriverStatus `json:"status"`
+}
+
+type MachineDriverStatus struct {
+	Conditions []MachineDriverCondition `json:"conditions"`
+}
+
+type MachineDriverCondition struct {
+	// Type of cluster condition.
+	Type string `json:"type"`
+	// Status of the condition, one of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status"`
+	// The last time this condition was updated.
+	LastUpdateTime string `json:"lastUpdateTime,omitempty"`
+	// Last time the condition transitioned from one status to another.
+	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
+	// The reason for the condition's last transition.
+	Reason string `json:"reason,omitempty"`
+}
+
+type MachineDriverSpec struct {
+	DisplayName      string `json:"displayName"`
+	Description      string `json:"description"`
+	URL              string `json:"url"`
+	ExternalID       string `json:"externalId"`
+	Builtin          bool   `json:"builtin"`
+	DefaultActive    bool   `json:"defaultActive"`
+	ActivateOnCreate bool   `json:"activateOnCreate"`
+	Checksum         string `json:"checksum"`
+	UIURL            string `json:"uiUrl"`
 }

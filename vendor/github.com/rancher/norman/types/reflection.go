@@ -142,10 +142,14 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 	}
 
 	mappers := s.mapper(&schema.Version, schema.ID)
-	if schema.CanList() {
-		mappers = append(s.DefaultMappers, mappers...)
+	if s.DefaultMappers != nil {
+		if schema.CanList() {
+			mappers = append(s.DefaultMappers(), mappers...)
+		}
 	}
-	mappers = append(mappers, s.DefaultPostMappers...)
+	if s.DefaultPostMappers != nil {
+		mappers = append(mappers, s.DefaultPostMappers()...)
+	}
 
 	if len(mappers) > 0 {
 		copy, err := s.newSchemaFromType(version, t, typeName)
@@ -174,7 +178,7 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 	schema.Mapper = mapper
 	s.AddSchema(schema)
 
-	return schema, nil
+	return schema, s.Err()
 }
 
 func jsonName(f reflect.StructField) string {

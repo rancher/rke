@@ -15,12 +15,14 @@ type SchemaCollection struct {
 
 type SchemaInitFunc func(*Schemas) *Schemas
 
+type MappersFactory func() []Mapper
+
 type Schemas struct {
 	schemasByPath       map[string]map[string]*Schema
 	schemasBySubContext map[string]*Schema
 	mappers             map[string]map[string][]Mapper
-	DefaultMappers      []Mapper
-	DefaultPostMappers  []Mapper
+	DefaultMappers      MappersFactory
+	DefaultPostMappers  MappersFactory
 	versions            []APIVersion
 	schemas             []*Schema
 	errors              []error
@@ -63,7 +65,7 @@ func (s *Schemas) AddSchema(schema *Schema) *Schemas {
 		s.errors = append(s.errors, fmt.Errorf("ID is not set on schema: %v", schema))
 		return s
 	}
-	if schema.Version.Path == "" || schema.Version.Group == "" || schema.Version.Version == "" {
+	if schema.Version.Path == "" || schema.Version.Version == "" {
 		s.errors = append(s.errors, fmt.Errorf("version is not set on schema: %s", schema.ID))
 		return s
 	}
