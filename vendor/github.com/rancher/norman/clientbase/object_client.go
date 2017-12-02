@@ -117,7 +117,6 @@ func (p *ObjectClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	r, err := p.restClient.Get().
 		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		Prefix("watch").
-		Namespace(p.ns).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).

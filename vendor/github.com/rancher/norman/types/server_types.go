@@ -126,6 +126,7 @@ type QueryOptions struct {
 	Sort       Sort
 	Pagination *Pagination
 	Conditions []*QueryCondition
+	Options    map[string]string
 }
 
 type ReferenceValidator interface {
@@ -153,4 +154,5 @@ type Store interface {
 	Create(apiContext *APIContext, schema *Schema, data map[string]interface{}) (map[string]interface{}, error)
 	Update(apiContext *APIContext, schema *Schema, data map[string]interface{}, id string) (map[string]interface{}, error)
 	Delete(apiContext *APIContext, schema *Schema, id string) error
+	Watch(apiContext *APIContext, schema *Schema, opt QueryOptions) (chan map[string]interface{}, error)
 }

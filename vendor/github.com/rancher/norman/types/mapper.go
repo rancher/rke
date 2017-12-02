@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/rancher/norman/types/definition"
 )
 
@@ -67,7 +69,7 @@ func (t *typeMapper) FromInternal(data map[string]interface{}) {
 			data["type"] = t.typeName
 		}
 		name, _ := data["name"].(string)
-		namespace, _ := data["namespace"].(string)
+		namespace, _ := data["namespaceId"].(string)
 
 		if _, ok := data["id"]; !ok {
 			if name != "" {
@@ -106,7 +108,7 @@ func (t *typeMapper) ToInternal(data map[string]interface{}) {
 func (t *typeMapper) ModifySchema(schema *Schema, schemas *Schemas) error {
 	t.subSchemas = map[string]*Schema{}
 	t.subArraySchemas = map[string]*Schema{}
-	t.typeName = schema.ID
+	t.typeName = fmt.Sprintf("%s/schemas/%s", schema.Version.Path, schema.ID)
 
 	mapperSchema := schema
 	if schema.InternalSchema != nil {
