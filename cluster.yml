@@ -14,13 +14,20 @@ network:
   options:
     foo: bar
 
+ssh_key_path: ~/.ssh/test
+
 nodes:
   - address: 1.1.1.1
     user: ubuntu
     role: [controlplane, etcd]
+    ssh_key_path: /home/user/.ssh/id_rsa
   - address: 2.2.2.2
     user: ubuntu
     role: [worker]
+    ssh_key: |-
+      -----BEGIN RSA PRIVATE KEY-----
+
+      -----END RSA PRIVATE KEY-----
   - address: example.com
     user: ubuntu
     role: [worker]
