@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/cluster.cattle.io/v1"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/cert"
 )
 
@@ -21,9 +21,9 @@ type Cluster struct {
 	v1.RancherKubernetesEngineConfig `yaml:",inline"`
 	ConfigPath                       string `yaml:"config_path"`
 	LocalKubeConfigPath              string
-	EtcdHosts                        []hosts.Host
-	WorkerHosts                      []hosts.Host
-	ControlPlaneHosts                []hosts.Host
+	EtcdHosts                        []*hosts.Host
+	WorkerHosts                      []*hosts.Host
+	ControlPlaneHosts                []*hosts.Host
 	KubeClient                       *kubernetes.Clientset
 	KubernetesServiceIP              net.IP
 	Certificates                     map[string]pki.CertificatePKI
@@ -152,92 +152,49 @@ func GetLocalKubeConfig(configPath string) string {
 	return fmt.Sprintf("%s%s%s", baseDir, pki.KubeAdminConfigPrefix, fileName)
 }
 
-func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
-	logrus.Infof("[reconcile] Reconciling cluster state")
-	if currentCluster == nil {
-		logrus.Infof("[reconcile] This is newly generated cluster")
-		return nil
-	}
-	if err := rebuildLocalAdminConfig(kubeCluster); err != nil {
-		return err
-	}
-	kubeClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath)
-	if err != nil {
-		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
-	}
-	key, _ := checkEncryptedKey(kubeCluster.SSHKeyPath)
-
-	logrus.Infof("[reconcile] Check Control plane hosts to be deleted")
-	cpToDelete := hosts.GetToDeleteHosts(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
-	for _, toDeleteHost := range cpToDelete {
-		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
-			return fmt.Errorf("Failed to delete controlplane node %s from cluster", toDeleteHost.Address)
-		}
-		// attempting to clean up the host
-		if err := reconcileHostCleaner(toDeleteHost, key, false); err != nil {
-			logrus.Warnf("[reconcile] Couldn't clean up controlplane node [%s]: %v", toDeleteHost.Address, err)
-			continue
-		}
-	}
-
-	logrus.Infof("[reconcile] Check worker hosts to be deleted")
-	wpToDelete := hosts.GetToDeleteHosts(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
-	for _, toDeleteHost := range wpToDelete {
-		if err := hosts.DeleteNode(&toDeleteHost, kubeClient); err != nil {
-			return fmt.Errorf("Failed to delete worker node %s from cluster", toDeleteHost.Address)
-		}
-		// attempting to clean up the host
-		if err := reconcileHostCleaner(toDeleteHost, key, true); err != nil {
-			logrus.Warnf("[reconcile] Couldn't clean up worker node [%s]: %v", toDeleteHost.Address, err)
-			continue
-		}
-	}
-
-	// Rolling update on change for nginx Proxy
-	cpChanged := hosts.IsHostListChanged(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
-	if cpChanged {
-		logrus.Infof("[reconcile] Rolling update nginx hosts with new list of control plane hosts")
-		err = services.RollingUpdateNginxProxy(kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
-		if err != nil {
-			return fmt.Errorf("Failed to rolling update Nginx hosts with new control plane hosts")
-		}
-	}
-	logrus.Infof("[reconcile] Reconciled cluster state successfully")
-	return nil
-}
-
-func reconcileHostCleaner(toDeleteHost hosts.Host, key ssh.Signer, worker bool) error {
-	if err := toDeleteHost.TunnelUp(key); err != nil {
-		return fmt.Errorf("Not able to reach the host: %v", err)
-	}
-	if err := services.RemoveControlPlane([]hosts.Host{toDeleteHost}); err != nil {
-		return fmt.Errorf("Couldn't remove control plane: %v", err)
-	}
-
-	if err := services.RemoveWorkerPlane(nil, []hosts.Host{toDeleteHost}); err != nil {
-		return fmt.Errorf("Couldn't remove worker plane: %v", err)
-	}
-	if err := toDeleteHost.CleanUp(); err != nil {
-		return fmt.Errorf("Not able to clean the host: %v", err)
-	}
-	return nil
-}
-
 func rebuildLocalAdminConfig(kubeCluster *Cluster) error {
 	logrus.Infof("[reconcile] Rebuilding and update local kube config")
+	var workingConfig string
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCommonName]
 	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
-	newConfig := pki.GetKubeConfigX509WithData(
-		"https://"+kubeCluster.ControlPlaneHosts[0].Address+":6443",
-		pki.KubeAdminCommonName,
-		string(cert.EncodeCertPEM(caCrt)),
-		string(cert.EncodeCertPEM(currentKubeConfig.Certificate)),
-		string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key)))
-	err := pki.DeployAdminConfig(newConfig, kubeCluster.LocalKubeConfigPath)
-	if err != nil {
-		return fmt.Errorf("Failed to redeploy local admin config with new host")
+	for _, cpHost := range kubeCluster.ControlPlaneHosts {
+		newConfig := pki.GetKubeConfigX509WithData(
+			"https://"+cpHost.Address+":6443",
+			pki.KubeAdminCommonName,
+			string(cert.EncodeCertPEM(caCrt)),
+			string(cert.EncodeCertPEM(currentKubeConfig.Certificate)),
+			string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key)))
+
+		if err := pki.DeployAdminConfig(newConfig, kubeCluster.LocalKubeConfigPath); err != nil {
+			return fmt.Errorf("Failed to redeploy local admin config with new host")
+		}
+		workingConfig = newConfig
+		if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath); err != nil {
+			logrus.Infof("[reconcile] host [%s] is not active master on the cluster", cpHost.Address)
+			continue
+		} else {
+			break
+		}
 	}
-	currentKubeConfig.Config = newConfig
+	currentKubeConfig.Config = workingConfig
 	kubeCluster.Certificates[pki.KubeAdminCommonName] = currentKubeConfig
 	return nil
+}
+
+func isLocalConfigWorking(localKubeConfigPath string) bool {
+	if _, err := GetK8sVersion(localKubeConfigPath); err != nil {
+		logrus.Infof("[reconcile] Local config is not vaild, rebuilding admin config")
+		return false
+	}
+	return true
+}
+
+func getLocalConfigAddress(localConfigPath string) (string, error) {
+	config, err := clientcmd.BuildConfigFromFlags("", localConfigPath)
+	if err != nil {
+		return "", err
+	}
+	splittedAdress := strings.Split(config.Host, ":")
+	address := splittedAdress[1]
+	return address[2:], nil
 }

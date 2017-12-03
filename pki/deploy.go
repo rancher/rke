@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
+func DeployCertificatesOnMasters(cpHosts []*hosts.Host, crtMap map[string]CertificatePKI) error {
 	// list of certificates that should be deployed on the masters
 	crtList := []string{
 		CACertName,
@@ -31,7 +31,7 @@ func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]Certifi
 	}
 
 	for i := range cpHosts {
-		err := doRunDeployer(&cpHosts[i], env)
+		err := doRunDeployer(cpHosts[i], env)
 		if err != nil {
 			return err
 		}
@@ -39,7 +39,7 @@ func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]Certifi
 	return nil
 }
 
-func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
+func DeployCertificatesOnWorkers(workerHosts []*hosts.Host, crtMap map[string]CertificatePKI) error {
 	// list of certificates that should be deployed on the workers
 	crtList := []string{
 		CACertName,
@@ -53,7 +53,7 @@ func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]Cer
 	}
 
 	for i := range workerHosts {
-		err := doRunDeployer(&workerHosts[i], env)
+		err := doRunDeployer(workerHosts[i], env)
 		if err != nil {
 			return err
 		}
