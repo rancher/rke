@@ -11,9 +11,11 @@ import (
 	"syscall"
 
 	"github.com/docker/docker/client"
+	"github.com/rancher/rke/docker"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/net/context"
 )
 
 type dialer struct {
@@ -23,6 +25,7 @@ type dialer struct {
 
 const (
 	DockerAPIVersion = "1.24"
+	K8sVersion       = "1.8"
 )
 
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
@@ -35,24 +38,25 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	// Establish connection with SSH server
 	conn, err := ssh.Dial("tcp", sshAddr, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error establishing SSH connection: %v", err)
+		return nil, fmt.Errorf("Failed to dial ssh using address [%s]: %v", sshAddr, err)
 	}
 	if len(d.host.DockerSocket) == 0 {
 		d.host.DockerSocket = "/var/run/docker.sock"
 	}
 	remote, err := conn.Dial("unix", d.host.DockerSocket)
 	if err != nil {
-		return nil, fmt.Errorf("Error connecting to Docker socket on host [%s]: %v", d.host.Address, err)
+		return nil, fmt.Errorf("Failed to dial to Docker socket: %v", err)
 	}
 	return remote, err
 }
 
 func (h *Host) TunnelUp() error {
-	logrus.Infof("[ssh] Start tunnel for host [%s]", h.Address)
+	logrus.Infof("[ssh] Setup tunnel for host [%s]", h.Address)
 	key, err := checkEncryptedKey(h.SSHKey, h.SSHKeyPath)
 	if err != nil {
 		return fmt.Errorf("Failed to parse the private key: %v", err)
 	}
+
 	dialer := &dialer{
 		host:   h,
 		signer: key,
@@ -67,8 +71,22 @@ func (h *Host) TunnelUp() error {
 	logrus.Debugf("Connecting to Docker API for host [%s]", h.Address)
 	h.DClient, err = client.NewClient("unix:///var/run/docker.sock", DockerAPIVersion, httpClient, nil)
 	if err != nil {
-		return fmt.Errorf("Can't connect to Docker for host [%s]: %v", h.Address, err)
+		return fmt.Errorf("Can't initiate NewClient: %v", err)
 	}
+	info, err := h.DClient.Info(context.Background())
+	if err != nil {
+		return fmt.Errorf("Can't retrieve Docker Info: %v", err)
+	}
+	logrus.Debugf("Docker Info found: %#v", info)
+	isvalid, err := docker.IsSupportedDockerVersion(info, K8sVersion)
+	if err != nil {
+		return fmt.Errorf("Error while determining supported Docker version [%s]: %v", info.ServerVersion, err)
+	}
+
+	if !isvalid {
+		return fmt.Errorf("Unsupported Docker version found [%s], supported versions are %v", info.ServerVersion, docker.K8sDockerVersions[K8sVersion])
+	}
+
 	return nil
 }
 
