@@ -7,7 +7,6 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/services"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -30,20 +29,18 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
 	}
 
-	key, _ := checkEncryptedKey(kubeCluster.SSHKeyPath)
-
-	if err := reconcileWorker(currentCluster, kubeCluster, key, kubeClient); err != nil {
+	if err := reconcileWorker(currentCluster, kubeCluster, kubeClient); err != nil {
 		return err
 	}
 
-	if err := reconcileControl(currentCluster, kubeCluster, key, kubeClient); err != nil {
+	if err := reconcileControl(currentCluster, kubeCluster, kubeClient); err != nil {
 		return err
 	}
 	logrus.Infof("[reconcile] Reconciled cluster state successfully")
 	return nil
 }
 
-func reconcileWorker(currentCluster, kubeCluster *Cluster, key ssh.Signer, kubeClient *kubernetes.Clientset) error {
+func reconcileWorker(currentCluster, kubeCluster *Cluster, kubeClient *kubernetes.Clientset) error {
 	// worker deleted first to avoid issues when worker+controller on same host
 	logrus.Debugf("[reconcile] Check worker hosts to be deleted")
 	wpToDelete := hosts.GetToDeleteHosts(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
@@ -53,7 +50,7 @@ func reconcileWorker(currentCluster, kubeCluster *Cluster, key ssh.Signer, kubeC
 			return fmt.Errorf("Failed to delete worker node %s from cluster", toDeleteHost.Address)
 		}
 		// attempting to clean services/files on the host
-		if err := reconcileHost(toDeleteHost, key, true); err != nil {
+		if err := reconcileHost(toDeleteHost, true); err != nil {
 			logrus.Warnf("[reconcile] Couldn't clean up worker node [%s]: %v", toDeleteHost.Address, err)
 			continue
 		}
@@ -61,7 +58,7 @@ func reconcileWorker(currentCluster, kubeCluster *Cluster, key ssh.Signer, kubeC
 	return nil
 }
 
-func reconcileControl(currentCluster, kubeCluster *Cluster, key ssh.Signer, kubeClient *kubernetes.Clientset) error {
+func reconcileControl(currentCluster, kubeCluster *Cluster, kubeClient *kubernetes.Clientset) error {
 	logrus.Debugf("[reconcile] Check Control plane hosts to be deleted")
 	selfDeleteAddress, err := getLocalConfigAddress(kubeCluster.LocalKubeConfigPath)
 	if err != nil {
@@ -85,7 +82,7 @@ func reconcileControl(currentCluster, kubeCluster *Cluster, key ssh.Signer, kube
 			return fmt.Errorf("Failed to delete controlplane node %s from cluster", toDeleteHost.Address)
 		}
 		// attempting to clean services/files on the host
-		if err := reconcileHost(toDeleteHost, key, false); err != nil {
+		if err := reconcileHost(toDeleteHost, false); err != nil {
 			logrus.Warnf("[reconcile] Couldn't clean up controlplane node [%s]: %v", toDeleteHost.Address, err)
 			continue
 		}
@@ -106,8 +103,8 @@ func reconcileControl(currentCluster, kubeCluster *Cluster, key ssh.Signer, kube
 	return nil
 }
 
-func reconcileHost(toDeleteHost *hosts.Host, key ssh.Signer, worker bool) error {
-	if err := toDeleteHost.TunnelUp(key); err != nil {
+func reconcileHost(toDeleteHost *hosts.Host, worker bool) error {
+	if err := toDeleteHost.TunnelUp(); err != nil {
 		return fmt.Errorf("Not able to reach the host: %v", err)
 	}
 	if worker {

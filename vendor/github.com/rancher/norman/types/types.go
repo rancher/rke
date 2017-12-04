@@ -89,7 +89,7 @@ type Schema struct {
 	Version           APIVersion        `json:"version"`
 	PluralName        string            `json:"pluralName,omitempty"`
 	ResourceMethods   []string          `json:"resourceMethods,omitempty"`
-	ResourceFields    map[string]Field  `json:"resourceFields,omitempty"`
+	ResourceFields    map[string]Field  `json:"resourceFields"`
 	ResourceActions   map[string]Action `json:"resourceActions,omitempty"`
 	CollectionMethods []string          `json:"collectionMethods,omitempty"`
 	CollectionFields  map[string]Field  `json:"collectionFields,omitempty"`

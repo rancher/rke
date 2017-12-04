@@ -5,7 +5,9 @@ import (
 
 	"github.com/rancher/norman/clientbase"
 	"github.com/rancher/norman/controller"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
@@ -34,14 +36,22 @@ type ClusterNodeList struct {
 
 type ClusterNodeHandlerFunc func(key string, obj *ClusterNode) error
 
+type ClusterNodeLister interface {
+	List(namespace string, selector labels.Selector) (ret []*ClusterNode, err error)
+	Get(namespace, name string) (*ClusterNode, error)
+}
+
 type ClusterNodeController interface {
 	Informer() cache.SharedIndexInformer
+	Lister() ClusterNodeLister
 	AddHandler(handler ClusterNodeHandlerFunc)
 	Enqueue(namespace, name string)
+	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
 }
 
 type ClusterNodeInterface interface {
+	ObjectClient() *clientbase.ObjectClient
 	Create(*ClusterNode) (*ClusterNode, error)
 	Get(name string, opts metav1.GetOptions) (*ClusterNode, error)
 	Update(*ClusterNode) (*ClusterNode, error)
@@ -52,8 +62,39 @@ type ClusterNodeInterface interface {
 	Controller() ClusterNodeController
 }
 
+type clusterNodeLister struct {
+	controller *clusterNodeController
+}
+
+func (l *clusterNodeLister) List(namespace string, selector labels.Selector) (ret []*ClusterNode, err error) {
+	err = cache.ListAllByNamespace(l.controller.Informer().GetIndexer(), namespace, selector, func(obj interface{}) {
+		ret = append(ret, obj.(*ClusterNode))
+	})
+	return
+}
+
+func (l *clusterNodeLister) Get(namespace, name string) (*ClusterNode, error) {
+	obj, exists, err := l.controller.Informer().GetIndexer().GetByKey(namespace + "/" + name)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.NewNotFound(schema.GroupResource{
+			Group:    ClusterNodeGroupVersionKind.Group,
+			Resource: "clusterNode",
+		}, name)
+	}
+	return obj.(*ClusterNode), nil
+}
+
 type clusterNodeController struct {
 	controller.GenericController
+}
+
+func (c *clusterNodeController) Lister() ClusterNodeLister {
+	return &clusterNodeLister{
+		controller: c,
+	}
 }
 
 func (c *clusterNodeController) AddHandler(handler ClusterNodeHandlerFunc) {
@@ -97,6 +138,7 @@ func (s *clusterNodeClient) Controller() ClusterNodeController {
 	}
 
 	s.client.clusterNodeControllers[s.ns] = c
+	s.client.starters = append(s.client.starters, c)
 
 	return c
 }
@@ -106,6 +148,10 @@ type clusterNodeClient struct {
 	ns           string
 	objectClient *clientbase.ObjectClient
 	controller   ClusterNodeController
+}
+
+func (s *clusterNodeClient) ObjectClient() *clientbase.ObjectClient {
+	return s.objectClient
 }
 
 func (s *clusterNodeClient) Create(o *ClusterNode) (*ClusterNode, error) {
