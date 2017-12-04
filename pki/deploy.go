@@ -108,6 +108,7 @@ func DeployAdminConfig(kubeConfig, localConfigPath string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
 	}
+	logrus.Infof("Successfully Deployed local admin kubeconfig at [%s]", localConfigPath)
 	return nil
 }
 
