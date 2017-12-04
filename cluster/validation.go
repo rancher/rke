@@ -35,10 +35,7 @@ func (c *Cluster) ValidateCluster() error {
 	}
 
 	// validate services options
-	if err := validateServicesOptions(c); err != nil {
-		return err
-	}
-	return nil
+	return validateServicesOptions(c)
 }
 
 func validateAuthOptions(c *Cluster) error {
