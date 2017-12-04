@@ -5,7 +5,9 @@ import (
 
 	"github.com/rancher/norman/clientbase"
 	"github.com/rancher/norman/controller"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
@@ -34,14 +36,22 @@ type ClusterList struct {
 
 type ClusterHandlerFunc func(key string, obj *Cluster) error
 
+type ClusterLister interface {
+	List(namespace string, selector labels.Selector) (ret []*Cluster, err error)
+	Get(namespace, name string) (*Cluster, error)
+}
+
 type ClusterController interface {
 	Informer() cache.SharedIndexInformer
+	Lister() ClusterLister
 	AddHandler(handler ClusterHandlerFunc)
 	Enqueue(namespace, name string)
+	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
 }
 
 type ClusterInterface interface {
+	ObjectClient() *clientbase.ObjectClient
 	Create(*Cluster) (*Cluster, error)
 	Get(name string, opts metav1.GetOptions) (*Cluster, error)
 	Update(*Cluster) (*Cluster, error)
@@ -52,8 +62,39 @@ type ClusterInterface interface {
 	Controller() ClusterController
 }
 
+type clusterLister struct {
+	controller *clusterController
+}
+
+func (l *clusterLister) List(namespace string, selector labels.Selector) (ret []*Cluster, err error) {
+	err = cache.ListAllByNamespace(l.controller.Informer().GetIndexer(), namespace, selector, func(obj interface{}) {
+		ret = append(ret, obj.(*Cluster))
+	})
+	return
+}
+
+func (l *clusterLister) Get(namespace, name string) (*Cluster, error) {
+	obj, exists, err := l.controller.Informer().GetIndexer().GetByKey(namespace + "/" + name)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.NewNotFound(schema.GroupResource{
+			Group:    ClusterGroupVersionKind.Group,
+			Resource: "cluster",
+		}, name)
+	}
+	return obj.(*Cluster), nil
+}
+
 type clusterController struct {
 	controller.GenericController
+}
+
+func (c *clusterController) Lister() ClusterLister {
+	return &clusterLister{
+		controller: c,
+	}
 }
 
 func (c *clusterController) AddHandler(handler ClusterHandlerFunc) {
@@ -97,6 +138,7 @@ func (s *clusterClient) Controller() ClusterController {
 	}
 
 	s.client.clusterControllers[s.ns] = c
+	s.client.starters = append(s.client.starters, c)
 
 	return c
 }
@@ -106,6 +148,10 @@ type clusterClient struct {
 	ns           string
 	objectClient *clientbase.ObjectClient
 	controller   ClusterController
+}
+
+func (s *clusterClient) ObjectClient() *clientbase.ObjectClient {
+	return s.objectClient
 }
 
 func (s *clusterClient) Create(o *Cluster) (*Cluster, error) {

@@ -89,8 +89,7 @@ func clusterConfig(ctx *cli.Context) error {
 		return writeConfig(&cluster, configFile, print)
 	}
 
-	// Get number of hosts
-	sshKeyPath, err := getConfig(reader, "SSH Private Key Path", "~/.ssh/id_rsa")
+	sshKeyPath, err := getConfig(reader, "Cluster Level SSH Private Key Path", "~/.ssh/id_rsa")
 	if err != nil {
 		return err
 	}
@@ -142,11 +141,24 @@ func clusterConfig(ctx *cli.Context) error {
 
 func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigNode, error) {
 	host := v1.RKEConfigNode{}
+
 	address, err := getConfig(reader, fmt.Sprintf("SSH Address of host (%d)", index+1), "")
 	if err != nil {
 		return nil, err
 	}
 	host.Address = address
+
+	sshKeyPath, err := getConfig(reader, fmt.Sprintf("SSH Private Key Path of host (%s)", address), "")
+	if err != nil {
+		return nil, err
+	}
+	host.SSHKeyPath = sshKeyPath
+
+	sshKey, err := getConfig(reader, fmt.Sprintf("SSH Private Key of host (%s)", address), "")
+	if err != nil {
+		return nil, err
+	}
+	host.SSHKey = sshKey
 
 	sshUser, err := getConfig(reader, fmt.Sprintf("SSH User of host (%s)", address), "ubuntu")
 	if err != nil {

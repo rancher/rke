@@ -5,10 +5,15 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"syscall"
 
 	"github.com/docker/docker/client"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type dialer struct {
@@ -42,12 +47,15 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	return remote, err
 }
 
-func (h *Host) TunnelUp(signer ssh.Signer) error {
+func (h *Host) TunnelUp() error {
 	logrus.Infof("[ssh] Start tunnel for host [%s]", h.Address)
-
+	key, err := checkEncryptedKey(h.SSHKey, h.SSHKeyPath)
+	if err != nil {
+		return fmt.Errorf("Failed to parse the private key: %v", err)
+	}
 	dialer := &dialer{
 		host:   h,
-		signer: signer,
+		signer: key,
 	}
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -56,7 +64,6 @@ func (h *Host) TunnelUp(signer ssh.Signer) error {
 	}
 
 	// set Docker client
-	var err error
 	logrus.Debugf("Connecting to Docker API for host [%s]", h.Address)
 	h.DClient, err = client.NewClient("unix:///var/run/docker.sock", DockerAPIVersion, httpClient, nil)
 	if err != nil {
@@ -65,14 +72,12 @@ func (h *Host) TunnelUp(signer ssh.Signer) error {
 	return nil
 }
 
-func ParsePrivateKey(keyPath string) (ssh.Signer, error) {
-	buff, _ := ioutil.ReadFile(keyPath)
-	return ssh.ParsePrivateKey(buff)
+func parsePrivateKey(keyBuff string) (ssh.Signer, error) {
+	return ssh.ParsePrivateKey([]byte(keyBuff))
 }
 
-func ParsePrivateKeyWithPassPhrase(keyPath string, passphrase []byte) (ssh.Signer, error) {
-	buff, _ := ioutil.ReadFile(keyPath)
-	return ssh.ParsePrivateKeyWithPassphrase(buff, passphrase)
+func parsePrivateKeyWithPassPhrase(keyBuff string, passphrase []byte) (ssh.Signer, error) {
+	return ssh.ParsePrivateKeyWithPassphrase([]byte(keyBuff), passphrase)
 }
 
 func makeSSHConfig(user string, signer ssh.Signer) (*ssh.ClientConfig, error) {
@@ -85,4 +90,45 @@ func makeSSHConfig(user string, signer ssh.Signer) (*ssh.ClientConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func checkEncryptedKey(sshKey, sshKeyPath string) (ssh.Signer, error) {
+	logrus.Debugf("[ssh] Checking private key")
+	var err error
+	var key ssh.Signer
+	if len(sshKey) > 0 {
+		key, err = parsePrivateKey(sshKey)
+	} else {
+		key, err = parsePrivateKey(privateKeyPath(sshKeyPath))
+	}
+	if err == nil {
+		return key, nil
+	}
+
+	// parse encrypted key
+	if strings.Contains(err.Error(), "decode encrypted private keys") {
+		fmt.Printf("Passphrase for Private SSH Key: ")
+		passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
+		fmt.Printf("\n")
+		if err != nil {
+			return nil, err
+		}
+		if len(sshKey) > 0 {
+			key, err = parsePrivateKeyWithPassPhrase(sshKey, passphrase)
+		} else {
+			key, err = parsePrivateKeyWithPassPhrase(privateKeyPath(sshKeyPath), passphrase)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	return key, nil
+}
+
+func privateKeyPath(sshKeyPath string) string {
+	if sshKeyPath[:2] == "~/" {
+		sshKeyPath = filepath.Join(os.Getenv("HOME"), sshKeyPath[2:])
+	}
+	buff, _ := ioutil.ReadFile(sshKeyPath)
+	return string(buff)
 }
