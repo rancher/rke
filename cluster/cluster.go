@@ -9,16 +9,16 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/cert"
 )
 
 type Cluster struct {
-	v1.RancherKubernetesEngineConfig `yaml:",inline"`
+	v3.RancherKubernetesEngineConfig `yaml:",inline"`
 	ConfigPath                       string `yaml:"config_path"`
 	LocalKubeConfigPath              string
 	EtcdHosts                        []*hosts.Host

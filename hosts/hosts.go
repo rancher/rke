@@ -7,14 +7,14 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 )
 
 type Host struct {
-	v1.RKEConfigNode
+	v3.RKEConfigNode
 	DClient   *client.Client
 	IsControl bool
 	IsWorker  bool
