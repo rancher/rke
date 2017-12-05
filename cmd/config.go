@@ -16,6 +16,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	comments = `# If you intened to deploy Kubernetes in an air-gapped envrionment,
+# please consult the documentation on how to configure custom RKE images.`
+)
+
 func ConfigCommand() cli.Command {
 	return cli.Command{
 		Name:      "config",
@@ -67,12 +72,12 @@ func writeConfig(cluster *v3.RancherKubernetesEngineConfig, configFile string, p
 	}
 	logrus.Debugf("Deploying cluster configuration file: %s", configFile)
 
+	configString := fmt.Sprintf("%s\n%s", comments, string(yamlConfig))
 	if print {
-		fmt.Printf("Configuration File: \n%s", string(yamlConfig))
+		fmt.Printf("Configuration File: \n%s", configString)
 		return nil
 	}
-	return ioutil.WriteFile(configFile, yamlConfig, 0640)
-
+	return ioutil.WriteFile(configFile, []byte(configString), 0640)
 }
 
 func clusterConfig(ctx *cli.Context) error {

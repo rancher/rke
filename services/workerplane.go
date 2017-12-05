@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RunWorkerPlane(controlHosts []*hosts.Host, workerHosts []*hosts.Host, workerServices v3.RKEConfigServices) error {
+func RunWorkerPlane(controlHosts []*hosts.Host, workerHosts []*hosts.Host, workerServices v3.RKEConfigServices, nginxProxyImage string) error {
 	logrus.Infof("[%s] Building up Worker Plane..", WorkerRole)
 	for _, host := range controlHosts {
 		// only one master for now
@@ -20,7 +20,7 @@ func RunWorkerPlane(controlHosts []*hosts.Host, workerHosts []*hosts.Host, worke
 	for _, host := range workerHosts {
 		// run nginx proxy
 		if !host.IsControl {
-			if err := runNginxProxy(host, controlHosts); err != nil {
+			if err := runNginxProxy(host, controlHosts, nginxProxyImage); err != nil {
 				return err
 			}
 		}

@@ -13,10 +13,10 @@ const (
 	NginxProxyEnvName = "CP_HOSTS"
 )
 
-func RollingUpdateNginxProxy(cpHosts []*hosts.Host, workerHosts []*hosts.Host) error {
+func RollingUpdateNginxProxy(cpHosts []*hosts.Host, workerHosts []*hosts.Host, nginxProxyImage string) error {
 	nginxProxyEnv := buildProxyEnv(cpHosts)
 	for _, host := range workerHosts {
-		imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
+		imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv, nginxProxyImage)
 		if err := docker.DoRollingUpdateContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole); err != nil {
 			return err
 		}
@@ -24,9 +24,9 @@ func RollingUpdateNginxProxy(cpHosts []*hosts.Host, workerHosts []*hosts.Host) e
 	return nil
 }
 
-func runNginxProxy(host *hosts.Host, cpHosts []*hosts.Host) error {
+func runNginxProxy(host *hosts.Host, cpHosts []*hosts.Host, nginxProxyImage string) error {
 	nginxProxyEnv := buildProxyEnv(cpHosts)
-	imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv)
+	imageCfg, hostCfg := buildNginxProxyConfig(host, nginxProxyEnv, nginxProxyImage)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole)
 }
 
@@ -34,9 +34,9 @@ func removeNginxProxy(host *hosts.Host) error {
 	return docker.DoRemoveContainer(host.DClient, NginxProxyContainerName, host.Address)
 }
 
-func buildNginxProxyConfig(host *hosts.Host, nginxProxyEnv string) (*container.Config, *container.HostConfig) {
+func buildNginxProxyConfig(host *hosts.Host, nginxProxyEnv, nginxProxyImage string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
-		Image: NginxProxyImage,
+		Image: nginxProxyImage,
 		Env:   []string{fmt.Sprintf("%s=%s", NginxProxyEnvName, nginxProxyEnv)},
 	}
 	hostCfg := &container.HostConfig{

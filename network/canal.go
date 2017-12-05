@@ -34,13 +34,13 @@ data:
                 },
                 "policy": {
                     "type": "k8s",
-                    "k8s_api_root": "` + canalConfig["apiRoot"] + `",
-                    "k8s_client_certificate": "` + canalConfig["clientCrt"] + `",
-                    "k8s_client_key": "` + canalConfig["clientKey"] + `",
-                    "k8s_certificate_authority": "` + canalConfig["clientCA"] + `"
+                    "k8s_api_root": "` + canalConfig[APIRoot] + `",
+                    "k8s_client_certificate": "` + canalConfig[ClientCert] + `",
+                    "k8s_client_key": "` + canalConfig[ClientKey] + `",
+                    "k8s_certificate_authority": "` + canalConfig[ClientCA] + `"
                 },
                 "kubernetes": {
-                    "kubeconfig": "` + canalConfig["kubeCfg"] + `"
+                    "kubeconfig": "` + canalConfig[KubeCfg] + `"
                 }
             },
             {
@@ -54,7 +54,7 @@ data:
   # Flannel network configuration. Mounted into the flannel container.
   net-conf.json: |
     {
-      "Network": "` + canalConfig["clusterCIDR"] + `",
+      "Network": "` + canalConfig[ClusterCIDR] + `",
       "Backend": {
         "Type": "vxlan"
       }
@@ -106,7 +106,7 @@ spec:
         # container programs network policy and routes on each
         # host.
         - name: calico-node
-          image: quay.io/calico/node:v2.6.2
+          image: ` + canalConfig[NodeImage] + `
           env:
             # Use Kubernetes API as the backing datastore.
             - name: DATASTORE_TYPE
@@ -173,7 +173,7 @@ spec:
         # This container installs the Calico CNI binaries
         # and CNI network config file on each node.
         - name: install-cni
-          image: quay.io/calico/cni:v1.11.0
+          image: ` + canalConfig[CNIImage] + `
           command: ["/install-cni.sh"]
           env:
             - name: CNI_CONF_NAME
@@ -198,7 +198,7 @@ spec:
         # This container runs flannel using the kube-subnet-mgr backend
         # for allocating subnets.
         - name: kube-flannel
-          image: quay.io/coreos/flannel:v0.9.1
+          image: ` + canalConfig[FlannelImage] + `
           command: [ "/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr" ]
           securityContext:
             privileged: true
