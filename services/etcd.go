@@ -7,11 +7,11 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
 
-func RunEtcdPlane(etcdHosts []*hosts.Host, etcdService v1.ETCDService) error {
+func RunEtcdPlane(etcdHosts []*hosts.Host, etcdService v3.ETCDService) error {
 	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
 	initCluster := getEtcdInitialCluster(etcdHosts)
 	for _, host := range etcdHosts {
@@ -37,7 +37,7 @@ func RemoveEtcdPlane(etcdHosts []*hosts.Host) error {
 	return nil
 }
 
-func buildEtcdConfig(host *hosts.Host, etcdService v1.ETCDService, initCluster string) (*container.Config, *container.HostConfig) {
+func buildEtcdConfig(host *hosts.Host, etcdService v3.ETCDService, initCluster string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: etcdService.Image,
 		Cmd: []string{"/usr/local/bin/etcd",

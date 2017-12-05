@@ -1,4 +1,4 @@
-package v1
+package v3
 
 import (
 	"context"
@@ -16,8 +16,8 @@ import (
 
 var (
 	MachineGroupVersionKind = schema.GroupVersionKind{
-		Version: "v1",
-		Group:   "cluster.cattle.io",
+		Version: "v3",
+		Group:   "management.cattle.io",
 		Kind:    "Machine",
 	}
 	MachineResource = metav1.APIResource{

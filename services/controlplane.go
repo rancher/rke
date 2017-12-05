@@ -2,11 +2,11 @@ package services
 
 import (
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
 
-func RunControlPlane(controlHosts []*hosts.Host, etcdHosts []*hosts.Host, controlServices v1.RKEConfigServices) error {
+func RunControlPlane(controlHosts []*hosts.Host, etcdHosts []*hosts.Host, controlServices v3.RKEConfigServices) error {
 	logrus.Infof("[%s] Building up Controller Plane..", ControlRole)
 	for _, host := range controlHosts {
 
