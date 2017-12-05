@@ -130,17 +130,17 @@ func (c *Cluster) setClusterDefaults() {
 }
 
 func (c *Cluster) setClusterServicesDefaults() {
-	serviceConfigDefaultsMap := map[string]string{
-		c.Services.KubeAPI.ServiceClusterIPRange:        DefaultServiceClusterIPRange,
-		c.Services.KubeController.ServiceClusterIPRange: DefaultServiceClusterIPRange,
-		c.Services.KubeController.ClusterCIDR:           DefaultClusterCIDR,
-		c.Services.Kubelet.ClusterDNSServer:             DefaultClusterDNSService,
-		c.Services.Kubelet.ClusterDomain:                DefaultClusterDomain,
-		c.Services.Kubelet.InfraContainerImage:          DefaultInfraContainerImage,
-		c.Authentication.Strategy:                       DefaultAuthStrategy,
+	serviceConfigDefaultsMap := map[*string]string{
+		&c.Services.KubeAPI.ServiceClusterIPRange:        DefaultServiceClusterIPRange,
+		&c.Services.KubeController.ServiceClusterIPRange: DefaultServiceClusterIPRange,
+		&c.Services.KubeController.ClusterCIDR:           DefaultClusterCIDR,
+		&c.Services.Kubelet.ClusterDNSServer:             DefaultClusterDNSService,
+		&c.Services.Kubelet.ClusterDomain:                DefaultClusterDomain,
+		&c.Services.Kubelet.InfraContainerImage:          DefaultInfraContainerImage,
+		&c.Authentication.Strategy:                       DefaultAuthStrategy,
 	}
 	for k, v := range serviceConfigDefaultsMap {
-		setDefaultIfEmpty(&k, v)
+		setDefaultIfEmpty(k, v)
 	}
 }
 
