@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var VERSION = "v0.0.7-dev"
+var VERSION = "v0.0.8-dev"
 
 func main() {
 	if err := mainErr(); err != nil {
