@@ -24,3 +24,11 @@ func (v *APIVersion) Equals(other *APIVersion) bool {
 func (s *Schema) CanList() bool {
 	return slice.ContainsString(s.CollectionMethods, http.MethodGet)
 }
+
+func (s *Schema) CanUpdate() bool {
+	return slice.ContainsString(s.ResourceMethods, http.MethodPut)
+}
+
+func (s *Schema) CanDelete() bool {
+	return slice.ContainsString(s.ResourceMethods, http.MethodDelete)
+}
