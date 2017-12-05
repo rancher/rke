@@ -1,6 +1,6 @@
 package network
 
-func GetFlannelManifest(clusterCIDR string) string {
+func GetFlannelManifest(clusterCIDR, image, cniImage string) string {
 	return `
 ---
 kind: ConfigMap
@@ -57,7 +57,7 @@ spec:
     spec:
       containers:
       - name: kube-flannel
-        image: quay.io/coreos/flannel:v0.8.0
+        image: ` + image + `
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -86,7 +86,7 @@ spec:
         - name: flannel-cfg
           mountPath: /etc/kube-flannel/
       - name: install-cni
-        image: quay.io/coreos/flannel-cni:v0.2.0
+        image: ` + cniImage + `
         command: ["/install-cni.sh"]
         env:
         # The CNI network config to install on each node.

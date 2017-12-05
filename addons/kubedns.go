@@ -1,6 +1,15 @@
 package addons
 
-func GetKubeDNSManifest(clusterDNSServer, clusterDomain string) string {
+const (
+	KubeDNSImage           = "kubeDNSImage"
+	DNSMasqImage           = "DNSMasqImage"
+	KubeDNSSidecarImage    = "kubednsSidecarImage"
+	KubeDNSAutoScalerImage = "kubeDNSAutoScalerImage"
+	KubeDNSServer          = "clusterDNSServer"
+	KubeDNSClusterDomain   = "clusterDomain"
+)
+
+func GetKubeDNSManifest(kubeDNSConfig map[string]string) string {
 	return `---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -17,7 +26,7 @@ spec:
     spec:
       containers:
       - name: autoscaler
-        image: gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0
+        image: ` + kubeDNSConfig[KubeDNSAutoScalerImage] + `
         resources:
             requests:
                 cpu: "20m"
@@ -81,7 +90,7 @@ spec:
           optional: true
       containers:
       - name: kubedns
-        image: gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.5
+        image: ` + kubeDNSConfig[KubeDNSImage] + `
         resources:
           # TODO: Set memory limits when we've profiled the container for large
           # clusters, then set request = limit to keep this container in
@@ -111,7 +120,7 @@ spec:
           initialDelaySeconds: 3
           timeoutSeconds: 5
         args:
-        - --domain=` + clusterDomain + `.
+        - --domain=` + kubeDNSConfig[KubeDNSClusterDomain] + `.
         - --dns-port=10053
         - --config-dir=/kube-dns-config
         - --v=2
@@ -132,7 +141,7 @@ spec:
         - name: kube-dns-config
           mountPath: /kube-dns-config
       - name: dnsmasq
-        image: gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.5
+        image: ` + kubeDNSConfig[DNSMasqImage] + `
         livenessProbe:
           httpGet:
             path: /healthcheck/dnsmasq
@@ -151,7 +160,7 @@ spec:
         - -k
         - --cache-size=1000
         - --log-facility=-
-        - --server=/` + clusterDomain + `/127.0.0.1#10053
+        - --server=/` + kubeDNSConfig[KubeDNSClusterDomain] + `/127.0.0.1#10053
         - --server=/in-addr.arpa/127.0.0.1#10053
         - --server=/ip6.arpa/127.0.0.1#10053
         ports:
@@ -170,7 +179,7 @@ spec:
         - name: kube-dns-config
           mountPath: /etc/k8s/dns/dnsmasq-nanny
       - name: sidecar
-        image: gcr.io/google_containers/k8s-dns-sidecar-amd64:1.14.5
+        image: ` + kubeDNSConfig[KubeDNSSidecarImage] + `
         livenessProbe:
           httpGet:
             path: /metrics
@@ -183,8 +192,8 @@ spec:
         args:
         - --v=2
         - --logtostderr
-        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.` + clusterDomain + `,5,A
-        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.` + clusterDomain + `,5,A
+        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.` + kubeDNSConfig[KubeDNSClusterDomain] + `,5,A
+        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.` + kubeDNSConfig[KubeDNSClusterDomain] + `,5,A
         ports:
         - containerPort: 10054
           name: metrics
@@ -209,7 +218,7 @@ metadata:
 spec:
   selector:
     k8s-app: kube-dns
-  clusterIP: ` + clusterDNSServer + `
+  clusterIP: ` + kubeDNSConfig[KubeDNSServer] + `
   ports:
   - name: dns
     port: 53

@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func DeployCertificatesOnMasters(cpHosts []*hosts.Host, crtMap map[string]CertificatePKI) error {
+func DeployCertificatesOnMasters(cpHosts []*hosts.Host, crtMap map[string]CertificatePKI, certDownloaderImage string) error {
 	// list of certificates that should be deployed on the masters
 	crtList := []string{
 		CACertName,
@@ -31,7 +31,7 @@ func DeployCertificatesOnMasters(cpHosts []*hosts.Host, crtMap map[string]Certif
 	}
 
 	for i := range cpHosts {
-		err := doRunDeployer(cpHosts[i], env)
+		err := doRunDeployer(cpHosts[i], env, certDownloaderImage)
 		if err != nil {
 			return err
 		}
@@ -39,7 +39,7 @@ func DeployCertificatesOnMasters(cpHosts []*hosts.Host, crtMap map[string]Certif
 	return nil
 }
 
-func DeployCertificatesOnWorkers(workerHosts []*hosts.Host, crtMap map[string]CertificatePKI) error {
+func DeployCertificatesOnWorkers(workerHosts []*hosts.Host, crtMap map[string]CertificatePKI, certDownloaderImage string) error {
 	// list of certificates that should be deployed on the workers
 	crtList := []string{
 		CACertName,
@@ -53,7 +53,7 @@ func DeployCertificatesOnWorkers(workerHosts []*hosts.Host, crtMap map[string]Ce
 	}
 
 	for i := range workerHosts {
-		err := doRunDeployer(workerHosts[i], env)
+		err := doRunDeployer(workerHosts[i], env, certDownloaderImage)
 		if err != nil {
 			return err
 		}
@@ -61,14 +61,13 @@ func DeployCertificatesOnWorkers(workerHosts []*hosts.Host, crtMap map[string]Ce
 	return nil
 }
 
-func doRunDeployer(host *hosts.Host, containerEnv []string) error {
+func doRunDeployer(host *hosts.Host, containerEnv []string, certDownloaderImage string) error {
 	logrus.Debugf("[certificates] Pulling Certificate downloader Image on host [%s]", host.Address)
-	err := docker.PullImage(host.DClient, host.Address, CrtDownloaderImage)
-	if err != nil {
+	if err := docker.PullImage(host.DClient, host.Address, certDownloaderImage); err != nil {
 		return err
 	}
 	imageCfg := &container.Config{
-		Image: CrtDownloaderImage,
+		Image: certDownloaderImage,
 		Env:   containerEnv,
 	}
 	hostCfg := &container.HostConfig{
