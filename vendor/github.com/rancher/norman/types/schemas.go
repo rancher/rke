@@ -60,7 +60,7 @@ func (s *Schemas) AddSchemas(schema *Schemas) *Schemas {
 }
 
 func (s *Schemas) AddSchema(schema *Schema) *Schemas {
-	schema.Type = "/v1-meta/schemas/schema"
+	schema.Type = "/meta/schemas/schema"
 	if schema.ID == "" {
 		s.errors = append(s.errors, fmt.Errorf("ID is not set on schema: %v", schema))
 		return s

@@ -83,7 +83,7 @@ type APIContext struct {
 	URLBuilder    URLBuilder
 	AccessControl AccessControl
 	SubContext    map[string]string
-	Attributes    map[string]interface{}
+	//Attributes    map[string]interface{}
 
 	Request  *http.Request
 	Response http.ResponseWriter
@@ -140,6 +140,7 @@ type URLBuilder interface {
 	SubContextCollection(subContext *Schema, contextName string, schema *Schema) string
 	SchemaLink(schema *Schema) string
 	ResourceLink(resource *RawResource) string
+	Link(linkName string, resource *RawResource) string
 	RelativeToRoot(path string) string
 	Version(version APIVersion) string
 	Marker(marker string) string
