@@ -83,7 +83,7 @@ type APIContext struct {
 	URLBuilder    URLBuilder
 	AccessControl AccessControl
 	SubContext    map[string]string
-	Attributes    map[string]interface{}
+	//Attributes    map[string]interface{}
 
 	Request  *http.Request
 	Response http.ResponseWriter
@@ -126,6 +126,7 @@ type QueryOptions struct {
 	Sort       Sort
 	Pagination *Pagination
 	Conditions []*QueryCondition
+	Options    map[string]string
 }
 
 type ReferenceValidator interface {
@@ -139,6 +140,7 @@ type URLBuilder interface {
 	SubContextCollection(subContext *Schema, contextName string, schema *Schema) string
 	SchemaLink(schema *Schema) string
 	ResourceLink(resource *RawResource) string
+	Link(linkName string, resource *RawResource) string
 	RelativeToRoot(path string) string
 	Version(version APIVersion) string
 	Marker(marker string) string
@@ -153,4 +155,5 @@ type Store interface {
 	Create(apiContext *APIContext, schema *Schema, data map[string]interface{}) (map[string]interface{}, error)
 	Update(apiContext *APIContext, schema *Schema, data map[string]interface{}, id string) (map[string]interface{}, error)
 	Delete(apiContext *APIContext, schema *Schema, id string) error
+	Watch(apiContext *APIContext, schema *Schema, opt QueryOptions) (chan map[string]interface{}, error)
 }

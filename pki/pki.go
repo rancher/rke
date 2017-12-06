@@ -27,7 +27,7 @@ type CertificatePKI struct {
 }
 
 // StartCertificatesGeneration ...
-func StartCertificatesGeneration(cpHosts []hosts.Host, workerHosts []hosts.Host, clusterDomain, localConfigPath string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
+func StartCertificatesGeneration(cpHosts []*hosts.Host, workerHosts []*hosts.Host, clusterDomain, localConfigPath string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
 	logrus.Infof("[certificates] Generating kubernetes certificates")
 	certs, err := generateCerts(cpHosts, clusterDomain, localConfigPath, KubernetesServiceIP)
 	if err != nil {
@@ -36,7 +36,7 @@ func StartCertificatesGeneration(cpHosts []hosts.Host, workerHosts []hosts.Host,
 	return certs, nil
 }
 
-func generateCerts(cpHosts []hosts.Host, clusterDomain, localConfigPath string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
+func generateCerts(cpHosts []*hosts.Host, clusterDomain, localConfigPath string, KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
 	certs := make(map[string]CertificatePKI)
 	// generate CA certificate and key
 	logrus.Infof("[certificates] Generating CA kubernetes certificates")
@@ -246,7 +246,7 @@ func generateCACertAndKey() (*x509.Certificate, *rsa.PrivateKey, error) {
 	return kubeCACert, rootKey, nil
 }
 
-func GetAltNames(cpHosts []hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) *cert.AltNames {
+func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP net.IP) *cert.AltNames {
 	ips := []net.IP{}
 	dnsNames := []string{}
 	for _, host := range cpHosts {

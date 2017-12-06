@@ -18,6 +18,9 @@ func GetNodeList(k8sClient *kubernetes.Clientset) (*v1.NodeList, error) {
 	return k8sClient.CoreV1().Nodes().List(metav1.ListOptions{})
 }
 
+func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error) {
+	return k8sClient.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+}
 func CordonUncordon(k8sClient *kubernetes.Clientset, nodeName string, cordoned bool) error {
 	updated := false
 	for retries := 0; retries <= 5; retries++ {

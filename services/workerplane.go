@@ -2,15 +2,15 @@ package services
 
 import (
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
 
-func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerServices v1.RKEConfigServices) error {
+func RunWorkerPlane(controlHosts []*hosts.Host, workerHosts []*hosts.Host, workerServices v3.RKEConfigServices, nginxProxyImage string) error {
 	logrus.Infof("[%s] Building up Worker Plane..", WorkerRole)
 	for _, host := range controlHosts {
 		// only one master for now
-		if err := runKubelet(host, workerServices.Kubelet, true); err != nil {
+		if err := runKubelet(host, workerServices.Kubelet); err != nil {
 			return err
 		}
 		if err := runKubeproxy(host, workerServices.Kubeproxy); err != nil {
@@ -19,20 +19,13 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 	}
 	for _, host := range workerHosts {
 		// run nginx proxy
-		isControlPlaneHost := false
-		for _, role := range host.Role {
-			if role == ControlRole {
-				isControlPlaneHost = true
-				break
-			}
-		}
-		if !isControlPlaneHost {
-			if err := runNginxProxy(host, controlHosts); err != nil {
+		if !host.IsControl {
+			if err := runNginxProxy(host, controlHosts, nginxProxyImage); err != nil {
 				return err
 			}
 		}
 		// run kubelet
-		if err := runKubelet(host, workerServices.Kubelet, false); err != nil {
+		if err := runKubelet(host, workerServices.Kubelet); err != nil {
 			return err
 		}
 		// run kubeproxy
@@ -44,18 +37,15 @@ func RunWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host, workerS
 	return nil
 }
 
-func RemoveWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host) error {
+func RemoveWorkerPlane(workerHosts []*hosts.Host, force bool) error {
 	logrus.Infof("[%s] Tearing down Worker Plane..", WorkerRole)
-	for _, host := range controlHosts {
-		if err := removeKubelet(host); err != nil {
-			return err
-		}
-		if err := removeKubeproxy(host); err != nil {
-			return err
-		}
-	}
-
 	for _, host := range workerHosts {
+		// check if the host already is a controlplane
+		if host.IsControl && !force {
+			logrus.Infof("[%s] Host [%s] is already a controlplane host, nothing to do.", WorkerRole, host.Address)
+			return nil
+		}
+
 		if err := removeKubelet(host); err != nil {
 			return err
 		}
@@ -65,7 +55,8 @@ func RemoveWorkerPlane(controlHosts []hosts.Host, workerHosts []hosts.Host) erro
 		if err := removeNginxProxy(host); err != nil {
 			return err
 		}
+		logrus.Infof("[%s] Successfully teared down Worker Plane..", WorkerRole)
 	}
-	logrus.Infof("[%s] Successfully teared down Worker Plane..", WorkerRole)
+
 	return nil
 }
