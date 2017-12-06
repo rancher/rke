@@ -171,26 +171,27 @@ func GetLocalKubeConfig(configPath string) string {
 }
 
 func rebuildLocalAdminConfig(kubeCluster *Cluster) error {
-	logrus.Infof("[reconcile] Rebuilding and update local kube config")
-	var workingConfig string
+	logrus.Infof("[reconcile] Rebuilding and updating local kube config")
+	var workingConfig, newConfig string
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCommonName]
 	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
 	for _, cpHost := range kubeCluster.ControlPlaneHosts {
-		newConfig := pki.GetKubeConfigX509WithData(
-			"https://"+cpHost.Address+":6443",
-			pki.KubeAdminCommonName,
-			string(cert.EncodeCertPEM(caCrt)),
-			string(cert.EncodeCertPEM(currentKubeConfig.Certificate)),
-			string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key)))
-
+		if (currentKubeConfig == pki.CertificatePKI{}) {
+			kubeCluster.Certificates = make(map[string]pki.CertificatePKI)
+			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHost.Address)
+		} else {
+			kubeURL := fmt.Sprintf("https://%s:6443", cpHost.Address)
+			caData := string(cert.EncodeCertPEM(caCrt))
+			crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
+			keyData := string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key))
+			newConfig = pki.GetKubeConfigX509WithData(kubeURL, pki.KubeAdminCommonName, caData, crtData, keyData)
+		}
 		if err := pki.DeployAdminConfig(newConfig, kubeCluster.LocalKubeConfigPath); err != nil {
 			return fmt.Errorf("Failed to redeploy local admin config with new host")
 		}
 		workingConfig = newConfig
-		if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath); err != nil {
-			logrus.Infof("[reconcile] host [%s] is not active master on the cluster", cpHost.Address)
-			continue
-		} else {
+		if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath); err == nil {
+			logrus.Infof("[reconcile] host [%s] is active master on the cluster", cpHost.Address)
 			break
 		}
 	}
@@ -215,4 +216,15 @@ func getLocalConfigAddress(localConfigPath string) (string, error) {
 	splittedAdress := strings.Split(config.Host, ":")
 	address := splittedAdress[1]
 	return address[2:], nil
+}
+
+func getLocalAdminConfigWithNewAddress(localConfigPath, cpAddress string) string {
+	config, _ := clientcmd.BuildConfigFromFlags("", localConfigPath)
+	config.Host = fmt.Sprintf("https://%s:6443", cpAddress)
+	return pki.GetKubeConfigX509WithData(
+		"https://"+cpAddress+":6443",
+		pki.KubeAdminCommonName,
+		string(config.CAData),
+		string(config.CertData),
+		string(config.KeyData))
 }

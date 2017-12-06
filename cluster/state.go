@@ -38,6 +38,13 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 	if _, err = os.Stat(c.LocalKubeConfigPath); !os.IsNotExist(err) {
 		logrus.Infof("[state] Found local kube config file, trying to get state from cluster")
 
+		// to handle if current local admin is down and we need to use new cp from the list
+		if !isLocalConfigWorking(c.LocalKubeConfigPath) {
+			if err := rebuildLocalAdminConfig(c); err != nil {
+				return nil, err
+			}
+		}
+
 		// initiate kubernetes client
 		c.KubeClient, err = k8s.NewClient(c.LocalKubeConfigPath)
 		if err != nil {
