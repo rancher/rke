@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
+func DeployCertificatesOnMasters(cpHosts []*hosts.Host, crtMap map[string]CertificatePKI, certDownloaderImage string) error {
 	// list of certificates that should be deployed on the masters
 	crtList := []string{
 		CACertName,
@@ -31,7 +31,7 @@ func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]Certifi
 	}
 
 	for i := range cpHosts {
-		err := doRunDeployer(&cpHosts[i], env)
+		err := doRunDeployer(cpHosts[i], env, certDownloaderImage)
 		if err != nil {
 			return err
 		}
@@ -39,7 +39,7 @@ func DeployCertificatesOnMasters(cpHosts []hosts.Host, crtMap map[string]Certifi
 	return nil
 }
 
-func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]CertificatePKI) error {
+func DeployCertificatesOnWorkers(workerHosts []*hosts.Host, crtMap map[string]CertificatePKI, certDownloaderImage string) error {
 	// list of certificates that should be deployed on the workers
 	crtList := []string{
 		CACertName,
@@ -53,7 +53,7 @@ func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]Cer
 	}
 
 	for i := range workerHosts {
-		err := doRunDeployer(&workerHosts[i], env)
+		err := doRunDeployer(workerHosts[i], env, certDownloaderImage)
 		if err != nil {
 			return err
 		}
@@ -61,22 +61,20 @@ func DeployCertificatesOnWorkers(workerHosts []hosts.Host, crtMap map[string]Cer
 	return nil
 }
 
-func doRunDeployer(host *hosts.Host, containerEnv []string) error {
+func doRunDeployer(host *hosts.Host, containerEnv []string, certDownloaderImage string) error {
 	logrus.Debugf("[certificates] Pulling Certificate downloader Image on host [%s]", host.Address)
-	err := docker.PullImage(host.DClient, host.Address, CrtDownloaderImage)
-	if err != nil {
+	if err := docker.PullImage(host.DClient, host.Address, certDownloaderImage); err != nil {
 		return err
 	}
 	imageCfg := &container.Config{
-		Image: CrtDownloaderImage,
+		Image: certDownloaderImage,
 		Env:   containerEnv,
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
-		Privileged:    true,
-		RestartPolicy: container.RestartPolicy{Name: "never"},
+		Privileged: true,
 	}
 	resp, err := host.DClient.ContainerCreate(context.Background(), imageCfg, hostCfg, nil, CrtDownloaderContainer)
 	if err != nil {
@@ -109,6 +107,7 @@ func DeployAdminConfig(kubeConfig, localConfigPath string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
 	}
+	logrus.Infof("Successfully Deployed local admin kubeconfig at [%s]", localConfigPath)
 	return nil
 }
 

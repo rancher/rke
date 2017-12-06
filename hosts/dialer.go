@@ -5,10 +5,17 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"syscall"
 
 	"github.com/docker/docker/client"
+	"github.com/rancher/rke/docker"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/net/context"
 )
 
 type dialer struct {
@@ -18,6 +25,7 @@ type dialer struct {
 
 const (
 	DockerAPIVersion = "1.24"
+	K8sVersion       = "1.8"
 )
 
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
@@ -30,24 +38,28 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	// Establish connection with SSH server
 	conn, err := ssh.Dial("tcp", sshAddr, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error establishing SSH connection: %v", err)
+		return nil, fmt.Errorf("Failed to dial ssh using address [%s]: %v", sshAddr, err)
 	}
 	if len(d.host.DockerSocket) == 0 {
 		d.host.DockerSocket = "/var/run/docker.sock"
 	}
 	remote, err := conn.Dial("unix", d.host.DockerSocket)
 	if err != nil {
-		return nil, fmt.Errorf("Error connecting to Docker socket on host [%s]: %v", d.host.Address, err)
+		return nil, fmt.Errorf("Failed to dial to Docker socket: %v", err)
 	}
 	return remote, err
 }
 
-func (h *Host) TunnelUp(signer ssh.Signer) error {
-	logrus.Infof("[ssh] Start tunnel for host [%s]", h.Address)
+func (h *Host) TunnelUp() error {
+	logrus.Infof("[ssh] Setup tunnel for host [%s]", h.Address)
+	key, err := checkEncryptedKey(h.SSHKey, h.SSHKeyPath)
+	if err != nil {
+		return fmt.Errorf("Failed to parse the private key: %v", err)
+	}
 
 	dialer := &dialer{
 		host:   h,
-		signer: signer,
+		signer: key,
 	}
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -56,23 +68,34 @@ func (h *Host) TunnelUp(signer ssh.Signer) error {
 	}
 
 	// set Docker client
-	var err error
 	logrus.Debugf("Connecting to Docker API for host [%s]", h.Address)
 	h.DClient, err = client.NewClient("unix:///var/run/docker.sock", DockerAPIVersion, httpClient, nil)
 	if err != nil {
-		return fmt.Errorf("Can't connect to Docker for host [%s]: %v", h.Address, err)
+		return fmt.Errorf("Can't initiate NewClient: %v", err)
 	}
+	info, err := h.DClient.Info(context.Background())
+	if err != nil {
+		return fmt.Errorf("Can't retrieve Docker Info: %v", err)
+	}
+	logrus.Debugf("Docker Info found: %#v", info)
+	isvalid, err := docker.IsSupportedDockerVersion(info, K8sVersion)
+	if err != nil {
+		return fmt.Errorf("Error while determining supported Docker version [%s]: %v", info.ServerVersion, err)
+	}
+
+	if !isvalid {
+		return fmt.Errorf("Unsupported Docker version found [%s], supported versions are %v", info.ServerVersion, docker.K8sDockerVersions[K8sVersion])
+	}
+
 	return nil
 }
 
-func ParsePrivateKey(keyPath string) (ssh.Signer, error) {
-	buff, _ := ioutil.ReadFile(keyPath)
-	return ssh.ParsePrivateKey(buff)
+func parsePrivateKey(keyBuff string) (ssh.Signer, error) {
+	return ssh.ParsePrivateKey([]byte(keyBuff))
 }
 
-func ParsePrivateKeyWithPassPhrase(keyPath string, passphrase []byte) (ssh.Signer, error) {
-	buff, _ := ioutil.ReadFile(keyPath)
-	return ssh.ParsePrivateKeyWithPassphrase(buff, passphrase)
+func parsePrivateKeyWithPassPhrase(keyBuff string, passphrase []byte) (ssh.Signer, error) {
+	return ssh.ParsePrivateKeyWithPassphrase([]byte(keyBuff), passphrase)
 }
 
 func makeSSHConfig(user string, signer ssh.Signer) (*ssh.ClientConfig, error) {
@@ -85,4 +108,45 @@ func makeSSHConfig(user string, signer ssh.Signer) (*ssh.ClientConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func checkEncryptedKey(sshKey, sshKeyPath string) (ssh.Signer, error) {
+	logrus.Debugf("[ssh] Checking private key")
+	var err error
+	var key ssh.Signer
+	if len(sshKey) > 0 {
+		key, err = parsePrivateKey(sshKey)
+	} else {
+		key, err = parsePrivateKey(privateKeyPath(sshKeyPath))
+	}
+	if err == nil {
+		return key, nil
+	}
+
+	// parse encrypted key
+	if strings.Contains(err.Error(), "decode encrypted private keys") {
+		fmt.Printf("Passphrase for Private SSH Key: ")
+		passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
+		fmt.Printf("\n")
+		if err != nil {
+			return nil, err
+		}
+		if len(sshKey) > 0 {
+			key, err = parsePrivateKeyWithPassPhrase(sshKey, passphrase)
+		} else {
+			key, err = parsePrivateKeyWithPassPhrase(privateKeyPath(sshKeyPath), passphrase)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	return key, nil
+}
+
+func privateKeyPath(sshKeyPath string) string {
+	if sshKeyPath[:2] == "~/" {
+		sshKeyPath = filepath.Join(os.Getenv("HOME"), sshKeyPath[2:])
+	}
+	buff, _ := ioutil.ReadFile(sshKeyPath)
+	return string(buff)
 }

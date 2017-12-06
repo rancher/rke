@@ -10,10 +10,15 @@ import (
 
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/services"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
+)
+
+const (
+	comments = `# If you intened to deploy Kubernetes in an air-gapped envrionment,
+# please consult the documentation on how to configure custom RKE images.`
 )
 
 func ConfigCommand() cli.Command {
@@ -60,37 +65,36 @@ func getConfig(reader *bufio.Reader, text, def string) (string, error) {
 	}
 }
 
-func writeConfig(cluster *v1.RancherKubernetesEngineConfig, configFile string, print bool) error {
+func writeConfig(cluster *v3.RancherKubernetesEngineConfig, configFile string, print bool) error {
 	yamlConfig, err := yaml.Marshal(*cluster)
 	if err != nil {
 		return err
 	}
 	logrus.Debugf("Deploying cluster configuration file: %s", configFile)
 
+	configString := fmt.Sprintf("%s\n%s", comments, string(yamlConfig))
 	if print {
-		fmt.Printf("Configuration File: \n%s", string(yamlConfig))
+		fmt.Printf("Configuration File: \n%s", configString)
 		return nil
 	}
-	return ioutil.WriteFile(configFile, yamlConfig, 0640)
-
+	return ioutil.WriteFile(configFile, []byte(configString), 0640)
 }
 
 func clusterConfig(ctx *cli.Context) error {
 	configFile := ctx.String("name")
 	print := ctx.Bool("print")
-	cluster := v1.RancherKubernetesEngineConfig{}
+	cluster := v3.RancherKubernetesEngineConfig{}
 
 	// Get cluster config from user
 	reader := bufio.NewReader(os.Stdin)
 
 	// Generate empty configuration file
 	if ctx.Bool("empty") {
-		cluster.Nodes = make([]v1.RKEConfigNode, 1)
+		cluster.Nodes = make([]v3.RKEConfigNode, 1)
 		return writeConfig(&cluster, configFile, print)
 	}
 
-	// Get number of hosts
-	sshKeyPath, err := getConfig(reader, "SSH Private Key Path", "~/.ssh/id_rsa")
+	sshKeyPath, err := getConfig(reader, "Cluster Level SSH Private Key Path", "~/.ssh/id_rsa")
 	if err != nil {
 		return err
 	}
@@ -107,7 +111,7 @@ func clusterConfig(ctx *cli.Context) error {
 	}
 
 	// Get Hosts config
-	cluster.Nodes = make([]v1.RKEConfigNode, 0)
+	cluster.Nodes = make([]v3.RKEConfigNode, 0)
 	for i := 0; i < numberOfHostsInt; i++ {
 		hostCfg, err := getHostConfig(reader, i)
 		if err != nil {
@@ -140,13 +144,26 @@ func clusterConfig(ctx *cli.Context) error {
 	return writeConfig(&cluster, configFile, print)
 }
 
-func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigNode, error) {
-	host := v1.RKEConfigNode{}
+func getHostConfig(reader *bufio.Reader, index int) (*v3.RKEConfigNode, error) {
+	host := v3.RKEConfigNode{}
+
 	address, err := getConfig(reader, fmt.Sprintf("SSH Address of host (%d)", index+1), "")
 	if err != nil {
 		return nil, err
 	}
 	host.Address = address
+
+	sshKeyPath, err := getConfig(reader, fmt.Sprintf("SSH Private Key Path of host (%s)", address), "")
+	if err != nil {
+		return nil, err
+	}
+	host.SSHKeyPath = sshKeyPath
+
+	sshKey, err := getConfig(reader, fmt.Sprintf("SSH Private Key of host (%s)", address), "")
+	if err != nil {
+		return nil, err
+	}
+	host.SSHKey = sshKey
 
 	sshUser, err := getConfig(reader, fmt.Sprintf("SSH User of host (%s)", address), "ubuntu")
 	if err != nil {
@@ -198,14 +215,14 @@ func getHostConfig(reader *bufio.Reader, index int) (*v1.RKEConfigNode, error) {
 	return &host, nil
 }
 
-func getServiceConfig(reader *bufio.Reader) (*v1.RKEConfigServices, error) {
-	servicesConfig := v1.RKEConfigServices{}
-	servicesConfig.Etcd = v1.ETCDService{}
-	servicesConfig.KubeAPI = v1.KubeAPIService{}
-	servicesConfig.KubeController = v1.KubeControllerService{}
-	servicesConfig.Scheduler = v1.SchedulerService{}
-	servicesConfig.Kubelet = v1.KubeletService{}
-	servicesConfig.Kubeproxy = v1.KubeproxyService{}
+func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
+	servicesConfig := v3.RKEConfigServices{}
+	servicesConfig.Etcd = v3.ETCDService{}
+	servicesConfig.KubeAPI = v3.KubeAPIService{}
+	servicesConfig.KubeController = v3.KubeControllerService{}
+	servicesConfig.Scheduler = v3.SchedulerService{}
+	servicesConfig.Kubelet = v3.KubeletService{}
+	servicesConfig.Kubeproxy = v3.KubeproxyService{}
 
 	etcdImage, err := getConfig(reader, "Etcd Docker Image", "quay.io/coreos/etcd:latest")
 	if err != nil {
@@ -256,8 +273,8 @@ func getServiceConfig(reader *bufio.Reader) (*v1.RKEConfigServices, error) {
 	return &servicesConfig, nil
 }
 
-func getAuthConfig(reader *bufio.Reader) (*v1.AuthConfig, error) {
-	authConfig := v1.AuthConfig{}
+func getAuthConfig(reader *bufio.Reader) (*v3.AuthConfig, error) {
+	authConfig := v3.AuthConfig{}
 
 	authType, err := getConfig(reader, "Authentication Strategy", "x509")
 	if err != nil {
@@ -267,8 +284,8 @@ func getAuthConfig(reader *bufio.Reader) (*v1.AuthConfig, error) {
 	return &authConfig, nil
 }
 
-func getNetworkConfig(reader *bufio.Reader) (*v1.NetworkConfig, error) {
-	networkConfig := v1.NetworkConfig{}
+func getNetworkConfig(reader *bufio.Reader) (*v3.NetworkConfig, error) {
+	networkConfig := v3.NetworkConfig{}
 
 	networkPlugin, err := getConfig(reader, "Network Plugin Type", "flannel")
 	if err != nil {

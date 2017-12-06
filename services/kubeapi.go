@@ -8,20 +8,20 @@ import (
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 )
 
-func runKubeAPI(host hosts.Host, etcdHosts []hosts.Host, kubeAPIService v1.KubeAPIService) error {
+func runKubeAPI(host *hosts.Host, etcdHosts []*hosts.Host, kubeAPIService v3.KubeAPIService) error {
 	etcdConnString := GetEtcdConnString(etcdHosts)
 	imageCfg, hostCfg := buildKubeAPIConfig(host, kubeAPIService, etcdConnString)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.Address, ControlRole)
 }
 
-func removeKubeAPI(host hosts.Host) error {
+func removeKubeAPI(host *hosts.Host) error {
 	return docker.DoRemoveContainer(host.DClient, KubeAPIContainerName, host.Address)
 }
 
-func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
+func buildKubeAPIConfig(host *hosts.Host, kubeAPIService v3.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeAPIService.Image,
 		Entrypoint: []string{"kube-apiserver",
@@ -61,7 +61,7 @@ func buildKubeAPIConfig(host hosts.Host, kubeAPIService v1.KubeAPIService, etcdC
 
 	for arg, value := range kubeAPIService.ExtraArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+		imageCfg.Entrypoint = append(imageCfg.Entrypoint, cmd)
 	}
 	return imageCfg, hostCfg
 }

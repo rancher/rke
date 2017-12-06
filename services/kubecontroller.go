@@ -7,19 +7,19 @@ import (
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/apis/cluster.cattle.io/v1"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 )
 
-func runKubeController(host hosts.Host, kubeControllerService v1.KubeControllerService) error {
+func runKubeController(host *hosts.Host, kubeControllerService v3.KubeControllerService) error {
 	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService)
 	return docker.DoRunContainer(host.DClient, imageCfg, hostCfg, KubeControllerContainerName, host.Address, ControlRole)
 }
 
-func removeKubeController(host hosts.Host) error {
+func removeKubeController(host *hosts.Host) error {
 	return docker.DoRemoveContainer(host.DClient, KubeControllerContainerName, host.Address)
 }
 
-func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (*container.Config, *container.HostConfig) {
+func buildKubeControllerConfig(kubeControllerService v3.KubeControllerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeControllerService.Image,
 		Entrypoint: []string{"kube-controller-manager",
@@ -47,7 +47,7 @@ func buildKubeControllerConfig(kubeControllerService v1.KubeControllerService) (
 	}
 	for arg, value := range kubeControllerService.ExtraArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		imageCfg.Cmd = append(imageCfg.Cmd, cmd)
+		imageCfg.Entrypoint = append(imageCfg.Entrypoint, cmd)
 	}
 	return imageCfg, hostCfg
 }

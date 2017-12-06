@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -46,6 +47,15 @@ func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 	ns := p.ns
 	if obj, ok := o.(metav1.Object); ok && obj.GetNamespace() != "" {
 		ns = obj.GetNamespace()
+	}
+	if t, err := meta.TypeAccessor(o); err == nil {
+		if t.GetKind() == "" {
+			t.SetKind(p.gvk.Kind)
+		}
+		if t.GetAPIVersion() == "" {
+			apiVersion, _ := p.gvk.ToAPIVersionAndKind()
+			t.SetAPIVersion(apiVersion)
+		}
 	}
 	result := p.Factory.Object()
 	err := p.restClient.Post().
@@ -117,7 +127,6 @@ func (p *ObjectClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	r, err := p.restClient.Get().
 		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		Prefix("watch").
-		Namespace(p.ns).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
 		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).

@@ -54,17 +54,17 @@ func ClusterUp(clusterFile string) (string, string, string, string, error) {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
+	err = cluster.ReconcileCluster(kubeCluster, currentCluster)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, err
+	}
+
 	err = kubeCluster.SetUpHosts()
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
 	err = kubeCluster.DeployClusterPlanes()
-	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
-	}
-
-	err = cluster.ReconcileCluster(kubeCluster, currentCluster)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
