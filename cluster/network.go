@@ -25,6 +25,10 @@ const (
 	CanalNodeImage     = "canal_node_image"
 	CanalCNIImage      = "canal_cni_image"
 	CanalFlannelImage  = "canal_flannel_image"
+
+	WeaveNetworkPlugin = "weave"
+	WeaveImage         = "weave_node_image"
+	WeaveCNIImage      = "weave_cni_image"
 )
 
 func (c *Cluster) DeployNetworkPlugin() error {
@@ -81,8 +85,7 @@ func (c *Cluster) doCanalDeploy() error {
 }
 
 func (c *Cluster) doWeaveDeploy() error {
-	weaveConfig := make(map[string]string)
-	pluginYaml := network.GetWeaveManifest(weaveConfig)
+	pluginYaml := network.GetWeaveManifest(c.ClusterCIDR, c.Network.Options[WeaveImage], c.Network.Options[WeaveCNIImage])
 	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
 }
 
@@ -107,5 +110,9 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmptyMapValue(c.Network.Options, CanalCNIImage, DefaultCanalCNIImage)
 		setDefaultIfEmptyMapValue(c.Network.Options, CanalNodeImage, DefaultCanalNodeImage)
 		setDefaultIfEmptyMapValue(c.Network.Options, CanalFlannelImage, DefaultCanalFlannelImage)
+
+	case c.Network.Plugin == WeaveNetworkPlugin:
+		setDefaultIfEmptyMapValue(c.Network.Options, WeaveImage, DefaultWeaveImage)
+		setDefaultIfEmptyMapValue(c.Network.Options, WeaveCNIImage, DefaultWeaveCNIImage)
 	}
 }
