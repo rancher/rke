@@ -1,6 +1,6 @@
 package network
 
-func GetWeaveManifest(weaveConfig map[string]string) string {
+func GetWeaveManifest(clusterCIDR, image, cniImage string) string {
 	return `# This ConfigMap can be used to configure a self-hosted Weave Net installation.
 apiVersion: v1
 kind: List
@@ -33,7 +33,9 @@ items:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
-              image: 'weaveworks/weave-kube:2.1.2'
+                - name: IPALLOC_RANGE
+                  value: "` + clusterCIDR + `"
+              image: ` + image + `
               livenessProbe:
                 httpGet:
                   host: 127.0.0.1
@@ -68,7 +70,7 @@ items:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
-              image: 'weaveworks/weave-npc:2.1.2'
+              image: ` + cniImage + `
               resources:
                 requests:
                   cpu: 10m
