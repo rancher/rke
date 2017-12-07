@@ -17,13 +17,6 @@ func ReconcileCluster(kubeCluster, currentCluster *Cluster) error {
 
 		return nil
 	}
-	// to handle if current local admin is down and we need to use new cp from the list
-	if !isLocalConfigWorking(kubeCluster.LocalKubeConfigPath) {
-		if err := rebuildLocalAdminConfig(kubeCluster); err != nil {
-			return err
-		}
-	}
-
 	kubeClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath)
 	if err != nil {
 		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
