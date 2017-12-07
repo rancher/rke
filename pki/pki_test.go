@@ -63,7 +63,7 @@ func TestPKI(t *testing.T) {
 	for _, testDNS := range kubeAPIDNSNames {
 		assertEqual(
 			t,
-			stringInSlice(
+			isStringInSlice(
 				testDNS,
 				certificateMap[KubeAPICertName].Certificate.DNSNames),
 			true,
@@ -92,7 +92,7 @@ func TestPKI(t *testing.T) {
 	}
 }
 
-func stringInSlice(a string, list []string) bool {
+func isStringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
 			return true
