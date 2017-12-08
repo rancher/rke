@@ -27,7 +27,8 @@ func (c *Cluster) ClusterRemove() error {
 		return err
 	}
 
-	return pki.RemoveAdminConfig(c.LocalKubeConfigPath)
+	pki.RemoveAdminConfig(c.LocalKubeConfigPath)
+	return nil
 }
 
 func cleanUpHosts(cpHosts, workerHosts, etcdHosts []*hosts.Host, cleanerImage string) error {

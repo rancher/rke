@@ -111,11 +111,11 @@ func DeployAdminConfig(kubeConfig, localConfigPath string) error {
 	return nil
 }
 
-func RemoveAdminConfig(localConfigPath string) error {
+func RemoveAdminConfig(localConfigPath string) {
 	logrus.Infof("Removing local admin Kubeconfig: %s", localConfigPath)
 	if err := os.Remove(localConfigPath); err != nil {
-		return fmt.Errorf("Failed to remove local admin Kubeconfig file: %v", err)
+		logrus.Warningf("Failed to remove local admin Kubeconfig file: %v", err)
+		return
 	}
 	logrus.Infof("Local admin Kubeconfig removed successfully")
-	return nil
 }
