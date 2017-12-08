@@ -22,13 +22,17 @@ func removeKubeproxy(host *hosts.Host) error {
 func buildKubeproxyConfig(host *hosts.Host, kubeproxyService v3.KubeproxyService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeproxyService.Image,
-		Entrypoint: []string{"kube-proxy",
+		Entrypoint: []string{"/opt/rke/entrypoint.sh",
+			"kube-proxy",
 			"--v=2",
 			"--healthz-bind-address=0.0.0.0",
 			"--kubeconfig=" + pki.KubeProxyConfigPath,
 		},
 	}
 	hostCfg := &container.HostConfig{
+		VolumesFrom: []string{
+			SidekickContainerName,
+		},
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
