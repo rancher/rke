@@ -22,7 +22,8 @@ func removeKubeController(host *hosts.Host) error {
 func buildKubeControllerConfig(kubeControllerService v3.KubeControllerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeControllerService.Image,
-		Entrypoint: []string{"kube-controller-manager",
+		Entrypoint: []string{"/opt/rke/entrypoint.sh",
+			"kube-controller-manager",
 			"--address=0.0.0.0",
 			"--cloud-provider=",
 			"--leader-elect=true",
@@ -39,6 +40,9 @@ func buildKubeControllerConfig(kubeControllerService v3.KubeControllerService) (
 		},
 	}
 	hostCfg := &container.HostConfig{
+		VolumesFrom: []string{
+			SidekickContainerName,
+		},
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
