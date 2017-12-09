@@ -13,10 +13,11 @@ const (
 
 	DefaultNetworkPlugin = "flannel"
 
-	DefaultInfraContainerImage = "gcr.io/google_containers/pause-amd64:3.0"
-	DefaultAplineImage         = "alpine:latest"
-	DefaultNginxProxyImage     = "rancher/rke-nginx-proxy:0.1.0"
-	DefaultCertDownloaderImage = "rancher/rke-cert-deployer:0.1.0"
+	DefaultInfraContainerImage  = "gcr.io/google_containers/pause-amd64:3.0"
+	DefaultAplineImage          = "alpine:latest"
+	DefaultNginxProxyImage      = "rancher/rke-nginx-proxy:0.1.0"
+	DefaultCertDownloaderImage  = "rancher/rke-cert-deployer:0.1.0"
+	DefaultServiceSidekickImage = "rancher/rke-service-sidekick:0.1.0"
 
 	DefaultFlannelImage           = "quay.io/coreos/flannel:v0.9.1"
 	DefaultFlannelCNIImage        = "quay.io/coreos/flannel-cni:v0.2.0"

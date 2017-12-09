@@ -20,7 +20,7 @@ var K8sDockerVersions = map[string][]string{
 }
 
 func DoRunContainer(dClient *client.Client, imageCfg *container.Config, hostCfg *container.HostConfig, containerName string, hostname string, plane string) error {
-	isRunning, err := IsContainerRunning(dClient, hostname, containerName)
+	isRunning, err := IsContainerRunning(dClient, hostname, containerName, false)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func DoRunContainer(dClient *client.Client, imageCfg *container.Config, hostCfg 
 
 func DoRollingUpdateContainer(dClient *client.Client, imageCfg *container.Config, hostCfg *container.HostConfig, containerName, hostname, plane string) error {
 	logrus.Debugf("[%s] Checking for deployed [%s]", plane, containerName)
-	isRunning, err := IsContainerRunning(dClient, hostname, containerName)
+	isRunning, err := IsContainerRunning(dClient, hostname, containerName, false)
 	if err != nil {
 		return err
 	}
@@ -115,9 +115,9 @@ func DoRemoveContainer(dClient *client.Client, containerName, hostname string) e
 	return nil
 }
 
-func IsContainerRunning(dClient *client.Client, hostname string, containerName string) (bool, error) {
+func IsContainerRunning(dClient *client.Client, hostname string, containerName string, all bool) (bool, error) {
 	logrus.Debugf("Checking if container [%s] is running on host [%s]", containerName, hostname)
-	containers, err := dClient.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := dClient.ContainerList(context.Background(), types.ContainerListOptions{All: all})
 	if err != nil {
 		return false, fmt.Errorf("Can't get Docker containers for host [%s]: %v", hostname, err)
 

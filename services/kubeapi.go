@@ -24,7 +24,8 @@ func removeKubeAPI(host *hosts.Host) error {
 func buildKubeAPIConfig(host *hosts.Host, kubeAPIService v3.KubeAPIService, etcdConnString string) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeAPIService.Image,
-		Entrypoint: []string{"kube-apiserver",
+		Entrypoint: []string{"/opt/rke/entrypoint.sh",
+			"kube-apiserver",
 			"--insecure-bind-address=127.0.0.1",
 			"--bind-address=0.0.0.0",
 			"--insecure-port=8080",
@@ -44,6 +45,9 @@ func buildKubeAPIConfig(host *hosts.Host, kubeAPIService v3.KubeAPIService, etcd
 			"--service-account-key-file=" + pki.KubeAPIKeyPath},
 	}
 	hostCfg := &container.HostConfig{
+		VolumesFrom: []string{
+			SidekickContainerName,
+		},
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},
