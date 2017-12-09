@@ -28,5 +28,5 @@ func TestSchedulerConfig(t *testing.T) {
 	assertEqual(t, isStringInSlice(TestSchedulerExtraArgs, imageCfg.Entrypoint), true,
 		fmt.Sprintf("Failed to find [%s] in Scheduler extra args", TestSchedulerExtraArgs))
 	assertEqual(t, true, hostCfg.NetworkMode.IsHost(),
-		"Failed to verify that Scheduler has host Netowrk mode")
+		"Failed to verify that Scheduler has host Network mode")
 }
