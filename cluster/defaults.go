@@ -27,6 +27,8 @@ const (
 	DefaultCanalNodeImage         = "quay.io/calico/node:v2.6.2"
 	DefaultCanalCNIImage          = "quay.io/calico/cni:v1.11.0"
 	DefaultCanalFlannelImage      = "quay.io/coreos/flannel:v0.9.1"
+	DefaultWeaveImage             = "weaveworks/weave-kube:2.1.2"
+	DefaultWeaveCNIImage          = "weaveworks/weave-npc:2.1.2"
 
 	DefaultKubeDNSImage           = "gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.5"
 	DefaultDNSMasqImage           = "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.5"
