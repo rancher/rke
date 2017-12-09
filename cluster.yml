@@ -9,6 +9,7 @@ auth:
 # flannel
 # calico
 # canal
+# weave
 network:
   plugin: flannel
   options:

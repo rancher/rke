@@ -25,6 +25,10 @@ const (
 	CanalNodeImage     = "canal_node_image"
 	CanalCNIImage      = "canal_cni_image"
 	CanalFlannelImage  = "canal_flannel_image"
+
+	WeaveNetworkPlugin = "weave"
+	WeaveImage         = "weave_node_image"
+	WeaveCNIImage      = "weave_cni_image"
 )
 
 func (c *Cluster) DeployNetworkPlugin() error {
@@ -36,6 +40,8 @@ func (c *Cluster) DeployNetworkPlugin() error {
 		return c.doCalicoDeploy()
 	case CanalNetworkPlugin:
 		return c.doCanalDeploy()
+	case WeaveNetworkPlugin:
+		return c.doWeaveDeploy()
 	default:
 		return fmt.Errorf("[network] Unsupported network plugin: %s", c.Network.Plugin)
 	}
@@ -78,6 +84,11 @@ func (c *Cluster) doCanalDeploy() error {
 	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
 }
 
+func (c *Cluster) doWeaveDeploy() error {
+	pluginYaml := network.GetWeaveManifest(c.ClusterCIDR, c.Network.Options[WeaveImage], c.Network.Options[WeaveCNIImage])
+	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
+}
+
 func (c *Cluster) setClusterNetworkDefaults() {
 	setDefaultIfEmpty(&c.Network.Plugin, DefaultNetworkPlugin)
 
@@ -99,5 +110,9 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmptyMapValue(c.Network.Options, CanalCNIImage, DefaultCanalCNIImage)
 		setDefaultIfEmptyMapValue(c.Network.Options, CanalNodeImage, DefaultCanalNodeImage)
 		setDefaultIfEmptyMapValue(c.Network.Options, CanalFlannelImage, DefaultCanalFlannelImage)
+
+	case c.Network.Plugin == WeaveNetworkPlugin:
+		setDefaultIfEmptyMapValue(c.Network.Options, WeaveImage, DefaultWeaveImage)
+		setDefaultIfEmptyMapValue(c.Network.Options, WeaveCNIImage, DefaultWeaveCNIImage)
 	}
 }
