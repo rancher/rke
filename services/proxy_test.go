@@ -45,5 +45,5 @@ func TestNginxProxyConfig(t *testing.T) {
 	assertEqual(t, TestNginxProxyImage, imageCfg.Image,
 		fmt.Sprintf("Failed to verify [%s] as Nginx Proxy Image", TestNginxProxyImage))
 	assertEqual(t, true, hostCfg.NetworkMode.IsHost(),
-		"Failed to verify that Nginx Proxy has host Netowrk mode")
+		"Failed to verify that Nginx Proxy has host Network mode")
 }

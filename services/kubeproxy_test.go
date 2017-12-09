@@ -30,5 +30,5 @@ func TestKubeproxyConfig(t *testing.T) {
 	assertEqual(t, true, hostCfg.Privileged,
 		"Failed to verify that KubeProxy is privileged")
 	assertEqual(t, true, hostCfg.NetworkMode.IsHost(),
-		"Failed to verify that KubeProxy has host Netowrk mode")
+		"Failed to verify that KubeProxy has host Network mode")
 }

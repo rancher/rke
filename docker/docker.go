@@ -111,7 +111,7 @@ func DoRemoveContainer(dClient *client.Client, containerName, hostname string) e
 	if err != nil {
 		return err
 	}
-	logrus.Infof("[remove/%s] Sucessfully removed container on host [%s]", containerName, hostname)
+	logrus.Infof("[remove/%s] Successfully removed container on host [%s]", containerName, hostname)
 	return nil
 }
 

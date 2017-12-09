@@ -64,7 +64,7 @@ func TestKubeletConfig(t *testing.T) {
 	assertEqual(t, true, hostCfg.PidMode.IsHost(),
 		"Failed to verify that Kubelet has host PID mode")
 	assertEqual(t, true, hostCfg.NetworkMode.IsHost(),
-		"Failed to verify that Kubelet has host Netowrk mode")
+		"Failed to verify that Kubelet has host Network mode")
 	assertEqual(t, isStringInSlice(TestKubeletEtcdNodeLabel, imageCfg.Cmd), true,
 		fmt.Sprintf("Failed to find [%s] in Kubelet Command", TestKubeletEtcdNodeLabel))
 	assertEqual(t, isStringInSlice(TestKubeletCPNodeLabel, imageCfg.Cmd), true,

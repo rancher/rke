@@ -51,7 +51,7 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 			logrus.Warnf("Failed to initiate new Kubernetes Client: %v", err)
 			return nil, nil
 		}
-		// Get pervious kubernetes state
+		// Get previous kubernetes state
 		currentCluster = getStateFromKubernetes(c.KubeClient, c.LocalKubeConfigPath)
 		// Get previous kubernetes certificates
 		if currentCluster != nil {
