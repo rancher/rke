@@ -22,7 +22,8 @@ func removeScheduler(host *hosts.Host) error {
 func buildSchedulerConfig(host *hosts.Host, schedulerService v3.SchedulerService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: schedulerService.Image,
-		Entrypoint: []string{"kube-scheduler",
+		Entrypoint: []string{"/opt/rke/entrypoint.sh",
+			"kube-scheduler",
 			"--leader-elect=true",
 			"--v=2",
 			"--address=0.0.0.0",
@@ -30,6 +31,9 @@ func buildSchedulerConfig(host *hosts.Host, schedulerService v3.SchedulerService
 		},
 	}
 	hostCfg := &container.HostConfig{
+		VolumesFrom: []string{
+			SidekickContainerName,
+		},
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 		},

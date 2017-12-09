@@ -86,7 +86,7 @@ func doRunDeployer(host *hosts.Host, containerEnv []string, certDownloaderImage 
 	}
 	logrus.Debugf("[certificates] Successfully started Certificate deployer container: %s", resp.ID)
 	for {
-		isDeployerRunning, err := docker.IsContainerRunning(host.DClient, host.Address, CrtDownloaderContainer)
+		isDeployerRunning, err := docker.IsContainerRunning(host.DClient, host.Address, CrtDownloaderContainer, false)
 		if err != nil {
 			return err
 		}

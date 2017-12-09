@@ -45,6 +45,7 @@ const (
 	DNSMasqImage               = "dnsmasq_image"
 	KubeDNSSidecarImage        = "kubedns_sidecar_image"
 	KubeDNSAutoScalerImage     = "kubedns_autoscaler_image"
+	ServiceSidekickImage       = "service_sidekick_image"
 )
 
 func (c *Cluster) DeployClusterPlanes() error {
@@ -53,11 +54,18 @@ func (c *Cluster) DeployClusterPlanes() error {
 	if err != nil {
 		return fmt.Errorf("[etcd] Failed to bring up Etcd Plane: %v", err)
 	}
-	err = services.RunControlPlane(c.ControlPlaneHosts, c.EtcdHosts, c.Services)
+	err = services.RunControlPlane(c.ControlPlaneHosts,
+		c.EtcdHosts,
+		c.Services,
+		c.SystemImages[ServiceSidekickImage])
 	if err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 	}
-	err = services.RunWorkerPlane(c.ControlPlaneHosts, c.WorkerHosts, c.Services, c.SystemImages[NginxProxyImage])
+	err = services.RunWorkerPlane(c.ControlPlaneHosts,
+		c.WorkerHosts,
+		c.Services,
+		c.SystemImages[NginxProxyImage],
+		c.SystemImages[ServiceSidekickImage])
 	if err != nil {
 		return fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
 	}
@@ -157,6 +165,7 @@ func (c *Cluster) setClusterImageDefaults() {
 		DNSMasqImage:           DefaultDNSMasqImage,
 		KubeDNSSidecarImage:    DefaultKubeDNSSidecarImage,
 		KubeDNSAutoScalerImage: DefaultKubeDNSAutoScalerImage,
+		ServiceSidekickImage:   DefaultServiceSidekickImage,
 	}
 	for k, v := range systemImagesDefaultsMap {
 		setDefaultIfEmptyMapValue(c.SystemImages, k, v)

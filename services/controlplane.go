@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func RunControlPlane(controlHosts []*hosts.Host, etcdHosts []*hosts.Host, controlServices v3.RKEConfigServices) error {
+func RunControlPlane(controlHosts, etcdHosts []*hosts.Host, controlServices v3.RKEConfigServices, sidekickImage string) error {
 	logrus.Infof("[%s] Building up Controller Plane..", ControlRole)
 	for _, host := range controlHosts {
 
@@ -14,6 +14,10 @@ func RunControlPlane(controlHosts []*hosts.Host, etcdHosts []*hosts.Host, contro
 			if err := removeNginxProxy(host); err != nil {
 				return err
 			}
+		}
+		// run sidekick
+		if err := runSidekick(host, sidekickImage); err != nil {
+			return err
 		}
 		// run kubeapi
 		err := runKubeAPI(host, etcdHosts, controlServices.KubeAPI)
@@ -65,6 +69,10 @@ func RemoveControlPlane(controlHosts []*hosts.Host, force bool) error {
 			// remove KubeController
 			if err := removeKubeproxy(host); err != nil {
 				return nil
+			}
+			// remove Sidekick
+			if err := removeSidekick(host); err != nil {
+				return err
 			}
 		}
 	}

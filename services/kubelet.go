@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
@@ -23,12 +22,12 @@ func removeKubelet(host *hosts.Host) error {
 func buildKubeletConfig(host *hosts.Host, kubeletService v3.KubeletService) (*container.Config, *container.HostConfig) {
 	imageCfg := &container.Config{
 		Image: kubeletService.Image,
-		Entrypoint: []string{"kubelet",
+		Entrypoint: []string{"/opt/rke/entrypoint.sh",
+			"kubelet",
 			"--v=2",
 			"--address=0.0.0.0",
 			"--cluster-domain=" + kubeletService.ClusterDomain,
 			"--pod-infra-container-image=" + kubeletService.InfraContainerImage,
-			"--cgroup-driver=cgroupfs",
 			"--cgroups-per-qos=True",
 			"--enforce-node-allocatable=",
 			"--hostname-override=" + host.HostnameOverride,
@@ -54,30 +53,24 @@ func buildKubeletConfig(host *hosts.Host, kubeletService v3.KubeletService) (*co
 		}
 	}
 	hostCfg := &container.HostConfig{
+		VolumesFrom: []string{
+			SidekickContainerName,
+		},
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
 			"/etc/cni:/etc/cni:ro",
 			"/opt/cni:/opt/cni:ro",
 			"/etc/resolv.conf:/etc/resolv.conf",
-			"/sys:/sys:ro",
+			"/sys:/sys",
 			"/var/lib/docker:/var/lib/docker:rw",
 			"/var/lib/kubelet:/var/lib/kubelet:shared",
 			"/var/run:/var/run:rw",
 			"/run:/run",
-			"/dev:/host/dev",
-			"/sys/fs/cgroup:/sys/fs/cgroup:rw"},
+			"/dev:/host/dev"},
 		NetworkMode:   "host",
 		PidMode:       "host",
 		Privileged:    true,
 		RestartPolicy: container.RestartPolicy{Name: "always"},
-		PortBindings: nat.PortMap{
-			"8080/tcp": []nat.PortBinding{
-				{
-					HostIP:   "0.0.0.0",
-					HostPort: "8080",
-				},
-			},
-		},
 	}
 	for arg, value := range kubeletService.ExtraArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
