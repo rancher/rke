@@ -143,7 +143,7 @@ func checkEncryptedKey(sshKey, sshKeyPath string) (ssh.Signer, error) {
 			return nil, err
 		}
 	}
-	return key, nil
+	return key, err
 }
 
 func privateKeyPath(sshKeyPath string) string {
