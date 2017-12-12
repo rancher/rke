@@ -56,6 +56,7 @@ func (c *Cluster) GetClusterState() (*Cluster, error) {
 		// Get previous kubernetes certificates
 		if currentCluster != nil {
 			currentCluster.Certificates, err = getClusterCerts(c.KubeClient)
+			currentCluster.Dialer = c.Dialer
 			if err != nil {
 				return nil, fmt.Errorf("Failed to Get Kubernetes certificates: %v", err)
 			}
