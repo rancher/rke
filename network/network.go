@@ -13,4 +13,5 @@ const (
 	ControllersImage = "controllersImage"
 	FlannelImage     = "flannelImage"
 	FlannelCNIImage  = "flannelCNIImage"
+	FlannelIface     = "flannelIface"
 )
