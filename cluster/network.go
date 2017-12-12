@@ -15,6 +15,7 @@ const (
 	FlannelNetworkPlugin = "flannel"
 	FlannelImage         = "flannel_image"
 	FlannelCNIImage      = "flannel_cni_image"
+	FlannelIface         = "flannel_iface"
 
 	CalicoNetworkPlugin     = "calico"
 	CalicoNodeImage         = "calico_node_image"
@@ -48,7 +49,13 @@ func (c *Cluster) DeployNetworkPlugin() error {
 }
 
 func (c *Cluster) doFlannelDeploy() error {
-	pluginYaml := network.GetFlannelManifest(c.ClusterCIDR, c.Network.Options[FlannelImage], c.Network.Options[FlannelCNIImage])
+	flannelConfig := map[string]string{
+		network.ClusterCIDR:     c.ClusterCIDR,
+		network.FlannelImage:    c.Network.Options[FlannelImage],
+		network.FlannelCNIImage: c.Network.Options[FlannelCNIImage],
+		network.FlannelIface:    c.Network.Options[FlannelIface],
+	}
+	pluginYaml := network.GetFlannelManifest(flannelConfig)
 	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
 }
 
