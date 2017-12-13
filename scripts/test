@@ -1,91 +1,9 @@
 #!/bin/bash
 set -e
 
-cleanup()
-{
-    local exit=$?
-    kill $PID || true
-    wait $PID || true
-    exit $exit
-}
-
 cd $(dirname $0)/..
 
 echo Running tests
-
-export SOCK=/var/run/dind.sock
-export DOCKER_HOST=unix://${SOCK}
-export CATTLE_DOCKER_USE_BOOT2DOCKER=true
-export INCLUSTER_CONFIG=false
-
-ip link set dev eth0 mtu 1300
-
-
-if grep overlay /proc/filesystems; then
-    STORAGE=overlay
-else
-    STORAGE=aufs
-fi
-docker daemon -s $STORAGE -D -H $DOCKER_HOST >/tmp/docker.log 2>&1 &
-PID=$!
-trap cleanup EXIT
-
-sleep 1
-
-IDS=$(docker ps -qa)
-if [ -n "$IDS" ]; then
-    docker kill $(docker ps -qa) || true
-    docker rm -fv $(docker ps -qa) || true
-fi
-
-export ARCH=amd64 K8S_VERSION=v1.2.4
-docker run -d \
-    --volume=/:/rootfs:ro \
-    --volume=/sys:/sys:rw \
-    --volume=/var/lib/docker/:/var/lib/docker:rw \
-    --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
-    --volume=/var/run:/var/run:rw \
-    --volume=/var/run/dind.sock:/var/run/docker.sock:rw \
-    --net=host \
-    --pid=host \
-    --privileged \
-    gcr.io/google_containers/hyperkube-${ARCH}:${K8S_VERSION} \
-    /hyperkube kubelet \
-        --hostname-override=127.0.0.1 \
-        --api-servers=http://localhost:8080 \
-        --config=/etc/kubernetes/manifests \
-        --cluster-dns=10.0.0.10 \
-        --cluster-domain=cluster.local \
-        --allow-privileged --v=2
-docker ps -a
-
-echo "Waiting for kubernetes"
-until $(curl --output /dev/null --silent --fail http://localhost:8080/api/v1/services); do
-    printf '.'
-    sleep 5
-done
-
-mkdir -p /etc/kubernetes/ssl
-cat > /etc/kubernetes/ssl/kubeconfig << EOF
-apiVersion: v1
-kind: Config
-clusters:
-- cluster:
-    api-version: v1
-    insecure-skip-tls-verify: true
-    server: "http://localhost:8080"
-  name: "Default"
-contexts:
-- context:
-    cluster: "Default"
-    user: "Default"
-  name: "Default"
-current-context: "Default"
-users:
-- name: "Default"
-  user:
-    token: "test"
-EOF
 
 PACKAGES=". $(find -name '*.go' | xargs -I{} dirname {} |  cut -f2 -d/ | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin)' | sed -e 's!^!./!' -e 's!$!/...!')"
 
