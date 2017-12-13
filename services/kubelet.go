@@ -66,6 +66,7 @@ func buildKubeletConfig(host *hosts.Host, kubeletService v3.KubeletService) (*co
 			"/var/lib/kubelet:/var/lib/kubelet:shared",
 			"/var/run:/var/run:rw",
 			"/run:/run",
+			"/etc/ceph:/etc/ceph",
 			"/dev:/host/dev"},
 		NetworkMode:   "host",
 		PidMode:       "host",
