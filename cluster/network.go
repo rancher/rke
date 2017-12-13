@@ -11,7 +11,6 @@ import (
 
 const (
 	NetworkPluginResourceName = "rke-network-plugin"
-	CloudProvider             = "cloud_provider"
 
 	FlannelNetworkPlugin = "flannel"
 	FlannelImage         = "flannel_image"
@@ -23,6 +22,7 @@ const (
 	CalicoCNIImage          = "calico_cni_image"
 	CalicoControllersImages = "calico_controllers_image"
 	CalicoctlImage          = "calicoctl_image"
+	CalicoCloudProvider     = "calico_cloud_provider"
 
 	CanalNetworkPlugin = "canal"
 	CanalNodeImage     = "canal_node_image"
@@ -74,7 +74,7 @@ func (c *Cluster) doCalicoDeploy() error {
 		network.NodeImage:        c.Network.Options[CalicoNodeImage],
 		network.ControllersImage: c.Network.Options[CalicoControllersImages],
 		network.CalicoctlImage:   c.Network.Options[CalicoctlImage],
-		network.CloudProvider:    c.Network.Options[CloudProvider],
+		network.CloudProvider:    c.Network.Options[CalicoCloudProvider],
 	}
 	pluginYaml := network.GetCalicoManifest(calicoConfig)
 	return c.doAddonDeploy(pluginYaml, NetworkPluginResourceName)
@@ -120,7 +120,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			CalicoCNIImage:          DefaultCalicoCNIImage,
 			CalicoNodeImage:         DefaultCalicoNodeImage,
 			CalicoControllersImages: DefaultCalicoControllersImage,
-			CloudProvider:           DefaultNetworkCloudProvider,
+			CalicoCloudProvider:     DefaultNetworkCloudProvider,
 			CalicoctlImage:          DefaultCalicoctlImage,
 		}
 
