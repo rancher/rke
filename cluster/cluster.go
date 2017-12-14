@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
@@ -58,9 +59,14 @@ func (c *Cluster) DeployClusterPlanes() error {
 	err = services.RunControlPlane(c.ControlPlaneHosts,
 		c.EtcdHosts,
 		c.Services,
-		c.SystemImages[ServiceSidekickImage])
+		c.SystemImages[ServiceSidekickImage],
+		c.Authorization.Mode)
 	if err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
+	}
+	err = c.ApplyRBACResources()
+	if err != nil {
+		return fmt.Errorf("[auths] Failed to apply RBAC resources: %v", err)
 	}
 	err = services.RunWorkerPlane(c.ControlPlaneHosts,
 		c.WorkerHosts,
@@ -238,4 +244,16 @@ func getLocalAdminConfigWithNewAddress(localConfigPath, cpAddress string) string
 		string(config.CAData),
 		string(config.CertData),
 		string(config.KeyData))
+}
+
+func (c *Cluster) ApplyRBACResources() error {
+	if err := authz.ApplyJobDeployerServiceAccount(c.LocalKubeConfigPath); err != nil {
+		return fmt.Errorf("Failed to apply the ServiceAccount needed for job execution: %v", err)
+	}
+	if c.Authorization.Mode == services.RBACAuthorizationMode {
+		if err := authz.ApplySystemNodeClusterRoleBinding(c.LocalKubeConfigPath); err != nil {
+			return fmt.Errorf("Failed to apply the ClusterRoleBinding needed for node authorization: %v", err)
+		}
+	}
+	return nil
 }
