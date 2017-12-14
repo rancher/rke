@@ -48,6 +48,7 @@ const (
 	KubeDNSSidecarImage        = "kubedns_sidecar_image"
 	KubeDNSAutoScalerImage     = "kubedns_autoscaler_image"
 	ServiceSidekickImage       = "service_sidekick_image"
+	NoneAuthorizationMode      = "none"
 )
 
 func (c *Cluster) DeployClusterPlanes() error {
@@ -64,7 +65,7 @@ func (c *Cluster) DeployClusterPlanes() error {
 	if err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 	}
-	err = c.ApplyRBACResources()
+	err = c.ApplyAuthzResources()
 	if err != nil {
 		return fmt.Errorf("[auths] Failed to apply RBAC resources: %v", err)
 	}
@@ -139,6 +140,9 @@ func (c *Cluster) setClusterDefaults() {
 		if len(host.SSHKeyPath) == 0 {
 			c.Nodes[i].SSHKeyPath = c.SSHKeyPath
 		}
+	}
+	if len(c.Authorization.Mode) == 0 {
+		c.Authorization.Mode = DefaultAuthorizationMode
 	}
 	c.setClusterServicesDefaults()
 	c.setClusterNetworkDefaults()
@@ -246,9 +250,12 @@ func getLocalAdminConfigWithNewAddress(localConfigPath, cpAddress string) string
 		string(config.KeyData))
 }
 
-func (c *Cluster) ApplyRBACResources() error {
+func (c *Cluster) ApplyAuthzResources() error {
 	if err := authz.ApplyJobDeployerServiceAccount(c.LocalKubeConfigPath); err != nil {
 		return fmt.Errorf("Failed to apply the ServiceAccount needed for job execution: %v", err)
+	}
+	if c.Authorization.Mode == NoneAuthorizationMode {
+		return nil
 	}
 	if c.Authorization.Mode == services.RBACAuthorizationMode {
 		if err := authz.ApplySystemNodeClusterRoleBinding(c.LocalKubeConfigPath); err != nil {

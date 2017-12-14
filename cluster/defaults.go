@@ -11,7 +11,8 @@ const (
 
 	DefaultDockerSockPath = "/var/run/docker.sock"
 
-	DefaultAuthStrategy = "x509"
+	DefaultAuthStrategy      = "x509"
+	DefaultAuthorizationMode = "rabc"
 
 	DefaultNetworkPlugin        = "flannel"
 	DefaultNetworkCloudProvider = "none"
