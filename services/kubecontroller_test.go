@@ -25,7 +25,7 @@ func TestKubeControllerConfig(t *testing.T) {
 	kubeControllerService.ServiceClusterIPRange = TestKubeControllerServiceClusterIPRange
 	kubeControllerService.ExtraArgs = map[string]string{"foo": "bar"}
 
-	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService)
+	imageCfg, hostCfg := buildKubeControllerConfig(kubeControllerService, "")
 	// Test image and host config
 	assertEqual(t, isStringInSlice(TestClusterCidrPrefix+TestKubeControllerClusterCidr, imageCfg.Entrypoint), true,
 		fmt.Sprintf("Failed to find [%s] in KubeController Command", TestClusterCidrPrefix+TestKubeControllerClusterCidr))
