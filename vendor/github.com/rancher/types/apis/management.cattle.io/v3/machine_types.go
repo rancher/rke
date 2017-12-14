@@ -59,11 +59,17 @@ type Machine struct {
 }
 
 type MachineStatus struct {
-	Conditions []MachineCondition `json:"conditions"`
-	NodeStatus v1.NodeStatus      `json:"nodeStatus"`
-	NodeName   string             `json:"nodeName"`
-	Requested  v1.ResourceList    `json:"requested,omitempty"`
-	Limits     v1.ResourceList    `json:"limits,omitempty"`
+	Conditions      []MachineCondition `json:"conditions"`
+	NodeStatus      v1.NodeStatus      `json:"nodeStatus"`
+	NodeName        string             `json:"nodeName"`
+	Requested       v1.ResourceList    `json:"requested,omitempty"`
+	Limits          v1.ResourceList    `json:"limits,omitempty"`
+	Provisioned     bool               `json:"provisioned,omitempty"`
+	SSHUser         string             `json:"sshUser,omitempty"`
+	SSHPrivateKey   string             `json:"sshPrivateKey,omitempty"`
+	ExtractedConfig string             `json:"extractedConfig,omitempty"`
+	Address         string             `json:"address,omitempty"`
+	NodeConfig      *RKEConfigNode     `json:"nodeConfig,omitempty"`
 }
 
 type MachineCondition struct {
@@ -93,12 +99,137 @@ type MachineSpec struct {
 }
 
 type AmazonEC2Config struct {
+	AccessKey string `json:"accessKey,omitempty"`
+
+	Ami string `json:"ami,omitempty"`
+
+	BlockDurationMinutes string `json:"blockDurationMinutes,omitempty"`
+
+	DeviceName string `json:"deviceName,omitempty"`
+
+	Endpoint string `json:"endpoint,omitempty"`
+
+	IamInstanceProfile string `json:"iamInstanceProfile,omitempty"`
+
+	InsecureTransport bool `json:"insecureTransport,omitempty"`
+
+	InstanceType string `json:"instanceType,omitempty"`
+
+	KeypairName string `json:"keypairName,omitempty"`
+
+	Monitoring bool `json:"monitoring,omitempty"`
+
+	OpenPort []string `json:"openPort,omitempty"`
+
+	PrivateAddressOnly bool `json:"privateAddressOnly,omitempty"`
+
+	Region string `json:"region,omitempty"`
+
+	RequestSpotInstance bool `json:"requestSpotInstance,omitempty"`
+
+	Retries string `json:"retries,omitempty"`
+
+	RootSize string `json:"rootSize,omitempty"`
+
+	SecretKey string `json:"secretKey,omitempty"`
+
+	SecurityGroup []string `json:"securityGroup,omitempty"`
+
+	SessionToken string `json:"sessionToken,omitempty"`
+
+	SpotPrice string `json:"spotPrice,omitempty"`
+
+	SSHKeypath string `json:"sshKeypath,omitempty"`
+
+	SSHUser string `json:"sshUser,omitempty"`
+
+	SubnetID string `json:"subnetId,omitempty"`
+
+	Tags string `json:"tags,omitempty"`
+
+	UseEbsOptimizedInstance bool `json:"useEbsOptimizedInstance,omitempty"`
+
+	UsePrivateAddress bool `json:"usePrivateAddress,omitempty"`
+
+	Userdata string `json:"userdata,omitempty"`
+
+	VolumeType string `json:"volumeType,omitempty"`
+
+	VpcID string `json:"vpcId,omitempty"`
+
+	Zone string `json:"zone,omitempty"`
 }
 
 type AzureConfig struct {
+	AvailabilitySet string `json:"availabilitySet,omitempty"`
+
+	ClientID string `json:"clientId,omitempty"`
+
+	ClientSecret string `json:"clientSecret,omitempty"`
+
+	CustomData string `json:"customData,omitempty"`
+
+	DNS string `json:"dns,omitempty"`
+
+	DockerPort string `json:"dockerPort,omitempty"`
+
+	Environment string `json:"environment,omitempty"`
+
+	Image string `json:"image,omitempty"`
+
+	Location string `json:"location,omitempty"`
+
+	NoPublicIP bool `json:"noPublicIp,omitempty"`
+
+	OpenPort []string `json:"openPort,omitempty"`
+
+	PrivateIPAddress string `json:"privateIpAddress,omitempty"`
+
+	ResourceGroup string `json:"resourceGroup,omitempty"`
+
+	Size string `json:"size,omitempty"`
+
+	SSHUser string `json:"sshUser,omitempty"`
+
+	StaticPublicIP bool `json:"staticPublicIp,omitempty"`
+
+	StorageType string `json:"storageType,omitempty"`
+
+	Subnet string `json:"subnet,omitempty"`
+
+	SubnetPrefix string `json:"subnetPrefix,omitempty"`
+
+	SubscriptionID string `json:"subscriptionId,omitempty"`
+
+	UsePrivateIP bool `json:"usePrivateIp,omitempty"`
+
+	Vnet string `json:"vnet,omitempty"`
 }
 
 type DigitalOceanConfig struct {
+	AccessToken string `json:"accessToken,omitempty"`
+
+	Backups bool `json:"backups,omitempty"`
+
+	Image string `json:"image,omitempty"`
+
+	Ipv6 bool `json:"ipv6,omitempty"`
+
+	PrivateNetworking bool `json:"privateNetworking,omitempty"`
+
+	Region string `json:"region,omitempty"`
+
+	Size string `json:"size,omitempty"`
+
+	SSHKeyFingerprint string `json:"sshKeyFingerprint,omitempty"`
+
+	SSHKeyPath string `json:"sshKeyPath,omitempty"`
+
+	SSHPort string `json:"sshPort,omitempty"`
+
+	SSHUser string `json:"sshUser,omitempty"`
+
+	Userdata string `json:"userdata,omitempty"`
 }
 
 type MachineCommonParams struct {
@@ -145,13 +276,12 @@ type MachineDriverCondition struct {
 }
 
 type MachineDriverSpec struct {
-	DisplayName      string `json:"displayName"`
-	Description      string `json:"description"`
-	URL              string `json:"url"`
-	ExternalID       string `json:"externalId"`
-	Builtin          bool   `json:"builtin"`
-	DefaultActive    bool   `json:"defaultActive"`
-	ActivateOnCreate bool   `json:"activateOnCreate"`
-	Checksum         string `json:"checksum"`
-	UIURL            string `json:"uiUrl"`
+	DisplayName string `json:"displayName"`
+	Description string `json:"description"`
+	URL         string `json:"url"`
+	ExternalID  string `json:"externalId"`
+	Builtin     bool   `json:"builtin"`
+	Active      bool   `json:"active"`
+	Checksum    string `json:"checksum"`
+	UIURL       string `json:"uiUrl"`
 }

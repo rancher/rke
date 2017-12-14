@@ -32,7 +32,11 @@ func SubType(fieldType string) string {
 }
 
 func GetType(data map[string]interface{}) string {
-	parts := strings.Split(GetFullType(data), "/")
+	return GetShortTypeFromFull(GetFullType(data))
+}
+
+func GetShortTypeFromFull(fullType string) string {
+	parts := strings.Split(fullType, "/")
 	return parts[len(parts)-1]
 }
 
