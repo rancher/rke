@@ -40,6 +40,9 @@ func (c *Cluster) InvertIndexHosts() error {
 		if err := newHost.RegisterDialer(c.Dialer); err != nil {
 			return fmt.Errorf("Failed to register new Dialer for host [%s]: %v", host.Address, err)
 		}
+
+		newHost.IgnoreDockerVersion = c.IgnoreDockerVersion
+
 		for _, role := range host.Role {
 			logrus.Debugf("Host: " + host.Address + " has role: " + role)
 			switch role {
