@@ -15,10 +15,11 @@ import (
 
 type Host struct {
 	v3.RKEConfigNode
-	DClient   *client.Client
-	Dialer    Dialer
-	IsControl bool
-	IsWorker  bool
+	DClient             *client.Client
+	Dialer              Dialer
+	IsControl           bool
+	IsWorker            bool
+	IgnoreDockerVersion bool
 }
 
 const (
