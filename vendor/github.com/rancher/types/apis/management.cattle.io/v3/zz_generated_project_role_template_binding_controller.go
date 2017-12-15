@@ -74,7 +74,13 @@ func (l *projectRoleTemplateBindingLister) List(namespace string, selector label
 }
 
 func (l *projectRoleTemplateBindingLister) Get(namespace, name string) (*ProjectRoleTemplateBinding, error) {
-	obj, exists, err := l.controller.Informer().GetIndexer().GetByKey(namespace + "/" + name)
+	var key string
+	if namespace != "" {
+		key = namespace + "/" + name
+	} else {
+		key = name
+	}
+	obj, exists, err := l.controller.Informer().GetIndexer().GetByKey(key)
 	if err != nil {
 		return nil, err
 	}

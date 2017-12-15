@@ -35,11 +35,12 @@ type Cluster struct {
 }
 
 type ClusterSpec struct {
-	DisplayName                   string                         `json:"displayName"`
-	Description                   string                         `json:"description"`
-	GoogleKubernetesEngineConfig  *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
-	AzureKubernetesServiceConfig  *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
-	RancherKubernetesEngineConfig *RancherKubernetesEngineConfig `json:"rancherKubernetesEngineConfig,omitempty"`
+	Description                          string                         `json:"description"`
+	Internal                             bool                           `json:"internal" norman:"nocreate,noupdate"`
+	GoogleKubernetesEngineConfig         *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
+	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
+	RancherKubernetesEngineConfig        *RancherKubernetesEngineConfig `json:"rancherKubernetesEngineConfig,omitempty"`
+	DefaultPodSecurityPolicyTemplateName string                         `json:"defaultPodSecurityPolicyTemplateName,omitempty" norman:"type=reference[podSecurityPolicyTemplate]"`
 }
 
 type ClusterStatus struct {
@@ -103,8 +104,53 @@ type GoogleKubernetesEngineConfig struct {
 	Credential string `json:"credential,omitempty"`
 	// Enable alpha feature
 	EnableAlphaFeature bool `json:"enableAlphaFeature,omitempty"`
+	// Configuration for the HTTP (L7) load balancing controller addon
+	HTTPLoadBalancing bool `json:"httpLoadBalancing,omitempty"`
+	// Configuration for the horizontal pod autoscaling feature, which increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods
+	HorizontalPodAutoscaling bool `json:"horizontalPodAutoscaling,omitempty"`
+	// Configuration for the Kubernetes Dashboard
+	KubernetesDashboard bool `json:"kubernetesDashboard,omitempty"`
+	// Configuration for NetworkPolicy
+	NetworkPolicyConfig bool `json:"networkPolicyConfig,omitempty"`
+	// The list of Google Compute Engine locations in which the cluster's nodes should be located
+	Locations []string `json:"locations,omitempty"`
+	// Image Type
+	ImageType string `json:"imageType,omitempty"`
+	// Network
+	Network string `json:"network,omitempty"`
+	// Sub Network
+	SubNetwork string `json:"subNetwork,omitempty"`
+	// Configuration for LegacyAbac
+	LegacyAbac bool `json:"legacyAbac,omitempty"`
 }
 
 type AzureKubernetesServiceConfig struct {
 	//TBD
+}
+
+type ClusterEvent struct {
+	v1.Event
+	ClusterName string `json:"clusterName" norman:"type=reference[cluster]"`
+}
+
+type ClusterRegistrationToken struct {
+	metav1.TypeMeta `json:",inline"`
+	// Standard object’s metadata. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	// Specification of the desired behavior of the the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Spec ClusterRegistrationTokenSpec `json:"spec"`
+	// Most recent observed status of the cluster. More info:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status
+	Status ClusterRegistrationTokenStatus `json:"status"`
+}
+
+type ClusterRegistrationTokenSpec struct {
+}
+
+type ClusterRegistrationTokenStatus struct {
+	Command     string `json:"command"`
+	ManifestURL string `json:"manifestUrl"`
+	Token       string `json:"token"`
 }

@@ -273,8 +273,8 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 	return &servicesConfig, nil
 }
 
-func getAuthConfig(reader *bufio.Reader) (*v3.AuthConfig, error) {
-	authConfig := v3.AuthConfig{}
+func getAuthConfig(reader *bufio.Reader) (*v3.AuthnConfig, error) {
+	authConfig := v3.AuthnConfig{}
 
 	authType, err := getConfig(reader, "Authentication Strategy", "x509")
 	if err != nil {

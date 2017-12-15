@@ -74,7 +74,13 @@ func (l *machineDriverLister) List(namespace string, selector labels.Selector) (
 }
 
 func (l *machineDriverLister) Get(namespace, name string) (*MachineDriver, error) {
-	obj, exists, err := l.controller.Informer().GetIndexer().GetByKey(namespace + "/" + name)
+	var key string
+	if namespace != "" {
+		key = namespace + "/" + name
+	} else {
+		key = name
+	}
+	obj, exists, err := l.controller.Informer().GetIndexer().GetByKey(key)
 	if err != nil {
 		return nil, err
 	}

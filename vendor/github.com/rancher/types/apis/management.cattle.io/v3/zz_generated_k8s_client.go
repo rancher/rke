@@ -18,12 +18,22 @@ type Interface interface {
 	MachineDriversGetter
 	MachineTemplatesGetter
 	ProjectsGetter
-	ProjectRoleTemplatesGetter
+	RoleTemplatesGetter
 	PodSecurityPolicyTemplatesGetter
-	ClusterRoleTemplatesGetter
 	ClusterRoleTemplateBindingsGetter
 	ProjectRoleTemplateBindingsGetter
 	ClustersGetter
+	ClusterEventsGetter
+	ClusterRegistrationTokensGetter
+	CatalogsGetter
+	TemplatesGetter
+	TemplateVersionsGetter
+	IdentitiesGetter
+	TokensGetter
+	UsersGetter
+	GroupsGetter
+	GroupMembersGetter
+	DynamicSchemasGetter
 }
 
 type Client struct {
@@ -35,12 +45,22 @@ type Client struct {
 	machineDriverControllers              map[string]MachineDriverController
 	machineTemplateControllers            map[string]MachineTemplateController
 	projectControllers                    map[string]ProjectController
-	projectRoleTemplateControllers        map[string]ProjectRoleTemplateController
+	roleTemplateControllers               map[string]RoleTemplateController
 	podSecurityPolicyTemplateControllers  map[string]PodSecurityPolicyTemplateController
-	clusterRoleTemplateControllers        map[string]ClusterRoleTemplateController
 	clusterRoleTemplateBindingControllers map[string]ClusterRoleTemplateBindingController
 	projectRoleTemplateBindingControllers map[string]ProjectRoleTemplateBindingController
 	clusterControllers                    map[string]ClusterController
+	clusterEventControllers               map[string]ClusterEventController
+	clusterRegistrationTokenControllers   map[string]ClusterRegistrationTokenController
+	catalogControllers                    map[string]CatalogController
+	templateControllers                   map[string]TemplateController
+	templateVersionControllers            map[string]TemplateVersionController
+	identityControllers                   map[string]IdentityController
+	tokenControllers                      map[string]TokenController
+	userControllers                       map[string]UserController
+	groupControllers                      map[string]GroupController
+	groupMemberControllers                map[string]GroupMemberController
+	dynamicSchemaControllers              map[string]DynamicSchemaController
 }
 
 func NewForConfig(config rest.Config) (Interface, error) {
@@ -61,12 +81,22 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		machineDriverControllers:              map[string]MachineDriverController{},
 		machineTemplateControllers:            map[string]MachineTemplateController{},
 		projectControllers:                    map[string]ProjectController{},
-		projectRoleTemplateControllers:        map[string]ProjectRoleTemplateController{},
+		roleTemplateControllers:               map[string]RoleTemplateController{},
 		podSecurityPolicyTemplateControllers:  map[string]PodSecurityPolicyTemplateController{},
-		clusterRoleTemplateControllers:        map[string]ClusterRoleTemplateController{},
 		clusterRoleTemplateBindingControllers: map[string]ClusterRoleTemplateBindingController{},
 		projectRoleTemplateBindingControllers: map[string]ProjectRoleTemplateBindingController{},
 		clusterControllers:                    map[string]ClusterController{},
+		clusterEventControllers:               map[string]ClusterEventController{},
+		clusterRegistrationTokenControllers:   map[string]ClusterRegistrationTokenController{},
+		catalogControllers:                    map[string]CatalogController{},
+		templateControllers:                   map[string]TemplateController{},
+		templateVersionControllers:            map[string]TemplateVersionController{},
+		identityControllers:                   map[string]IdentityController{},
+		tokenControllers:                      map[string]TokenController{},
+		userControllers:                       map[string]UserController{},
+		groupControllers:                      map[string]GroupController{},
+		groupMemberControllers:                map[string]GroupMemberController{},
+		dynamicSchemaControllers:              map[string]DynamicSchemaController{},
 	}, nil
 }
 
@@ -134,13 +164,13 @@ func (c *Client) Projects(namespace string) ProjectInterface {
 	}
 }
 
-type ProjectRoleTemplatesGetter interface {
-	ProjectRoleTemplates(namespace string) ProjectRoleTemplateInterface
+type RoleTemplatesGetter interface {
+	RoleTemplates(namespace string) RoleTemplateInterface
 }
 
-func (c *Client) ProjectRoleTemplates(namespace string) ProjectRoleTemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectRoleTemplateResource, ProjectRoleTemplateGroupVersionKind, projectRoleTemplateFactory{})
-	return &projectRoleTemplateClient{
+func (c *Client) RoleTemplates(namespace string) RoleTemplateInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &RoleTemplateResource, RoleTemplateGroupVersionKind, roleTemplateFactory{})
+	return &roleTemplateClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
@@ -154,19 +184,6 @@ type PodSecurityPolicyTemplatesGetter interface {
 func (c *Client) PodSecurityPolicyTemplates(namespace string) PodSecurityPolicyTemplateInterface {
 	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PodSecurityPolicyTemplateResource, PodSecurityPolicyTemplateGroupVersionKind, podSecurityPolicyTemplateFactory{})
 	return &podSecurityPolicyTemplateClient{
-		ns:           namespace,
-		client:       c,
-		objectClient: objectClient,
-	}
-}
-
-type ClusterRoleTemplatesGetter interface {
-	ClusterRoleTemplates(namespace string) ClusterRoleTemplateInterface
-}
-
-func (c *Client) ClusterRoleTemplates(namespace string) ClusterRoleTemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterRoleTemplateResource, ClusterRoleTemplateGroupVersionKind, clusterRoleTemplateFactory{})
-	return &clusterRoleTemplateClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
@@ -206,6 +223,149 @@ type ClustersGetter interface {
 func (c *Client) Clusters(namespace string) ClusterInterface {
 	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterResource, ClusterGroupVersionKind, clusterFactory{})
 	return &clusterClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type ClusterEventsGetter interface {
+	ClusterEvents(namespace string) ClusterEventInterface
+}
+
+func (c *Client) ClusterEvents(namespace string) ClusterEventInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterEventResource, ClusterEventGroupVersionKind, clusterEventFactory{})
+	return &clusterEventClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type ClusterRegistrationTokensGetter interface {
+	ClusterRegistrationTokens(namespace string) ClusterRegistrationTokenInterface
+}
+
+func (c *Client) ClusterRegistrationTokens(namespace string) ClusterRegistrationTokenInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterRegistrationTokenResource, ClusterRegistrationTokenGroupVersionKind, clusterRegistrationTokenFactory{})
+	return &clusterRegistrationTokenClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type CatalogsGetter interface {
+	Catalogs(namespace string) CatalogInterface
+}
+
+func (c *Client) Catalogs(namespace string) CatalogInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &CatalogResource, CatalogGroupVersionKind, catalogFactory{})
+	return &catalogClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type TemplatesGetter interface {
+	Templates(namespace string) TemplateInterface
+}
+
+func (c *Client) Templates(namespace string) TemplateInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &TemplateResource, TemplateGroupVersionKind, templateFactory{})
+	return &templateClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type TemplateVersionsGetter interface {
+	TemplateVersions(namespace string) TemplateVersionInterface
+}
+
+func (c *Client) TemplateVersions(namespace string) TemplateVersionInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &TemplateVersionResource, TemplateVersionGroupVersionKind, templateVersionFactory{})
+	return &templateVersionClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type IdentitiesGetter interface {
+	Identities(namespace string) IdentityInterface
+}
+
+func (c *Client) Identities(namespace string) IdentityInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &IdentityResource, IdentityGroupVersionKind, identityFactory{})
+	return &identityClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type TokensGetter interface {
+	Tokens(namespace string) TokenInterface
+}
+
+func (c *Client) Tokens(namespace string) TokenInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &TokenResource, TokenGroupVersionKind, tokenFactory{})
+	return &tokenClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type UsersGetter interface {
+	Users(namespace string) UserInterface
+}
+
+func (c *Client) Users(namespace string) UserInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &UserResource, UserGroupVersionKind, userFactory{})
+	return &userClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type GroupsGetter interface {
+	Groups(namespace string) GroupInterface
+}
+
+func (c *Client) Groups(namespace string) GroupInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GroupResource, GroupGroupVersionKind, groupFactory{})
+	return &groupClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type GroupMembersGetter interface {
+	GroupMembers(namespace string) GroupMemberInterface
+}
+
+func (c *Client) GroupMembers(namespace string) GroupMemberInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GroupMemberResource, GroupMemberGroupVersionKind, groupMemberFactory{})
+	return &groupMemberClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type DynamicSchemasGetter interface {
+	DynamicSchemas(namespace string) DynamicSchemaInterface
+}
+
+func (c *Client) DynamicSchemas(namespace string) DynamicSchemaInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &DynamicSchemaResource, DynamicSchemaGroupVersionKind, dynamicSchemaFactory{})
+	return &dynamicSchemaClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
