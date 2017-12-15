@@ -46,8 +46,10 @@ func (h *Host) TunnelUp() error {
 		return fmt.Errorf("Error while determining supported Docker version [%s]: %v", info.ServerVersion, err)
 	}
 
-	if !isvalid {
+	if !isvalid && !h.IgnoreDockerVersion {
 		return fmt.Errorf("Unsupported Docker version found [%s], supported versions are %v", info.ServerVersion, docker.K8sDockerVersions[K8sVersion])
+	} else if !isvalid {
+		logrus.Warnf("Unsupported Docker version found [%s], supported versions are %v", info.ServerVersion, docker.K8sDockerVersions[K8sVersion])
 	}
 
 	return nil
