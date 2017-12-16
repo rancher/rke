@@ -21,13 +21,14 @@ const (
 	K8sVersion       = "1.8"
 )
 
-func (h *Host) TunnelUp() error {
+func (h *Host) TunnelUp(dialerFactory DialerFactory) error {
 	if h.DClient != nil {
 		return nil
 	}
-	httpClient, err := h.Dialer.NewHTTPClient()
+	logrus.Infof("[dialer] Setup tunnel for host [%s]", h.Address)
+	httpClient, err := h.newHTTPClient(dialerFactory)
 	if err != nil {
-		return fmt.Errorf("Failed to initiate a new Dialer to host [%s]", h.Address)
+		return fmt.Errorf("Can't establish dialer connection: %v", err)
 	}
 
 	// set Docker client

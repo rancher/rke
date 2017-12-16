@@ -19,7 +19,7 @@ import (
 
 type Cluster struct {
 	v3.RancherKubernetesEngineConfig `yaml:",inline"`
-	ConfigPath                       string `yaml:"config_path"`
+	ConfigPath                       string
 	LocalKubeConfigPath              string
 	EtcdHosts                        []*hosts.Host
 	WorkerHosts                      []*hosts.Host
@@ -30,7 +30,7 @@ type Cluster struct {
 	ClusterDomain                    string
 	ClusterCIDR                      string
 	ClusterDNSServer                 string
-	Dialer                           hosts.Dialer
+	DialerFactory                    hosts.DialerFactory
 }
 
 const (
@@ -73,21 +73,30 @@ func (c *Cluster) DeployClusterPlanes() error {
 	return nil
 }
 
-func ParseConfig(clusterFile string, customDialer hosts.Dialer) (*Cluster, error) {
+func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) {
 	logrus.Debugf("Parsing cluster file [%v]", clusterFile)
-	var err error
-	c, err := parseClusterFile(clusterFile)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse the cluster file: %v", err)
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if err := yaml.Unmarshal([]byte(clusterFile), &rkeConfig); err != nil {
+		return nil, err
 	}
-	c.Dialer = customDialer
-	err = c.InvertIndexHosts()
-	if err != nil {
+	return &rkeConfig, nil
+}
+
+func ParseCluster(rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath string, dialerFactory hosts.DialerFactory) (*Cluster, error) {
+	var err error
+	c := &Cluster{
+		RancherKubernetesEngineConfig: *rkeConfig,
+		ConfigPath:                    clusterFilePath,
+		DialerFactory:                 dialerFactory,
+	}
+	// Setting cluster Defaults
+	c.setClusterDefaults()
+
+	if err := c.InvertIndexHosts(); err != nil {
 		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)
 	}
 
-	err = c.ValidateCluster()
-	if err != nil {
+	if err := c.ValidateCluster(); err != nil {
 		return nil, fmt.Errorf("Failed to validate cluster: %v", err)
 	}
 
@@ -103,19 +112,6 @@ func ParseConfig(clusterFile string, customDialer hosts.Dialer) (*Cluster, error
 	}
 	c.LocalKubeConfigPath = GetLocalKubeConfig(c.ConfigPath)
 	return c, nil
-}
-
-func parseClusterFile(clusterFile string) (*Cluster, error) {
-	// parse hosts
-	var kubeCluster Cluster
-	err := yaml.Unmarshal([]byte(clusterFile), &kubeCluster)
-	if err != nil {
-		return nil, err
-	}
-	// Setting cluster Defaults
-	kubeCluster.setClusterDefaults()
-
-	return &kubeCluster, nil
 }
 
 func (c *Cluster) setClusterDefaults() {
