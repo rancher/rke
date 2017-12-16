@@ -56,7 +56,7 @@ func TestKubeAPIConfig(t *testing.T) {
 	etcdConnString := GetEtcdConnString(etcdHosts)
 	assertEqual(t, etcdConnString, TestEtcdConnString, "")
 
-	imageCfg, hostCfg := buildKubeAPIConfig(cpHost, kubeAPIService, etcdConnString)
+	imageCfg, hostCfg := buildKubeAPIConfig(cpHost, kubeAPIService, etcdConnString, "")
 	// Test image and host config
 	assertEqual(t, isStringInSlice(TestInsecureBindAddress, imageCfg.Entrypoint), true,
 		fmt.Sprintf("Failed to find [%s] in Entrypoint of KubeAPI", TestInsecureBindAddress))
