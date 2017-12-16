@@ -17,10 +17,13 @@ const (
 )
 
 func TestJobManifest(t *testing.T) {
-	jobYaml := GetAddonsExcuteJob(FakeAddonName, FakeNodeName, FakeAddonImage)
+	jobYaml, err := GetAddonsExcuteJob(FakeAddonName, FakeNodeName, FakeAddonImage)
+	if err != nil {
+		t.Fatalf("Failed to get addon execute job: %v", err)
+	}
 	job := v1.Job{}
 	decoder := yamlutil.NewYAMLToJSONDecoder(bytes.NewReader([]byte(jobYaml)))
-	err := decoder.Decode(&job)
+	err = decoder.Decode(&job)
 	if err != nil {
 		t.Fatalf("Failed To decode Job yaml: %v", err)
 	}
