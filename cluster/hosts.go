@@ -11,18 +11,18 @@ import (
 
 func (c *Cluster) TunnelHosts() error {
 	for i := range c.EtcdHosts {
-		if err := c.EtcdHosts[i].TunnelUp(); err != nil {
+		if err := c.EtcdHosts[i].TunnelUp(c.DialerFactory); err != nil {
 			return fmt.Errorf("Failed to set up SSH tunneling for Etcd host [%s]: %v", c.EtcdHosts[i].Address, err)
 		}
 	}
 	for i := range c.ControlPlaneHosts {
-		err := c.ControlPlaneHosts[i].TunnelUp()
+		err := c.ControlPlaneHosts[i].TunnelUp(c.DialerFactory)
 		if err != nil {
 			return fmt.Errorf("Failed to set up SSH tunneling for Control host [%s]: %v", c.ControlPlaneHosts[i].Address, err)
 		}
 	}
 	for i := range c.WorkerHosts {
-		if err := c.WorkerHosts[i].TunnelUp(); err != nil {
+		if err := c.WorkerHosts[i].TunnelUp(c.DialerFactory); err != nil {
 			return fmt.Errorf("Failed to set up SSH tunneling for Worker host [%s]: %v", c.WorkerHosts[i].Address, err)
 		}
 	}
@@ -36,9 +36,6 @@ func (c *Cluster) InvertIndexHosts() error {
 	for _, host := range c.Nodes {
 		newHost := hosts.Host{
 			RKEConfigNode: host,
-		}
-		if err := newHost.RegisterDialer(c.Dialer); err != nil {
-			return fmt.Errorf("Failed to register new Dialer for host [%s]: %v", host.Address, err)
 		}
 
 		newHost.IgnoreDockerVersion = c.IgnoreDockerVersion
