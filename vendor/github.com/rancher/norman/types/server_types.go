@@ -61,8 +61,13 @@ type ResponseWriter interface {
 }
 
 type AccessControl interface {
-	CanCreate(schema *Schema) bool
-	CanList(schema *Schema) bool
+	CanCreate(apiContext *APIContext, schema *Schema) bool
+	CanList(apiContext *APIContext, schema *Schema) bool
+	CanUpdate(apiContext *APIContext, schema *Schema) bool
+	CanDelete(apiContext *APIContext, schema *Schema) bool
+
+	Filter(apiContext *APIContext, obj map[string]interface{}, context map[string]string) map[string]interface{}
+	FilterList(apiContext *APIContext, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
 }
 
 type APIContext struct {
@@ -148,6 +153,8 @@ type URLBuilder interface {
 	Sort(field string) string
 	SetSubContext(subContext string)
 	FilterLink(schema *Schema, fieldName string, value string) string
+	Action(action string, resource *RawResource) string
+	ResourceLinkByID(schema *Schema, id string) string
 }
 
 type Store interface {
@@ -155,6 +162,6 @@ type Store interface {
 	List(apiContext *APIContext, schema *Schema, opt QueryOptions) ([]map[string]interface{}, error)
 	Create(apiContext *APIContext, schema *Schema, data map[string]interface{}) (map[string]interface{}, error)
 	Update(apiContext *APIContext, schema *Schema, data map[string]interface{}, id string) (map[string]interface{}, error)
-	Delete(apiContext *APIContext, schema *Schema, id string) error
+	Delete(apiContext *APIContext, schema *Schema, id string) (map[string]interface{}, error)
 	Watch(apiContext *APIContext, schema *Schema, opt QueryOptions) (chan map[string]interface{}, error)
 }
