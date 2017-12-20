@@ -47,6 +47,9 @@ func buildKubeAPIConfig(host *hosts.Host, kubeAPIService v3.KubeAPIService, etcd
 	if authorizationMode == RBACAuthorizationMode {
 		imageCfg.Cmd = append(imageCfg.Cmd, "--authorization-mode=RBAC")
 	}
+	if kubeAPIService.PodSecurityPolicy {
+		imageCfg.Cmd = append(imageCfg.Cmd, "--runtime-config=extensions/v1beta1/podsecuritypolicy=true", "--admission-control=PodSecurityPolicy")
+	}
 	hostCfg := &container.HostConfig{
 		VolumesFrom: []string{
 			SidekickContainerName,

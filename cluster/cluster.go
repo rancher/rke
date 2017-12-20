@@ -140,6 +140,10 @@ func (c *Cluster) setClusterDefaults() {
 	if len(c.Authorization.Mode) == 0 {
 		c.Authorization.Mode = DefaultAuthorizationMode
 	}
+	if c.Services.KubeAPI.PodSecurityPolicy && c.Authorization.Mode != services.RBACAuthorizationMode {
+		logrus.Warnf("PodSecurityPolicy can't be enabled with RBAC support disabled")
+		c.Services.KubeAPI.PodSecurityPolicy = false
+	}
 	c.setClusterServicesDefaults()
 	c.setClusterNetworkDefaults()
 	c.setClusterImageDefaults()
@@ -256,6 +260,14 @@ func (c *Cluster) ApplyAuthzResources() error {
 	if c.Authorization.Mode == services.RBACAuthorizationMode {
 		if err := authz.ApplySystemNodeClusterRoleBinding(c.LocalKubeConfigPath); err != nil {
 			return fmt.Errorf("Failed to apply the ClusterRoleBinding needed for node authorization: %v", err)
+		}
+	}
+	if c.Authorization.Mode == services.RBACAuthorizationMode && c.Services.KubeAPI.PodSecurityPolicy {
+		if err := authz.ApplyDefaultPodSecurityPolicy(c.LocalKubeConfigPath); err != nil {
+			return fmt.Errorf("Failed to apply default PodSecurityPolicy: %v", err)
+		}
+		if err := authz.ApplyDefaultPodSecurityPolicyRole(c.LocalKubeConfigPath); err != nil {
+			return fmt.Errorf("Failed to apply default PodSecurityPolicy ClusterRole and ClusterRoleBinding: %v", err)
 		}
 	}
 	return nil
