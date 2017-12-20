@@ -31,7 +31,8 @@ type Cluster struct {
 	ClusterDomain                    string
 	ClusterCIDR                      string
 	ClusterDNSServer                 string
-	DialerFactory                    hosts.DialerFactory
+	DockerDialerFactory              hosts.DialerFactory
+	HealthcheckDialerFactory         hosts.DialerFactory
 }
 
 const (
@@ -61,7 +62,8 @@ func (c *Cluster) DeployClusterPlanes() error {
 		c.EtcdHosts,
 		c.Services,
 		c.SystemImages[ServiceSidekickImage],
-		c.Authorization.Mode)
+		c.Authorization.Mode,
+		c.HealthcheckDialerFactory)
 	if err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 	}
@@ -73,7 +75,8 @@ func (c *Cluster) DeployClusterPlanes() error {
 		c.WorkerHosts,
 		c.Services,
 		c.SystemImages[NginxProxyImage],
-		c.SystemImages[ServiceSidekickImage])
+		c.SystemImages[ServiceSidekickImage],
+		c.HealthcheckDialerFactory)
 	if err != nil {
 		return fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
 	}
@@ -89,12 +92,13 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	return &rkeConfig, nil
 }
 
-func ParseCluster(rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath string, dialerFactory hosts.DialerFactory) (*Cluster, error) {
+func ParseCluster(rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath string, dockerDialerFactory, healthcheckDialerFactory hosts.DialerFactory) (*Cluster, error) {
 	var err error
 	c := &Cluster{
 		RancherKubernetesEngineConfig: *rkeConfig,
 		ConfigPath:                    clusterFilePath,
-		DialerFactory:                 dialerFactory,
+		DockerDialerFactory:           dockerDialerFactory,
+		HealthcheckDialerFactory:      healthcheckDialerFactory,
 	}
 	// Setting cluster Defaults
 	c.setClusterDefaults()
