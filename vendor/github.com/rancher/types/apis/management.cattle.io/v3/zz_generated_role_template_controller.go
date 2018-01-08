@@ -53,9 +53,11 @@ type RoleTemplateController interface {
 type RoleTemplateInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*RoleTemplate) (*RoleTemplate, error)
+	GetNamespace(name, namespace string, opts metav1.GetOptions) (*RoleTemplate, error)
 	Get(name string, opts metav1.GetOptions) (*RoleTemplate, error)
 	Update(*RoleTemplate) (*RoleTemplate, error)
 	Delete(name string, options *metav1.DeleteOptions) error
+	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*RoleTemplateList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
@@ -172,6 +174,11 @@ func (s *roleTemplateClient) Get(name string, opts metav1.GetOptions) (*RoleTemp
 	return obj.(*RoleTemplate), err
 }
 
+func (s *roleTemplateClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*RoleTemplate, error) {
+	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+	return obj.(*RoleTemplate), err
+}
+
 func (s *roleTemplateClient) Update(o *RoleTemplate) (*RoleTemplate, error) {
 	obj, err := s.objectClient.Update(o.Name, o)
 	return obj.(*RoleTemplate), err
@@ -181,6 +188,10 @@ func (s *roleTemplateClient) Delete(name string, options *metav1.DeleteOptions) 
 	return s.objectClient.Delete(name, options)
 }
 
+func (s *roleTemplateClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespace(name, namespace, options)
+}
+
 func (s *roleTemplateClient) List(opts metav1.ListOptions) (*RoleTemplateList, error) {
 	obj, err := s.objectClient.List(opts)
 	return obj.(*RoleTemplateList), err
@@ -188,6 +199,12 @@ func (s *roleTemplateClient) List(opts metav1.ListOptions) (*RoleTemplateList, e
 
 func (s *roleTemplateClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	return s.objectClient.Watch(opts)
+}
+
+// Patch applies the patch and returns the patched deployment.
+func (s *roleTemplateClient) Patch(o *RoleTemplate, data []byte, subresources ...string) (*RoleTemplate, error) {
+	obj, err := s.objectClient.Patch(o.Name, o, data, subresources...)
+	return obj.(*RoleTemplate), err
 }
 
 func (s *roleTemplateClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error {
