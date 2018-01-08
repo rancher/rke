@@ -18,12 +18,12 @@ type RancherKubernetesEngineConfig struct {
 	// Authorization mode configuration used in the cluster
 	Authorization AuthzConfig `yaml:"authorization" json:"authorization,omitempty"`
 	// Enable/disable strict docker version checking
-	IgnoreDockerVersion bool `yaml:"ignore_docker_version" json:"ignoreDockerVersion"`
+	EnforceDockerVersion bool `yaml:"enforce_docker_version" json:"enforceDockerVersion"`
 }
 
 type RKEConfigNode struct {
 	// Name of the host provisioned via docker machine
-	MachineName string `yaml:"machine_name" json:"machineName, omitempty"`
+	MachineName string `yaml:"machine_name,omitempty" json:"machineName,omitempty" norman:"type=reference[machine]"`
 	// IP or FQDN that is fully resolvable and used for SSH communication
 	Address string `yaml:"address" json:"address,omitempty"`
 	// Optional - Internal address that will be used for components communication

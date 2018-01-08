@@ -53,9 +53,11 @@ type TokenController interface {
 type TokenInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*Token) (*Token, error)
+	GetNamespace(name, namespace string, opts metav1.GetOptions) (*Token, error)
 	Get(name string, opts metav1.GetOptions) (*Token, error)
 	Update(*Token) (*Token, error)
 	Delete(name string, options *metav1.DeleteOptions) error
+	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*TokenList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
@@ -172,6 +174,11 @@ func (s *tokenClient) Get(name string, opts metav1.GetOptions) (*Token, error) {
 	return obj.(*Token), err
 }
 
+func (s *tokenClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*Token, error) {
+	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+	return obj.(*Token), err
+}
+
 func (s *tokenClient) Update(o *Token) (*Token, error) {
 	obj, err := s.objectClient.Update(o.Name, o)
 	return obj.(*Token), err
@@ -181,6 +188,10 @@ func (s *tokenClient) Delete(name string, options *metav1.DeleteOptions) error {
 	return s.objectClient.Delete(name, options)
 }
 
+func (s *tokenClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespace(name, namespace, options)
+}
+
 func (s *tokenClient) List(opts metav1.ListOptions) (*TokenList, error) {
 	obj, err := s.objectClient.List(opts)
 	return obj.(*TokenList), err
@@ -188,6 +199,12 @@ func (s *tokenClient) List(opts metav1.ListOptions) (*TokenList, error) {
 
 func (s *tokenClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	return s.objectClient.Watch(opts)
+}
+
+// Patch applies the patch and returns the patched deployment.
+func (s *tokenClient) Patch(o *Token, data []byte, subresources ...string) (*Token, error) {
+	obj, err := s.objectClient.Patch(o.Name, o, data, subresources...)
+	return obj.(*Token), err
 }
 
 func (s *tokenClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error {
