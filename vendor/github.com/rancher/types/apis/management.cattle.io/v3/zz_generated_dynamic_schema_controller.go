@@ -53,9 +53,11 @@ type DynamicSchemaController interface {
 type DynamicSchemaInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*DynamicSchema) (*DynamicSchema, error)
+	GetNamespace(name, namespace string, opts metav1.GetOptions) (*DynamicSchema, error)
 	Get(name string, opts metav1.GetOptions) (*DynamicSchema, error)
 	Update(*DynamicSchema) (*DynamicSchema, error)
 	Delete(name string, options *metav1.DeleteOptions) error
+	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*DynamicSchemaList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
@@ -172,6 +174,11 @@ func (s *dynamicSchemaClient) Get(name string, opts metav1.GetOptions) (*Dynamic
 	return obj.(*DynamicSchema), err
 }
 
+func (s *dynamicSchemaClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*DynamicSchema, error) {
+	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+	return obj.(*DynamicSchema), err
+}
+
 func (s *dynamicSchemaClient) Update(o *DynamicSchema) (*DynamicSchema, error) {
 	obj, err := s.objectClient.Update(o.Name, o)
 	return obj.(*DynamicSchema), err
@@ -181,6 +188,10 @@ func (s *dynamicSchemaClient) Delete(name string, options *metav1.DeleteOptions)
 	return s.objectClient.Delete(name, options)
 }
 
+func (s *dynamicSchemaClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespace(name, namespace, options)
+}
+
 func (s *dynamicSchemaClient) List(opts metav1.ListOptions) (*DynamicSchemaList, error) {
 	obj, err := s.objectClient.List(opts)
 	return obj.(*DynamicSchemaList), err
@@ -188,6 +199,12 @@ func (s *dynamicSchemaClient) List(opts metav1.ListOptions) (*DynamicSchemaList,
 
 func (s *dynamicSchemaClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	return s.objectClient.Watch(opts)
+}
+
+// Patch applies the patch and returns the patched deployment.
+func (s *dynamicSchemaClient) Patch(o *DynamicSchema, data []byte, subresources ...string) (*DynamicSchema, error) {
+	obj, err := s.objectClient.Patch(o.Name, o, data, subresources...)
+	return obj.(*DynamicSchema), err
 }
 
 func (s *dynamicSchemaClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error {

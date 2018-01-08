@@ -53,9 +53,11 @@ type UserController interface {
 type UserInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*User) (*User, error)
+	GetNamespace(name, namespace string, opts metav1.GetOptions) (*User, error)
 	Get(name string, opts metav1.GetOptions) (*User, error)
 	Update(*User) (*User, error)
 	Delete(name string, options *metav1.DeleteOptions) error
+	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*UserList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
@@ -172,6 +174,11 @@ func (s *userClient) Get(name string, opts metav1.GetOptions) (*User, error) {
 	return obj.(*User), err
 }
 
+func (s *userClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*User, error) {
+	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+	return obj.(*User), err
+}
+
 func (s *userClient) Update(o *User) (*User, error) {
 	obj, err := s.objectClient.Update(o.Name, o)
 	return obj.(*User), err
@@ -181,6 +188,10 @@ func (s *userClient) Delete(name string, options *metav1.DeleteOptions) error {
 	return s.objectClient.Delete(name, options)
 }
 
+func (s *userClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespace(name, namespace, options)
+}
+
 func (s *userClient) List(opts metav1.ListOptions) (*UserList, error) {
 	obj, err := s.objectClient.List(opts)
 	return obj.(*UserList), err
@@ -188,6 +199,12 @@ func (s *userClient) List(opts metav1.ListOptions) (*UserList, error) {
 
 func (s *userClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	return s.objectClient.Watch(opts)
+}
+
+// Patch applies the patch and returns the patched deployment.
+func (s *userClient) Patch(o *User, data []byte, subresources ...string) (*User, error) {
+	obj, err := s.objectClient.Patch(o.Name, o, data, subresources...)
+	return obj.(*User), err
 }
 
 func (s *userClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error {
