@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	created = "io.cattle.lifecycle.create"
+	created      = "lifecycle.cattle.io/create"
+	finalizerKey = "controller.cattle.io/"
 )
 
 type ObjectLifecycle interface {
@@ -71,7 +72,7 @@ func (o *objectLifecycleAdapter) finalize(metadata metav1.Object, obj runtime.Ob
 		return true, nil
 	}
 
-	if !slice.ContainsString(metadata.GetFinalizers(), o.name) {
+	if !slice.ContainsString(metadata.GetFinalizers(), o.constructFinalizerKey()) {
 		return false, nil
 	}
 
@@ -85,7 +86,7 @@ func (o *objectLifecycleAdapter) finalize(metadata metav1.Object, obj runtime.Ob
 		obj = newObj
 	}
 
-	if err := removeFinalizer(o.name, obj); err != nil {
+	if err := removeFinalizer(o.constructFinalizerKey(), obj); err != nil {
 		return false, err
 	}
 
@@ -115,6 +116,10 @@ func (o *objectLifecycleAdapter) createKey() string {
 	return created + "." + o.name
 }
 
+func (o *objectLifecycleAdapter) constructFinalizerKey() string {
+	return finalizerKey + o.name
+}
+
 func (o *objectLifecycleAdapter) create(metadata metav1.Object, obj runtime.Object) (bool, error) {
 	initialized := o.createKey()
 
@@ -141,7 +146,9 @@ func (o *objectLifecycleAdapter) create(metadata metav1.Object, obj runtime.Obje
 		metadata.SetAnnotations(map[string]string{})
 	}
 
-	metadata.SetFinalizers(append(metadata.GetFinalizers(), o.name))
+	if o.objectClient.GroupVersionKind().Kind != "Namespace" {
+		metadata.SetFinalizers(append(metadata.GetFinalizers(), o.constructFinalizerKey()))
+	}
 	metadata.GetAnnotations()[initialized] = "true"
 
 	_, err = o.objectClient.Update(metadata.GetName(), obj)

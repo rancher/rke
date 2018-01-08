@@ -53,9 +53,11 @@ type GlobalRoleController interface {
 type GlobalRoleInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*GlobalRole) (*GlobalRole, error)
+	GetNamespace(name, namespace string, opts metav1.GetOptions) (*GlobalRole, error)
 	Get(name string, opts metav1.GetOptions) (*GlobalRole, error)
 	Update(*GlobalRole) (*GlobalRole, error)
 	Delete(name string, options *metav1.DeleteOptions) error
+	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*GlobalRoleList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
@@ -172,6 +174,11 @@ func (s *globalRoleClient) Get(name string, opts metav1.GetOptions) (*GlobalRole
 	return obj.(*GlobalRole), err
 }
 
+func (s *globalRoleClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*GlobalRole, error) {
+	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+	return obj.(*GlobalRole), err
+}
+
 func (s *globalRoleClient) Update(o *GlobalRole) (*GlobalRole, error) {
 	obj, err := s.objectClient.Update(o.Name, o)
 	return obj.(*GlobalRole), err
@@ -181,6 +188,10 @@ func (s *globalRoleClient) Delete(name string, options *metav1.DeleteOptions) er
 	return s.objectClient.Delete(name, options)
 }
 
+func (s *globalRoleClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespace(name, namespace, options)
+}
+
 func (s *globalRoleClient) List(opts metav1.ListOptions) (*GlobalRoleList, error) {
 	obj, err := s.objectClient.List(opts)
 	return obj.(*GlobalRoleList), err
@@ -188,6 +199,12 @@ func (s *globalRoleClient) List(opts metav1.ListOptions) (*GlobalRoleList, error
 
 func (s *globalRoleClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 	return s.objectClient.Watch(opts)
+}
+
+// Patch applies the patch and returns the patched deployment.
+func (s *globalRoleClient) Patch(o *GlobalRole, data []byte, subresources ...string) (*GlobalRole, error) {
+	obj, err := s.objectClient.Patch(o.Name, o, data, subresources...)
+	return obj.(*GlobalRole), err
 }
 
 func (s *globalRoleClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error {

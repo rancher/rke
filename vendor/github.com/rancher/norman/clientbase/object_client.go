@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -58,6 +59,10 @@ func (p *ObjectClient) UnstructuredClient() *ObjectClient {
 	}
 }
 
+func (p *ObjectClient) GroupVersionKind() schema.GroupVersionKind {
+	return p.gvk
+}
+
 func (p *ObjectClient) getAPIPrefix() string {
 	if p.gvk.Group == "" {
 		return "api"
@@ -88,6 +93,23 @@ func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 		Do().
 		Into(result)
 	return result, err
+}
+
+func (p *ObjectClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (runtime.Object, error) {
+	result := p.Factory.Object()
+	req := p.restClient.Get().
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version)
+	if namespace != "" {
+		req = req.Namespace(namespace)
+	}
+	err := req.NamespaceIfScoped(p.ns, p.resource.Namespaced).
+		Resource(p.resource.Name).
+		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
+		Name(name).
+		Do().
+		Into(result)
+	return result, err
+
 }
 
 func (p *ObjectClient) Get(name string, opts metav1.GetOptions) (runtime.Object, error) {
@@ -121,6 +143,19 @@ func (p *ObjectClient) Update(name string, o runtime.Object) (runtime.Object, er
 		Do().
 		Into(result)
 	return result, err
+}
+
+func (p *ObjectClient) DeleteNamespace(name, namespace string, opts *metav1.DeleteOptions) error {
+	req := p.restClient.Delete().
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version)
+	if namespace != "" {
+		req = req.Namespace(namespace)
+	}
+	return req.Resource(p.resource.Name).
+		Name(name).
+		Body(opts).
+		Do().
+		Error()
 }
 
 func (p *ObjectClient) Delete(name string, opts *metav1.DeleteOptions) error {
@@ -172,6 +207,27 @@ func (p *ObjectClient) DeleteCollection(deleteOptions *metav1.DeleteOptions, lis
 		Body(deleteOptions).
 		Do().
 		Error()
+}
+
+func (p *ObjectClient) Patch(name string, o runtime.Object, data []byte, subresources ...string) (runtime.Object, error) {
+	ns := p.ns
+	if obj, ok := o.(metav1.Object); ok && obj.GetNamespace() != "" {
+		ns = obj.GetNamespace()
+	}
+	result := p.Factory.Object()
+	if len(name) == 0 {
+		return result, errors.New("object missing name")
+	}
+	err := p.restClient.Patch(types.StrategicMergePatchType).
+		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
+		NamespaceIfScoped(ns, p.resource.Namespaced).
+		Resource(p.resource.Name).
+		SubResource(subresources...).
+		Name(name).
+		Body(data).
+		Do().
+		Into(result)
+	return result, err
 }
 
 type dynamicDecoder struct {
