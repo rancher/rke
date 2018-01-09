@@ -3,37 +3,39 @@ package services
 import (
 	"fmt"
 
+	"context"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/log"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
-	"github.com/sirupsen/logrus"
 )
 
-func RunEtcdPlane(etcdHosts []*hosts.Host, etcdService v3.ETCDService) error {
-	logrus.Infof("[%s] Building up Etcd Plane..", ETCDRole)
+func RunEtcdPlane(ctx context.Context, etcdHosts []*hosts.Host, etcdService v3.ETCDService) error {
+	log.Infof(ctx, "[%s] Building up Etcd Plane..", ETCDRole)
 	initCluster := getEtcdInitialCluster(etcdHosts)
 	for _, host := range etcdHosts {
 		imageCfg, hostCfg := buildEtcdConfig(host, etcdService, initCluster)
-		err := docker.DoRunContainer(host.DClient, imageCfg, hostCfg, EtcdContainerName, host.Address, ETCDRole)
+		err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, EtcdContainerName, host.Address, ETCDRole)
 		if err != nil {
 			return err
 		}
 	}
-	logrus.Infof("[%s] Successfully started Etcd Plane..", ETCDRole)
+	log.Infof(ctx, "[%s] Successfully started Etcd Plane..", ETCDRole)
 	return nil
 }
 
-func RemoveEtcdPlane(etcdHosts []*hosts.Host) error {
-	logrus.Infof("[%s] Tearing down Etcd Plane..", ETCDRole)
+func RemoveEtcdPlane(ctx context.Context, etcdHosts []*hosts.Host) error {
+	log.Infof(ctx, "[%s] Tearing down Etcd Plane..", ETCDRole)
 	for _, host := range etcdHosts {
-		err := docker.DoRemoveContainer(host.DClient, EtcdContainerName, host.Address)
+		err := docker.DoRemoveContainer(ctx, host.DClient, EtcdContainerName, host.Address)
 		if err != nil {
 			return err
 		}
 	}
-	logrus.Infof("[%s] Successfully teared down Etcd Plane..", ETCDRole)
+	log.Infof(ctx, "[%s] Successfully teared down Etcd Plane..", ETCDRole)
 	return nil
 }
 
