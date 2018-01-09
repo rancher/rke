@@ -1,6 +1,7 @@
 package pki
 
 import (
+	"context"
 	"crypto/x509"
 	"fmt"
 	"net"
@@ -27,7 +28,7 @@ func TestPKI(t *testing.T) {
 			DClient: nil,
 		},
 	}
-	certificateMap, err := StartCertificatesGeneration(cpHosts, cpHosts, FakeClusterDomain, "", net.ParseIP(FakeKubernetesServiceIP))
+	certificateMap, err := StartCertificatesGeneration(context.Background(), cpHosts, cpHosts, FakeClusterDomain, "", net.ParseIP(FakeKubernetesServiceIP))
 	if err != nil {
 		t.Fatalf("Failed To generate certificates: %v", err)
 	}
