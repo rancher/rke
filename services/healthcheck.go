@@ -20,9 +20,9 @@ const (
 	HTTPSProtoPrefix = "https://"
 )
 
-func runHealthcheck(ctx context.Context, host *hosts.Host, port int, useTLS bool, serviceName string, healthcheckDialerFactory hosts.DialerFactory) error {
+func runHealthcheck(ctx context.Context, host *hosts.Host, port int, useTLS bool, serviceName string, localConnDialerFactory hosts.DialerFactory) error {
 	log.Infof(ctx, "[healthcheck] Start Healthcheck on service [%s] on host [%s]", serviceName, host.Address)
-	client, err := getHealthCheckHTTPClient(host, port, healthcheckDialerFactory)
+	client, err := getHealthCheckHTTPClient(host, port, localConnDialerFactory)
 	if err != nil {
 		return fmt.Errorf("Failed to initiate new HTTP client for service [%s] for host [%s]", serviceName, host.Address)
 	}
@@ -38,13 +38,13 @@ func runHealthcheck(ctx context.Context, host *hosts.Host, port int, useTLS bool
 	return fmt.Errorf("Failed to verify healthcheck: %v", err)
 }
 
-func getHealthCheckHTTPClient(host *hosts.Host, port int, healthcheckDialerFactory hosts.DialerFactory) (*http.Client, error) {
-	host.HealthcheckPort = port
+func getHealthCheckHTTPClient(host *hosts.Host, port int, localConnDialerFactory hosts.DialerFactory) (*http.Client, error) {
+	host.LocalConnPort = port
 	var factory hosts.DialerFactory
-	if healthcheckDialerFactory == nil {
-		factory = hosts.HealthcheckFactory
+	if localConnDialerFactory == nil {
+		factory = hosts.LocalConnFactory
 	} else {
-		factory = healthcheckDialerFactory
+		factory = localConnDialerFactory
 	}
 	dialer, err := factory(host)
 	if err != nil {
