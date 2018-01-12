@@ -77,14 +77,14 @@ func makeSSHConfig(user string, signer ssh.Signer) (*ssh.ClientConfig, error) {
 	return &config, nil
 }
 
-func checkEncryptedKey(sshKey, sshKeyPath string) (ssh.Signer, error) {
+func (h *Host) checkEncryptedKey() (ssh.Signer, error) {
 	logrus.Debugf("[ssh] Checking private key")
 	var err error
 	var key ssh.Signer
-	if len(sshKey) > 0 {
-		key, err = parsePrivateKey(sshKey)
+	if len(h.SSHKey) > 0 {
+		key, err = parsePrivateKey(h.SSHKey)
 	} else {
-		key, err = parsePrivateKey(privateKeyPath(sshKeyPath))
+		key, err = parsePrivateKey(privateKeyPath(h.SSHKeyPath))
 	}
 	if err == nil {
 		return key, nil
@@ -92,16 +92,23 @@ func checkEncryptedKey(sshKey, sshKeyPath string) (ssh.Signer, error) {
 
 	// parse encrypted key
 	if strings.Contains(err.Error(), "decode encrypted private keys") {
-		fmt.Printf("Passphrase for Private SSH Key: ")
-		passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
-		fmt.Printf("\n")
-		if err != nil {
-			return nil, err
-		}
-		if len(sshKey) > 0 {
-			key, err = parsePrivateKeyWithPassPhrase(sshKey, passphrase)
+		var passphrase []byte
+		if len(h.SavedKeyPhrase) == 0 {
+			fmt.Printf("Passphrase for Private SSH Key: ")
+			passphrase, err = terminal.ReadPassword(int(syscall.Stdin))
+			fmt.Printf("\n")
+			if err != nil {
+				return nil, err
+			}
+			h.SavedKeyPhrase = string(passphrase)
 		} else {
-			key, err = parsePrivateKeyWithPassPhrase(privateKeyPath(sshKeyPath), passphrase)
+			passphrase = []byte(h.SavedKeyPhrase)
+		}
+
+		if len(h.SSHKey) > 0 {
+			key, err = parsePrivateKeyWithPassPhrase(h.SSHKey, passphrase)
+		} else {
+			key, err = parsePrivateKeyWithPassPhrase(privateKeyPath(h.SSHKeyPath), passphrase)
 		}
 		if err != nil {
 			return nil, err
