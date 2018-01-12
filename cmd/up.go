@@ -32,10 +32,14 @@ func UpCommand() cli.Command {
 	}
 }
 
-func ClusterUp(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dockerDialerFactory, localConnDialerFactory hosts.DialerFactory) (string, string, string, string, error) {
+func ClusterUp(
+	ctx context.Context,
+	rkeConfig *v3.RancherKubernetesEngineConfig,
+	dockerDialerFactory, localConnDialerFactory hosts.DialerFactory,
+	configDir string) (string, string, string, string, error) {
 	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
-	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, dockerDialerFactory, localConnDialerFactory)
+	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dockerDialerFactory, localConnDialerFactory)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
@@ -115,6 +119,6 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to parse cluster file: %v", err)
 	}
-	_, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil)
+	_, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, "")
 	return err
 }
