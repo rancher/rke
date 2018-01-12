@@ -62,6 +62,7 @@ func buildKubeletConfig(host *hosts.Host, kubeletService v3.KubeletService) (*co
 		},
 		Binds: []string{
 			"/etc/kubernetes:/etc/kubernetes",
+			"/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins",
 			"/etc/cni:/etc/cni:ro",
 			"/opt/cni:/opt/cni:ro",
 			"/etc/resolv.conf:/etc/resolv.conf",
