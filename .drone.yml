@@ -33,7 +33,7 @@ pipeline:
     image: plugins/github-release
     files:
      - bin/*
-     - build/bin/*
+     - build/bin/rke_*
     secrets: [github_token]
     when:
       branch: master
