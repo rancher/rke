@@ -36,9 +36,13 @@ func RemoveCommand() cli.Command {
 	}
 }
 
-func ClusterRemove(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dialerFactory hosts.DialerFactory) error {
+func ClusterRemove(
+	ctx context.Context,
+	rkeConfig *v3.RancherKubernetesEngineConfig,
+	dialerFactory hosts.DialerFactory,
+	configDir string) error {
 	log.Infof(ctx, "Tearing down Kubernetes cluster")
-	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, dialerFactory, nil)
+	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dialerFactory, nil)
 	if err != nil {
 		return err
 	}
@@ -82,5 +86,5 @@ func clusterRemoveFromCli(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to parse cluster file: %v", err)
 	}
-	return ClusterRemove(context.Background(), rkeConfig, nil)
+	return ClusterRemove(context.Background(), rkeConfig, nil, "")
 }
