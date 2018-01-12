@@ -42,7 +42,7 @@ pipeline:
   publish-rke-certs-deployer:
     image: plugins/docker
     dockerfile: package/certs-deployer/Dockerfile
-    repo: rancher/rke-certs-deployer
+    repo: rancher/rke-cert-deployer
     context: package/certs-deployer/
     tag: ${DRONE_TAG}
     secrets: [docker_username, docker_password]
