@@ -9,7 +9,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func RunWorkerPlane(ctx context.Context, controlHosts, workerHosts []*hosts.Host, workerServices v3.RKEConfigServices, nginxProxyImage, sidekickImage string, healthcheckDialerFactory hosts.DialerFactory) error {
+func RunWorkerPlane(ctx context.Context, controlHosts, workerHosts []*hosts.Host, workerServices v3.RKEConfigServices, nginxProxyImage, sidekickImage string, localConnDialerFactory hosts.DialerFactory) error {
 	log.Infof(ctx, "[%s] Building up Worker Plane..", WorkerRole)
 	var errgrp errgroup.Group
 
@@ -17,7 +17,7 @@ func RunWorkerPlane(ctx context.Context, controlHosts, workerHosts []*hosts.Host
 	for _, host := range controlHosts {
 		controlHost := host
 		errgrp.Go(func() error {
-			return doDeployWorkerPlane(ctx, controlHost, workerServices, nginxProxyImage, sidekickImage, healthcheckDialerFactory, controlHosts)
+			return doDeployWorkerPlane(ctx, controlHost, workerServices, nginxProxyImage, sidekickImage, localConnDialerFactory, controlHosts)
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
@@ -27,7 +27,7 @@ func RunWorkerPlane(ctx context.Context, controlHosts, workerHosts []*hosts.Host
 	for _, host := range workerHosts {
 		workerHost := host
 		errgrp.Go(func() error {
-			return doDeployWorkerPlane(ctx, workerHost, workerServices, nginxProxyImage, sidekickImage, healthcheckDialerFactory, controlHosts)
+			return doDeployWorkerPlane(ctx, workerHost, workerServices, nginxProxyImage, sidekickImage, localConnDialerFactory, controlHosts)
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
@@ -67,7 +67,7 @@ func RemoveWorkerPlane(ctx context.Context, workerHosts []*hosts.Host, force boo
 func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 	workerServices v3.RKEConfigServices,
 	nginxProxyImage, sidekickImage string,
-	healthcheckDialerFactory hosts.DialerFactory,
+	localConnDialerFactory hosts.DialerFactory,
 	controlHosts []*hosts.Host) error {
 	// run nginx proxy
 	if !host.IsControl {
@@ -80,8 +80,8 @@ func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 		return err
 	}
 	// run kubelet
-	if err := runKubelet(ctx, host, workerServices.Kubelet, healthcheckDialerFactory); err != nil {
+	if err := runKubelet(ctx, host, workerServices.Kubelet, localConnDialerFactory); err != nil {
 		return err
 	}
-	return runKubeproxy(ctx, host, workerServices.Kubeproxy, healthcheckDialerFactory)
+	return runKubeproxy(ctx, host, workerServices.Kubeproxy, localConnDialerFactory)
 }

@@ -17,10 +17,13 @@ import (
 type Host struct {
 	v3.RKEConfigNode
 	DClient              *client.Client
-	HealthcheckPort      int
+	LocalConnPort        int
 	IsControl            bool
 	IsWorker             bool
+	IsEtcd               bool
 	EnforceDockerVersion bool
+	ToAddEtcdMember      bool
+	ExistingEtcdCluster  bool
 }
 
 const (
@@ -44,7 +47,7 @@ func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string) error {
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage)
 }
 
-func (h *Host) CleanUpWorkerHost(ctx context.Context, controlRole, cleanerImage string) error {
+func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string) error {
 	if h.IsControl {
 		log.Infof(ctx, "[hosts] Host [%s] is already a controlplane host, skipping cleanup.", h.Address)
 		return nil
@@ -58,7 +61,7 @@ func (h *Host) CleanUpWorkerHost(ctx context.Context, controlRole, cleanerImage 
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage)
 }
 
-func (h *Host) CleanUpControlHost(ctx context.Context, workerRole, cleanerImage string) error {
+func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string) error {
 	if h.IsWorker {
 		log.Infof(ctx, "[hosts] Host [%s] is already a worker host, skipping cleanup.", h.Address)
 		return nil
@@ -68,6 +71,20 @@ func (h *Host) CleanUpControlHost(ctx context.Context, workerRole, cleanerImage 
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
+	}
+	return h.CleanUp(ctx, toCleanPaths, cleanerImage)
+}
+
+func (h *Host) CleanUpEtcdHost(ctx context.Context, cleanerImage string) error {
+	toCleanPaths := []string{
+		ToCleanEtcdDir,
+		ToCleanSSLDir,
+	}
+	if h.IsWorker || h.IsControl {
+		log.Infof(ctx, "[hosts] Host [%s] is already a worker or control host, skipping cleanup certs.", h.Address)
+		toCleanPaths = []string{
+			ToCleanEtcdDir,
+		}
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage)
 }
@@ -131,6 +148,23 @@ func GetToDeleteHosts(currentHosts, configHosts []*Host) []*Host {
 		}
 	}
 	return toDeleteHosts
+}
+
+func GetToAddHosts(currentHosts, configHosts []*Host) []*Host {
+	toAddHosts := []*Host{}
+	for _, configHost := range configHosts {
+		found := false
+		for _, currentHost := range currentHosts {
+			if currentHost.Address == configHost.Address {
+				found = true
+				break
+			}
+		}
+		if !found {
+			toAddHosts = append(toAddHosts, configHost)
+		}
+	}
+	return toAddHosts
 }
 
 func IsHostListChanged(currentHosts, configHosts []*Host) bool {

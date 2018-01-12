@@ -34,7 +34,7 @@ type Cluster struct {
 	ClusterCIDR                      string
 	ClusterDNSServer                 string
 	DockerDialerFactory              hosts.DialerFactory
-	HealthcheckDialerFactory         hosts.DialerFactory
+	LocalConnDialerFactory           hosts.DialerFactory
 }
 
 const (
@@ -56,7 +56,7 @@ const (
 
 func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 	// Deploy Etcd Plane
-	if err := services.RunEtcdPlane(ctx, c.EtcdHosts, c.Services.Etcd); err != nil {
+	if err := services.RunEtcdPlane(ctx, c.EtcdHosts, c.Services.Etcd, c.LocalConnDialerFactory); err != nil {
 		return fmt.Errorf("[etcd] Failed to bring up Etcd Plane: %v", err)
 	}
 	// Deploy Control plane
@@ -65,7 +65,7 @@ func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 		c.Services,
 		c.SystemImages[ServiceSidekickImage],
 		c.Authorization.Mode,
-		c.HealthcheckDialerFactory); err != nil {
+		c.LocalConnDialerFactory); err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 	}
 	// Apply Authz configuration after deploying controlplane
@@ -82,7 +82,7 @@ func (c *Cluster) DeployWorkerPlane(ctx context.Context) error {
 		c.Services,
 		c.SystemImages[NginxProxyImage],
 		c.SystemImages[ServiceSidekickImage],
-		c.HealthcheckDialerFactory); err != nil {
+		c.LocalConnDialerFactory); err != nil {
 		return fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
 	}
 	return nil
@@ -97,13 +97,13 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	return &rkeConfig, nil
 }
 
-func ParseCluster(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath string, dockerDialerFactory, healthcheckDialerFactory hosts.DialerFactory) (*Cluster, error) {
+func ParseCluster(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath string, dockerDialerFactory, localConnDialerFactory hosts.DialerFactory) (*Cluster, error) {
 	var err error
 	c := &Cluster{
 		RancherKubernetesEngineConfig: *rkeConfig,
 		ConfigPath:                    clusterFilePath,
 		DockerDialerFactory:           dockerDialerFactory,
-		HealthcheckDialerFactory:      healthcheckDialerFactory,
+		LocalConnDialerFactory:        localConnDialerFactory,
 	}
 	// Setting cluster Defaults
 	c.setClusterDefaults(ctx)
