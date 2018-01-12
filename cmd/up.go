@@ -32,10 +32,10 @@ func UpCommand() cli.Command {
 	}
 }
 
-func ClusterUp(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dockerDialerFactory, healthcheckDialerFactory hosts.DialerFactory) (string, string, string, string, error) {
+func ClusterUp(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dockerDialerFactory, localConnDialerFactory hosts.DialerFactory) (string, string, string, string, error) {
 	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
-	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, dockerDialerFactory, healthcheckDialerFactory)
+	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, dockerDialerFactory, localConnDialerFactory)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
@@ -47,10 +47,6 @@ func ClusterUp(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig,
 
 	currentCluster, err := kubeCluster.GetClusterState(ctx)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
-	}
-
-	if err := cluster.CheckEtcdHostsChanged(kubeCluster, currentCluster); err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 

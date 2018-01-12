@@ -47,6 +47,7 @@ func (c *Cluster) InvertIndexHosts() error {
 			logrus.Debugf("Host: " + host.Address + " has role: " + role)
 			switch role {
 			case services.ETCDRole:
+				newHost.IsEtcd = true
 				c.EtcdHosts = append(c.EtcdHosts, &newHost)
 			case services.ControlRole:
 				newHost.IsControl = true
