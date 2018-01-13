@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"archive/tar"
 	"context"
 	"fmt"
 	"io"
@@ -270,4 +271,21 @@ func IsSupportedDockerVersion(info types.Info, K8sVersion string) (bool, error) 
 
 	}
 	return false, nil
+}
+
+func ReadFileFromContainer(ctx context.Context, dClient *client.Client, hostname, container, filePath string) (string, error) {
+	reader, _, err := dClient.CopyFromContainer(ctx, container, filePath)
+	if err != nil {
+		return "", fmt.Errorf("Failed to copy file [%s] from container [%s] on host [%s]: %v", filePath, container, hostname, err)
+	}
+	defer reader.Close()
+	tarReader := tar.NewReader(reader)
+	if _, err := tarReader.Next(); err != nil {
+		return "", err
+	}
+	file, err := ioutil.ReadAll(tarReader)
+	if err != nil {
+		return "", err
+	}
+	return string(file), nil
 }
