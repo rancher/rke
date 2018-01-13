@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-SSL_CRTS_DIR=/etc/kubernetes/ssl
+SSL_CRTS_DIR=${CRTS_DEPLOY_PATH:-/etc/kubernetes/ssl}
 mkdir -p $SSL_CRTS_DIR
 
 for i in $(env | grep -o KUBE_.*=); do
