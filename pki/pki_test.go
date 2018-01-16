@@ -38,11 +38,11 @@ func TestPKI(t *testing.T) {
 
 	certificatesToVerify := []string{
 		KubeAPICertName,
-		KubeNodeName,
-		KubeProxyName,
-		KubeControllerName,
-		KubeSchedulerName,
-		KubeAdminCommonName,
+		KubeNodeCertName,
+		KubeProxyCertName,
+		KubeControllerCertName,
+		KubeSchedulerCertName,
+		KubeAdminCertName,
 	}
 	opts := x509.VerifyOptions{
 		Roots:     roots,
