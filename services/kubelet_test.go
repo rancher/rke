@@ -43,7 +43,7 @@ func TestKubeletConfig(t *testing.T) {
 	kubeletService.InfraContainerImage = TestKubeletInfraContainerImage
 	kubeletService.ExtraArgs = map[string]string{"foo": "bar"}
 
-	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService)
+	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, false)
 	// Test image and host config
 	assertEqual(t, isStringInSlice(TestClusterDomainPrefix+TestKubeletClusterDomain, imageCfg.Entrypoint), true,
 		fmt.Sprintf("Failed to find [%s] in Kubelet Command", TestClusterDomainPrefix+TestKubeletClusterDomain))
