@@ -15,6 +15,7 @@ const (
 	DefaultClusterDomain         = "cluster.local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
 
+	DefaultSSHPort        = "22"
 	DefaultDockerSockPath = "/var/run/docker.sock"
 
 	DefaultAuthStrategy      = "x509"
@@ -83,6 +84,9 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 		}
 		if len(host.SSHKeyPath) == 0 {
 			c.Nodes[i].SSHKeyPath = c.SSHKeyPath
+		}
+		if len(host.Port) == 0 {
+			c.Nodes[i].Port = DefaultSSHPort
 		}
 	}
 	if len(c.Authorization.Mode) == 0 {
