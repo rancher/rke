@@ -44,7 +44,8 @@ type GroupLister interface {
 type GroupController interface {
 	Informer() cache.SharedIndexInformer
 	Lister() GroupLister
-	AddHandler(handler GroupHandlerFunc)
+	AddHandler(name string, handler GroupHandlerFunc)
+	AddClusterScopedHandler(name, clusterName string, handler GroupHandlerFunc)
 	Enqueue(namespace, name string)
 	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
@@ -53,17 +54,19 @@ type GroupController interface {
 type GroupInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*Group) (*Group, error)
-	GetNamespace(name, namespace string, opts metav1.GetOptions) (*Group, error)
+	GetNamespaced(namespace, name string, opts metav1.GetOptions) (*Group, error)
 	Get(name string, opts metav1.GetOptions) (*Group, error)
 	Update(*Group) (*Group, error)
 	Delete(name string, options *metav1.DeleteOptions) error
-	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
+	DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*GroupList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
 	Controller() GroupController
-	AddSyncHandler(sync GroupHandlerFunc)
+	AddHandler(name string, sync GroupHandlerFunc)
 	AddLifecycle(name string, lifecycle GroupLifecycle)
+	AddClusterScopedHandler(name, clusterName string, sync GroupHandlerFunc)
+	AddClusterScopedLifecycle(name, clusterName string, lifecycle GroupLifecycle)
 }
 
 type groupLister struct {
@@ -107,8 +110,8 @@ func (c *groupController) Lister() GroupLister {
 	}
 }
 
-func (c *groupController) AddHandler(handler GroupHandlerFunc) {
-	c.GenericController.AddHandler(func(key string) error {
+func (c *groupController) AddHandler(name string, handler GroupHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
 		obj, exists, err := c.Informer().GetStore().GetByKey(key)
 		if err != nil {
 			return err
@@ -116,6 +119,24 @@ func (c *groupController) AddHandler(handler GroupHandlerFunc) {
 		if !exists {
 			return handler(key, nil)
 		}
+		return handler(key, obj.(*Group))
+	})
+}
+
+func (c *groupController) AddClusterScopedHandler(name, cluster string, handler GroupHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
+		obj, exists, err := c.Informer().GetStore().GetByKey(key)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return handler(key, nil)
+		}
+
+		if !controller.ObjectInCluster(cluster, obj) {
+			return nil
+		}
+
 		return handler(key, obj.(*Group))
 	})
 }
@@ -174,8 +195,8 @@ func (s *groupClient) Get(name string, opts metav1.GetOptions) (*Group, error) {
 	return obj.(*Group), err
 }
 
-func (s *groupClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*Group, error) {
-	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+func (s *groupClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (*Group, error) {
+	obj, err := s.objectClient.GetNamespaced(namespace, name, opts)
 	return obj.(*Group), err
 }
 
@@ -188,8 +209,8 @@ func (s *groupClient) Delete(name string, options *metav1.DeleteOptions) error {
 	return s.objectClient.Delete(name, options)
 }
 
-func (s *groupClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
-	return s.objectClient.DeleteNamespace(name, namespace, options)
+func (s *groupClient) DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespaced(namespace, name, options)
 }
 
 func (s *groupClient) List(opts metav1.ListOptions) (*GroupList, error) {
@@ -211,11 +232,20 @@ func (s *groupClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpt
 	return s.objectClient.DeleteCollection(deleteOpts, listOpts)
 }
 
-func (s *groupClient) AddSyncHandler(sync GroupHandlerFunc) {
-	s.Controller().AddHandler(sync)
+func (s *groupClient) AddHandler(name string, sync GroupHandlerFunc) {
+	s.Controller().AddHandler(name, sync)
 }
 
 func (s *groupClient) AddLifecycle(name string, lifecycle GroupLifecycle) {
-	sync := NewGroupLifecycleAdapter(name, s, lifecycle)
-	s.AddSyncHandler(sync)
+	sync := NewGroupLifecycleAdapter(name, false, s, lifecycle)
+	s.AddHandler(name, sync)
+}
+
+func (s *groupClient) AddClusterScopedHandler(name, clusterName string, sync GroupHandlerFunc) {
+	s.Controller().AddClusterScopedHandler(name, clusterName, sync)
+}
+
+func (s *groupClient) AddClusterScopedLifecycle(name, clusterName string, lifecycle GroupLifecycle) {
+	sync := NewGroupLifecycleAdapter(name+"_"+clusterName, true, s, lifecycle)
+	s.AddClusterScopedHandler(name, clusterName, sync)
 }

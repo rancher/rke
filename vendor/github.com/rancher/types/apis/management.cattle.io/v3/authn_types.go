@@ -8,6 +8,7 @@ type Token struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
+	Token           string            `json:"token" norman:"writeOnly,noupdate"`
 	UserPrincipal   Principal         `json:"userPrincipal" norman:"type=reference[Principal]"`
 	GroupPrincipals []Principal       `json:"groupPrincipals" norman:"type=array[reference[Principal]]"`
 	ProviderInfo    map[string]string `json:"providerInfo,omitempty"`
@@ -24,7 +25,8 @@ type User struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	DisplayName        string   `json:"displayName,omitempty"`
-	UserName           string   `json:"userName,omitempty"`
+	Description        string   `json:"description"`
+	Username           string   `json:"username,omitempty"`
 	Password           string   `json:"password,omitempty" norman:"writeOnly,noupdate"`
 	MustChangePassword bool     `json:"mustChangePassword,omitempty"`
 	PrincipalIDs       []string `json:"principalIds,omitempty" norman:"type=array[reference[Principal]]"`
@@ -81,5 +83,10 @@ type GithubCredential struct {
 }
 
 type ChangePasswordInput struct {
-	NewPassword string `json:"newPassword"`
+	CurrentPassword string `json:"currentPassword" norman:"type=string,required"`
+	NewPassword     string `json:"newPassword" norman:"type=string,required"`
+}
+
+type SetPasswordInput struct {
+	NewPassword string `json:"newPassword" norman:"type=string,required"`
 }
