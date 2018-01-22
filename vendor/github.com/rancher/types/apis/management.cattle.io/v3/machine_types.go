@@ -69,6 +69,9 @@ type MachineStatus struct {
 	NodeConfig          *RKEConfigNode       `json:"rkeNode,omitempty"`
 	SSHUser             string               `json:"sshUser,omitempty"`
 	MachineDriverConfig string               `json:"machineDriverConfig,omitempty"`
+	NodeAnnotations     map[string]string    `json:"nodeAnnotations,omitempty"`
+	NodeLabels          map[string]string    `json:"nodeLabels,omitempty"`
+	Token               string               `json:"token"`
 }
 
 var (
@@ -100,13 +103,14 @@ type MachineConfig struct {
 }
 
 type MachineSpec struct {
-	NodeSpec            v1.NodeSpec `json:"nodeSpec"`
-	Description         string      `json:"description,omitempty"`
-	DisplayName         string      `json:"displayName,omitempty"`
-	RequestedHostname   string      `json:"requestedHostname,omitempty" norman:"noupdate"`
-	ClusterName         string      `json:"clusterName,omitempty" norman:"type=reference[cluster],noupdate,required"`
-	Role                []string    `json:"role,omitempty" norman:"noupdate"`
-	MachineTemplateName string      `json:"machineTemplateName,omitempty" norman:"type=reference[machineTemplate],noupdate"`
+	NodeSpec             v1.NodeSpec `json:"nodeSpec"`
+	Description          string      `json:"description,omitempty"`
+	DisplayName          string      `json:"displayName"`
+	RequestedHostname    string      `json:"requestedHostname,omitempty" norman:"noupdate"`
+	ClusterName          string      `json:"clusterName,omitempty" norman:"type=reference[cluster],noupdate,required"`
+	Role                 []string    `json:"role,omitempty" norman:"noupdate,type=array[enum],options=etcd|worker|controlplane"`
+	MachineTemplateName  string      `json:"machineTemplateName,omitempty" norman:"type=reference[machineTemplate],noupdate"`
+	UseInternalIPAddress bool        `json:"useInternalIpAddress,omitempty" norman:"default=true,noupdate"`
 }
 
 type MachineCommonParams struct {
@@ -139,6 +143,12 @@ type MachineDriverStatus struct {
 	Conditions []MachineDriverCondition `json:"conditions"`
 }
 
+var (
+	MachineDriverConditionDownloaded condition.Cond = "Downloaded"
+	MachineDriverConditionActive     condition.Cond = "Active"
+	MachineDriverConditionInactive   condition.Cond = "Inactive"
+)
+
 type MachineDriverCondition struct {
 	// Type of cluster condition.
 	Type string `json:"type"`
@@ -150,9 +160,12 @@ type MachineDriverCondition struct {
 	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
 	// The reason for the condition's last transition.
 	Reason string `json:"reason,omitempty"`
+	// Human-readable message indicating details about last transition
+	Message string `json:"message,omitempty"`
 }
 
 type MachineDriverSpec struct {
+	DisplayName string `json:"displayName"`
 	Description string `json:"description"`
 	URL         string `json:"url"`
 	ExternalID  string `json:"externalId"`

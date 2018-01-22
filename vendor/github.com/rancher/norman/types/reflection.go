@@ -74,11 +74,13 @@ func (s *Schemas) Import(version *APIVersion, obj interface{}, externalOverrides
 
 func (s *Schemas) newSchemaFromType(version *APIVersion, t reflect.Type, typeName string) (*Schema, error) {
 	schema := &Schema{
-		ID:             typeName,
-		Version:        *version,
-		CodeName:       t.Name(),
-		PkgName:        t.PkgPath(),
-		ResourceFields: map[string]Field{},
+		ID:                typeName,
+		Version:           *version,
+		CodeName:          t.Name(),
+		PkgName:           t.PkgPath(),
+		ResourceFields:    map[string]Field{},
+		ResourceActions:   map[string]Action{},
+		CollectionActions: map[string]Action{},
 	}
 
 	if err := s.readFields(schema, t); err != nil {
@@ -153,7 +155,7 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 
 	mappers := s.mapper(&schema.Version, schema.ID)
 	if s.DefaultMappers != nil {
-		if schema.CanList() {
+		if schema.CanList(nil) {
 			mappers = append(s.DefaultMappers(), mappers...)
 		}
 	}
@@ -177,7 +179,7 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 
 	mapper := &typeMapper{
 		Mappers: mappers,
-		root:    schema.CanList(),
+		root:    schema.CanList(nil),
 	}
 
 	if err := mapper.ModifySchema(schema, s); err != nil {

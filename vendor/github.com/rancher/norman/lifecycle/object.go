@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	created      = "lifecycle.cattle.io/create"
-	finalizerKey = "controller.cattle.io/"
+	created            = "lifecycle.cattle.io/create"
+	finalizerKey       = "controller.cattle.io/"
+	ScopedFinalizerKey = "clusterscoped.controller.cattle.io/"
 )
 
 type ObjectLifecycle interface {
@@ -22,16 +23,18 @@ type ObjectLifecycle interface {
 }
 
 type objectLifecycleAdapter struct {
-	name         string
-	lifecycle    ObjectLifecycle
-	objectClient *clientbase.ObjectClient
+	name          string
+	clusterScoped bool
+	lifecycle     ObjectLifecycle
+	objectClient  *clientbase.ObjectClient
 }
 
-func NewObjectLifecycleAdapter(name string, lifecycle ObjectLifecycle, objectClient *clientbase.ObjectClient) func(key string, obj runtime.Object) error {
+func NewObjectLifecycleAdapter(name string, clusterScoped bool, lifecycle ObjectLifecycle, objectClient *clientbase.ObjectClient) func(key string, obj runtime.Object) error {
 	o := objectLifecycleAdapter{
-		name:         name,
-		lifecycle:    lifecycle,
-		objectClient: objectClient,
+		name:          name,
+		clusterScoped: clusterScoped,
+		lifecycle:     lifecycle,
+		objectClient:  objectClient,
 	}
 	return o.sync
 }
@@ -54,8 +57,8 @@ func (o *objectLifecycleAdapter) sync(key string, obj runtime.Object) error {
 		return err
 	}
 
-	obj = obj.DeepCopyObject()
-	newObj, err := o.lifecycle.Updated(obj)
+	copyObj := obj.DeepCopyObject()
+	newObj, err := o.lifecycle.Updated(copyObj)
 	o.update(metadata.GetName(), obj, newObj)
 	return err
 }
@@ -77,19 +80,19 @@ func (o *objectLifecycleAdapter) finalize(metadata metav1.Object, obj runtime.Ob
 		return false, nil
 	}
 
-	obj = obj.DeepCopyObject()
-	if newObj, err := o.lifecycle.Finalize(obj); err != nil {
+	copyObj := obj.DeepCopyObject()
+	if newObj, err := o.lifecycle.Finalize(copyObj); err != nil {
 		o.update(metadata.GetName(), obj, newObj)
 		return false, err
 	} else if newObj != nil {
-		obj = newObj
+		copyObj = newObj
 	}
 
-	if err := removeFinalizer(o.constructFinalizerKey(), obj); err != nil {
+	if err := removeFinalizer(o.constructFinalizerKey(), copyObj); err != nil {
 		return false, err
 	}
 
-	_, err := o.objectClient.Update(metadata.GetName(), obj)
+	_, err := o.objectClient.Update(metadata.GetName(), copyObj)
 	return false, err
 }
 
@@ -116,6 +119,9 @@ func (o *objectLifecycleAdapter) createKey() string {
 }
 
 func (o *objectLifecycleAdapter) constructFinalizerKey() string {
+	if o.clusterScoped {
+		return ScopedFinalizerKey + o.name
+	}
 	return finalizerKey + o.name
 }
 
@@ -124,21 +130,20 @@ func (o *objectLifecycleAdapter) create(metadata metav1.Object, obj runtime.Obje
 		return true, nil
 	}
 
-	// addFinalizer will always return a DeepCopy
-	obj, err := o.addFinalizer(obj)
+	copyObj := obj.DeepCopyObject()
+	copyObj, err := o.addFinalizer(copyObj)
 	if err != nil {
 		return false, err
 	}
 
-	orig := obj.DeepCopyObject()
-	if newObj, err := o.lifecycle.Create(obj); err != nil {
-		o.update(metadata.GetName(), orig, newObj)
+	if newObj, err := o.lifecycle.Create(copyObj); err != nil {
+		o.update(metadata.GetName(), obj, newObj)
 		return false, err
 	} else if newObj != nil {
-		obj = newObj
+		copyObj = newObj
 	}
 
-	return false, o.setInitialized(obj)
+	return false, o.setInitialized(copyObj)
 }
 
 func (o *objectLifecycleAdapter) isInitialized(metadata metav1.Object) bool {
@@ -164,15 +169,9 @@ func (o *objectLifecycleAdapter) setInitialized(obj runtime.Object) error {
 }
 
 func (o *objectLifecycleAdapter) addFinalizer(obj runtime.Object) (runtime.Object, error) {
-	obj = obj.DeepCopyObject()
-
 	metadata, err := meta.Accessor(obj)
 	if err != nil {
 		return nil, err
-	}
-
-	if o.objectClient.GroupVersionKind().Kind == "Namespace" {
-		return obj, nil
 	}
 
 	if slice.ContainsString(metadata.GetFinalizers(), o.constructFinalizerKey()) {

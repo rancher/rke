@@ -44,7 +44,8 @@ type MachineDriverLister interface {
 type MachineDriverController interface {
 	Informer() cache.SharedIndexInformer
 	Lister() MachineDriverLister
-	AddHandler(handler MachineDriverHandlerFunc)
+	AddHandler(name string, handler MachineDriverHandlerFunc)
+	AddClusterScopedHandler(name, clusterName string, handler MachineDriverHandlerFunc)
 	Enqueue(namespace, name string)
 	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
@@ -53,17 +54,19 @@ type MachineDriverController interface {
 type MachineDriverInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*MachineDriver) (*MachineDriver, error)
-	GetNamespace(name, namespace string, opts metav1.GetOptions) (*MachineDriver, error)
+	GetNamespaced(namespace, name string, opts metav1.GetOptions) (*MachineDriver, error)
 	Get(name string, opts metav1.GetOptions) (*MachineDriver, error)
 	Update(*MachineDriver) (*MachineDriver, error)
 	Delete(name string, options *metav1.DeleteOptions) error
-	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
+	DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*MachineDriverList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
 	Controller() MachineDriverController
-	AddSyncHandler(sync MachineDriverHandlerFunc)
+	AddHandler(name string, sync MachineDriverHandlerFunc)
 	AddLifecycle(name string, lifecycle MachineDriverLifecycle)
+	AddClusterScopedHandler(name, clusterName string, sync MachineDriverHandlerFunc)
+	AddClusterScopedLifecycle(name, clusterName string, lifecycle MachineDriverLifecycle)
 }
 
 type machineDriverLister struct {
@@ -107,8 +110,8 @@ func (c *machineDriverController) Lister() MachineDriverLister {
 	}
 }
 
-func (c *machineDriverController) AddHandler(handler MachineDriverHandlerFunc) {
-	c.GenericController.AddHandler(func(key string) error {
+func (c *machineDriverController) AddHandler(name string, handler MachineDriverHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
 		obj, exists, err := c.Informer().GetStore().GetByKey(key)
 		if err != nil {
 			return err
@@ -116,6 +119,24 @@ func (c *machineDriverController) AddHandler(handler MachineDriverHandlerFunc) {
 		if !exists {
 			return handler(key, nil)
 		}
+		return handler(key, obj.(*MachineDriver))
+	})
+}
+
+func (c *machineDriverController) AddClusterScopedHandler(name, cluster string, handler MachineDriverHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
+		obj, exists, err := c.Informer().GetStore().GetByKey(key)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return handler(key, nil)
+		}
+
+		if !controller.ObjectInCluster(cluster, obj) {
+			return nil
+		}
+
 		return handler(key, obj.(*MachineDriver))
 	})
 }
@@ -174,8 +195,8 @@ func (s *machineDriverClient) Get(name string, opts metav1.GetOptions) (*Machine
 	return obj.(*MachineDriver), err
 }
 
-func (s *machineDriverClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*MachineDriver, error) {
-	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+func (s *machineDriverClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (*MachineDriver, error) {
+	obj, err := s.objectClient.GetNamespaced(namespace, name, opts)
 	return obj.(*MachineDriver), err
 }
 
@@ -188,8 +209,8 @@ func (s *machineDriverClient) Delete(name string, options *metav1.DeleteOptions)
 	return s.objectClient.Delete(name, options)
 }
 
-func (s *machineDriverClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
-	return s.objectClient.DeleteNamespace(name, namespace, options)
+func (s *machineDriverClient) DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespaced(namespace, name, options)
 }
 
 func (s *machineDriverClient) List(opts metav1.ListOptions) (*MachineDriverList, error) {
@@ -211,11 +232,20 @@ func (s *machineDriverClient) DeleteCollection(deleteOpts *metav1.DeleteOptions,
 	return s.objectClient.DeleteCollection(deleteOpts, listOpts)
 }
 
-func (s *machineDriverClient) AddSyncHandler(sync MachineDriverHandlerFunc) {
-	s.Controller().AddHandler(sync)
+func (s *machineDriverClient) AddHandler(name string, sync MachineDriverHandlerFunc) {
+	s.Controller().AddHandler(name, sync)
 }
 
 func (s *machineDriverClient) AddLifecycle(name string, lifecycle MachineDriverLifecycle) {
-	sync := NewMachineDriverLifecycleAdapter(name, s, lifecycle)
-	s.AddSyncHandler(sync)
+	sync := NewMachineDriverLifecycleAdapter(name, false, s, lifecycle)
+	s.AddHandler(name, sync)
+}
+
+func (s *machineDriverClient) AddClusterScopedHandler(name, clusterName string, sync MachineDriverHandlerFunc) {
+	s.Controller().AddClusterScopedHandler(name, clusterName, sync)
+}
+
+func (s *machineDriverClient) AddClusterScopedLifecycle(name, clusterName string, lifecycle MachineDriverLifecycle) {
+	sync := NewMachineDriverLifecycleAdapter(name+"_"+clusterName, true, s, lifecycle)
+	s.AddClusterScopedHandler(name, clusterName, sync)
 }

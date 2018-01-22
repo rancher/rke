@@ -44,7 +44,8 @@ type TemplateVersionLister interface {
 type TemplateVersionController interface {
 	Informer() cache.SharedIndexInformer
 	Lister() TemplateVersionLister
-	AddHandler(handler TemplateVersionHandlerFunc)
+	AddHandler(name string, handler TemplateVersionHandlerFunc)
+	AddClusterScopedHandler(name, clusterName string, handler TemplateVersionHandlerFunc)
 	Enqueue(namespace, name string)
 	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
@@ -53,17 +54,19 @@ type TemplateVersionController interface {
 type TemplateVersionInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*TemplateVersion) (*TemplateVersion, error)
-	GetNamespace(name, namespace string, opts metav1.GetOptions) (*TemplateVersion, error)
+	GetNamespaced(namespace, name string, opts metav1.GetOptions) (*TemplateVersion, error)
 	Get(name string, opts metav1.GetOptions) (*TemplateVersion, error)
 	Update(*TemplateVersion) (*TemplateVersion, error)
 	Delete(name string, options *metav1.DeleteOptions) error
-	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
+	DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*TemplateVersionList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
 	Controller() TemplateVersionController
-	AddSyncHandler(sync TemplateVersionHandlerFunc)
+	AddHandler(name string, sync TemplateVersionHandlerFunc)
 	AddLifecycle(name string, lifecycle TemplateVersionLifecycle)
+	AddClusterScopedHandler(name, clusterName string, sync TemplateVersionHandlerFunc)
+	AddClusterScopedLifecycle(name, clusterName string, lifecycle TemplateVersionLifecycle)
 }
 
 type templateVersionLister struct {
@@ -107,8 +110,8 @@ func (c *templateVersionController) Lister() TemplateVersionLister {
 	}
 }
 
-func (c *templateVersionController) AddHandler(handler TemplateVersionHandlerFunc) {
-	c.GenericController.AddHandler(func(key string) error {
+func (c *templateVersionController) AddHandler(name string, handler TemplateVersionHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
 		obj, exists, err := c.Informer().GetStore().GetByKey(key)
 		if err != nil {
 			return err
@@ -116,6 +119,24 @@ func (c *templateVersionController) AddHandler(handler TemplateVersionHandlerFun
 		if !exists {
 			return handler(key, nil)
 		}
+		return handler(key, obj.(*TemplateVersion))
+	})
+}
+
+func (c *templateVersionController) AddClusterScopedHandler(name, cluster string, handler TemplateVersionHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
+		obj, exists, err := c.Informer().GetStore().GetByKey(key)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return handler(key, nil)
+		}
+
+		if !controller.ObjectInCluster(cluster, obj) {
+			return nil
+		}
+
 		return handler(key, obj.(*TemplateVersion))
 	})
 }
@@ -174,8 +195,8 @@ func (s *templateVersionClient) Get(name string, opts metav1.GetOptions) (*Templ
 	return obj.(*TemplateVersion), err
 }
 
-func (s *templateVersionClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*TemplateVersion, error) {
-	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+func (s *templateVersionClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (*TemplateVersion, error) {
+	obj, err := s.objectClient.GetNamespaced(namespace, name, opts)
 	return obj.(*TemplateVersion), err
 }
 
@@ -188,8 +209,8 @@ func (s *templateVersionClient) Delete(name string, options *metav1.DeleteOption
 	return s.objectClient.Delete(name, options)
 }
 
-func (s *templateVersionClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
-	return s.objectClient.DeleteNamespace(name, namespace, options)
+func (s *templateVersionClient) DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespaced(namespace, name, options)
 }
 
 func (s *templateVersionClient) List(opts metav1.ListOptions) (*TemplateVersionList, error) {
@@ -211,11 +232,20 @@ func (s *templateVersionClient) DeleteCollection(deleteOpts *metav1.DeleteOption
 	return s.objectClient.DeleteCollection(deleteOpts, listOpts)
 }
 
-func (s *templateVersionClient) AddSyncHandler(sync TemplateVersionHandlerFunc) {
-	s.Controller().AddHandler(sync)
+func (s *templateVersionClient) AddHandler(name string, sync TemplateVersionHandlerFunc) {
+	s.Controller().AddHandler(name, sync)
 }
 
 func (s *templateVersionClient) AddLifecycle(name string, lifecycle TemplateVersionLifecycle) {
-	sync := NewTemplateVersionLifecycleAdapter(name, s, lifecycle)
-	s.AddSyncHandler(sync)
+	sync := NewTemplateVersionLifecycleAdapter(name, false, s, lifecycle)
+	s.AddHandler(name, sync)
+}
+
+func (s *templateVersionClient) AddClusterScopedHandler(name, clusterName string, sync TemplateVersionHandlerFunc) {
+	s.Controller().AddClusterScopedHandler(name, clusterName, sync)
+}
+
+func (s *templateVersionClient) AddClusterScopedLifecycle(name, clusterName string, lifecycle TemplateVersionLifecycle) {
+	sync := NewTemplateVersionLifecycleAdapter(name+"_"+clusterName, true, s, lifecycle)
+	s.AddClusterScopedHandler(name, clusterName, sync)
 }

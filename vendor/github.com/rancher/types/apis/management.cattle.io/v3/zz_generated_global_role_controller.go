@@ -44,7 +44,8 @@ type GlobalRoleLister interface {
 type GlobalRoleController interface {
 	Informer() cache.SharedIndexInformer
 	Lister() GlobalRoleLister
-	AddHandler(handler GlobalRoleHandlerFunc)
+	AddHandler(name string, handler GlobalRoleHandlerFunc)
+	AddClusterScopedHandler(name, clusterName string, handler GlobalRoleHandlerFunc)
 	Enqueue(namespace, name string)
 	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
@@ -53,17 +54,19 @@ type GlobalRoleController interface {
 type GlobalRoleInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*GlobalRole) (*GlobalRole, error)
-	GetNamespace(name, namespace string, opts metav1.GetOptions) (*GlobalRole, error)
+	GetNamespaced(namespace, name string, opts metav1.GetOptions) (*GlobalRole, error)
 	Get(name string, opts metav1.GetOptions) (*GlobalRole, error)
 	Update(*GlobalRole) (*GlobalRole, error)
 	Delete(name string, options *metav1.DeleteOptions) error
-	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
+	DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*GlobalRoleList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
 	Controller() GlobalRoleController
-	AddSyncHandler(sync GlobalRoleHandlerFunc)
+	AddHandler(name string, sync GlobalRoleHandlerFunc)
 	AddLifecycle(name string, lifecycle GlobalRoleLifecycle)
+	AddClusterScopedHandler(name, clusterName string, sync GlobalRoleHandlerFunc)
+	AddClusterScopedLifecycle(name, clusterName string, lifecycle GlobalRoleLifecycle)
 }
 
 type globalRoleLister struct {
@@ -107,8 +110,8 @@ func (c *globalRoleController) Lister() GlobalRoleLister {
 	}
 }
 
-func (c *globalRoleController) AddHandler(handler GlobalRoleHandlerFunc) {
-	c.GenericController.AddHandler(func(key string) error {
+func (c *globalRoleController) AddHandler(name string, handler GlobalRoleHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
 		obj, exists, err := c.Informer().GetStore().GetByKey(key)
 		if err != nil {
 			return err
@@ -116,6 +119,24 @@ func (c *globalRoleController) AddHandler(handler GlobalRoleHandlerFunc) {
 		if !exists {
 			return handler(key, nil)
 		}
+		return handler(key, obj.(*GlobalRole))
+	})
+}
+
+func (c *globalRoleController) AddClusterScopedHandler(name, cluster string, handler GlobalRoleHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
+		obj, exists, err := c.Informer().GetStore().GetByKey(key)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return handler(key, nil)
+		}
+
+		if !controller.ObjectInCluster(cluster, obj) {
+			return nil
+		}
+
 		return handler(key, obj.(*GlobalRole))
 	})
 }
@@ -174,8 +195,8 @@ func (s *globalRoleClient) Get(name string, opts metav1.GetOptions) (*GlobalRole
 	return obj.(*GlobalRole), err
 }
 
-func (s *globalRoleClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*GlobalRole, error) {
-	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+func (s *globalRoleClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (*GlobalRole, error) {
+	obj, err := s.objectClient.GetNamespaced(namespace, name, opts)
 	return obj.(*GlobalRole), err
 }
 
@@ -188,8 +209,8 @@ func (s *globalRoleClient) Delete(name string, options *metav1.DeleteOptions) er
 	return s.objectClient.Delete(name, options)
 }
 
-func (s *globalRoleClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
-	return s.objectClient.DeleteNamespace(name, namespace, options)
+func (s *globalRoleClient) DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespaced(namespace, name, options)
 }
 
 func (s *globalRoleClient) List(opts metav1.ListOptions) (*GlobalRoleList, error) {
@@ -211,11 +232,20 @@ func (s *globalRoleClient) DeleteCollection(deleteOpts *metav1.DeleteOptions, li
 	return s.objectClient.DeleteCollection(deleteOpts, listOpts)
 }
 
-func (s *globalRoleClient) AddSyncHandler(sync GlobalRoleHandlerFunc) {
-	s.Controller().AddHandler(sync)
+func (s *globalRoleClient) AddHandler(name string, sync GlobalRoleHandlerFunc) {
+	s.Controller().AddHandler(name, sync)
 }
 
 func (s *globalRoleClient) AddLifecycle(name string, lifecycle GlobalRoleLifecycle) {
-	sync := NewGlobalRoleLifecycleAdapter(name, s, lifecycle)
-	s.AddSyncHandler(sync)
+	sync := NewGlobalRoleLifecycleAdapter(name, false, s, lifecycle)
+	s.AddHandler(name, sync)
+}
+
+func (s *globalRoleClient) AddClusterScopedHandler(name, clusterName string, sync GlobalRoleHandlerFunc) {
+	s.Controller().AddClusterScopedHandler(name, clusterName, sync)
+}
+
+func (s *globalRoleClient) AddClusterScopedLifecycle(name, clusterName string, lifecycle GlobalRoleLifecycle) {
+	sync := NewGlobalRoleLifecycleAdapter(name+"_"+clusterName, true, s, lifecycle)
+	s.AddClusterScopedHandler(name, clusterName, sync)
 }
