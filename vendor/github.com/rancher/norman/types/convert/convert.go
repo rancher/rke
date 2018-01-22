@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,23 @@ import (
 	"time"
 	"unicode"
 )
+
+func Chan(c <-chan map[string]interface{}, f func(map[string]interface{}) map[string]interface{}) chan map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	result := make(chan map[string]interface{})
+	go func() {
+		for data := range c {
+			modified := f(data)
+			if modified != nil {
+				result <- modified
+			}
+		}
+		close(result)
+	}()
+	return result
+}
 
 func Singular(value interface{}) interface{} {
 	if slice, ok := value.([]string); ok {
@@ -34,7 +52,7 @@ func ToString(value interface{}) string {
 	if single == nil {
 		return ""
 	}
-	return fmt.Sprint(single)
+	return strings.TrimSpace(fmt.Sprint(single))
 }
 
 func ToTimestamp(value interface{}) (int64, error) {
@@ -67,6 +85,18 @@ func ToNumber(value interface{}) (int64, error) {
 	i, ok := value.(int64)
 	if ok {
 		return i, nil
+	}
+	f, ok := value.(float64)
+	if ok {
+		return int64(f), nil
+	}
+	if n, ok := value.(json.Number); ok {
+		i, err := n.Int64()
+		if err == nil {
+			return i, nil
+		}
+		f, err := n.Float64()
+		return int64(f), err
 	}
 	return strconv.ParseInt(ToString(value), 10, 64)
 }
@@ -150,7 +180,7 @@ func ToStringSlice(data interface{}) []string {
 		return v
 	}
 	if v, ok := data.([]interface{}); ok {
-		result := []string{}
+		var result []string
 		for _, item := range v {
 			result = append(result, ToString(item))
 		}
@@ -168,10 +198,12 @@ func ToObj(data interface{}, into interface{}) error {
 }
 
 func EncodeToMap(obj interface{}) (map[string]interface{}, error) {
-	bytes, err := json.Marshal(obj)
+	b, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
 	}
 	result := map[string]interface{}{}
-	return result, json.Unmarshal(bytes, &result)
+	dec := json.NewDecoder(bytes.NewBuffer(b))
+	dec.UseNumber()
+	return result, dec.Decode(&result)
 }

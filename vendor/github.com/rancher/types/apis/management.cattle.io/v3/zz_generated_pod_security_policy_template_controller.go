@@ -44,7 +44,8 @@ type PodSecurityPolicyTemplateLister interface {
 type PodSecurityPolicyTemplateController interface {
 	Informer() cache.SharedIndexInformer
 	Lister() PodSecurityPolicyTemplateLister
-	AddHandler(handler PodSecurityPolicyTemplateHandlerFunc)
+	AddHandler(name string, handler PodSecurityPolicyTemplateHandlerFunc)
+	AddClusterScopedHandler(name, clusterName string, handler PodSecurityPolicyTemplateHandlerFunc)
 	Enqueue(namespace, name string)
 	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
@@ -53,17 +54,19 @@ type PodSecurityPolicyTemplateController interface {
 type PodSecurityPolicyTemplateInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*PodSecurityPolicyTemplate) (*PodSecurityPolicyTemplate, error)
-	GetNamespace(name, namespace string, opts metav1.GetOptions) (*PodSecurityPolicyTemplate, error)
+	GetNamespaced(namespace, name string, opts metav1.GetOptions) (*PodSecurityPolicyTemplate, error)
 	Get(name string, opts metav1.GetOptions) (*PodSecurityPolicyTemplate, error)
 	Update(*PodSecurityPolicyTemplate) (*PodSecurityPolicyTemplate, error)
 	Delete(name string, options *metav1.DeleteOptions) error
-	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
+	DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*PodSecurityPolicyTemplateList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
 	Controller() PodSecurityPolicyTemplateController
-	AddSyncHandler(sync PodSecurityPolicyTemplateHandlerFunc)
+	AddHandler(name string, sync PodSecurityPolicyTemplateHandlerFunc)
 	AddLifecycle(name string, lifecycle PodSecurityPolicyTemplateLifecycle)
+	AddClusterScopedHandler(name, clusterName string, sync PodSecurityPolicyTemplateHandlerFunc)
+	AddClusterScopedLifecycle(name, clusterName string, lifecycle PodSecurityPolicyTemplateLifecycle)
 }
 
 type podSecurityPolicyTemplateLister struct {
@@ -107,8 +110,8 @@ func (c *podSecurityPolicyTemplateController) Lister() PodSecurityPolicyTemplate
 	}
 }
 
-func (c *podSecurityPolicyTemplateController) AddHandler(handler PodSecurityPolicyTemplateHandlerFunc) {
-	c.GenericController.AddHandler(func(key string) error {
+func (c *podSecurityPolicyTemplateController) AddHandler(name string, handler PodSecurityPolicyTemplateHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
 		obj, exists, err := c.Informer().GetStore().GetByKey(key)
 		if err != nil {
 			return err
@@ -116,6 +119,24 @@ func (c *podSecurityPolicyTemplateController) AddHandler(handler PodSecurityPoli
 		if !exists {
 			return handler(key, nil)
 		}
+		return handler(key, obj.(*PodSecurityPolicyTemplate))
+	})
+}
+
+func (c *podSecurityPolicyTemplateController) AddClusterScopedHandler(name, cluster string, handler PodSecurityPolicyTemplateHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
+		obj, exists, err := c.Informer().GetStore().GetByKey(key)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return handler(key, nil)
+		}
+
+		if !controller.ObjectInCluster(cluster, obj) {
+			return nil
+		}
+
 		return handler(key, obj.(*PodSecurityPolicyTemplate))
 	})
 }
@@ -174,8 +195,8 @@ func (s *podSecurityPolicyTemplateClient) Get(name string, opts metav1.GetOption
 	return obj.(*PodSecurityPolicyTemplate), err
 }
 
-func (s *podSecurityPolicyTemplateClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*PodSecurityPolicyTemplate, error) {
-	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+func (s *podSecurityPolicyTemplateClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (*PodSecurityPolicyTemplate, error) {
+	obj, err := s.objectClient.GetNamespaced(namespace, name, opts)
 	return obj.(*PodSecurityPolicyTemplate), err
 }
 
@@ -188,8 +209,8 @@ func (s *podSecurityPolicyTemplateClient) Delete(name string, options *metav1.De
 	return s.objectClient.Delete(name, options)
 }
 
-func (s *podSecurityPolicyTemplateClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
-	return s.objectClient.DeleteNamespace(name, namespace, options)
+func (s *podSecurityPolicyTemplateClient) DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespaced(namespace, name, options)
 }
 
 func (s *podSecurityPolicyTemplateClient) List(opts metav1.ListOptions) (*PodSecurityPolicyTemplateList, error) {
@@ -211,11 +232,20 @@ func (s *podSecurityPolicyTemplateClient) DeleteCollection(deleteOpts *metav1.De
 	return s.objectClient.DeleteCollection(deleteOpts, listOpts)
 }
 
-func (s *podSecurityPolicyTemplateClient) AddSyncHandler(sync PodSecurityPolicyTemplateHandlerFunc) {
-	s.Controller().AddHandler(sync)
+func (s *podSecurityPolicyTemplateClient) AddHandler(name string, sync PodSecurityPolicyTemplateHandlerFunc) {
+	s.Controller().AddHandler(name, sync)
 }
 
 func (s *podSecurityPolicyTemplateClient) AddLifecycle(name string, lifecycle PodSecurityPolicyTemplateLifecycle) {
-	sync := NewPodSecurityPolicyTemplateLifecycleAdapter(name, s, lifecycle)
-	s.AddSyncHandler(sync)
+	sync := NewPodSecurityPolicyTemplateLifecycleAdapter(name, false, s, lifecycle)
+	s.AddHandler(name, sync)
+}
+
+func (s *podSecurityPolicyTemplateClient) AddClusterScopedHandler(name, clusterName string, sync PodSecurityPolicyTemplateHandlerFunc) {
+	s.Controller().AddClusterScopedHandler(name, clusterName, sync)
+}
+
+func (s *podSecurityPolicyTemplateClient) AddClusterScopedLifecycle(name, clusterName string, lifecycle PodSecurityPolicyTemplateLifecycle) {
+	sync := NewPodSecurityPolicyTemplateLifecycleAdapter(name+"_"+clusterName, true, s, lifecycle)
+	s.AddClusterScopedHandler(name, clusterName, sync)
 }

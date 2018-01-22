@@ -36,6 +36,8 @@ type Interface interface {
 	TokensGetter
 	UsersGetter
 	DynamicSchemasGetter
+	StacksGetter
+	PreferencesGetter
 }
 
 type Client struct {
@@ -65,6 +67,8 @@ type Client struct {
 	tokenControllers                      map[string]TokenController
 	userControllers                       map[string]UserController
 	dynamicSchemaControllers              map[string]DynamicSchemaController
+	stackControllers                      map[string]StackController
+	preferenceControllers                 map[string]PreferenceController
 }
 
 func NewForConfig(config rest.Config) (Interface, error) {
@@ -103,6 +107,8 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		tokenControllers:                      map[string]TokenController{},
 		userControllers:                       map[string]UserController{},
 		dynamicSchemaControllers:              map[string]DynamicSchemaController{},
+		stackControllers:                      map[string]StackController{},
+		preferenceControllers:                 map[string]PreferenceController{},
 	}, nil
 }
 
@@ -398,6 +404,32 @@ type DynamicSchemasGetter interface {
 func (c *Client) DynamicSchemas(namespace string) DynamicSchemaInterface {
 	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &DynamicSchemaResource, DynamicSchemaGroupVersionKind, dynamicSchemaFactory{})
 	return &dynamicSchemaClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type StacksGetter interface {
+	Stacks(namespace string) StackInterface
+}
+
+func (c *Client) Stacks(namespace string) StackInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &StackResource, StackGroupVersionKind, stackFactory{})
+	return &stackClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type PreferencesGetter interface {
+	Preferences(namespace string) PreferenceInterface
+}
+
+func (c *Client) Preferences(namespace string) PreferenceInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PreferenceResource, PreferenceGroupVersionKind, preferenceFactory{})
+	return &preferenceClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,

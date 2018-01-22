@@ -44,7 +44,8 @@ type MachineTemplateLister interface {
 type MachineTemplateController interface {
 	Informer() cache.SharedIndexInformer
 	Lister() MachineTemplateLister
-	AddHandler(handler MachineTemplateHandlerFunc)
+	AddHandler(name string, handler MachineTemplateHandlerFunc)
+	AddClusterScopedHandler(name, clusterName string, handler MachineTemplateHandlerFunc)
 	Enqueue(namespace, name string)
 	Sync(ctx context.Context) error
 	Start(ctx context.Context, threadiness int) error
@@ -53,17 +54,19 @@ type MachineTemplateController interface {
 type MachineTemplateInterface interface {
 	ObjectClient() *clientbase.ObjectClient
 	Create(*MachineTemplate) (*MachineTemplate, error)
-	GetNamespace(name, namespace string, opts metav1.GetOptions) (*MachineTemplate, error)
+	GetNamespaced(namespace, name string, opts metav1.GetOptions) (*MachineTemplate, error)
 	Get(name string, opts metav1.GetOptions) (*MachineTemplate, error)
 	Update(*MachineTemplate) (*MachineTemplate, error)
 	Delete(name string, options *metav1.DeleteOptions) error
-	DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error
+	DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error
 	List(opts metav1.ListOptions) (*MachineTemplateList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	DeleteCollection(deleteOpts *metav1.DeleteOptions, listOpts metav1.ListOptions) error
 	Controller() MachineTemplateController
-	AddSyncHandler(sync MachineTemplateHandlerFunc)
+	AddHandler(name string, sync MachineTemplateHandlerFunc)
 	AddLifecycle(name string, lifecycle MachineTemplateLifecycle)
+	AddClusterScopedHandler(name, clusterName string, sync MachineTemplateHandlerFunc)
+	AddClusterScopedLifecycle(name, clusterName string, lifecycle MachineTemplateLifecycle)
 }
 
 type machineTemplateLister struct {
@@ -107,8 +110,8 @@ func (c *machineTemplateController) Lister() MachineTemplateLister {
 	}
 }
 
-func (c *machineTemplateController) AddHandler(handler MachineTemplateHandlerFunc) {
-	c.GenericController.AddHandler(func(key string) error {
+func (c *machineTemplateController) AddHandler(name string, handler MachineTemplateHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
 		obj, exists, err := c.Informer().GetStore().GetByKey(key)
 		if err != nil {
 			return err
@@ -116,6 +119,24 @@ func (c *machineTemplateController) AddHandler(handler MachineTemplateHandlerFun
 		if !exists {
 			return handler(key, nil)
 		}
+		return handler(key, obj.(*MachineTemplate))
+	})
+}
+
+func (c *machineTemplateController) AddClusterScopedHandler(name, cluster string, handler MachineTemplateHandlerFunc) {
+	c.GenericController.AddHandler(name, func(key string) error {
+		obj, exists, err := c.Informer().GetStore().GetByKey(key)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return handler(key, nil)
+		}
+
+		if !controller.ObjectInCluster(cluster, obj) {
+			return nil
+		}
+
 		return handler(key, obj.(*MachineTemplate))
 	})
 }
@@ -174,8 +195,8 @@ func (s *machineTemplateClient) Get(name string, opts metav1.GetOptions) (*Machi
 	return obj.(*MachineTemplate), err
 }
 
-func (s *machineTemplateClient) GetNamespace(name, namespace string, opts metav1.GetOptions) (*MachineTemplate, error) {
-	obj, err := s.objectClient.GetNamespace(name, namespace, opts)
+func (s *machineTemplateClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (*MachineTemplate, error) {
+	obj, err := s.objectClient.GetNamespaced(namespace, name, opts)
 	return obj.(*MachineTemplate), err
 }
 
@@ -188,8 +209,8 @@ func (s *machineTemplateClient) Delete(name string, options *metav1.DeleteOption
 	return s.objectClient.Delete(name, options)
 }
 
-func (s *machineTemplateClient) DeleteNamespace(name, namespace string, options *metav1.DeleteOptions) error {
-	return s.objectClient.DeleteNamespace(name, namespace, options)
+func (s *machineTemplateClient) DeleteNamespaced(namespace, name string, options *metav1.DeleteOptions) error {
+	return s.objectClient.DeleteNamespaced(namespace, name, options)
 }
 
 func (s *machineTemplateClient) List(opts metav1.ListOptions) (*MachineTemplateList, error) {
@@ -211,11 +232,20 @@ func (s *machineTemplateClient) DeleteCollection(deleteOpts *metav1.DeleteOption
 	return s.objectClient.DeleteCollection(deleteOpts, listOpts)
 }
 
-func (s *machineTemplateClient) AddSyncHandler(sync MachineTemplateHandlerFunc) {
-	s.Controller().AddHandler(sync)
+func (s *machineTemplateClient) AddHandler(name string, sync MachineTemplateHandlerFunc) {
+	s.Controller().AddHandler(name, sync)
 }
 
 func (s *machineTemplateClient) AddLifecycle(name string, lifecycle MachineTemplateLifecycle) {
-	sync := NewMachineTemplateLifecycleAdapter(name, s, lifecycle)
-	s.AddSyncHandler(sync)
+	sync := NewMachineTemplateLifecycleAdapter(name, false, s, lifecycle)
+	s.AddHandler(name, sync)
+}
+
+func (s *machineTemplateClient) AddClusterScopedHandler(name, clusterName string, sync MachineTemplateHandlerFunc) {
+	s.Controller().AddClusterScopedHandler(name, clusterName, sync)
+}
+
+func (s *machineTemplateClient) AddClusterScopedLifecycle(name, clusterName string, lifecycle MachineTemplateLifecycle) {
+	sync := NewMachineTemplateLifecycleAdapter(name+"_"+clusterName, true, s, lifecycle)
+	s.AddClusterScopedHandler(name, clusterName, sync)
 }
