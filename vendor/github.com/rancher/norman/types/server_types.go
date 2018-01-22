@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -18,6 +19,10 @@ type RawResource struct {
 	Actions     map[string]string      `json:"actions" yaml:"actions"`
 	Values      map[string]interface{} `json:",inline"`
 	ActionLinks bool                   `json:"-"`
+}
+
+func (r *RawResource) AddAction(apiContext *APIContext, name string) {
+	r.Actions[name] = apiContext.URLBuilder.Action(name, r)
 }
 
 func (r *RawResource) MarshalJSON() ([]byte, error) {
@@ -46,9 +51,11 @@ type RequestHandler func(request *APIContext) error
 
 type QueryFilter func(opts *QueryOptions, data []map[string]interface{}) []map[string]interface{}
 
-type Validator func(request *APIContext, data map[string]interface{}) error
+type Validator func(request *APIContext, schema *Schema, data map[string]interface{}) error
 
 type Formatter func(request *APIContext, resource *RawResource)
+
+type CollectionFormatter func(request *APIContext, collection *GenericCollection)
 
 type ErrorHandler func(request *APIContext, err error)
 
@@ -64,8 +71,8 @@ type ResponseWriter interface {
 type AccessControl interface {
 	CanCreate(apiContext *APIContext, schema *Schema) bool
 	CanList(apiContext *APIContext, schema *Schema) bool
-	CanUpdate(apiContext *APIContext, schema *Schema) bool
-	CanDelete(apiContext *APIContext, schema *Schema) bool
+	CanUpdate(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
+	CanDelete(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
 
 	Filter(apiContext *APIContext, obj map[string]interface{}, context map[string]string) map[string]interface{}
 	FilterList(apiContext *APIContext, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
@@ -94,6 +101,23 @@ type APIContext struct {
 
 	Request  *http.Request
 	Response http.ResponseWriter
+}
+
+type apiContextKey struct{}
+
+func NewAPIContext(req *http.Request, resp http.ResponseWriter, schemas *Schemas) *APIContext {
+	apiCtx := &APIContext{
+		Response: resp,
+		Schemas:  schemas,
+	}
+	ctx := context.WithValue(req.Context(), apiContextKey{}, apiCtx)
+	apiCtx.Request = req.WithContext(ctx)
+	return apiCtx
+}
+
+func GetAPIContext(ctx context.Context) *APIContext {
+	apiContext, _ := ctx.Value(apiContextKey{}).(*APIContext)
+	return apiContext
 }
 
 func (r *APIContext) WriteResponse(code int, obj interface{}) {
@@ -144,6 +168,7 @@ type ReferenceValidator interface {
 type URLBuilder interface {
 	Current() string
 	Collection(schema *Schema, versionOverride *APIVersion) string
+	CollectionAction(schema *Schema, versionOverride *APIVersion, action string) string
 	SubContextCollection(subContext *Schema, contextName string, schema *Schema) string
 	SchemaLink(schema *Schema) string
 	ResourceLink(resource *RawResource) string

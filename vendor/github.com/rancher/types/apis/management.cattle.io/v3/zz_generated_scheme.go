@@ -77,6 +77,10 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&UserList{},
 		&DynamicSchema{},
 		&DynamicSchemaList{},
+		&Stack{},
+		&StackList{},
+		&Preference{},
+		&PreferenceList{},
 	)
 	return nil
 }
