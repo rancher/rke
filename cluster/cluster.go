@@ -57,6 +57,11 @@ const (
 	LocalNodeUser              = "root"
 )
 
+var versionToImage = map[string]string{
+	"1.8.7": "rancher/k8s:v1.8.7-rancher1-1",
+	"1.8.5": DefaultK8sImage,
+}
+
 func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 	// Deploy Etcd Plane
 	if err := services.RunEtcdPlane(ctx, c.EtcdHosts, c.Services.Etcd, c.LocalConnDialerFactory); err != nil {
@@ -167,7 +172,25 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	c.setClusterImageDefaults()
 }
 
+func (c *Cluster) lookupK8sImageByVersion(version string) string {
+	matchingVersion := versionToImage[version]
+
+	if matchingVersion != "" {
+		return matchingVersion
+	}
+
+	return DefaultK8sImage
+}
+
 func (c *Cluster) setClusterServicesDefaults() {
+	var k8sImage string
+
+	if c.Version == "" {
+		k8sImage = DefaultK8sImage
+	} else {
+		k8sImage = c.lookupK8sImageByVersion(c.Version)
+	}
+
 	serviceConfigDefaultsMap := map[*string]string{
 		&c.Services.KubeAPI.ServiceClusterIPRange:        DefaultServiceClusterIPRange,
 		&c.Services.KubeController.ServiceClusterIPRange: DefaultServiceClusterIPRange,
@@ -176,13 +199,14 @@ func (c *Cluster) setClusterServicesDefaults() {
 		&c.Services.Kubelet.ClusterDomain:                DefaultClusterDomain,
 		&c.Services.Kubelet.InfraContainerImage:          DefaultInfraContainerImage,
 		&c.Authentication.Strategy:                       DefaultAuthStrategy,
-		&c.Services.KubeAPI.Image:                        DefaultK8sImage,
-		&c.Services.Scheduler.Image:                      DefaultK8sImage,
-		&c.Services.KubeController.Image:                 DefaultK8sImage,
-		&c.Services.Kubelet.Image:                        DefaultK8sImage,
-		&c.Services.Kubeproxy.Image:                      DefaultK8sImage,
+		&c.Services.KubeAPI.Image:                        k8sImage,
+		&c.Services.Scheduler.Image:                      k8sImage,
+		&c.Services.KubeController.Image:                 k8sImage,
+		&c.Services.Kubelet.Image:                        k8sImage,
+		&c.Services.Kubeproxy.Image:                      k8sImage,
 		&c.Services.Etcd.Image:                           DefaultEtcdImage,
 	}
+
 	for k, v := range serviceConfigDefaultsMap {
 		setDefaultIfEmpty(k, v)
 	}
