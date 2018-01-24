@@ -54,7 +54,8 @@ func ClusterRemove(
 
 	err = kubeCluster.TunnelHosts(ctx, local)
 	if err != nil {
-		return err
+		log.Warnf(ctx, "Unable to reach and tunnel hosts: %v", err)
+		return nil
 	}
 
 	logrus.Debugf("Starting Cluster removal")
