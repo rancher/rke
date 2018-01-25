@@ -12,7 +12,7 @@ const (
 	TestEtcdConnString      = "https://1.1.1.1:2379,https://2.2.2.2:2379"
 	TestKubeAPIImage        = "rancher/k8s:latest"
 	TestInsecureBindAddress = "--insecure-bind-address=127.0.0.1"
-	TestKubeAPIVolumeBind   = "/etc/kubernetes:/etc/kubernetes"
+	TestKubeAPIVolumeBind   = "/etc/kubernetes:/etc/kubernetes:z"
 	TestKubeAPIExtraArgs    = "--foo=bar"
 )
 

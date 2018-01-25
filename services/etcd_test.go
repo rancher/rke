@@ -13,7 +13,7 @@ const (
 	TestInitEtcdClusterString = "etcd-etcd1=https://1.1.1.1:2380,etcd-etcd2=https://2.2.2.2:2380"
 	TestEtcdImage             = "etcd/etcdImage:latest"
 	TestEtcdNamePrefix        = "--name=etcd-"
-	TestEtcdVolumeBind        = "/var/lib/etcd:/etcd-data"
+	TestEtcdVolumeBind        = "/var/lib/etcd:/etcd-data:z"
 	TestEtcdExtraArgs         = "--foo=bar"
 )
 

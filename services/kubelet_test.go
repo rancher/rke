@@ -13,7 +13,7 @@ const (
 	TestKubeletClusterDNSServer    = "10.1.0.3"
 	TestKubeletInfraContainerImage = "test/test:latest"
 	TestKubeletImage               = "rancher/k8s:latest"
-	TestKubeletVolumeBind          = "/etc/kubernetes:/etc/kubernetes"
+	TestKubeletVolumeBind          = "/etc/kubernetes:/etc/kubernetes:z"
 	TestKubeletExtraArgs           = "--foo=bar"
 	TestClusterDomainPrefix        = "--cluster-domain="
 	TestClusterDNSServerPrefix     = "--cluster-dns="

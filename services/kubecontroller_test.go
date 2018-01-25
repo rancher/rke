@@ -11,7 +11,7 @@ const (
 	TestKubeControllerClusterCidr           = "10.0.0.0/16"
 	TestKubeControllerServiceClusterIPRange = "10.1.0.0/16"
 	TestKubeControllerImage                 = "rancher/k8s:latest"
-	TestKubeControllerVolumeBind            = "/etc/kubernetes:/etc/kubernetes"
+	TestKubeControllerVolumeBind            = "/etc/kubernetes:/etc/kubernetes:z"
 	TestKubeControllerExtraArgs             = "--foo=bar"
 	TestClusterCidrPrefix                   = "--cluster-cidr="
 	TestServiceIPRangePrefix                = "--service-cluster-ip-range="
