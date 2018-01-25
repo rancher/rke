@@ -185,6 +185,25 @@ RKE will ask some questions around the cluster file like number of the hosts, ip
 More information about RKE design, configuration and usage can be found in this [blog post](http://rancher.com/an-introduction-to-rke/).
 
 
+## Operating Systems Notes
+
+### Atomic OS
+
+- Container volumes may have some issues in Atomic OS due to SELinux, most of volumes are mounted in rke with option `z`, however user still need to run the following commands before running rke:
+```
+# mkdir /opt/cni /etc/cni
+# chcon -Rt svirt_sandbox_file_t /etc/cni
+# chcon -Rt svirt_sandbox_file_t /opt/cni
+```
+- OpenSSH 6.4 shipped by default on Atomic CentOS which doesn't support SSH tunneling and therefore breaks rke, upgrading OpenSSH to the latest version supported by Atomic host will solve this problem:
+```
+# atomic host upgrade
+```
+- Atomic host doesn't come with docker group by default, you can change ownership of docker.sock to enable specific user to run rke:
+```
+# chown <user> /var/run/docker.sock
+```
+
 ## License
 Copyright (c) 2017 [Rancher Labs, Inc.](http://rancher.com)
 

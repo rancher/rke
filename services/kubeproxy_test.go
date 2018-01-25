@@ -9,7 +9,7 @@ import (
 
 const (
 	TestKubeproxyImage      = "rancher/k8s:latest"
-	TestKubeproxyVolumeBind = "/etc/kubernetes:/etc/kubernetes"
+	TestKubeproxyVolumeBind = "/etc/kubernetes:/etc/kubernetes:z"
 	TestKubeproxyExtraArgs  = "--foo=bar"
 )
 

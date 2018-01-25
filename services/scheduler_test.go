@@ -9,7 +9,7 @@ import (
 
 const (
 	TestSchedulerImage      = "rancher/k8s:latest"
-	TestSchedulerVolumeBind = "/etc/kubernetes:/etc/kubernetes"
+	TestSchedulerVolumeBind = "/etc/kubernetes:/etc/kubernetes:z"
 	TestSchedulerExtraArgs  = "--foo=bar"
 )
 
