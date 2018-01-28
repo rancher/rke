@@ -17,6 +17,7 @@ usermod -aG docker <user_name>
 ```
 
 - Ports 6443, 2379, and 2380 should be opened between cluster nodes.
+- Swap disabled on worker nodes.
 
 ## Getting Started
 
