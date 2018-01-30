@@ -181,7 +181,7 @@ And then run:
 rke up --config cluster.yml
 ```
 
-RKE will first look for the local `.kube_config_cluster.yml` and then tries to upgrade each service to the latest image.
+RKE will first look for the local `kube_config_cluster.yml` and then tries to upgrade each service to the latest image.
 
 > Note that rollback isn't supported in RKE and may lead to unxpected results
 
