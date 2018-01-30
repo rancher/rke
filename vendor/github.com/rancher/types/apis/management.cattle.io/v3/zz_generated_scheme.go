@@ -81,6 +81,14 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&StackList{},
 		&Preference{},
 		&PreferenceList{},
+		&ClusterLogging{},
+		&ClusterLoggingList{},
+		&ProjectLogging{},
+		&ProjectLoggingList{},
+		&ListenConfig{},
+		&ListenConfigList{},
+		&Setting{},
+		&SettingList{},
 	)
 	return nil
 }
