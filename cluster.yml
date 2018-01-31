@@ -1,4 +1,7 @@
 ---
+
+kubernetes_version: v1.8.5-rancher4
+
 auth:
   strategy: x509
   options:
@@ -35,7 +38,7 @@ private_registries:
   - url: registry.com
     user: Username
     passowrd: password
-    
+
 nodes:
   - address: 1.1.1.1
     user: ubuntu
@@ -76,7 +79,7 @@ services:
 
 
 system_images:
-  etcd: quay.io/coreos/etcd:latest
+  etcd: quay.io/coreos/etcd:v3.0.17
   kubernetes: rancher/k8s:v1.8.5-rancher4
   alpine: alpine:latest
   nginx_proxy: rancher/rke-nginx-proxy:v0.1.1
