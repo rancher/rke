@@ -28,6 +28,14 @@ authorization:
   mode: rbac
   options:
 
+
+# List of registry credentials, if you are using a Docker Hub registry,
+# you can omit the `url` or set it to `docker.io`
+private_registries:
+  - url: registry.com
+    user: Username
+    passowrd: password
+    
 nodes:
   - address: 1.1.1.1
     user: ubuntu
