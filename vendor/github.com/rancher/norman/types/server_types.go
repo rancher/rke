@@ -47,7 +47,7 @@ func (r *RawResource) MarshalJSON() ([]byte, error) {
 
 type ActionHandler func(actionName string, action *Action, request *APIContext) error
 
-type RequestHandler func(request *APIContext) error
+type RequestHandler func(request *APIContext, next RequestHandler) error
 
 type QueryFilter func(opts *QueryOptions, data []map[string]interface{}) []map[string]interface{}
 
@@ -71,6 +71,7 @@ type ResponseWriter interface {
 type AccessControl interface {
 	CanCreate(apiContext *APIContext, schema *Schema) bool
 	CanList(apiContext *APIContext, schema *Schema) bool
+	CanGet(apiContext *APIContext, schema *Schema) bool
 	CanUpdate(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
 	CanDelete(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
 
@@ -87,6 +88,7 @@ type APIContext struct {
 	Schema                      *Schema
 	Schemas                     *Schemas
 	Version                     *APIVersion
+	SchemasVersion              *APIVersion
 	Query                       url.Values
 	ResponseFormat              string
 	ReferenceValidator          ReferenceValidator
