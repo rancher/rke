@@ -16,6 +16,7 @@ import (
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -277,5 +278,22 @@ func (c *Cluster) SyncLabelsAndTaints(ctx context.Context) error {
 		}
 	}
 	log.Infof(ctx, "[sync] Successfully synced nodes Labels and Taints")
+	return nil
+}
+
+func (c *Cluster) PrePullK8sImages(ctx context.Context) error {
+	log.Infof(ctx, "Pre-pulling kubernetes images")
+	var errgrp errgroup.Group
+	hosts := c.getUniqueHostList()
+	for _, host := range hosts {
+		runHost := host
+		errgrp.Go(func() error {
+			return docker.UseLocalOrPull(ctx, runHost.DClient, runHost.Address, c.SystemImages.Kubernetes, "pre-deploy", c.PrivateRegistriesMap)
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return err
+	}
+	log.Infof(ctx, "Kubernetes images pulled successfully")
 	return nil
 }
