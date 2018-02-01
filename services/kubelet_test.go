@@ -19,9 +19,6 @@ const (
 	TestClusterDNSServerPrefix     = "--cluster-dns="
 	TestInfraContainerImagePrefix  = "--pod-infra-container-image="
 	TestHostnameOverridePrefix     = "--hostname-override="
-	TestKubeletEtcdNodeLabel       = "--node-labels=node-role.kubernetes.io/etcd=true"
-	TestKubeletCPNodeLabel         = "--node-labels=node-role.kubernetes.io/master=true"
-	TestKubeletWorkerNodeLabel     = "--node-labels=node-role.kubernetes.io/worker=true"
 )
 
 func TestKubeletConfig(t *testing.T) {
@@ -43,7 +40,7 @@ func TestKubeletConfig(t *testing.T) {
 	kubeletService.InfraContainerImage = TestKubeletInfraContainerImage
 	kubeletService.ExtraArgs = map[string]string{"foo": "bar"}
 
-	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService, false)
+	imageCfg, hostCfg := buildKubeletConfig(host, kubeletService)
 	// Test image and host config
 	assertEqual(t, isStringInSlice(TestClusterDomainPrefix+TestKubeletClusterDomain, imageCfg.Entrypoint), true,
 		fmt.Sprintf("Failed to find [%s] in Kubelet Command", TestClusterDomainPrefix+TestKubeletClusterDomain))
@@ -65,10 +62,4 @@ func TestKubeletConfig(t *testing.T) {
 		"Failed to verify that Kubelet has host PID mode")
 	assertEqual(t, true, hostCfg.NetworkMode.IsHost(),
 		"Failed to verify that Kubelet has host Network mode")
-	assertEqual(t, isStringInSlice(TestKubeletEtcdNodeLabel, imageCfg.Cmd), true,
-		fmt.Sprintf("Failed to find [%s] in Kubelet Command", TestKubeletEtcdNodeLabel))
-	assertEqual(t, isStringInSlice(TestKubeletCPNodeLabel, imageCfg.Cmd), true,
-		fmt.Sprintf("Failed to find [%s] in Kubelet Command", TestKubeletCPNodeLabel))
-	assertEqual(t, isStringInSlice(TestKubeletWorkerNodeLabel, imageCfg.Cmd), true,
-		fmt.Sprintf("Failed to find [%s] in Kubelet Command", TestKubeletWorkerNodeLabel))
 }
