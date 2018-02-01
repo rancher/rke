@@ -46,7 +46,7 @@ func ClusterRemove(
 	dialerFactory hosts.DialerFactory,
 	local bool, configDir string) error {
 
-	logrus.Infof("Tearing down Kubernetes cluster")
+	log.Infof(ctx, "Tearing down Kubernetes cluster")
 	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dialerFactory, nil)
 	if err != nil {
 		return err

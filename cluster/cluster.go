@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	ref "github.com/docker/distribution/reference"
 	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
@@ -145,90 +145,6 @@ func ParseCluster(
 	return c, nil
 }
 
-func (c *Cluster) setClusterDefaults(ctx context.Context) {
-	if len(c.SSHKeyPath) == 0 {
-		c.SSHKeyPath = DefaultClusterSSHKeyPath
-	}
-	for i, host := range c.Nodes {
-		if len(host.InternalAddress) == 0 {
-			c.Nodes[i].InternalAddress = c.Nodes[i].Address
-		}
-		if len(host.HostnameOverride) == 0 {
-			// This is a temporary modification
-			c.Nodes[i].HostnameOverride = c.Nodes[i].Address
-		}
-		if len(host.SSHKeyPath) == 0 {
-			c.Nodes[i].SSHKeyPath = c.SSHKeyPath
-		}
-	}
-	if len(c.Authorization.Mode) == 0 {
-		c.Authorization.Mode = DefaultAuthorizationMode
-	}
-	if c.Services.KubeAPI.PodSecurityPolicy && c.Authorization.Mode != services.RBACAuthorizationMode {
-		log.Warnf(ctx, "PodSecurityPolicy can't be enabled with RBAC support disabled")
-		c.Services.KubeAPI.PodSecurityPolicy = false
-	}
-	c.setClusterImageDefaults()
-	c.setClusterKubernetesImageVersion(ctx)
-	c.setClusterServicesDefaults()
-	c.setClusterNetworkDefaults()
-}
-
-func (c *Cluster) setClusterKubernetesImageVersion(ctx context.Context) {
-	k8sImageNamed, _ := ref.ParseNormalizedNamed(c.SystemImages.Kubernetes)
-	// Kubernetes image is already set by c.setClusterImageDefaults(),
-	// I will override it here if Version is set.
-	var VersionedImageNamed ref.NamedTagged
-	if c.Version != "" {
-		VersionedImageNamed, _ = ref.WithTag(ref.TrimNamed(k8sImageNamed), c.Version)
-		c.SystemImages.Kubernetes = VersionedImageNamed.String()
-	}
-	normalizedSystemImage, _ := ref.ParseNormalizedNamed(c.SystemImages.Kubernetes)
-	if normalizedSystemImage.String() != k8sImageNamed.String() {
-		log.Infof(ctx, "Overrding Kubernetes image [%s] with tag [%s]", VersionedImageNamed.Name(), VersionedImageNamed.Tag())
-	}
-}
-
-func (c *Cluster) setClusterServicesDefaults() {
-	serviceConfigDefaultsMap := map[*string]string{
-		&c.Services.KubeAPI.ServiceClusterIPRange:        DefaultServiceClusterIPRange,
-		&c.Services.KubeController.ServiceClusterIPRange: DefaultServiceClusterIPRange,
-		&c.Services.KubeController.ClusterCIDR:           DefaultClusterCIDR,
-		&c.Services.Kubelet.ClusterDNSServer:             DefaultClusterDNSService,
-		&c.Services.Kubelet.ClusterDomain:                DefaultClusterDomain,
-		&c.Services.Kubelet.InfraContainerImage:          DefaultInfraContainerImage,
-		&c.Authentication.Strategy:                       DefaultAuthStrategy,
-		&c.Services.KubeAPI.Image:                        c.SystemImages.Kubernetes,
-		&c.Services.Scheduler.Image:                      c.SystemImages.Kubernetes,
-		&c.Services.KubeController.Image:                 c.SystemImages.Kubernetes,
-		&c.Services.Kubelet.Image:                        c.SystemImages.Kubernetes,
-		&c.Services.Kubeproxy.Image:                      c.SystemImages.Kubernetes,
-		&c.Services.Etcd.Image:                           c.SystemImages.Etcd,
-	}
-	for k, v := range serviceConfigDefaultsMap {
-		setDefaultIfEmpty(k, v)
-	}
-}
-
-func (c *Cluster) setClusterImageDefaults() {
-
-	systemImagesDefaultsMap := map[*string]string{
-		&c.SystemImages.Alpine:                    DefaultAplineImage,
-		&c.SystemImages.NginxProxy:                DefaultNginxProxyImage,
-		&c.SystemImages.CertDownloader:            DefaultCertDownloaderImage,
-		&c.SystemImages.KubeDNS:                   DefaultKubeDNSImage,
-		&c.SystemImages.KubeDNSSidecar:            DefaultKubeDNSSidecarImage,
-		&c.SystemImages.DNSmasq:                   DefaultDNSmasqImage,
-		&c.SystemImages.KubeDNSAutoscaler:         DefaultKubeDNSAutoScalerImage,
-		&c.SystemImages.KubernetesServicesSidecar: DefaultKubernetesServicesSidecarImage,
-		&c.SystemImages.Etcd:                      DefaultEtcdImage,
-		&c.SystemImages.Kubernetes:                DefaultK8sImage,
-	}
-	for k, v := range systemImagesDefaultsMap {
-		setDefaultIfEmpty(k, v)
-	}
-}
-
 func GetLocalKubeConfig(configPath, configDir string) string {
 	baseDir := filepath.Dir(configPath)
 	if len(configDir) > 0 {
@@ -336,4 +252,30 @@ func (c *Cluster) getUniqueHostList() []*hosts.Host {
 		uniqHostList = append(uniqHostList, host)
 	}
 	return uniqHostList
+}
+
+func (c *Cluster) DeployAddons(ctx context.Context) error {
+	if err := c.DeployK8sAddOns(ctx); err != nil {
+		return err
+	}
+	return c.DeployUserAddOns(ctx)
+}
+
+func (c *Cluster) SyncLabelsAndTaints(ctx context.Context) error {
+	log.Infof(ctx, "[sync] Syncing nodes Labels and Taints")
+	k8sClient, err := k8s.NewClient(c.LocalKubeConfigPath)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
+	}
+	for _, host := range c.getUniqueHostList() {
+		if err := k8s.SyncLabels(k8sClient, host.HostnameOverride, host.ToAddLabels, host.ToDelLabels); err != nil {
+			return err
+		}
+		// Taints are not being added by user
+		if err := k8s.SyncTaints(k8sClient, host.HostnameOverride, host.ToAddTaints, host.ToDelTaints); err != nil {
+			return err
+		}
+	}
+	log.Infof(ctx, "[sync] Successfully synced nodes Labels and Taints")
+	return nil
 }

@@ -23,6 +23,8 @@ type RancherKubernetesEngineConfig struct {
 	Version string `yaml:"kubernetes_version" json:"kubernetesVersion,omitempty"`
 	// List of private registries and their credentials
 	PrivateRegistries []PrivateRegistry `yaml:"private_registries" json:"privateRegistries,omitempty"`
+	// Ingress controller used in the cluster
+	Ingress IngressConfig `yaml:"ingress" json:"ingress,omitempty"`
 }
 
 type PrivateRegistry struct {
@@ -36,25 +38,25 @@ type PrivateRegistry struct {
 
 type RKESystemImages struct {
 	// etcd image
-	Etcd string `yaml:"etcd" json:"etcd,omitempty" norman:"default=quay.io/coreos/etcd:latest"`
+	Etcd string `yaml:"etcd" json:"etcd,omitempty" norman:"default=quay.io/coreos/etcd:v3.0.17"`
 	// Alpine image
 	Alpine string `yaml:"alpine" json:"alpine,omitempty" norman:"default=alpine"`
 	// rke-nginx-proxy image
-	NginxProxy string `yaml:"nginx_proxy" json:"nginxProxy,omitempty" norman:"default=rancher/rke-nginx-proxy"`
+	NginxProxy string `yaml:"nginx_proxy" json:"nginxProxy,omitempty" norman:"default=rancher/rke-nginx-proxy:v0.1.1"`
 	// rke-cert-deployer image
-	CertDownloader string `yaml:"cert_downloader" json:"certDownloader,omitempty" norman:"default=rancher/rke-cert-deployer"`
+	CertDownloader string `yaml:"cert_downloader" json:"certDownloader,omitempty" norman:"default=rancher/rke-cert-deployer:v0.1.1"`
 	// rke-service-sidekick image
-	KubernetesServicesSidecar string `yaml:"kubernetes_services_sidecar" json:"kubernetesServicesSidecar,omitempty" norman:"default=rancher/rke-kube-services-sidecar"`
+	KubernetesServicesSidecar string `yaml:"kubernetes_services_sidecar" json:"kubernetesServicesSidecar,omitempty" norman:"default=rancher/rke-service-sidekick:v0.1.0"`
 	// KubeDNS image
-	KubeDNS string `yaml:"kubedns" json:"kubedns,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-kube-dns-amd64"`
+	KubeDNS string `yaml:"kubedns" json:"kubedns,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.5"`
 	// DNSMasq image
-	DNSmasq string `yaml:"dnsmasq" json:"dnsmasq,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64"`
+	DNSmasq string `yaml:"dnsmasq" json:"dnsmasq,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.5"`
 	// KubeDNS side car image
-	KubeDNSSidecar string `yaml:"kubedns_sidecar" json:"kubednsSidecar,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-sidecar-amd64"`
+	KubeDNSSidecar string `yaml:"kubedns_sidecar" json:"kubednsSidecar,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-sidecar-amd64:1.14.5"`
 	// KubeDNS autoscaler image
-	KubeDNSAutoscaler string `yaml:"kubedns_autoscaler" json:"kubednsAutoscaler,omitempty" norman:"default=gcr.io/google_containers/cluster-proportional-autoscaler-amd64"`
+	KubeDNSAutoscaler string `yaml:"kubedns_autoscaler" json:"kubednsAutoscaler,omitempty" norman:"default=gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"`
 	// Kubernetes image
-	Kubernetes string `yaml:"kubernetes" json:"kubernetes,omitempty" norman:"default=rancher/k8s"`
+	Kubernetes string `yaml:"kubernetes" json:"kubernetes,omitempty" norman:"default=rancher/k8s:v1.8.5-rancher4"`
 }
 
 type RKEConfigNode struct {
@@ -76,6 +78,8 @@ type RKEConfigNode struct {
 	SSHKey string `yaml:"ssh_key" json:"sshKey,omitempty"`
 	// SSH Private Key Path
 	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
+	// Node Labels
+	Labels map[string]string `yaml:"labels" json:"labels,omitempty"`
 }
 
 type RKEConfigServices struct {
@@ -163,4 +167,13 @@ type AuthzConfig struct {
 	Mode string `yaml:"mode" json:"mode,omitempty"`
 	// Authorization mode options
 	Options map[string]string `yaml:"options" json:"options,omitempty"`
+}
+
+type IngressConfig struct {
+	// Ingress controller type used by kubernetes
+	Type string `yaml:"type" json:"type,omitempty"`
+	// Ingress controller options
+	Options map[string]string `yaml:"options" json:"options,omitempty"`
+	// NodeSelector key pair
+	NodeSelector map[string]string `yaml:"node_selector" json:"nodeSelector,omitempty"`
 }
