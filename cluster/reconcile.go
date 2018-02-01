@@ -107,15 +107,6 @@ func reconcileControl(ctx context.Context, currentCluster, kubeCluster *Cluster,
 	if err := rebuildLocalAdminConfig(ctx, kubeCluster); err != nil {
 		return err
 	}
-	// Rolling update on change for nginx Proxy
-	cpChanged := hosts.IsHostListChanged(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
-	if cpChanged {
-		log.Infof(ctx, "[reconcile] Rolling update nginx hosts with new list of control plane hosts")
-		err := services.RollingUpdateNginxProxy(ctx, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts, currentCluster.SystemImages.NginxProxy, kubeCluster.PrivateRegistriesMap)
-		if err != nil {
-			return fmt.Errorf("Failed to rolling update Nginx hosts with new control plane hosts")
-		}
-	}
 	// attempt to remove unschedulable taint
 	toAddHosts := hosts.GetToAddHosts(currentCluster.ControlPlaneHosts, kubeCluster.ControlPlaneHosts)
 	for _, host := range toAddHosts {
