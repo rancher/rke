@@ -10,6 +10,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -96,14 +97,16 @@ func (c *Cluster) InvertIndexHosts() error {
 func (c *Cluster) SetUpHosts(ctx context.Context) error {
 	if c.Authentication.Strategy == X509AuthenticationProvider {
 		log.Infof(ctx, "[certificates] Deploying kubernetes certificates to Cluster nodes")
-		if err := pki.DeployCertificatesOnMasters(ctx, c.ControlPlaneHosts, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap); err != nil {
-			return err
+		hosts := c.getUniqueHostList()
+		var errgrp errgroup.Group
+
+		for _, host := range hosts {
+			runHost := host
+			errgrp.Go(func() error {
+				return pki.DeployCertificatesOnPlaneHost(ctx, runHost, c.EtcdHosts, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap)
+			})
 		}
-		if err := pki.DeployCertificatesOnWorkers(ctx, c.WorkerHosts, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap); err != nil {
-			return err
-		}
-		// Deploying etcd certificates
-		if err := pki.DeployCertificatesOnEtcd(ctx, c.EtcdHosts, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap); err != nil {
+		if err := errgrp.Wait(); err != nil {
 			return err
 		}
 
