@@ -98,12 +98,12 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
-	err = kubeCluster.DeployK8sAddOns(ctx)
+	err = kubeCluster.SyncLabelsAndTaints(ctx)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
-	err = kubeCluster.DeployUserAddOns(ctx)
+	err = kubeCluster.DeployAddons(ctx)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}

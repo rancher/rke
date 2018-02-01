@@ -12,6 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	etcdRoleLabel   = "node-role.kubernetes.io/etcd"
+	masterRoleLabel = "node-role.kubernetes.io/master"
+	workerRoleLabel = "node-role.kubernetes.io/worker"
+)
+
 func (c *Cluster) TunnelHosts(ctx context.Context, local bool) error {
 	if local {
 		if err := c.EtcdHosts[0].TunnelUpLocal(ctx); err != nil {
@@ -45,8 +51,14 @@ func (c *Cluster) InvertIndexHosts() error {
 	for _, host := range c.Nodes {
 		newHost := hosts.Host{
 			RKEConfigNode: host,
+			ToAddLabels:   map[string]string{},
+			ToDelLabels:   map[string]string{},
+			ToAddTaints:   []string{},
+			ToDelTaints:   []string{},
 		}
-
+		for k, v := range host.Labels {
+			newHost.ToAddLabels[k] = v
+		}
 		newHost.IgnoreDockerVersion = c.IgnoreDockerVersion
 
 		for _, role := range host.Role {
@@ -54,16 +66,28 @@ func (c *Cluster) InvertIndexHosts() error {
 			switch role {
 			case services.ETCDRole:
 				newHost.IsEtcd = true
+				newHost.ToAddLabels[etcdRoleLabel] = "true"
 				c.EtcdHosts = append(c.EtcdHosts, &newHost)
 			case services.ControlRole:
 				newHost.IsControl = true
+				newHost.ToAddLabels[masterRoleLabel] = "true"
 				c.ControlPlaneHosts = append(c.ControlPlaneHosts, &newHost)
 			case services.WorkerRole:
 				newHost.IsWorker = true
+				newHost.ToAddLabels[workerRoleLabel] = "true"
 				c.WorkerHosts = append(c.WorkerHosts, &newHost)
 			default:
 				return fmt.Errorf("Failed to recognize host [%s] role %s", host.Address, role)
 			}
+		}
+		if !newHost.IsEtcd {
+			newHost.ToDelLabels[etcdRoleLabel] = "true"
+		}
+		if !newHost.IsControl {
+			newHost.ToDelLabels[masterRoleLabel] = "true"
+		}
+		if !newHost.IsWorker {
+			newHost.ToDelLabels[workerRoleLabel] = "true"
 		}
 	}
 	return nil
