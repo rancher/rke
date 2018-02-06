@@ -7,28 +7,34 @@ import (
 	"net"
 	"testing"
 
-	"github.com/rancher/rke/hosts"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 )
 
 const (
-	FakeClusterDomain       = "cluster.test"
-	FakeKubernetesServiceIP = "10.0.0.1"
+	FakeClusterDomain = "cluster.test"
+	FakeClusterCidr   = "10.0.0.1/24"
 )
 
 func TestPKI(t *testing.T) {
-	cpHosts := []*hosts.Host{
-		&hosts.Host{
-			RKEConfigNode: v3.RKEConfigNode{
+	rkeConfig := v3.RancherKubernetesEngineConfig{
+		Nodes: []v3.RKEConfigNode{
+			v3.RKEConfigNode{
 				Address:          "1.1.1.1",
 				InternalAddress:  "192.168.1.5",
 				Role:             []string{"controlplane"},
 				HostnameOverride: "server1",
 			},
-			DClient: nil,
+		},
+		Services: v3.RKEConfigServices{
+			KubeAPI: v3.KubeAPIService{
+				ServiceClusterIPRange: FakeClusterCidr,
+			},
+			Kubelet: v3.KubeletService{
+				ClusterDomain: FakeClusterDomain,
+			},
 		},
 	}
-	certificateMap, err := StartCertificatesGeneration(context.Background(), cpHosts, cpHosts, FakeClusterDomain, "", net.ParseIP(FakeKubernetesServiceIP))
+	certificateMap, err := GenerateRKECerts(context.Background(), rkeConfig, "", "")
 	if err != nil {
 		t.Fatalf("Failed To generate certificates: %v", err)
 	}
@@ -71,12 +77,16 @@ func TestPKI(t *testing.T) {
 			fmt.Sprintf("DNS %s is not found in ALT names of Kube API certificate", testDNS))
 	}
 
+	kubernetesServiceIP, err := GetKubernetesServiceIP(FakeClusterCidr)
+	if err != nil {
+		t.Fatalf("Failed to get kubernetes service ip for service cidr: %v", err)
+	}
 	// Test ALT IPs
 	kubeAPIAltIPs := []net.IP{
 		net.ParseIP("127.0.0.1"),
-		net.ParseIP(cpHosts[0].InternalAddress),
-		net.ParseIP(cpHosts[0].Address),
-		net.ParseIP(FakeKubernetesServiceIP),
+		net.ParseIP(rkeConfig.Nodes[0].InternalAddress),
+		net.ParseIP(rkeConfig.Nodes[0].Address),
+		kubernetesServiceIP,
 	}
 
 	for _, testIP := range kubeAPIAltIPs {

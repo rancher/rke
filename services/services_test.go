@@ -3,6 +3,8 @@ package services
 import (
 	"fmt"
 	"testing"
+
+	"github.com/rancher/rke/pki"
 )
 
 const (
@@ -12,7 +14,7 @@ const (
 )
 
 func TestKubernetesServiceIP(t *testing.T) {
-	kubernetesServiceIP, err := GetKubernetesServiceIP(TestClusterServiceIPRange)
+	kubernetesServiceIP, err := pki.GetKubernetesServiceIP(TestClusterServiceIPRange)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +23,7 @@ func TestKubernetesServiceIP(t *testing.T) {
 }
 
 func TestIncorrectKubernetesServiceIP(t *testing.T) {
-	_, err := GetKubernetesServiceIP(TestIncorrectClusterServiceIPRange)
+	_, err := pki.GetKubernetesServiceIP(TestIncorrectClusterServiceIPRange)
 	if err == nil {
 		t.Fatalf("Failed to catch error when parsing incorrect cluster service ip range")
 	}
