@@ -91,8 +91,8 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 		log.Warnf(ctx, "PodSecurityPolicy can't be enabled with RBAC support disabled")
 		c.Services.KubeAPI.PodSecurityPolicy = false
 	}
-	if len(c.Ingress.Type) == 0 {
-		c.Ingress.Type = DefaultIngressController
+	if len(c.Ingress.Provider) == 0 {
+		c.Ingress.Provider = DefaultIngressController
 	}
 
 	c.setClusterImageDefaults()
