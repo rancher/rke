@@ -33,7 +33,7 @@ const (
 	DefaultIngressController              = "nginx"
 
 	DefaultEtcdImage = "rancher/etcd:v3.0.17"
-	DefaultK8sImage  = "rancher/k8s:v1.8.5-rancher4"
+	DefaultK8sImage  = "rancher/k8s:v1.8.7-rancher1-1"
 
 	DefaultFlannelImage    = "rancher/coreos-flannel:v0.9.1"
 	DefaultFlannelCNIImage = "rancher/coreos-flannel-cni:v0.2.0"
