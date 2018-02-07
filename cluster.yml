@@ -33,7 +33,7 @@ network:
   options:
 
 ssh_key_path: ~/.ssh/test
-enforce_docker_version: false
+ignore_docker_version: false
 # Kubernetes authorization mode; currently only `rbac` is supported and enabled by default.
 # Use `mode: none` to disable authorization
 authorization:
