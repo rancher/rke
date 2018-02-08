@@ -97,17 +97,12 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
-	err = kubeCluster.DeployNetworkPlugin(ctx)
-	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
-	}
-
 	err = kubeCluster.SyncLabelsAndTaints(ctx)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
-	err = kubeCluster.DeployAddons(ctx)
+	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, clusterFilePath, configDir)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
