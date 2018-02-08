@@ -255,11 +255,11 @@ func (c *Cluster) getUniqueHostList() []*hosts.Host {
 	return uniqHostList
 }
 
-func (c *Cluster) DeployAddons(ctx context.Context) error {
-	if err := c.DeployK8sAddOns(ctx); err != nil {
+func (c *Cluster) deployAddons(ctx context.Context) error {
+	if err := c.deployK8sAddOns(ctx); err != nil {
 		return err
 	}
-	return c.DeployUserAddOns(ctx)
+	return c.deployUserAddOns(ctx)
 }
 
 func (c *Cluster) SyncLabelsAndTaints(ctx context.Context) error {
@@ -296,4 +296,19 @@ func (c *Cluster) PrePullK8sImages(ctx context.Context) error {
 	}
 	log.Infof(ctx, "Kubernetes images pulled successfully")
 	return nil
+}
+
+func ConfigureCluster(ctx context.Context, rkeConfig v3.RancherKubernetesEngineConfig, crtBundle map[string]pki.CertificatePKI, clusterFilePath, configDir string) error {
+	// dialer factories are not needed here since we are not uses docker only k8s jobs
+	kubeCluster, err := ParseCluster(ctx, &rkeConfig, clusterFilePath, configDir, nil, nil)
+	if err != nil {
+		return err
+	}
+	kubeCluster.Certificates = crtBundle
+	err = kubeCluster.deployNetworkPlugin(ctx)
+	if err != nil {
+		return err
+	}
+
+	return kubeCluster.deployAddons(ctx)
 }
