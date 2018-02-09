@@ -193,6 +193,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"/etc/kubernetes:/etc/kubernetes:z",
 		"/etc/cni:/etc/cni:ro,z",
 		"/opt/cni:/opt/cni:ro,z",
+		"/var/lib/cni:/var/lib/cni:z",
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys",
 		"/var/lib/docker:/var/lib/docker:rw,z",
