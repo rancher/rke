@@ -93,7 +93,7 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes",
+		"/etc/kubernetes:/etc/kubernetes:z",
 	}
 
 	for arg, value := range c.Services.KubeAPI.ExtraArgs {
@@ -140,7 +140,7 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes",
+		"/etc/kubernetes:/etc/kubernetes:z",
 	}
 
 	for arg, value := range c.Services.KubeController.ExtraArgs {
@@ -181,6 +181,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"--allow-privileged=true",
 		"--cloud-provider=",
 		"--kubeconfig=" + pki.GetConfigPath(pki.KubeNodeCertName),
+		"--volume-plugin-dir=/var/lib/kubelet/volumeplugins",
 		"--require-kubeconfig=True",
 		"--fail-swap-on=" + strconv.FormatBool(c.Services.Kubelet.FailSwapOn),
 	}
@@ -189,20 +190,19 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes",
-		"/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins",
-		"/etc/cni:/etc/cni:ro",
-		"/opt/cni:/opt/cni:ro",
+		"/etc/kubernetes:/etc/kubernetes:z",
+		"/etc/cni:/etc/cni:ro,z",
+		"/opt/cni:/opt/cni:ro,z",
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys",
-		"/var/lib/docker:/var/lib/docker:rw",
-		"/var/lib/kubelet:/var/lib/kubelet:shared",
+		"/var/lib/docker:/var/lib/docker:rw,z",
+		"/var/lib/kubelet:/var/lib/kubelet:shared,z",
 		"/var/run:/var/run:rw",
 		"/run:/run",
 		"/etc/ceph:/etc/ceph",
 		"/dev:/host/dev",
-		"/var/log/containers:/var/log/containers",
-		"/var/log/pods:/var/log/pods",
+		"/var/log/containers:/var/log/containers:z",
+		"/var/log/pods:/var/log/pods:z",
 	}
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
@@ -236,7 +236,7 @@ func (c *Cluster) BuildKubeProxyProcess() v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes",
+		"/etc/kubernetes:/etc/kubernetes:z",
 	}
 
 	for arg, value := range c.Services.Kubeproxy.ExtraArgs {
@@ -290,7 +290,7 @@ func (c *Cluster) BuildSchedulerProcess() v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes",
+		"/etc/kubernetes:/etc/kubernetes:z",
 	}
 
 	for arg, value := range c.Services.Scheduler.ExtraArgs {
