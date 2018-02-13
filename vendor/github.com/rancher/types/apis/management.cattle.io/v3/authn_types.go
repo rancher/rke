@@ -63,6 +63,11 @@ type Principal struct {
 	ExtraInfo      map[string]string `json:"extraInfo,omitempty"`
 }
 
+type SearchPrincipalsInput struct {
+	Name          string `json:"name" norman:"type=string,required,notnullable"`
+	PrincipalType string `json:"principalType,omitempty" norman:"type=enum,options=user|group"`
+}
+
 type ChangePasswordInput struct {
 	CurrentPassword string `json:"currentPassword" norman:"type=string,required"`
 	NewPassword     string `json:"newPassword" norman:"type=string,required"`
@@ -77,8 +82,10 @@ type AuthConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Type    string `json:"type"`
-	Enabled bool   `json:"enabled,omitempty"`
+	Type                string   `json:"type"`
+	Enabled             bool     `json:"enabled,omitempty"`
+	AccessMode          string   `json:"accessMode,omitempty" norman:"required,notnullable,type=enum,options=required|restricted|unrestricted"`
+	AllowedPrincipalIDs []string `json:"allowedPrincipalIds,omitempty" norman:"type=array[reference[Principal]]"`
 }
 
 //GithubConfig structure contains the github config definition
