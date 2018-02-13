@@ -43,7 +43,7 @@ func TestEtcdConfig(t *testing.T) {
 	etcdService.Image = TestEtcdImage
 	etcdService.ExtraArgs = map[string]string{"foo": "bar"}
 	// Test init cluster string
-	initCluster := getEtcdInitialCluster(etcdHosts)
+	initCluster := GetEtcdInitialCluster(etcdHosts)
 	assertEqual(t, initCluster, TestInitEtcdClusterString, "")
 
 	for _, host := range etcdHosts {
