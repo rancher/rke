@@ -38,23 +38,23 @@ type PrivateRegistry struct {
 
 type RKESystemImages struct {
 	// etcd image
-	Etcd string `yaml:"etcd" json:"etcd,omitempty" norman:"default=quay.io/coreos/etcd:v3.0.17"`
+	Etcd string `yaml:"etcd" json:"etcd,omitempty"`
 	// Alpine image
-	Alpine string `yaml:"alpine" json:"alpine,omitempty" norman:"default=alpine"`
+	Alpine string `yaml:"alpine" json:"alpine,omitempty"`
 	// rke-nginx-proxy image
-	NginxProxy string `yaml:"nginx_proxy" json:"nginxProxy,omitempty" norman:"default=rancher/rke-nginx-proxy:v0.1.1"`
+	NginxProxy string `yaml:"nginx_proxy" json:"nginxProxy,omitempty"`
 	// rke-cert-deployer image
-	CertDownloader string `yaml:"cert_downloader" json:"certDownloader,omitempty" norman:"default=rancher/rke-cert-deployer:v0.1.1"`
+	CertDownloader string `yaml:"cert_downloader" json:"certDownloader,omitempty"`
 	// rke-service-sidekick image
-	KubernetesServicesSidecar string `yaml:"kubernetes_services_sidecar" json:"kubernetesServicesSidecar,omitempty" norman:"default=rancher/rke-service-sidekick:v0.1.0"`
+	KubernetesServicesSidecar string `yaml:"kubernetes_services_sidecar" json:"kubernetesServicesSidecar,omitempty"`
 	// KubeDNS image
-	KubeDNS string `yaml:"kubedns" json:"kubedns,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.5"`
+	KubeDNS string `yaml:"kubedns" json:"kubedns,omitempty"`
 	// DNSMasq image
-	DNSmasq string `yaml:"dnsmasq" json:"dnsmasq,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.5"`
+	DNSmasq string `yaml:"dnsmasq" json:"dnsmasq,omitempty"`
 	// KubeDNS side car image
-	KubeDNSSidecar string `yaml:"kubedns_sidecar" json:"kubednsSidecar,omitempty" norman:"default=gcr.io/google_containers/k8s-dns-sidecar-amd64:1.14.5"`
+	KubeDNSSidecar string `yaml:"kubedns_sidecar" json:"kubednsSidecar,omitempty"`
 	// KubeDNS autoscaler image
-	KubeDNSAutoscaler string `yaml:"kubedns_autoscaler" json:"kubednsAutoscaler,omitempty" norman:"default=gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"`
+	KubeDNSAutoscaler string `yaml:"kubedns_autoscaler" json:"kubednsAutoscaler,omitempty"`
 	// Kubernetes image
 	Kubernetes string `yaml:"kubernetes" json:"kubernetes,omitempty" norman:"default=rancher/k8s:v1.8.5-rancher4"`
 	// Flannel image
@@ -202,4 +202,57 @@ type IngressConfig struct {
 	Options map[string]string `yaml:"options" json:"options,omitempty"`
 	// NodeSelector key pair
 	NodeSelector map[string]string `yaml:"node_selector" json:"nodeSelector,omitempty"`
+}
+
+type RKEPlan struct {
+	// List of node Plans
+	Nodes []RKEConfigNodePlan `json:"nodes,omitempty"`
+}
+
+type RKEConfigNodePlan struct {
+	// Node address
+	Address string `json:"address,omitempty"`
+	// List of processes that should run on the node
+	Processes []Process `json:"processes,omitempty"`
+	// List of portchecks that should be open on the node
+	PortChecks []PortCheck `json:"portChecks,omitempty"`
+}
+
+type Process struct {
+	// Process Entrypoint command
+	Command []string `json:"command,omitempty"`
+	// Process args
+	Args []string `json:"args,omitempty"`
+	// Environment variables list
+	Env []string `json:"env,omitempty"`
+	// Process docker image
+	Image string `json:"image,omitempty"`
+	// Process docker image VolumesFrom
+	VolumesFrom []string `json:"volumesFrom,omitempty"`
+	// Process docker container bind mounts
+	Binds []string `json:"binds,omitempty"`
+	// Process docker container netwotk mode
+	NetworkMode string `json:"networkMode,omitempty"`
+	// Process container restart policy
+	RestartPolicy string `json:"restartPolicy,omitempty"`
+	// Process container pid mode
+	PidMode string `json:"pidMode,omitempty"`
+	// Run process in privileged container
+	Privileged bool `json:"privileged,omitempty"`
+	// Process healthcheck
+	HealthCheck HealthCheck `json:"healthCheck,omitempty"`
+}
+
+type HealthCheck struct {
+	// Healthcheck URL
+	URL string `json:"url,omitempty"`
+}
+
+type PortCheck struct {
+	// Portcheck address to check.
+	Address string `json:"address,omitempty"`
+	// Port number
+	Port int `json:"port,omitempty"`
+	// Port Protocol
+	Protocol string `json:"protocol,omitempty"`
 }

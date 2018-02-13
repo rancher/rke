@@ -79,8 +79,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&TokenList{},
 		&DynamicSchema{},
 		&DynamicSchemaList{},
-		&App{},
-		&AppList{},
 		&Preference{},
 		&PreferenceList{},
 		&ClusterLogging{},
@@ -91,6 +89,12 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&ListenConfigList{},
 		&Setting{},
 		&SettingList{},
+		&Notifier{},
+		&NotifierList{},
+		&ClusterAlert{},
+		&ClusterAlertList{},
+		&ProjectAlert{},
+		&ProjectAlertList{},
 	)
 	return nil
 }
