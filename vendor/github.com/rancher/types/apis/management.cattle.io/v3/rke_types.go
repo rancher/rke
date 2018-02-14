@@ -85,7 +85,7 @@ type RKESystemImages struct {
 
 type RKEConfigNode struct {
 	// Name of the host provisioned via docker machine
-	MachineName string `yaml:"machine_name,omitempty" json:"machineName,omitempty" norman:"type=reference[machine]"`
+	NodeName string `yaml:"-" json:"-" norman:"type=reference[node]"`
 	// IP or FQDN that is fully resolvable and used for SSH communication
 	Address string `yaml:"address" json:"address,omitempty"`
 	// Optional - Internal address that will be used for components communication
@@ -124,6 +124,16 @@ type RKEConfigServices struct {
 type ETCDService struct {
 	// Base service properties
 	BaseService `yaml:",inline" json:",inline"`
+	// List of etcd urls
+	ExternalURLs []string `yaml:"external_urls" json:"externalUrls,omitempty"`
+	// External CA certificate
+	CACert string `yaml:"ca_cert" json:"caCert,omitempty"`
+	// External Client certificate
+	Cert string `yaml:"cert" json:"cert,omitempty"`
+	// External Client key
+	Key string `yaml:"key" json:"key,omitempty"`
+	// External etcd prefix
+	Path string `yaml:"path" json:"path,omitempty"`
 }
 
 type KubeAPIService struct {
