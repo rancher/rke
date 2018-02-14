@@ -64,7 +64,7 @@ RKE supports the following network plugins:
 
 - Flannel
 - Calico
-- Cannal
+- Canal
 - Weave
 
 To use specific network plugin configure `cluster.yml` to include:
@@ -92,11 +92,11 @@ There are extra options that can be specified for each network plugin:
 - **calicoctl_image**: Calicoctl tool Docker image
 - **calico_cloud_provider**: Cloud provider where Calico will operate, currently supported values are: `aws`, `gce`
 
-#### Cannal
+#### Canal
 
-- **canal_node_image**: Cannal Node Docker image
-- **canal_cni_image**: Cannal CNI binary installer Docker image
-- **canal_flannel_image**: Cannal Flannel Docker image
+- **canal_node_image**: Canal Node Docker image
+- **canal_cni_image**: Canal CNI binary installer Docker image
+- **canal_flannel_image**: Canal Flannel Docker image
 
 #### Weave
 
