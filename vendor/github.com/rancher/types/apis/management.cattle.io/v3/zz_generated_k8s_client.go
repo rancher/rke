@@ -14,9 +14,9 @@ type Interface interface {
 	RESTClient() rest.Interface
 	controller.Starter
 
-	MachinesGetter
-	MachineDriversGetter
-	MachineTemplatesGetter
+	NodesGetter
+	NodeDriversGetter
+	NodeTemplatesGetter
 	ProjectsGetter
 	GlobalRolesGetter
 	GlobalRoleBindingsGetter
@@ -45,6 +45,12 @@ type Interface interface {
 	NotifiersGetter
 	ClusterAlertsGetter
 	ProjectAlertsGetter
+	SourceCodeCredentialsGetter
+	ClusterPipelinesGetter
+	PipelinesGetter
+	PipelineExecutionsGetter
+	SourceCodeRepositoriesGetter
+	PipelineExecutionLogsGetter
 }
 
 type Client struct {
@@ -52,9 +58,9 @@ type Client struct {
 	restClient rest.Interface
 	starters   []controller.Starter
 
-	machineControllers                    map[string]MachineController
-	machineDriverControllers              map[string]MachineDriverController
-	machineTemplateControllers            map[string]MachineTemplateController
+	nodeControllers                       map[string]NodeController
+	nodeDriverControllers                 map[string]NodeDriverController
+	nodeTemplateControllers               map[string]NodeTemplateController
 	projectControllers                    map[string]ProjectController
 	globalRoleControllers                 map[string]GlobalRoleController
 	globalRoleBindingControllers          map[string]GlobalRoleBindingController
@@ -83,6 +89,12 @@ type Client struct {
 	notifierControllers                   map[string]NotifierController
 	clusterAlertControllers               map[string]ClusterAlertController
 	projectAlertControllers               map[string]ProjectAlertController
+	sourceCodeCredentialControllers       map[string]SourceCodeCredentialController
+	clusterPipelineControllers            map[string]ClusterPipelineController
+	pipelineControllers                   map[string]PipelineController
+	pipelineExecutionControllers          map[string]PipelineExecutionController
+	sourceCodeRepositoryControllers       map[string]SourceCodeRepositoryController
+	pipelineExecutionLogControllers       map[string]PipelineExecutionLogController
 }
 
 func NewForConfig(config rest.Config) (Interface, error) {
@@ -99,9 +111,9 @@ func NewForConfig(config rest.Config) (Interface, error) {
 	return &Client{
 		restClient: restClient,
 
-		machineControllers:                    map[string]MachineController{},
-		machineDriverControllers:              map[string]MachineDriverController{},
-		machineTemplateControllers:            map[string]MachineTemplateController{},
+		nodeControllers:                       map[string]NodeController{},
+		nodeDriverControllers:                 map[string]NodeDriverController{},
+		nodeTemplateControllers:               map[string]NodeTemplateController{},
 		projectControllers:                    map[string]ProjectController{},
 		globalRoleControllers:                 map[string]GlobalRoleController{},
 		globalRoleBindingControllers:          map[string]GlobalRoleBindingController{},
@@ -130,6 +142,12 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		notifierControllers:                   map[string]NotifierController{},
 		clusterAlertControllers:               map[string]ClusterAlertController{},
 		projectAlertControllers:               map[string]ProjectAlertController{},
+		sourceCodeCredentialControllers:       map[string]SourceCodeCredentialController{},
+		clusterPipelineControllers:            map[string]ClusterPipelineController{},
+		pipelineControllers:                   map[string]PipelineController{},
+		pipelineExecutionControllers:          map[string]PipelineExecutionController{},
+		sourceCodeRepositoryControllers:       map[string]SourceCodeRepositoryController{},
+		pipelineExecutionLogControllers:       map[string]PipelineExecutionLogController{},
 	}, nil
 }
 
@@ -145,39 +163,39 @@ func (c *Client) Start(ctx context.Context, threadiness int) error {
 	return controller.Start(ctx, threadiness, c.starters...)
 }
 
-type MachinesGetter interface {
-	Machines(namespace string) MachineInterface
+type NodesGetter interface {
+	Nodes(namespace string) NodeInterface
 }
 
-func (c *Client) Machines(namespace string) MachineInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &MachineResource, MachineGroupVersionKind, machineFactory{})
-	return &machineClient{
+func (c *Client) Nodes(namespace string) NodeInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodeResource, NodeGroupVersionKind, nodeFactory{})
+	return &nodeClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
 	}
 }
 
-type MachineDriversGetter interface {
-	MachineDrivers(namespace string) MachineDriverInterface
+type NodeDriversGetter interface {
+	NodeDrivers(namespace string) NodeDriverInterface
 }
 
-func (c *Client) MachineDrivers(namespace string) MachineDriverInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &MachineDriverResource, MachineDriverGroupVersionKind, machineDriverFactory{})
-	return &machineDriverClient{
+func (c *Client) NodeDrivers(namespace string) NodeDriverInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodeDriverResource, NodeDriverGroupVersionKind, nodeDriverFactory{})
+	return &nodeDriverClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
 	}
 }
 
-type MachineTemplatesGetter interface {
-	MachineTemplates(namespace string) MachineTemplateInterface
+type NodeTemplatesGetter interface {
+	NodeTemplates(namespace string) NodeTemplateInterface
 }
 
-func (c *Client) MachineTemplates(namespace string) MachineTemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &MachineTemplateResource, MachineTemplateGroupVersionKind, machineTemplateFactory{})
-	return &machineTemplateClient{
+func (c *Client) NodeTemplates(namespace string) NodeTemplateInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodeTemplateResource, NodeTemplateGroupVersionKind, nodeTemplateFactory{})
+	return &nodeTemplateClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
@@ -542,6 +560,84 @@ type ProjectAlertsGetter interface {
 func (c *Client) ProjectAlerts(namespace string) ProjectAlertInterface {
 	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectAlertResource, ProjectAlertGroupVersionKind, projectAlertFactory{})
 	return &projectAlertClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type SourceCodeCredentialsGetter interface {
+	SourceCodeCredentials(namespace string) SourceCodeCredentialInterface
+}
+
+func (c *Client) SourceCodeCredentials(namespace string) SourceCodeCredentialInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &SourceCodeCredentialResource, SourceCodeCredentialGroupVersionKind, sourceCodeCredentialFactory{})
+	return &sourceCodeCredentialClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type ClusterPipelinesGetter interface {
+	ClusterPipelines(namespace string) ClusterPipelineInterface
+}
+
+func (c *Client) ClusterPipelines(namespace string) ClusterPipelineInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterPipelineResource, ClusterPipelineGroupVersionKind, clusterPipelineFactory{})
+	return &clusterPipelineClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type PipelinesGetter interface {
+	Pipelines(namespace string) PipelineInterface
+}
+
+func (c *Client) Pipelines(namespace string) PipelineInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PipelineResource, PipelineGroupVersionKind, pipelineFactory{})
+	return &pipelineClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type PipelineExecutionsGetter interface {
+	PipelineExecutions(namespace string) PipelineExecutionInterface
+}
+
+func (c *Client) PipelineExecutions(namespace string) PipelineExecutionInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PipelineExecutionResource, PipelineExecutionGroupVersionKind, pipelineExecutionFactory{})
+	return &pipelineExecutionClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type SourceCodeRepositoriesGetter interface {
+	SourceCodeRepositories(namespace string) SourceCodeRepositoryInterface
+}
+
+func (c *Client) SourceCodeRepositories(namespace string) SourceCodeRepositoryInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &SourceCodeRepositoryResource, SourceCodeRepositoryGroupVersionKind, sourceCodeRepositoryFactory{})
+	return &sourceCodeRepositoryClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type PipelineExecutionLogsGetter interface {
+	PipelineExecutionLogs(namespace string) PipelineExecutionLogInterface
+}
+
+func (c *Client) PipelineExecutionLogs(namespace string) PipelineExecutionLogInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PipelineExecutionLogResource, PipelineExecutionLogGroupVersionKind, pipelineExecutionLogFactory{})
+	return &pipelineExecutionLogClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
