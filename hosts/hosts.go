@@ -59,8 +59,8 @@ func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[s
 }
 
 func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
-	if h.IsControl {
-		log.Infof(ctx, "[hosts] Host [%s] is already a controlplane host, skipping cleanup.", h.Address)
+	if h.IsControl || h.IsEtcd {
+		log.Infof(ctx, "[hosts] Host [%s] is already a controlplane or etcd host, skipping cleanup.", h.Address)
 		return nil
 	}
 	toCleanPaths := []string{
@@ -74,8 +74,8 @@ func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMa
 }
 
 func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
-	if h.IsWorker {
-		log.Infof(ctx, "[hosts] Host [%s] is already a worker host, skipping cleanup.", h.Address)
+	if h.IsWorker || h.IsEtcd {
+		log.Infof(ctx, "[hosts] Host [%s] is already a worker or etcd host, skipping cleanup.", h.Address)
 		return nil
 	}
 	toCleanPaths := []string{
