@@ -216,7 +216,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"/var/lib/cni:/var/lib/cni:z",
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys",
-		"/var/lib/docker:/var/lib/docker:rw,z",
+		host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,z",
 		"/var/lib/kubelet:/var/lib/kubelet:shared,z",
 		"/var/run:/var/run:rw",
 		"/run:/run",
