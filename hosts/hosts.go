@@ -36,6 +36,7 @@ const (
 	ToCleanSSLDir        = "/etc/kubernetes/ssl"
 	ToCleanCNIConf       = "/etc/cni"
 	ToCleanCNIBin        = "/opt/cni"
+	ToCleanCNILib        = "/var/lib/cni"
 	ToCleanCalicoRun     = "/var/run/calico"
 	ToCleanTempCertPath  = "/etc/kubernetes/.tmp/"
 	CleanerContainerName = "kube-cleaner"
@@ -49,6 +50,7 @@ func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[s
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
 		ToCleanTempCertPath,
+		ToCleanCNILib,
 	}
 	if externalEtcd {
 		toCleanPaths = append(toCleanPaths, ToCleanEtcdDir)
@@ -66,6 +68,7 @@ func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMa
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
+		ToCleanCNILib,
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
 }
@@ -80,6 +83,7 @@ func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsM
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
+		ToCleanCNILib,
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
 }
