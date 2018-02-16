@@ -8,6 +8,8 @@ import (
 )
 
 type NodeTemplate struct {
+	types.Namespaced
+
 	metav1.TypeMeta `json:",inline"`
 	// Standard object’s metadata. More info:
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
@@ -40,7 +42,7 @@ type NodeTemplateCondition struct {
 type NodeTemplateSpec struct {
 	DisplayName      string `json:"displayName"`
 	Description      string `json:"description"`
-	Driver           string `json:"driver"`
+	Driver           string `json:"driver" norman:"nocreate,noupdate"`
 	NodeCommonParams `json:",inline"`
 }
 
@@ -121,7 +123,7 @@ type CommonNodeSpec struct {
 	Etcd             bool   `json:"etcd"`
 	ControlPlane     bool   `json:"controlPlane"`
 	Worker           bool   `json:"worker"`
-	NodeTemplateName string `json:"nodeTemplateName,omitempty" norman:"type=reference[nodeTemplate],noupdate"`
+	NodeTemplateName string `json:"nodeTemplateName,omitempty" norman:"type=reference[nodeTemplate]"`
 }
 
 type NodeSpec struct {

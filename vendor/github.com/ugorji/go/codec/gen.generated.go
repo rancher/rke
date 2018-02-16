@@ -1,5 +1,3 @@
-// +build codecgen.exec
-
 // Copyright (c) 2012-2015 Ugorji Nwoke. All rights reserved.
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
@@ -98,7 +96,7 @@ if {{var "l"}} == 0 {
 			{{var "c"}} = true 
 		}{{end}}
 		{{var "h"}}.ElemContainerState({{var "j"}})
-        {{/* {{var "dn"}} = r.TryDecodeAsNil() */}}
+        // {{var "dn"}} = r.TryDecodeAsNil()
         {{if isChan}}{{ $x := printf "%[1]vv%[2]v" .TempVar .Rand }}var {{var $x}} {{ .Typ }}
 		{{ decLineVar $x }}
 		{{var "v"}} <- {{ $x }}
@@ -131,3 +129,4 @@ if {{var "l"}} == 0 {
 }{{end}}
 
 `
+
