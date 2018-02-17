@@ -52,7 +52,7 @@ func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[s
 		ToCleanTempCertPath,
 		ToCleanCNILib,
 	}
-	if externalEtcd {
+	if !externalEtcd {
 		toCleanPaths = append(toCleanPaths, ToCleanEtcdDir)
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
