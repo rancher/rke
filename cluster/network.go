@@ -263,10 +263,18 @@ func (c *Cluster) CheckClusterPorts(ctx context.Context, currentCluster *Cluster
 
 func (c *Cluster) checkKubeAPIPort(ctx context.Context) error {
 	log.Infof(ctx, "[network] Checking KubeAPI port Control Plane hosts")
+	var err error
 	for _, host := range c.ControlPlaneHosts {
 		logrus.Debugf("[network] Checking KubeAPI port [%s] on host: %s", KubeAPIPort, host.Address)
 		address := fmt.Sprintf("%s:%s", host.Address, KubeAPIPort)
-		conn, err := net.Dial("tcp", address)
+		dial := net.Dial
+		if c.LocalConnDialerFactory != nil {
+			dial, err = c.LocalConnDialerFactory(host)
+			if err != nil {
+				return err
+			}
+		}
+		conn, err := dial("tcp", address)
 		if err != nil {
 			return fmt.Errorf("[network] Can't access KubeAPI port [%s] on Control Plane host: %s", KubeAPIPort, host.Address)
 		}
