@@ -18,7 +18,7 @@ const (
 
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig) (v3.RKEPlan, error) {
 	clusterPlan := v3.RKEPlan{}
-	myCluster, _ := ParseCluster(ctx, rkeConfig, "", "", nil, nil)
+	myCluster, _ := ParseCluster(ctx, rkeConfig, "", "", nil, nil, nil)
 	// rkeConfig.Nodes are already unique. But they don't have role flags. So I will use the parsed cluster.Hosts to make use of the role flags.
 	uniqHosts := hosts.GetUniqueHostList(myCluster.EtcdHosts, myCluster.ControlPlaneHosts, myCluster.WorkerHosts)
 	for _, host := range uniqHosts {
