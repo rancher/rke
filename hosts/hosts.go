@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+
 	"github.com/docker/docker/client"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
@@ -29,6 +31,7 @@ type Host struct {
 	ToDelLabels         map[string]string
 	ToAddTaints         []string
 	ToDelTaints         []string
+	DockerInfo          types.Info
 }
 
 const (
