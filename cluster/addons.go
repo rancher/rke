@@ -88,7 +88,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 
 func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, addonName string) error {
 	log.Infof(ctx, "[addons] Saving addon ConfigMap to Kubernetes")
-	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath)
+	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, add
 
 func (c *Cluster) ApplySystemAddonExcuteJob(addonJob string) error {
 
-	if err := k8s.ApplyK8sSystemJob(addonJob, c.LocalKubeConfigPath); err != nil {
+	if err := k8s.ApplyK8sSystemJob(addonJob, c.LocalKubeConfigPath, c.K8sWrapTransport); err != nil {
 		fmt.Println(err)
 		return err
 	}
