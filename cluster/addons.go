@@ -17,9 +17,12 @@ const (
 )
 
 type ingressOptions struct {
-	RBACConfig   string
-	Options      map[string]string
-	NodeSelector map[string]string
+	RBACConfig     string
+	Options        map[string]string
+	NodeSelector   map[string]string
+	AlpineImage    string
+	IngressImage   string
+	IngressBackend string
 }
 
 func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
@@ -130,9 +133,12 @@ func (c *Cluster) deployIngress(ctx context.Context) error {
 		return nil
 	}
 	ingressConfig := ingressOptions{
-		RBACConfig:   c.Authorization.Mode,
-		Options:      c.Ingress.Options,
-		NodeSelector: c.Ingress.NodeSelector,
+		RBACConfig:     c.Authorization.Mode,
+		Options:        c.Ingress.Options,
+		NodeSelector:   c.Ingress.NodeSelector,
+		AlpineImage:    c.SystemImages.Alpine,
+		IngressImage:   c.SystemImages.Ingress,
+		IngressBackend: c.SystemImages.IngressBackend,
 	}
 	// Currently only deploying nginx ingress controller
 	ingressYaml, err := addons.GetNginxIngressManifest(ingressConfig)
