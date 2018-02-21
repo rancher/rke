@@ -9,12 +9,8 @@ import (
 
 func (c *Cluster) ValidateCluster() error {
 	// make sure cluster has at least one controlplane/etcd host
-
-	if len(c.EtcdHosts) == 0 && len(c.Services.Etcd.ExternalURLs) == 0 {
-		return fmt.Errorf("Cluster must have at least one etcd plane host")
-	}
-	if len(c.EtcdHosts) > 0 && len(c.Services.Etcd.ExternalURLs) > 0 {
-		return fmt.Errorf("Cluster can't have both internal and external etcd")
+	if err := ValidateHostCount(c); err != nil {
+		return err
 	}
 
 	// validate hosts options
@@ -117,6 +113,16 @@ func validateIngressOptions(c *Cluster) error {
 	// Should be changed when adding more ingress types
 	if c.Ingress.Provider != DefaultIngressController && c.Ingress.Provider != "none" {
 		return fmt.Errorf("Ingress controller %s is incorrect", c.Ingress.Provider)
+	}
+	return nil
+}
+
+func ValidateHostCount(c *Cluster) error {
+	if len(c.EtcdHosts) == 0 && len(c.Services.Etcd.ExternalURLs) == 0 {
+		return fmt.Errorf("Cluster must have at least one etcd plane host")
+	}
+	if len(c.EtcdHosts) > 0 && len(c.Services.Etcd.ExternalURLs) > 0 {
+		return fmt.Errorf("Cluster can't have both internal and external etcd")
 	}
 	return nil
 }
