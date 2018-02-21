@@ -92,6 +92,8 @@ type RKEConfigNode struct {
 	NodeName string `yaml:"nodeName,omitempty" json:"nodeName,omitempty" norman:"type=reference[node]"`
 	// IP or FQDN that is fully resolvable and used for SSH communication
 	Address string `yaml:"address" json:"address,omitempty"`
+	// Port used for SSH communication
+	Port string `yaml:"port" json:"port,omitempty"`
 	// Optional - Internal address that will be used for components communication
 	InternalAddress string `yaml:"internal_address" json:"internalAddress,omitempty"`
 	// Node role in kubernetes cluster (controlplane, worker, or etcd)
