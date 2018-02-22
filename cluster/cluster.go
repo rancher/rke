@@ -29,6 +29,7 @@ type Cluster struct {
 	EtcdHosts                        []*hosts.Host
 	WorkerHosts                      []*hosts.Host
 	ControlPlaneHosts                []*hosts.Host
+	InactiveHosts                    []*hosts.Host
 	KubeClient                       *kubernetes.Clientset
 	KubernetesServiceIP              net.IP
 	Certificates                     map[string]pki.CertificatePKI
