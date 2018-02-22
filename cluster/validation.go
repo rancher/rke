@@ -13,6 +13,11 @@ func (c *Cluster) ValidateCluster() error {
 		return err
 	}
 
+	// validate duplicate nodes
+	if err := validateDuplicateNodes(c); err != nil {
+		return err
+	}
+
 	// validate hosts options
 	if err := validateHostsOptions(c); err != nil {
 		return err
@@ -123,6 +128,23 @@ func ValidateHostCount(c *Cluster) error {
 	}
 	if len(c.EtcdHosts) > 0 && len(c.Services.Etcd.ExternalURLs) > 0 {
 		return fmt.Errorf("Cluster can't have both internal and external etcd")
+	}
+	return nil
+}
+
+func validateDuplicateNodes(c *Cluster) error {
+	for i := range c.Nodes {
+		for j := range c.Nodes {
+			if i == j {
+				continue
+			}
+			if c.Nodes[i].Address == c.Nodes[j].Address {
+				return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].Address)
+			}
+			if c.Nodes[i].HostnameOverride == c.Nodes[j].HostnameOverride {
+				return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].HostnameOverride)
+			}
+		}
 	}
 	return nil
 }
