@@ -159,7 +159,7 @@ func RemoveTaintFromHost(ctx context.Context, host *Host, taintKey string, kubeC
 	return nil
 }
 
-func GetToDeleteHosts(currentHosts, configHosts []*Host) []*Host {
+func GetToDeleteHosts(currentHosts, configHosts, inactiveHosts []*Host) []*Host {
 	toDeleteHosts := []*Host{}
 	for _, currentHost := range currentHosts {
 		found := false
@@ -169,7 +169,16 @@ func GetToDeleteHosts(currentHosts, configHosts []*Host) []*Host {
 			}
 		}
 		if !found {
-			toDeleteHosts = append(toDeleteHosts, currentHost)
+			inactive := false
+			for _, inactiveHost := range inactiveHosts {
+				if inactiveHost.Address == currentHost.Address {
+					inactive = true
+					break
+				}
+			}
+			if !inactive {
+				toDeleteHosts = append(toDeleteHosts, currentHost)
+			}
 		}
 	}
 	return toDeleteHosts
