@@ -40,10 +40,9 @@ const (
 	DefaultFlannelImage    = "rancher/coreos-flannel:v0.9.1"
 	DefaultFlannelCNIImage = "rancher/coreos-flannel-cni:v0.2.0"
 
-	DefaultCalicoNodeImage        = "rancher/calico-node:v2.6.2"
-	DefaultCalicoCNIImage         = "rancher/calico-cni:v1.11.0"
-	DefaultCalicoControllersImage = "rancher/calico-kube-controllers:v1.0.0"
-	DefaultCalicoctlImage         = "rancher/calico-ctl:v1.6.2"
+	DefaultCalicoNodeImage = "rancher/calico-node:v3.0.2"
+	DefaultCalicoCNIImage  = "rancher/calico-cni:v2.0.0"
+	DefaultCalicoctlImage  = "rancher/calico-ctl:v2.0.0"
 
 	DefaultWeaveImage    = "weaveworks/weave-kube:2.1.2"
 	DefaultWeaveCNIImage = "weaveworks/weave-npc:2.1.2"
@@ -160,7 +159,6 @@ func (c *Cluster) setClusterImageDefaults() {
 		&c.SystemImages.FlannelCNI:                DefaultFlannelCNIImage,
 		&c.SystemImages.CalicoNode:                DefaultCalicoNodeImage,
 		&c.SystemImages.CalicoCNI:                 DefaultCalicoCNIImage,
-		&c.SystemImages.CalicoControllers:         DefaultCalicoControllersImage,
 		&c.SystemImages.CalicoCtl:                 DefaultCalicoctlImage,
 		&c.SystemImages.CanalNode:                 DefaultCanalNodeImage,
 		&c.SystemImages.CanalCNI:                  DefaultCanalCNIImage,
