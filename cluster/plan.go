@@ -357,7 +357,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host) v3
 	}
 	args := []string{"/usr/local/bin/etcd",
 		"--name=etcd-" + host.HostnameOverride,
-		"--data-dir=/etcd-data",
+		"--data-dir=/var/lib/rancher/etcd",
 		"--advertise-client-urls=https://" + host.InternalAddress + ":2379,https://" + host.InternalAddress + ":4001",
 		"--listen-client-urls=https://0.0.0.0:2379",
 		"--initial-advertise-peer-urls=https://" + host.InternalAddress + ":2380",
@@ -376,7 +376,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host) v3
 	}
 
 	Binds := []string{
-		"/var/lib/etcd:/etcd-data:z",
+		"/var/lib/etcd:/var/lib/rancher/etcd:z",
 		"/etc/kubernetes:/etc/kubernetes:z",
 	}
 	for arg, value := range c.Services.Etcd.ExtraArgs {
