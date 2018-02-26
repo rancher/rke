@@ -40,6 +40,7 @@ type Cluster struct {
 	LocalConnDialerFactory           hosts.DialerFactory
 	PrivateRegistriesMap             map[string]v3.PrivateRegistry
 	K8sWrapTransport                 k8s.WrapTransport
+	UseKubectlDeploy                 bool
 }
 
 const (
