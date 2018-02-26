@@ -103,7 +103,7 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 	}
 
 	if c.Authorization.Mode == services.RBACAuthorizationMode {
-		args = append(args, "--authorization-mode=RBAC")
+		args = append(args, "--authorization-mode=Node,RBAC")
 	}
 	if c.Services.KubeAPI.PodSecurityPolicy {
 		args = append(args, "--runtime-config=extensions/v1beta1/podsecuritypolicy=true", "--admission-control=PodSecurityPolicy")
