@@ -216,7 +216,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"/var/lib/cni:/var/lib/cni:z",
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys:rprivate",
-		host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,z",
+		host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,rprivate,z",
 		"/var/lib/kubelet:/var/lib/kubelet:shared,z",
 		"/var/run:/var/run:rw,rprivate",
 		"/run:/run:rprivate",
