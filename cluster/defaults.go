@@ -46,6 +46,7 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	if len(c.SSHKeyPath) == 0 {
 		c.SSHKeyPath = DefaultClusterSSHKeyPath
 	}
+
 	for i, host := range c.Nodes {
 		if len(host.InternalAddress) == 0 {
 			c.Nodes[i].InternalAddress = c.Nodes[i].Address
@@ -60,7 +61,11 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 		if len(host.Port) == 0 {
 			c.Nodes[i].Port = DefaultSSHPort
 		}
+
+		// For now, you can set at the global level only.
+		c.Nodes[i].SSHAgentAuth = c.SSHAgentAuth
 	}
+
 	if len(c.Authorization.Mode) == 0 {
 		c.Authorization.Mode = DefaultAuthorizationMode
 	}
