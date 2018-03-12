@@ -1,6 +1,8 @@
 package v3
 
 import (
+	"github.com/rancher/norman/condition"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -17,7 +19,7 @@ type Catalog struct {
 
 type CatalogSpec struct {
 	Description string `json:"description"`
-	URL         string `json:"url,omitempty"`
+	URL         string `json:"url,omitempty" norman:"required"`
 	Branch      string `json:"branch,omitempty"`
 	CatalogKind string `json:"catalogKind,omitempty"`
 }
@@ -27,6 +29,26 @@ type CatalogStatus struct {
 	Commit               string `json:"commit,omitempty"`
 	// helmVersionCommits records hash of each helm template version
 	HelmVersionCommits map[string]VersionCommits `json:"helmVersionCommits,omitempty"`
+	Conditions         []CatalogCondition        `json:"conditions,omitempty"`
+}
+
+var (
+	CatalogConditionRefreshed condition.Cond = "Refreshed"
+)
+
+type CatalogCondition struct {
+	// Type of cluster condition.
+	Type ClusterConditionType `json:"type"`
+	// Status of the condition, one of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status"`
+	// The last time this condition was updated.
+	LastUpdateTime string `json:"lastUpdateTime,omitempty"`
+	// Last time the condition transitioned from one status to another.
+	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
+	// The reason for the condition's last transition.
+	Reason string `json:"reason,omitempty"`
+	// Human-readable message indicating details about last transition
+	Message string `json:"message,omitempty"`
 }
 
 type VersionCommits struct {
@@ -45,6 +67,7 @@ type Template struct {
 }
 
 type TemplateSpec struct {
+	DisplayName              string `json:"displayName"`
 	CatalogID                string `json:"catalogId,omitempty" norman:"type=reference[catalog]"`
 	DefaultTemplateVersionID string `json:"defaultTemplateVersionId,omitempty" norman:"type=reference[templateVersion]"`
 
