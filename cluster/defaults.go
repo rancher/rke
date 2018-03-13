@@ -16,7 +16,7 @@ const (
 	DefaultClusterDomain         = "cluster.local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
 
-	DefaultK8sVersion = "v1.8.7-rancher1-1"
+	DefaultK8sVersion = v3.K8sV18
 
 	DefaultSSHPort        = "22"
 	DefaultDockerSockPath = "/var/run/docker.sock"
