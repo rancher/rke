@@ -85,7 +85,6 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		"--allow_privileged=true",
 		"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
 		"--service-cluster-ip-range=" + c.Services.KubeAPI.ServiceClusterIPRange,
-		"--admission-control=ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
 		"--storage-backend=etcd3",
 		"--client-ca-file=" + pki.GetCertPath(pki.CACertName),
 		"--tls-cert-file=" + pki.GetCertPath(pki.KubeAPICertName),
@@ -106,7 +105,9 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		args = append(args, "--authorization-mode=Node,RBAC")
 	}
 	if c.Services.KubeAPI.PodSecurityPolicy {
-		args = append(args, "--runtime-config=extensions/v1beta1/podsecuritypolicy=true", "--admission-control=PodSecurityPolicy")
+		args = append(args, "--runtime-config=extensions/v1beta1/podsecuritypolicy=true", "--admission-control=PodSecurityPolicy,ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds")
+	} else {
+		args = append(args, "--admission-control=ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds")
 	}
 
 	VolumesFrom := []string{
