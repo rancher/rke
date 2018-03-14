@@ -132,6 +132,10 @@ ignore_docker_version: false
 
 kubernetes_version: v1.8.9-rancher1-1
 
+# If set, this is the cluster name that will be used in the kube config file
+# Default value is "local"
+cluster_name: mycluster
+
 # List of registry credentials, if you are using a Docker Hub registry,
 # you can omit the `url` or set it to `docker.io`
 private_registries:

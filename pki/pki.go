@@ -105,6 +105,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if len(cpHosts) > 0 {
 		kubeAdminConfig := GetKubeConfigX509WithData(
 			"https://"+cpHosts[0].Address+":6443",
+			rkeConfig.ClusterName,
 			KubeAdminCertName,
 			string(cert.EncodeCertPEM(caCrt)),
 			string(cert.EncodeCertPEM(kubeAdminCrt)),
