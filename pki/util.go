@@ -188,7 +188,7 @@ func ToCertObject(componentName, commonName, ouName string, cert *x509.Certifica
 	keyPath := GetKeyPath(componentName)
 
 	if componentName != CACertName && componentName != KubeAPICertName && !strings.Contains(componentName, EtcdCertName) {
-		config = getKubeConfigX509("https://127.0.0.1:6443", componentName, caCertPath, path, keyPath)
+		config = getKubeConfigX509("https://127.0.0.1:6443", "local", componentName, caCertPath, path, keyPath)
 		configPath = GetConfigPath(componentName)
 		configEnvName = getConfigEnvFromEnv(envName)
 	}
