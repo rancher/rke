@@ -222,6 +222,30 @@ ingress:
 
 RKE will deploy Nginx Ingress controller as a DaemonSet with `hostnetwork: true`, so ports `80`, and `443` will be opened on each node where the controller is deployed.
 
+## Extra Args and Binds
+
+RKE supports additional service arguments.
+
+```yaml
+services:
+  # ...
+  kube-controller:
+    extra_args:
+      cluster-name: "mycluster"
+```
+This will add/append `--cluster-name=mycluster` to the container list of arguments.
+
+RKE also supports additional volume binds:
+
+```yaml
+services:
+  # ...
+  kubelet:
+    extra_binds:
+      - "/host/dev:/dev"
+      - "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins:z"
+```
+
 ## External etcd
 
 RKE supports using external etcd instead of deploying etcd servers, to enable external etcd the following parameters should be populated:
