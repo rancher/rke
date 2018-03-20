@@ -14,10 +14,15 @@ const (
 	unschedulableEtcdTaint = "node-role.kubernetes.io/etcd=true:NoExecute"
 )
 
-func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, kubeletProcessHostMap map[*hosts.Host]v3.Process, certMap map[string]pki.CertificatePKI) error {
+func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, kubeletProcessHostMap map[*hosts.Host]v3.Process, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool) error {
 	log.Infof(ctx, "[%s] Building up Worker Plane..", WorkerRole)
 	var errgrp errgroup.Group
 	for _, host := range allHosts {
+		if updateWorkersOnly {
+			if !host.UpdateWorker {
+				continue
+			}
+		}
 		if !host.IsControl && !host.IsWorker {
 			// Add unschedulable taint
 			host.ToAddTaints = append(host.ToAddTaints, unschedulableEtcdTaint)
