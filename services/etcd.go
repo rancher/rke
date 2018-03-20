@@ -20,9 +20,12 @@ const (
 	EtcdHealthCheckURL = "https://127.0.0.1:2379/health"
 )
 
-func RunEtcdPlane(ctx context.Context, etcdHosts []*hosts.Host, etcdProcessHostMap map[*hosts.Host]v3.Process, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry) error {
+func RunEtcdPlane(ctx context.Context, etcdHosts []*hosts.Host, etcdProcessHostMap map[*hosts.Host]v3.Process, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, updateWorkersOnly bool) error {
 	log.Infof(ctx, "[%s] Building up Etcd Plane..", ETCDRole)
 	for _, host := range etcdHosts {
+		if updateWorkersOnly {
+			continue
+		}
 		imageCfg, hostCfg, _ := GetProcessConfig(etcdProcessHostMap[host])
 		err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, EtcdContainerName, host.Address, ETCDRole, prsMap)
 		if err != nil {
