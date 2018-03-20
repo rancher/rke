@@ -9,11 +9,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func RunControlPlane(ctx context.Context, controlHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process) error {
+func RunControlPlane(ctx context.Context, controlHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, updateWorkersOnly bool) error {
 	log.Infof(ctx, "[%s] Building up Controller Plane..", ControlRole)
 	var errgrp errgroup.Group
 	for _, host := range controlHosts {
 		runHost := host
+		if updateWorkersOnly {
+			continue
+		}
 		errgrp.Go(func() error {
 			return doDeployControlHost(ctx, runHost, localConnDialerFactory, prsMap, processMap)
 		})
