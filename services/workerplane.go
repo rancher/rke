@@ -14,7 +14,7 @@ const (
 	unschedulableEtcdTaint = "node-role.kubernetes.io/etcd=true:NoExecute"
 )
 
-func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, kubeletProcessHostMap map[*hosts.Host]v3.Process, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool) error {
+func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, kubeletProcessHostMap map[*hosts.Host]v3.Process, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage string) error {
 	log.Infof(ctx, "[%s] Building up Worker Plane..", WorkerRole)
 	var errgrp errgroup.Group
 	for _, host := range allHosts {
@@ -32,7 +32,7 @@ func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialer
 		hostProcessMap := copyProcessMap(processMap)
 		errgrp.Go(func() error {
 			hostProcessMap[KubeletContainerName] = kubeletProcessHostMap[runHost]
-			return doDeployWorkerPlane(ctx, runHost, localConnDialerFactory, prsMap, hostProcessMap, certMap)
+			return doDeployWorkerPlane(ctx, runHost, localConnDialerFactory, prsMap, hostProcessMap, certMap, alpineImage)
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
@@ -71,10 +71,10 @@ func RemoveWorkerPlane(ctx context.Context, workerHosts []*hosts.Host, force boo
 
 func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 	localConnDialerFactory hosts.DialerFactory,
-	prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI) error {
+	prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, alpineImage string) error {
 	// run nginx proxy
 	if !host.IsControl {
-		if err := runNginxProxy(ctx, host, prsMap, processMap[NginxProxyContainerName]); err != nil {
+		if err := runNginxProxy(ctx, host, prsMap, processMap[NginxProxyContainerName], alpineImage); err != nil {
 			return err
 		}
 	}
@@ -83,10 +83,10 @@ func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 		return err
 	}
 	// run kubelet
-	if err := runKubelet(ctx, host, localConnDialerFactory, prsMap, processMap[KubeletContainerName], certMap); err != nil {
+	if err := runKubelet(ctx, host, localConnDialerFactory, prsMap, processMap[KubeletContainerName], certMap, alpineImage); err != nil {
 		return err
 	}
-	return runKubeproxy(ctx, host, localConnDialerFactory, prsMap, processMap[KubeproxyContainerName])
+	return runKubeproxy(ctx, host, localConnDialerFactory, prsMap, processMap[KubeproxyContainerName], alpineImage)
 }
 
 func copyProcessMap(m map[string]v3.Process) map[string]v3.Process {
