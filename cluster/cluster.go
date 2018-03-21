@@ -62,7 +62,7 @@ func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		log.Infof(ctx, "[etcd] External etcd connection string has been specified, skipping etcd plane")
 	} else {
-		if err := services.RunEtcdPlane(ctx, c.EtcdHosts, etcdProcessHostMap, c.LocalConnDialerFactory, c.PrivateRegistriesMap, c.UpdateWorkersOnly); err != nil {
+		if err := services.RunEtcdPlane(ctx, c.EtcdHosts, etcdProcessHostMap, c.LocalConnDialerFactory, c.PrivateRegistriesMap, c.UpdateWorkersOnly, c.SystemImages.Alpine); err != nil {
 			return fmt.Errorf("[etcd] Failed to bring up Etcd Plane: %v", err)
 		}
 	}
@@ -77,7 +77,9 @@ func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 	if err := services.RunControlPlane(ctx, c.ControlPlaneHosts,
 		c.LocalConnDialerFactory,
 		c.PrivateRegistriesMap,
-		processMap, c.UpdateWorkersOnly); err != nil {
+		processMap,
+		c.UpdateWorkersOnly,
+		c.SystemImages.Alpine); err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 	}
 
@@ -103,7 +105,7 @@ func (c *Cluster) DeployWorkerPlane(ctx context.Context) error {
 		kubeletProcessHostMap,
 		c.Certificates,
 		c.UpdateWorkersOnly,
-	); err != nil {
+		c.SystemImages.Alpine); err != nil {
 		return fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
 	}
 	return nil
