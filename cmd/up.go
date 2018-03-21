@@ -117,6 +117,10 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, err
 	}
 
+	if err = kubeCluster.CleanDeadLogs(ctx); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, err
+	}
+
 	err = kubeCluster.SyncLabelsAndTaints(ctx)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, err
