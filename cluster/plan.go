@@ -190,6 +190,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"kubelet",
 		"--v=2",
 		"--address=0.0.0.0",
+		"--cadvisor-port=0",
+		"--read-only-port=0",
 		"--cluster-domain=" + c.ClusterDomain,
 		"--pod-infra-container-image=" + c.Services.Kubelet.InfraContainerImage,
 		"--cgroups-per-qos=True",
