@@ -28,6 +28,7 @@ const (
 	ClusterConditionAddonDeploy              condition.Cond = "AddonDeploy"
 	ClusterConditionSystemAccountCreated     condition.Cond = "SystemAccountCreated"
 	ClusterConditionAgentDeployed            condition.Cond = "AgentDeployed"
+	ClusterConditionGlobalAdminsSynced       condition.Cond = "GlobalAdminsSynced"
 
 	ClusterDriverImported = "imported"
 	ClusterDriverLocal    = "local"
@@ -51,7 +52,7 @@ type ClusterSpec struct {
 	DisplayName                          string                         `json:"displayName"`
 	Description                          string                         `json:"description"`
 	Internal                             bool                           `json:"internal" norman:"nocreate,noupdate"`
-	DesiredAgentImage                    string                         `json:"desiredAgentImage" norman:"nocreate,noupdate"`
+	DesiredAgentImage                    string                         `json:"desiredAgentImage"`
 	ImportedConfig                       *ImportedConfig                `json:"importedConfig,omitempty" norman:"nocreate,noupdate"`
 	GoogleKubernetesEngineConfig         *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
 	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
@@ -219,4 +220,8 @@ type ClusterRegistrationTokenStatus struct {
 	NodeCommand     string `json:"nodeCommand"`
 	ManifestURL     string `json:"manifestUrl"`
 	Token           string `json:"token"`
+}
+
+type GenerateKubeConfigOutput struct {
+	Config string `json:"config"`
 }

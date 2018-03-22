@@ -21,6 +21,8 @@ type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
+	ProjectName string `json:"projectName" yaml:"projectName" norman:"required,type=reference[project]"`
+
 	Spec   PipelineSpec   `json:"spec"`
 	Status PipelineStatus `json:"status"`
 }
@@ -30,6 +32,8 @@ type PipelineExecution struct {
 
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	ProjectName string `json:"projectName" yaml:"projectName" norman:"required,type=reference[project]"`
 
 	Spec   PipelineExecutionSpec   `json:"spec"`
 	Status PipelineExecutionStatus `json:"status"`
@@ -41,10 +45,14 @@ type PipelineExecutionLog struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
+	ProjectName string `json:"projectName" yaml:"projectName" norman:"required,type=reference[project]"`
+
 	Spec PipelineExecutionLogSpec `json:"spec"`
 }
 
 type SourceCodeCredential struct {
+	types.Namespaced
+
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -53,6 +61,8 @@ type SourceCodeCredential struct {
 }
 
 type SourceCodeRepository struct {
+	types.Namespaced
+
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -78,25 +88,26 @@ type GithubClusterConfig struct {
 }
 
 type PipelineStatus struct {
-	PipelineState   string `json:"pipelineState,omitempty" norman:"required,options=active|inactive,default=active"`
-	NextRun         int    `json:"nextRun" yaml:"nextRun,omitempty" norman:"default=1,min=1"`
-	LastExecutionID string `json:"lastExecutionId,omitempty" yaml:"lastExecutionId,omitempty"`
-	LastRunState    string `json:"lastRunState,omitempty" yaml:"lastRunState,omitempty"`
-	LastStarted     string `json:"lastStarted,omitempty" yaml:"lastStarted,omitempty"`
-	NextStart       string `json:"nextStart,omitempty" yaml:"nextStart,omitempty"`
-	WebHookID       string `json:"webhookId,omitempty" yaml:"webhookId,omitempty"`
-	Token           string `json:"token,omitempty" yaml:"token,omitempty" norman:"writeOnly,noupdate"`
+	PipelineState        string                `json:"pipelineState,omitempty" norman:"required,options=active|inactive,default=active"`
+	NextRun              int                   `json:"nextRun" yaml:"nextRun,omitempty" norman:"default=1,min=1"`
+	LastExecutionID      string                `json:"lastExecutionId,omitempty" yaml:"lastExecutionId,omitempty"`
+	LastRunState         string                `json:"lastRunState,omitempty" yaml:"lastRunState,omitempty"`
+	LastStarted          string                `json:"lastStarted,omitempty" yaml:"lastStarted,omitempty"`
+	NextStart            string                `json:"nextStart,omitempty" yaml:"nextStart,omitempty"`
+	WebHookID            string                `json:"webhookId,omitempty" yaml:"webhookId,omitempty"`
+	Token                string                `json:"token,omitempty" yaml:"token,omitempty" norman:"writeOnly,noupdate"`
+	SourceCodeCredential *SourceCodeCredential `json:"sourceCodeCredential,omitempty" yaml:"sourceCodeCredential,omitempty"`
 }
 
 type PipelineSpec struct {
-	ProjectName string `json:"projectName" yaml:"projectName" norman:"required,type=reference[project]"`
-
-	DisplayName           string `json:"displayName,omitempty" yaml:"displayName,omitempty" norman:"required"`
+	DisplayName           string `json:"displayName,omitempty" yaml:"displayName,omitempty"`
 	TriggerWebhook        bool   `json:"triggerWebhook,omitempty" yaml:"triggerWebhook,omitempty"`
 	TriggerCronTimezone   string `json:"triggerCronTimezone,omitempty" yaml:"triggerCronTimezone,omitempty"`
 	TriggerCronExpression string `json:"triggerCronExpression,omitempty" yaml:"triggerCronExpression,omitempty"`
 
-	Stages []Stage `json:"stages,omitempty" yaml:"stages,omitempty" norman:"required"`
+	Stages []Stage `json:"stages,omitempty" yaml:"stages,omitempty"`
+
+	Templates map[string]string `json:"templates,omitempty" yaml:"templates,omitempty"`
 }
 
 type Stage struct {
@@ -135,7 +146,6 @@ type PublishImageConfig struct {
 }
 
 type PipelineExecutionSpec struct {
-	ProjectName     string   `json:"projectName" norman:"required,type=reference[project]"`
 	PipelineName    string   `json:"pipelineName" norman:"required,type=reference[pipeline]"`
 	Run             int      `json:"run,omitempty" norman:"required,min=1"`
 	TriggeredBy     string   `json:"triggeredBy,omitempty" norman:"required,options=user|cron|webhook"`
@@ -198,8 +208,6 @@ type RepoPerm struct {
 }
 
 type PipelineExecutionLogSpec struct {
-	ProjectName string `json:"projectName" yaml:"projectName" norman:"required,type=reference[project]"`
-
 	PipelineExecutionName string `json:"pipelineExecutionName,omitempty" norman:"type=reference[pipelineExecution]"`
 	Stage                 int    `json:"stage,omitempty" norman:"min=1"`
 	Step                  int    `json:"step,omitempty" norman:"min=1"`

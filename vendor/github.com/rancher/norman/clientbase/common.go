@@ -32,9 +32,22 @@ type ClientOpts struct {
 	URL        string
 	AccessKey  string
 	SecretKey  string
+	TokenKey   string
 	Timeout    time.Duration
 	HTTPClient *http.Client
 	CACerts    string
+	Insecure   bool
+}
+
+func (c *ClientOpts) getAuthHeader() string {
+	if c.TokenKey != "" {
+		return "Bearer " + c.TokenKey
+	}
+	if c.AccessKey != "" && c.SecretKey != "" {
+		s := c.AccessKey + ":" + c.SecretKey
+		return "Basic " + base64.StdEncoding.EncodeToString([]byte(s))
+	}
+	return ""
 }
 
 type APIError struct {
@@ -164,12 +177,21 @@ func NewAPIClient(opts *ClientOpts) (APIBaseClient, error) {
 		client.Transport = tr
 	}
 
+	if opts.Insecure {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: opts.Insecure,
+			},
+		}
+		client.Transport = tr
+	}
+
 	req, err := http.NewRequest("GET", opts.URL, nil)
 	if err != nil {
 		return result, err
 	}
 
-	req.SetBasicAuth(opts.AccessKey, opts.SecretKey)
+	req.Header.Add("Authorization", opts.getAuthHeader())
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -188,7 +210,7 @@ func NewAPIClient(opts *ClientOpts) (APIBaseClient, error) {
 
 	if schemasURLs != opts.URL {
 		req, err = http.NewRequest("GET", schemasURLs, nil)
-		req.SetBasicAuth(opts.AccessKey, opts.SecretKey)
+		req.Header.Add("Authorization", opts.getAuthHeader())
 		if err != nil {
 			return result, err
 		}
@@ -243,8 +265,7 @@ func (a *APIBaseClient) Websocket(url string, headers map[string][]string) (*web
 	}
 
 	if a.Opts != nil {
-		s := a.Opts.AccessKey + ":" + a.Opts.SecretKey
-		httpHeaders.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(s)))
+		httpHeaders.Add("Authorization", a.Opts.getAuthHeader())
 	}
 
 	return dialer.Dial(url, http.Header(httpHeaders))
