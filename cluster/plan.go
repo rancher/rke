@@ -160,7 +160,7 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 	CommandArgs := map[string]string{
 		"address":                     "0.0.0.0",
 		"cloud-provider":              c.CloudProvider.Name,
-		"allow-untagged-cloud":        "",
+		"allow-untagged-cloud":        "true",
 		"configure-cloud-routes":      "false",
 		"leader-elect":                "true",
 		"kubeconfig":                  pki.GetConfigPath(pki.KubeControllerCertName),
