@@ -1,0 +1,7 @@
+.idea
+/.dapper
+/bin
+/dist
+*.swp
+/.trash-cache
+kube_config*
