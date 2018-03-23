@@ -246,6 +246,18 @@ services:
       - "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins:z"
 ```
 
+## Authentication
+
+RKE Supports x509 authentication strategy. You can additionally define a list of SANs (Subject Alternative Names) to add to the Kubernetes API Server PKI certificates. This allows you to connect to your Kubernetes cluster API Server through a load balancer, for example, rather than a single node.
+
+```yaml
+authentication:
+  strategy: x509
+  sans:
+  - "10.18.160.10"
+  - "my-loadbalancer-1234567890.us-west-2.elb.amazonaws.com"
+```
+
 ## External etcd
 
 RKE supports using external etcd instead of deploying etcd servers, to enable external etcd the following parameters should be populated:
