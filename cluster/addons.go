@@ -11,12 +11,18 @@ import (
 	"github.com/rancher/rke/addons"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 const (
-	KubeDNSAddonResourceName = "rke-kubedns-addon"
-	UserAddonResourceName    = "rke-user-addon"
-	IngressAddonResourceName = "rke-ingress-controller"
+	KubeDNSAddonResourceName      = "rke-kubedns-addon"
+	UserAddonResourceName         = "rke-user-addon"
+	IngressAddonResourceName      = "rke-ingress-controller"
+	UserAddonsIncludeResourceName = "rke-user-includes-addons"
 )
 
 type ingressOptions struct {
@@ -38,15 +44,114 @@ func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
 func (c *Cluster) deployUserAddOns(ctx context.Context) error {
 	log.Infof(ctx, "[addons] Setting up user addons..")
 	if c.Addons == "" {
-		log.Infof(ctx, "[addons] No user addons configured..")
-		return nil
+		if err := c.deployAddonsInclude(ctx); err != nil {
+			return err
+		}
 	}
 
 	if err := c.doAddonDeploy(ctx, c.Addons, UserAddonResourceName); err != nil {
 		return err
 	}
-	log.Infof(ctx, "[addons] User addon deployed successfully..")
+
+	if err := c.deployAddonsInclude(ctx); err != nil {
+		return err
+	}
+	log.Infof(ctx, "[addons] User addons deployed successfully..")
 	return nil
+}
+
+func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
+	var manifests []byte
+	log.Infof(ctx, "[addons] Checking for included user addons")
+
+	if len(c.AddonsInclude) == 0 {
+		log.Infof(ctx, "[addons] No included addon paths or urls..")
+		return nil
+	}
+
+	for _, addon := range c.AddonsInclude {
+		if strings.HasPrefix(addon, "http") {
+			addonYAML, err := getAddonFromURL(addon)
+
+			if err != nil {
+				return err
+			}
+
+			log.Infof(ctx, "[addons] Adding addon from url %s", addon)
+			logrus.Debugf("URL Yaml: %s", addonYAML)
+
+			if err := validateUserAddonYAML(addonYAML); err != nil {
+				return err
+			}
+
+			manifests = append(manifests, addonYAML...)
+
+		} else if isFilePath(addon) {
+			addonYAML, err := ioutil.ReadFile(addon)
+
+			if err != nil {
+				return err
+			}
+
+			log.Infof(ctx, "[addons] Adding addon from %s", addon)
+			logrus.Debugf("FilePath Yaml: %s", string(addonYAML))
+
+			if err := validateUserAddonYAML(addonYAML); err != nil {
+				return err
+			}
+
+			manifests = append(manifests, addonYAML...)
+
+		} else {
+			log.Warnf(ctx, "[addons] Unable to determine if %s is a file path or url, skipping", addon)
+		}
+
+	}
+
+	log.Infof(ctx, "[addons] Deploying %s", UserAddonsIncludeResourceName)
+
+	logrus.Debugf("[addons] Compiled addons yaml: %s", string(manifests))
+
+	if err := c.doAddonDeploy(ctx, string(manifests), UserAddonsIncludeResourceName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateUserAddonYAML(addon []byte) error {
+	yamlContents := make(map[string]interface{})
+	if err := yaml.Unmarshal(addon, &yamlContents); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func isFilePath(addonPath string) bool {
+	if _, err := os.Stat(addonPath); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func getAddonFromURL(yamlURL string) ([]byte, error) {
+	resp, err := http.Get(yamlURL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	addonYaml, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return addonYaml, nil
 
 }
 

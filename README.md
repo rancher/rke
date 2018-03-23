@@ -135,6 +135,15 @@ addons: |-
 
 Note that we are using `|-` because the addons option is a multi line string option, where you can specify multiple yaml files and separate them with `---`
 
+For `addons_include:` you may pass either http/https urls or file paths, for example:
+```yaml
+addons_include:
+    - https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/rook-operator.yaml
+    - https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/rook-cluster.yaml
+    - /opt/manifests/example.yaml
+    - ./nginx.yaml
+```
+
 ## High Availability
 
 RKE is HA ready, you can specify more than one controlplane host in the `cluster.yml` file, and rke will deploy master components on all of them, the kubelets are configured to connect to `127.0.0.1:6443` by default which is the address of `nginx-proxy` service that proxy requests to all master nodes.
