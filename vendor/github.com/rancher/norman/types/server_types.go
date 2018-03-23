@@ -75,8 +75,8 @@ type AccessControl interface {
 	CanUpdate(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
 	CanDelete(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
 
-	Filter(apiContext *APIContext, obj map[string]interface{}, context map[string]string) map[string]interface{}
-	FilterList(apiContext *APIContext, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
+	Filter(apiContext *APIContext, schema *Schema, obj map[string]interface{}, context map[string]string) map[string]interface{}
+	FilterList(apiContext *APIContext, schema *Schema, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
 }
 
 type APIContext struct {
@@ -186,7 +186,12 @@ type URLBuilder interface {
 	ResourceLinkByID(schema *Schema, id string) string
 }
 
+type StorageContext string
+
+var DefaultStorageContext StorageContext
+
 type Store interface {
+	Context() StorageContext
 	ByID(apiContext *APIContext, schema *Schema, id string) (map[string]interface{}, error)
 	List(apiContext *APIContext, schema *Schema, opt *QueryOptions) ([]map[string]interface{}, error)
 	Create(apiContext *APIContext, schema *Schema, data map[string]interface{}) (map[string]interface{}, error)

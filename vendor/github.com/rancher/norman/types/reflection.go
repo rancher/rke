@@ -131,10 +131,6 @@ func (s *Schemas) MustCustomizeType(version *APIVersion, obj interface{}, f func
 
 	f(schema)
 
-	if schema.SubContext != "" {
-		s.schemasBySubContext[schema.SubContext] = schema
-	}
-
 	return s
 }
 
@@ -271,6 +267,9 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 		if fieldType.Kind() == reflect.Ptr {
 			schemaField.Nullable = true
 			fieldType = fieldType.Elem()
+		} else if fieldType.Kind() == reflect.Bool {
+			schemaField.Nullable = false
+			schemaField.Default = false
 		}
 
 		if err := applyTag(&field, &schemaField); err != nil {
@@ -283,6 +282,19 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 				return err
 			}
 			schemaField.Type = inferedType
+		}
+
+		if schemaField.Default != nil {
+			switch schemaField.Type {
+			case "int":
+				n, err := convert.ToNumber(schemaField.Default)
+				if err != nil {
+					return err
+				}
+				schemaField.Default = n
+			case "boolean":
+				schemaField.Default = convert.ToBool(schemaField.Default)
+			}
 		}
 
 		logrus.Debugf("Setting field %s.%s: %#v", schema.ID, fieldName, schemaField)
