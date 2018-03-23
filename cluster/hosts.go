@@ -32,7 +32,7 @@ func (c *Cluster) TunnelHosts(ctx context.Context, local bool) error {
 	uniqueHosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 	for i := range uniqueHosts {
 		if err := uniqueHosts[i].TunnelUp(ctx, c.DockerDialerFactory); err != nil {
-			// Unsupported Docker version is NOT a connectivity problem that we can't recover! So we bail out on it
+			// Unsupported Docker version is NOT a connectivity problem that we can recover! So we bail out on it
 			if strings.Contains(err.Error(), "Unsupported Docker version found") {
 				return err
 			}
