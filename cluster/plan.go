@@ -120,6 +120,9 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
 	}
+
+	Binds = append(Binds, c.Services.KubeAPI.ExtraBinds...)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(true, services.KubeAPIPort),
 	}
@@ -168,6 +171,9 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
 	}
+
+	Binds = append(Binds, c.Services.KubeController.ExtraBinds...)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(false, services.KubeControllerPort),
 	}
@@ -236,6 +242,9 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
 	}
+
+	Binds = append(Binds, c.Services.Kubelet.ExtraBinds...)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(true, services.KubeletPort),
 	}
@@ -271,6 +280,9 @@ func (c *Cluster) BuildKubeProxyProcess() v3.Process {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
 	}
+
+	Binds = append(Binds, c.Services.Kubeproxy.ExtraBinds...)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(false, services.KubeproxyPort),
 	}
@@ -328,6 +340,9 @@ func (c *Cluster) BuildSchedulerProcess() v3.Process {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
 	}
+
+	Binds = append(Binds, c.Services.Scheduler.ExtraBinds...)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(false, services.SchedulerPort),
 	}
@@ -389,10 +404,14 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host) v3
 		"/var/lib/etcd:/var/lib/rancher/etcd:z",
 		"/etc/kubernetes:/etc/kubernetes:z",
 	}
+
 	for arg, value := range c.Services.Etcd.ExtraArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		args = append(args, cmd)
 	}
+
+	Binds = append(Binds, c.Services.Etcd.ExtraBinds...)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.EtcdHealthCheckURL,
 	}
