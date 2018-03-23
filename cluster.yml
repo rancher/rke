@@ -111,6 +111,11 @@ addons: |-
         ports:
         - containerPort: 80
 
+addons_include:
+    - https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/rook-operator.yaml
+    - https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/rook-cluster.yaml
+    - /path/to/manifest
+
 system_images:
   etcd: rancher/etcd:v3.0.17
   kubernetes: rancher/k8s:v1.8.9-rancher1-1
