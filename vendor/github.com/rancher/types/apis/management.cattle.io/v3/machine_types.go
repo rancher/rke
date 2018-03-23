@@ -77,6 +77,7 @@ type NodeStatus struct {
 var (
 	NodeConditionInitialized condition.Cond = "Initialized"
 	NodeConditionProvisioned condition.Cond = "Provisioned"
+	NodeConditionUpdated     condition.Cond = "Updated"
 	NodeConditionRegistered  condition.Cond = "Registered"
 	NodeConditionRemoved     condition.Cond = "Removed"
 	NodeConditionConfigSaved condition.Cond = "Saved"
@@ -227,4 +228,16 @@ type NodeDriverSpec struct {
 	Active      bool   `json:"active"`
 	Checksum    string `json:"checksum"`
 	UIURL       string `json:"uiUrl"`
+}
+
+type PublicEndpoint struct {
+	NodeName string `json:"nodeName,omitempty" norman:"type=reference[/v3/schemas/node],nocreate,noupdate"`
+	Address  string `json:"address,omitempty" norman:"nocreate,noupdate"`
+	Port     int32  `json:"port,omitempty" norman:"nocreate,noupdate"`
+	Protocol string `json:"protocol,omitempty" norman:"nocreate,noupdate"`
+	// for node port service
+	ServiceName string `json:"serviceName,omitempty" norman:"type=reference[service],nocreate,noupdate"`
+	// for host port
+	PodName string `json:"podName,omitempty" norman:"type=reference[pod],nocreate,noupdate"`
+	//serviceName and podName are mutually exclusive
 }
