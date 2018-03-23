@@ -84,7 +84,7 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		"bind-address":                    "0.0.0.0",
 		"insecure-port":                   "0",
 		"secure-port":                     "6443",
-		"cloud-provider":                  "",
+		"cloud-provider":                  c.CloudProvider.Name,
 		"allow_privileged":                "true",
 		"kubelet-preferred-address-types": "InternalIP,ExternalIP,Hostname",
 		"service-cluster-ip-range":        c.Services.KubeAPI.ServiceClusterIPRange,
@@ -159,7 +159,9 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 
 	CommandArgs := map[string]string{
 		"address":                     "0.0.0.0",
-		"cloud-provider":              "",
+		"cloud-provider":              c.CloudProvider.Name,
+		"allow-untagged-cloud":        "",
+		"configure-cloud-routes":      "false",
 		"leader-elect":                "true",
 		"kubeconfig":                  pki.GetConfigPath(pki.KubeControllerCertName),
 		"enable-hostpath-provisioner": "false",
@@ -236,7 +238,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"cni-bin-dir":               "/opt/cni/bin",
 		"resolv-conf":               "/etc/resolv.conf",
 		"allow-privileged":          "true",
-		"cloud-provider":            "",
+		"cloud-provider":            c.CloudProvider.Name,
 		"kubeconfig":                pki.GetConfigPath(pki.KubeNodeCertName),
 		"client-ca-file":            pki.GetCertPath(pki.CACertName),
 		"anonymous-auth":            "false",
