@@ -86,8 +86,15 @@ network:
   plugin: flannel
   options:
 
+# At the moment, the only authentication strategy supported is x509.
+# You can optionally create additional SANs (hostnames or IPs) to add to
+#  the API server PKI certificate. This is useful if you want to use a load balancer
+#  for the control plane servers, for example.
 authentication:
   strategy: x509
+  sans:
+  - "10.18.160.10"
+  - "my-loadbalancer-1234567890.us-west-2.elb.amazonaws.com"
 
 # all addon manifests MUST specify a namespace
 addons: |-
