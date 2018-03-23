@@ -159,3 +159,6 @@ private_registries:
 
 ingress:
   provider: nginx
+
+cloud_provider:
+  name: aws
