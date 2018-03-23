@@ -91,8 +91,16 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	}
 
 	log.Infof(ctx, "[addons] Executing deploy job..")
+	k8sClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+	if err != nil {
+		return err
+	}
+	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride)
+	if err != nil {
+		return fmt.Errorf("Failed to get Node [%s]: %v", node.Name, err)
+	}
+	addonJob, err := addons.GetAddonsExcuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
 
-	addonJob, err := addons.GetAddonsExcuteJob(resourceName, c.ControlPlaneHosts[0].HostnameOverride, c.Services.KubeAPI.Image)
 	if err != nil {
 		return fmt.Errorf("Failed to deploy addon execute job: %v", err)
 	}
