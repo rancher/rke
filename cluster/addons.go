@@ -8,14 +8,15 @@ import (
 	"os/exec"
 	"time"
 
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"github.com/rancher/rke/addons"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
 const (
@@ -42,21 +43,22 @@ func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
 }
 
 func (c *Cluster) deployUserAddOns(ctx context.Context) error {
-	log.Infof(ctx, "[addons] Setting up user addons..")
-	if c.Addons == "" {
+	log.Infof(ctx, "[addons] Setting up user addons")
+	if c.Addons != "" {
+		if err := c.doAddonDeploy(ctx, c.Addons, UserAddonResourceName); err != nil {
+			return err
+		}
+	}
+	if len(c.AddonsInclude) > 0 {
 		if err := c.deployAddonsInclude(ctx); err != nil {
 			return err
 		}
 	}
-
-	if err := c.doAddonDeploy(ctx, c.Addons, UserAddonResourceName); err != nil {
-		return err
+	if c.Addons == "" && len(c.AddonsInclude) == 0 {
+		log.Infof(ctx, "[addons] no user addons defined")
+	} else {
+		log.Infof(ctx, "[addons] User addons deployed successfully")
 	}
-
-	if err := c.deployAddonsInclude(ctx); err != nil {
-		return err
-	}
-	log.Infof(ctx, "[addons] User addons deployed successfully..")
 	return nil
 }
 
