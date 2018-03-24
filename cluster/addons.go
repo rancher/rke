@@ -70,55 +70,44 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 		log.Infof(ctx, "[addons] No included addon paths or urls..")
 		return nil
 	}
-
 	for _, addon := range c.AddonsInclude {
 		if strings.HasPrefix(addon, "http") {
 			addonYAML, err := getAddonFromURL(addon)
-
 			if err != nil {
 				return err
 			}
-
 			log.Infof(ctx, "[addons] Adding addon from url %s", addon)
 			logrus.Debugf("URL Yaml: %s", addonYAML)
 
 			if err := validateUserAddonYAML(addonYAML); err != nil {
 				return err
 			}
-
 			manifests = append(manifests, addonYAML...)
-
 		} else if isFilePath(addon) {
 			addonYAML, err := ioutil.ReadFile(addon)
-
 			if err != nil {
 				return err
 			}
-
 			log.Infof(ctx, "[addons] Adding addon from %s", addon)
 			logrus.Debugf("FilePath Yaml: %s", string(addonYAML))
 
+			// make sure we properly separated manifests
+			addonYAMLStr := string(addonYAML)
+			if !strings.HasPrefix(addonYAMLStr, "---") {
+				addonYAML = []byte(fmt.Sprintf("%s\n%s", "---", addonYAMLStr))
+			}
 			if err := validateUserAddonYAML(addonYAML); err != nil {
 				return err
 			}
-
 			manifests = append(manifests, addonYAML...)
-
 		} else {
 			log.Warnf(ctx, "[addons] Unable to determine if %s is a file path or url, skipping", addon)
 		}
-
 	}
-
 	log.Infof(ctx, "[addons] Deploying %s", UserAddonsIncludeResourceName)
-
 	logrus.Debugf("[addons] Compiled addons yaml: %s", string(manifests))
 
-	if err := c.doAddonDeploy(ctx, string(manifests), UserAddonsIncludeResourceName); err != nil {
-		return err
-	}
-
-	return nil
+	return c.doAddonDeploy(ctx, string(manifests), UserAddonsIncludeResourceName)
 }
 
 func validateUserAddonYAML(addon []byte) error {
@@ -134,7 +123,6 @@ func isFilePath(addonPath string) bool {
 	if _, err := os.Stat(addonPath); os.IsNotExist(err) {
 		return false
 	}
-
 	return true
 }
 
