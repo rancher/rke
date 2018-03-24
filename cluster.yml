@@ -45,6 +45,8 @@ services:
   kube-api:
     service_cluster_ip_range: 10.233.0.0/18
     pod_security_policy: false
+    # add additional arguments to the kubernetes component
+    # Note that this WILL OVERRIDE existing defaults
     extra_args:
       v: 4
   kube-controller:
