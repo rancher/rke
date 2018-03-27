@@ -372,15 +372,19 @@ type NodeMachineConfig struct {
 }
 
 func configureFromMachine(reader *bufio.Reader) ([]v3.RKEConfigNode, error) {
-	usr, err := user.Current()
 
-	if err != nil {
-		return nil, err
+	dockerMachineStore := os.Getenv("MACHINE_STORAGE_PATH")
+
+	if dockerMachineStore == "" {
+		usr, err := user.Current()
+		if err != nil {
+			return nil, err
+		}
+		dockerMachineStore = fmt.Sprintf("%s/.docker/machine/machines", usr.HomeDir)
 	}
 
 	// Get the docker-machine store path
-	machineStorePath, err := getConfig(reader, "Docker Machine storage path",
-		fmt.Sprintf("%s/.docker/machine/machines", usr.HomeDir))
+	machineStorePath, err := getConfig(reader, "Docker Machine storage path", dockerMachineStore)
 
 	if err != nil {
 		return nil, err
