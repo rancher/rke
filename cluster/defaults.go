@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	DefaultServiceClusterIPRange = "10.233.0.0/18"
-	DefaultClusterCIDR           = "10.233.64.0/18"
-	DefaultClusterDNSService     = "10.233.0.3"
+	DefaultServiceClusterIPRange = "10.43.0.0/16"
+	DefaultClusterCIDR           = "10.42.0.0/16"
+	DefaultClusterDNSService     = "10.43.0.10"
 	DefaultClusterDomain         = "cluster.local"
 	DefaultClusterName           = "local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
