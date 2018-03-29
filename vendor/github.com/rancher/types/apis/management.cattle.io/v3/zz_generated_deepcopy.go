@@ -20,6 +20,10 @@ func init() {
 func RegisterDeepCopies(scheme *runtime.Scheme) error {
 	return scheme.AddGeneratedDeepCopyFuncs(
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*AWSCloudProvider).DeepCopyInto(out.(*AWSCloudProvider))
+			return nil
+		}, InType: reflect.TypeOf(&AWSCloudProvider{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*Action).DeepCopyInto(out.(*Action))
 			return nil
 		}, InType: reflect.TypeOf(&Action{})},
@@ -68,6 +72,10 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			return nil
 		}, InType: reflect.TypeOf(&AuthzConfig{})},
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*AzureCloudProvider).DeepCopyInto(out.(*AzureCloudProvider))
+			return nil
+		}, InType: reflect.TypeOf(&AzureCloudProvider{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*AzureKubernetesServiceConfig).DeepCopyInto(out.(*AzureKubernetesServiceConfig))
 			return nil
 		}, InType: reflect.TypeOf(&AzureKubernetesServiceConfig{})},
@@ -75,6 +83,14 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			in.(*BaseService).DeepCopyInto(out.(*BaseService))
 			return nil
 		}, InType: reflect.TypeOf(&BaseService{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*CalicoNetworkProvider).DeepCopyInto(out.(*CalicoNetworkProvider))
+			return nil
+		}, InType: reflect.TypeOf(&CalicoNetworkProvider{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*CanalNetworkProvider).DeepCopyInto(out.(*CanalNetworkProvider))
+			return nil
+		}, InType: reflect.TypeOf(&CanalNetworkProvider{})},
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*Catalog).DeepCopyInto(out.(*Catalog))
 			return nil
@@ -271,6 +287,10 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			in.(*Filter).DeepCopyInto(out.(*Filter))
 			return nil
 		}, InType: reflect.TypeOf(&Filter{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*FlannelNetworkProvider).DeepCopyInto(out.(*FlannelNetworkProvider))
+			return nil
+		}, InType: reflect.TypeOf(&FlannelNetworkProvider{})},
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*GenerateKubeConfigOutput).DeepCopyInto(out.(*GenerateKubeConfigOutput))
 			return nil
@@ -508,6 +528,10 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			return nil
 		}, InType: reflect.TypeOf(&Pipeline{})},
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*PipelineCondition).DeepCopyInto(out.(*PipelineCondition))
+			return nil
+		}, InType: reflect.TypeOf(&PipelineCondition{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*PipelineExecution).DeepCopyInto(out.(*PipelineExecution))
 			return nil
 		}, InType: reflect.TypeOf(&PipelineExecution{})},
@@ -559,6 +583,14 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			in.(*PodSecurityPolicyTemplateList).DeepCopyInto(out.(*PodSecurityPolicyTemplateList))
 			return nil
 		}, InType: reflect.TypeOf(&PodSecurityPolicyTemplateList{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*PodSecurityPolicyTemplateProjectBinding).DeepCopyInto(out.(*PodSecurityPolicyTemplateProjectBinding))
+			return nil
+		}, InType: reflect.TypeOf(&PodSecurityPolicyTemplateProjectBinding{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*PodSecurityPolicyTemplateProjectBindingList).DeepCopyInto(out.(*PodSecurityPolicyTemplateProjectBindingList))
+			return nil
+		}, InType: reflect.TypeOf(&PodSecurityPolicyTemplateProjectBindingList{})},
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*PortCheck).DeepCopyInto(out.(*PortCheck))
 			return nil
@@ -732,6 +764,10 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			return nil
 		}, InType: reflect.TypeOf(&SetPasswordInput{})},
 		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
+			in.(*SetPodSecurityPolicyTemplateInput).DeepCopyInto(out.(*SetPodSecurityPolicyTemplateInput))
+			return nil
+		}, InType: reflect.TypeOf(&SetPodSecurityPolicyTemplateInput{})},
+		conversion.GeneratedDeepCopyFunc{Fn: func(in interface{}, out interface{}, c *conversion.Cloner) error {
 			in.(*Setting).DeepCopyInto(out.(*Setting))
 			return nil
 		}, InType: reflect.TypeOf(&Setting{})},
@@ -884,6 +920,22 @@ func RegisterDeepCopies(scheme *runtime.Scheme) error {
 			return nil
 		}, InType: reflect.TypeOf(&WebhookConfig{})},
 	)
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *AWSCloudProvider) DeepCopyInto(out *AWSCloudProvider) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new AWSCloudProvider.
+func (in *AWSCloudProvider) DeepCopy() *AWSCloudProvider {
+	if in == nil {
+		return nil
+	}
+	out := new(AWSCloudProvider)
+	in.DeepCopyInto(out)
+	return out
 }
 
 // DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
@@ -1155,6 +1207,22 @@ func (in *AuthzConfig) DeepCopy() *AuthzConfig {
 }
 
 // DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *AzureCloudProvider) DeepCopyInto(out *AzureCloudProvider) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new AzureCloudProvider.
+func (in *AzureCloudProvider) DeepCopy() *AzureCloudProvider {
+	if in == nil {
+		return nil
+	}
+	out := new(AzureCloudProvider)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
 func (in *AzureKubernetesServiceConfig) DeepCopyInto(out *AzureKubernetesServiceConfig) {
 	*out = *in
 	if in.Tag != nil {
@@ -1201,6 +1269,38 @@ func (in *BaseService) DeepCopy() *BaseService {
 		return nil
 	}
 	out := new(BaseService)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *CalicoNetworkProvider) DeepCopyInto(out *CalicoNetworkProvider) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new CalicoNetworkProvider.
+func (in *CalicoNetworkProvider) DeepCopy() *CalicoNetworkProvider {
+	if in == nil {
+		return nil
+	}
+	out := new(CalicoNetworkProvider)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *CanalNetworkProvider) DeepCopyInto(out *CanalNetworkProvider) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new CanalNetworkProvider.
+func (in *CanalNetworkProvider) DeepCopy() *CanalNetworkProvider {
+	if in == nil {
+		return nil
+	}
+	out := new(CanalNetworkProvider)
 	in.DeepCopyInto(out)
 	return out
 }
@@ -2502,6 +2602,22 @@ func (in *Filter) DeepCopy() *Filter {
 		return nil
 	}
 	out := new(Filter)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *FlannelNetworkProvider) DeepCopyInto(out *FlannelNetworkProvider) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new FlannelNetworkProvider.
+func (in *FlannelNetworkProvider) DeepCopy() *FlannelNetworkProvider {
+	if in == nil {
+		return nil
+	}
+	out := new(FlannelNetworkProvider)
 	in.DeepCopyInto(out)
 	return out
 }
@@ -4177,6 +4293,22 @@ func (in *Pipeline) DeepCopyObject() runtime.Object {
 }
 
 // DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *PipelineCondition) DeepCopyInto(out *PipelineCondition) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new PipelineCondition.
+func (in *PipelineCondition) DeepCopy() *PipelineCondition {
+	if in == nil {
+		return nil
+	}
+	out := new(PipelineCondition)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
 func (in *PipelineExecution) DeepCopyInto(out *PipelineExecution) {
 	*out = *in
 	out.Namespaced = in.Namespaced
@@ -4339,6 +4471,11 @@ func (in *PipelineExecutionSpec) DeepCopy() *PipelineExecutionSpec {
 // DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
 func (in *PipelineExecutionStatus) DeepCopyInto(out *PipelineExecutionStatus) {
 	*out = *in
+	if in.Conditions != nil {
+		in, out := &in.Conditions, &out.Conditions
+		*out = make([]PipelineCondition, len(*in))
+		copy(*out, *in)
+	}
 	if in.Stages != nil {
 		in, out := &in.Stages, &out.Stages
 		*out = make([]StageStatus, len(*in))
@@ -4519,6 +4656,68 @@ func (in *PodSecurityPolicyTemplateList) DeepCopy() *PodSecurityPolicyTemplateLi
 
 // DeepCopyObject is an autogenerated deepcopy function, copying the receiver, creating a new runtime.Object.
 func (in *PodSecurityPolicyTemplateList) DeepCopyObject() runtime.Object {
+	if c := in.DeepCopy(); c != nil {
+		return c
+	} else {
+		return nil
+	}
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *PodSecurityPolicyTemplateProjectBinding) DeepCopyInto(out *PodSecurityPolicyTemplateProjectBinding) {
+	*out = *in
+	out.Namespaced = in.Namespaced
+	out.TypeMeta = in.TypeMeta
+	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new PodSecurityPolicyTemplateProjectBinding.
+func (in *PodSecurityPolicyTemplateProjectBinding) DeepCopy() *PodSecurityPolicyTemplateProjectBinding {
+	if in == nil {
+		return nil
+	}
+	out := new(PodSecurityPolicyTemplateProjectBinding)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyObject is an autogenerated deepcopy function, copying the receiver, creating a new runtime.Object.
+func (in *PodSecurityPolicyTemplateProjectBinding) DeepCopyObject() runtime.Object {
+	if c := in.DeepCopy(); c != nil {
+		return c
+	} else {
+		return nil
+	}
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *PodSecurityPolicyTemplateProjectBindingList) DeepCopyInto(out *PodSecurityPolicyTemplateProjectBindingList) {
+	*out = *in
+	out.TypeMeta = in.TypeMeta
+	out.ListMeta = in.ListMeta
+	if in.Items != nil {
+		in, out := &in.Items, &out.Items
+		*out = make([]PodSecurityPolicyTemplateProjectBinding, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new PodSecurityPolicyTemplateProjectBindingList.
+func (in *PodSecurityPolicyTemplateProjectBindingList) DeepCopy() *PodSecurityPolicyTemplateProjectBindingList {
+	if in == nil {
+		return nil
+	}
+	out := new(PodSecurityPolicyTemplateProjectBindingList)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyObject is an autogenerated deepcopy function, copying the receiver, creating a new runtime.Object.
+func (in *PodSecurityPolicyTemplateProjectBindingList) DeepCopyObject() runtime.Object {
 	if c := in.DeepCopy(); c != nil {
 		return c
 	} else {
@@ -5273,6 +5472,11 @@ func (in *RKEConfigNodePlan) DeepCopyInto(out *RKEConfigNodePlan) {
 		*out = make([]PortCheck, len(*in))
 		copy(*out, *in)
 	}
+	if in.Files != nil {
+		in, out := &in.Files, &out.Files
+		*out = make([]File, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
@@ -5374,6 +5578,11 @@ func (in *RancherKubernetesEngineConfig) DeepCopyInto(out *RancherKubernetesEngi
 	}
 	in.Ingress.DeepCopyInto(&out.Ingress)
 	in.CloudProvider.DeepCopyInto(&out.CloudProvider)
+	out.AWSCloudProvider = in.AWSCloudProvider
+	out.AzureCloudProvider = in.AzureCloudProvider
+	out.CalicoNetworkProvider = in.CalicoNetworkProvider
+	out.CanalNetworkProvider = in.CanalNetworkProvider
+	out.FlannelNetworkProvider = in.FlannelNetworkProvider
 	return
 }
 
@@ -5590,6 +5799,22 @@ func (in *SetPasswordInput) DeepCopy() *SetPasswordInput {
 		return nil
 	}
 	out := new(SetPasswordInput)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *SetPodSecurityPolicyTemplateInput) DeepCopyInto(out *SetPodSecurityPolicyTemplateInput) {
+	*out = *in
+	return
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new SetPodSecurityPolicyTemplateInput.
+func (in *SetPodSecurityPolicyTemplateInput) DeepCopy() *SetPodSecurityPolicyTemplateInput {
+	if in == nil {
+		return nil
+	}
+	out := new(SetPodSecurityPolicyTemplateInput)
 	in.DeepCopyInto(out)
 	return out
 }
