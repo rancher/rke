@@ -278,7 +278,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"/var/run:/var/run:rw,rprivate",
 		"/run:/run:rprivate",
 		"/etc/ceph:/etc/ceph",
-		"/dev:/host/dev,rprivate",
+		"/dev:/host/dev:rprivate",
 		"/var/log/containers:/var/log/containers:z",
 		"/var/log/pods:/var/log/pods:z",
 	}
