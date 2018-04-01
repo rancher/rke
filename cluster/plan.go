@@ -91,7 +91,6 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		"bind-address":                    "0.0.0.0",
 		"insecure-port":                   "0",
 		"secure-port":                     "6443",
-		"cloud-provider":                  c.CloudProvider.Name,
 		"allow-privileged":                "true",
 		"kubelet-preferred-address-types": "InternalIP,ExternalIP,Hostname",
 		"service-cluster-ip-range":        c.Services.KubeAPI.ServiceClusterIPRange,
@@ -104,7 +103,8 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		"kubelet-client-key":              pki.GetKeyPath(pki.KubeAPICertName),
 		"service-account-key-file":        pki.GetKeyPath(pki.KubeAPICertName),
 	}
-	if len(c.CloudProvider.Name) > 0 {
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != "external" {
+		CommandArgs["cloud-provider"] = c.CloudProvider.Name
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 	args := []string{
@@ -168,7 +168,6 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 
 	CommandArgs := map[string]string{
 		"address":                     "0.0.0.0",
-		"cloud-provider":              c.CloudProvider.Name,
 		"allow-untagged-cloud":        "true",
 		"configure-cloud-routes":      "false",
 		"leader-elect":                "true",
@@ -183,7 +182,8 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 		"service-account-private-key-file": pki.GetKeyPath(pki.KubeAPICertName),
 		"root-ca-file":                     pki.GetCertPath(pki.CACertName),
 	}
-	if len(c.CloudProvider.Name) > 0 {
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != "external" {
+		CommandArgs["cloud-provider"] = c.CloudProvider.Name
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 	args := []string{}
@@ -259,7 +259,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 	if host.Address != host.InternalAddress {
 		CommandArgs["node-ip"] = host.InternalAddress
 	}
-	if len(c.CloudProvider.Name) > 0 {
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != "external" {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 	VolumesFrom := []string{

@@ -89,6 +89,9 @@ items:
           tolerations:
             - effect: NoExecute
               operator: Exists
+            - key: node.cloudprovider.kubernetes.io/uninitialized
+              value: "true"
+              effect: NoSchedule
           volumes:
             - name: weavedb
               hostPath:

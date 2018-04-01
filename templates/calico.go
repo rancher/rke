@@ -176,6 +176,9 @@ spec:
         - key: "node-role.kubernetes.io/etcd"
           operator: "Exists"
           effect: "NoExecute"
+        - key: node.cloudprovider.kubernetes.io/uninitialized
+          value: "true"
+          effect: NoSchedule
       containers:
         # Runs calico/node container on each Kubernetes node.  This
         # container programs network policy and routes on each
