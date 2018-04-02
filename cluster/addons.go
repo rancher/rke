@@ -112,11 +112,8 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 
 	logrus.Debugf("[addons] Compiled addons yaml: %s", string(manifests))
 
-	if err := c.doAddonDeploy(ctx, string(manifests), UserAddonsIncludeResourceName); err != nil {
-		return err
-	}
+	return c.doAddonDeploy(ctx, string(manifests), UserAddonsIncludeResourceName)
 
-	return nil
 }
 
 func validateUserAddonYAML(addon []byte) error {
