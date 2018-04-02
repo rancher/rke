@@ -370,6 +370,10 @@ func (c *Cluster) parseCloudConfig(ctx context.Context) (string, error) {
 		}
 		return string(jsonString), nil
 	}
+	if c.CloudProvider.AWSCloudProvider != nil {
+		c.CloudProvider.Name = AWSCloudProvider
+		return "", nil
+	}
 	if len(c.CloudProvider.CloudConfig) == 0 {
 		return "", nil
 	}
