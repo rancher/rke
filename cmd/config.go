@@ -381,6 +381,10 @@ func configureFromMachine(reader *bufio.Reader) ([]v3.RKEConfigNode, error) {
 			return nil, err
 		}
 		dockerMachineStore = fmt.Sprintf("%s/.docker/machine/machines", usr.HomeDir)
+	} else {
+		if !strings.Contains(dockerMachineStore, "machines") {
+			dockerMachineStore = fmt.Sprintf("%s/machines", dockerMachineStore)
+		}
 	}
 
 	// Get the docker-machine store path
