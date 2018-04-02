@@ -362,9 +362,9 @@ func (c *Cluster) getEtcdProcessHostMap(readyEtcdHosts []*hosts.Host) map[*hosts
 
 func (c *Cluster) parseCloudConfig(ctx context.Context) (string, error) {
 	// check for azure cloud provider
-	if c.AzureCloudProvider.TenantID != "" {
+	if c.CloudProvider.AzureCloudProvider != nil {
 		c.CloudProvider.Name = AzureCloudProvider
-		jsonString, err := json.MarshalIndent(c.AzureCloudProvider, "", "\n")
+		jsonString, err := json.MarshalIndent(c.CloudProvider.AzureCloudProvider, "", "\n")
 		if err != nil {
 			return "", err
 		}
