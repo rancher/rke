@@ -131,10 +131,6 @@ func (s *Schemas) MustCustomizeType(version *APIVersion, obj interface{}, f func
 
 	f(schema)
 
-	if schema.SubContext != "" {
-		s.schemasBySubContext[schema.SubContext] = schema
-	}
-
 	return s
 }
 
@@ -155,7 +151,7 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 
 	mappers := s.mapper(&schema.Version, schema.ID)
 	if s.DefaultMappers != nil {
-		if schema.CanList(nil) {
+		if schema.CanList(nil) == nil {
 			mappers = append(s.DefaultMappers(), mappers...)
 		}
 	}
@@ -179,7 +175,7 @@ func (s *Schemas) importType(version *APIVersion, t reflect.Type, overrides ...r
 
 	mapper := &typeMapper{
 		Mappers: mappers,
-		root:    schema.CanList(nil),
+		root:    schema.CanList(nil) == nil,
 	}
 
 	if err := mapper.ModifySchema(schema, s); err != nil {
@@ -271,6 +267,14 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 		if fieldType.Kind() == reflect.Ptr {
 			schemaField.Nullable = true
 			fieldType = fieldType.Elem()
+		} else if fieldType.Kind() == reflect.Bool {
+			schemaField.Nullable = false
+			schemaField.Default = false
+		} else if fieldType.Kind() == reflect.Int ||
+			fieldType.Kind() == reflect.Int32 ||
+			fieldType.Kind() == reflect.Int64 {
+			schemaField.Nullable = false
+			schemaField.Default = 0
 		}
 
 		if err := applyTag(&field, &schemaField); err != nil {
@@ -283,6 +287,19 @@ func (s *Schemas) readFields(schema *Schema, t reflect.Type) error {
 				return err
 			}
 			schemaField.Type = inferedType
+		}
+
+		if schemaField.Default != nil {
+			switch schemaField.Type {
+			case "int":
+				n, err := convert.ToNumber(schemaField.Default)
+				if err != nil {
+					return err
+				}
+				schemaField.Default = n
+			case "boolean":
+				schemaField.Default = convert.ToBool(schemaField.Default)
+			}
 		}
 
 		logrus.Debugf("Setting field %s.%s: %#v", schema.ID, fieldName, schemaField)

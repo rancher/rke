@@ -69,14 +69,14 @@ type ResponseWriter interface {
 }
 
 type AccessControl interface {
-	CanCreate(apiContext *APIContext, schema *Schema) bool
-	CanList(apiContext *APIContext, schema *Schema) bool
-	CanGet(apiContext *APIContext, schema *Schema) bool
-	CanUpdate(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
-	CanDelete(apiContext *APIContext, obj map[string]interface{}, schema *Schema) bool
+	CanCreate(apiContext *APIContext, schema *Schema) error
+	CanList(apiContext *APIContext, schema *Schema) error
+	CanGet(apiContext *APIContext, schema *Schema) error
+	CanUpdate(apiContext *APIContext, obj map[string]interface{}, schema *Schema) error
+	CanDelete(apiContext *APIContext, obj map[string]interface{}, schema *Schema) error
 
-	Filter(apiContext *APIContext, obj map[string]interface{}, context map[string]string) map[string]interface{}
-	FilterList(apiContext *APIContext, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
+	Filter(apiContext *APIContext, schema *Schema, obj map[string]interface{}, context map[string]string) map[string]interface{}
+	FilterList(apiContext *APIContext, schema *Schema, obj []map[string]interface{}, context map[string]string) []map[string]interface{}
 }
 
 type APIContext struct {
@@ -184,9 +184,15 @@ type URLBuilder interface {
 	FilterLink(schema *Schema, fieldName string, value string) string
 	Action(action string, resource *RawResource) string
 	ResourceLinkByID(schema *Schema, id string) string
+	ActionLinkByID(schema *Schema, id string, action string) string
 }
 
+type StorageContext string
+
+var DefaultStorageContext StorageContext
+
 type Store interface {
+	Context() StorageContext
 	ByID(apiContext *APIContext, schema *Schema, id string) (map[string]interface{}, error)
 	List(apiContext *APIContext, schema *Schema, opt *QueryOptions) ([]map[string]interface{}, error)
 	Create(apiContext *APIContext, schema *Schema, data map[string]interface{}) (map[string]interface{}, error)
