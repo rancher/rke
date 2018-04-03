@@ -9,6 +9,7 @@ import (
 	b64 "encoding/base64"
 
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
@@ -63,6 +64,11 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 		Processes:  processes,
 		PortChecks: portChecks,
 		Files:      []v3.File{cloudConfig},
+		Annotations: map[string]string{
+			k8s.ExternalAddressAnnotation: host.Address,
+			k8s.InternalAddressAnnotation: host.InternalAddress,
+		},
+		Labels: host.Labels,
 	}
 }
 
