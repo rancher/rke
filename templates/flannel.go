@@ -148,6 +148,9 @@ spec:
           mountPath: /host/opt/cni/bin/
       hostNetwork: true
       tolerations:
+      - key: node.cloudprovider.kubernetes.io/uninitialized
+        value: "true"
+        effect: NoSchedule
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
