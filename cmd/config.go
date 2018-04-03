@@ -303,6 +303,47 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 		return nil, err
 	}
 	servicesConfig.Kubelet.InfraContainerImage = infraPodImage
+
+	// Add the flexvolume mount to kublet ExtraBinds
+	flexVolMount, err := getConfig(reader, "Enable the FlexVolume driver mount", "no")
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ContainsAny(flexVolMount, "Yes y Y yes") {
+		gkeBind := "/home/kubernetes/flexvolume:/home/kubernetes/flexvolume"
+		rkeBind := "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins"
+
+		getCE, err := getConfig(reader, "Deploying to GKE or RKE environment", "rke")
+
+		if err != nil {
+			return nil, err
+		}
+
+		if strings.ToLower(getCE) == "gke" {
+			servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, gkeBind)
+		} else {
+			servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, rkeBind)
+		}
+
+	}
+
+	// Add additional ExtraBinds
+	additionalBinds, err := getConfig(reader, "Add additional bind mounts for kubelet service", "no")
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ContainsAny(additionalBinds, "Yes y Y yes") {
+		bindMounts, err := getConfig(reader, "Additional bind mounts (separated by \",\")", "/dev:/dev")
+
+		if err != nil {
+			return nil, err
+		}
+
+		servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, strings.Split(bindMounts, ",")...)
+	}
+
 	return &servicesConfig, nil
 }
 
