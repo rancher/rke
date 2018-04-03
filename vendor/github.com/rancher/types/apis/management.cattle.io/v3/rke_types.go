@@ -264,6 +264,10 @@ type RKEConfigNodePlan struct {
 	PortChecks []PortCheck `json:"portChecks,omitempty"`
 	// List of files to deploy on the node
 	Files []File `json:"files,omitempty"`
+	// Node Annotations
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// Node Labels
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type Process struct {
