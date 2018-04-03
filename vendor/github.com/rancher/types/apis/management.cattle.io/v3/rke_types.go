@@ -281,6 +281,8 @@ type Process struct {
 	Env []string `json:"env,omitempty"`
 	// Process docker image
 	Image string `json:"image,omitempty"`
+	//AuthConfig for image private registry
+	ImageRegistryAuthConfig string `json:"imageRegistryAuthConfig,omitempty"`
 	// Process docker image VolumesFrom
 	VolumesFrom []string `json:"volumesFrom,omitempty"`
 	// Process docker container bind mounts
