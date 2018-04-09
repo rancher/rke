@@ -296,7 +296,7 @@ spec:
             path: /etc/cni/net.d
         - name: etc-kubernetes
           hostPath:
-            path: /etc/kubernetes
+            path: {{.K8sDirPath}}
 
 ---
 

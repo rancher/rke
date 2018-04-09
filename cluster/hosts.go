@@ -67,6 +67,7 @@ func (c *Cluster) InvertIndexHosts() error {
 				DockerRootDir: "/var/lib/docker",
 			},
 		}
+		newHost.KubernetesDirPath = c.KubernetesDirPath
 		for k, v := range host.Labels {
 			newHost.ToAddLabels[k] = v
 		}
@@ -125,7 +126,7 @@ func (c *Cluster) SetUpHosts(ctx context.Context) error {
 		}
 		log.Infof(ctx, "[certificates] Successfully deployed kubernetes certificates to Cluster nodes")
 		if c.CloudProvider.Name != "" {
-			if err := deployCloudProviderConfig(ctx, hosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, c.CloudConfigFile); err != nil {
+			if err := deployCloudProviderConfig(ctx, hosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, c.CloudConfigFile, c.KubernetesDirPath); err != nil {
 				return err
 			}
 			log.Infof(ctx, "[%s] Successfully deployed kubernetes cloud config to Cluster nodes", CloudConfigServiceName)

@@ -1,12 +1,12 @@
 package pki
 
 const (
-	CertPathPrefix          = "/etc/kubernetes/ssl/"
+	CertPathPrefix          = "ssl/"
 	CertificatesServiceName = "certificates"
 	CrtDownloaderContainer  = "cert-deployer"
 	CertFetcherContainer    = "cert-fetcher"
 	CertificatesSecretName  = "k8s-certs"
-	TempCertPath            = "/etc/kubernetes/.tmp/"
+	TempCertPath            = ".tmp/"
 	ClusterConfig           = "cluster.yml"
 
 	CACertName             = "kube-ca"

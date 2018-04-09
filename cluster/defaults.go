@@ -16,6 +16,7 @@ const (
 	DefaultClusterDomain         = "cluster.local"
 	DefaultClusterName           = "local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
+	DefaultKubernetesDirPath     = "/etc/kubernetes"
 
 	DefaultK8sVersion = v3.K8sV18
 
@@ -47,6 +48,9 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	if len(c.SSHKeyPath) == 0 {
 		c.SSHKeyPath = DefaultClusterSSHKeyPath
 	}
+	if len(c.KubernetesDirPath) == 0 {
+		c.KubernetesDirPath = DefaultKubernetesDirPath
+	}
 
 	for i, host := range c.Nodes {
 		if len(host.InternalAddress) == 0 {
@@ -62,7 +66,6 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 		if len(host.Port) == 0 {
 			c.Nodes[i].Port = DefaultSSHPort
 		}
-
 		// For now, you can set at the global level only.
 		c.Nodes[i].SSHAgentAuth = c.SSHAgentAuth
 	}

@@ -77,15 +77,15 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 	// check if external etcd is used
 	etcdConnectionString := services.GetEtcdConnString(c.EtcdHosts)
 	etcdPathPrefix := EtcdPathPrefix
-	etcdClientCert := pki.GetCertPath(pki.KubeNodeCertName)
-	etcdClientKey := pki.GetKeyPath(pki.KubeNodeCertName)
-	etcdCAClientCert := pki.GetCertPath(pki.CACertName)
+	etcdClientCert := pki.GetCertPath(pki.KubeNodeCertName, c.KubernetesDirPath)
+	etcdClientKey := pki.GetKeyPath(pki.KubeNodeCertName, c.KubernetesDirPath)
+	etcdCAClientCert := pki.GetCertPath(pki.CACertName, c.KubernetesDirPath)
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		etcdConnectionString = strings.Join(c.Services.Etcd.ExternalURLs, ",")
 		etcdPathPrefix = c.Services.Etcd.Path
-		etcdClientCert = pki.GetCertPath(pki.EtcdClientCertName)
-		etcdClientKey = pki.GetKeyPath(pki.EtcdClientCertName)
-		etcdCAClientCert = pki.GetCertPath(pki.EtcdClientCACertName)
+		etcdClientCert = pki.GetCertPath(pki.EtcdClientCertName, c.KubernetesDirPath)
+		etcdClientKey = pki.GetKeyPath(pki.EtcdClientCertName, c.KubernetesDirPath)
+		etcdCAClientCert = pki.GetCertPath(pki.EtcdClientCACertName, c.KubernetesDirPath)
 	}
 
 	Command := []string{
@@ -104,12 +104,12 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		"service-cluster-ip-range":        c.Services.KubeAPI.ServiceClusterIPRange,
 		"admission-control":               "ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
 		"storage-backend":                 "etcd3",
-		"client-ca-file":                  pki.GetCertPath(pki.CACertName),
-		"tls-cert-file":                   pki.GetCertPath(pki.KubeAPICertName),
-		"tls-private-key-file":            pki.GetKeyPath(pki.KubeAPICertName),
-		"kubelet-client-certificate":      pki.GetCertPath(pki.KubeAPICertName),
-		"kubelet-client-key":              pki.GetKeyPath(pki.KubeAPICertName),
-		"service-account-key-file":        pki.GetKeyPath(pki.KubeAPICertName),
+		"client-ca-file":                  pki.GetCertPath(pki.CACertName, c.KubernetesDirPath),
+		"tls-cert-file":                   pki.GetCertPath(pki.KubeAPICertName, c.KubernetesDirPath),
+		"tls-private-key-file":            pki.GetKeyPath(pki.KubeAPICertName, c.KubernetesDirPath),
+		"kubelet-client-certificate":      pki.GetCertPath(pki.KubeAPICertName, c.KubernetesDirPath),
+		"kubelet-client-key":              pki.GetKeyPath(pki.KubeAPICertName, c.KubernetesDirPath),
+		"service-account-key-file":        pki.GetKeyPath(pki.KubeAPICertName, c.KubernetesDirPath),
 	}
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = CloudConfigPath
@@ -134,7 +134,7 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes:z",
+		c.KubernetesDirPath + ":" + c.KubernetesDirPath + ":z",
 	}
 
 	// Override args if they exist, add additional args
@@ -182,7 +182,7 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 		"allow-untagged-cloud":        "true",
 		"configure-cloud-routes":      "false",
 		"leader-elect":                "true",
-		"kubeconfig":                  pki.GetConfigPath(pki.KubeControllerCertName),
+		"kubeconfig":                  pki.GetConfigPath(pki.KubeControllerCertName, c.KubernetesDirPath),
 		"enable-hostpath-provisioner": "false",
 		"node-monitor-grace-period":   "40s",
 		"pod-eviction-timeout":        "5m0s",
@@ -190,8 +190,8 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 		"allocate-node-cidrs":              "true",
 		"cluster-cidr":                     c.ClusterCIDR,
 		"service-cluster-ip-range":         c.Services.KubeController.ServiceClusterIPRange,
-		"service-account-private-key-file": pki.GetKeyPath(pki.KubeAPICertName),
-		"root-ca-file":                     pki.GetCertPath(pki.CACertName),
+		"service-account-private-key-file": pki.GetKeyPath(pki.KubeAPICertName, c.KubernetesDirPath),
+		"root-ca-file":                     pki.GetCertPath(pki.CACertName, c.KubernetesDirPath),
 	}
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = CloudConfigPath
@@ -204,7 +204,7 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes:z",
+		c.KubernetesDirPath + ":" + c.KubernetesDirPath + ":z",
 	}
 
 	for arg, value := range c.Services.KubeController.ExtraArgs {
@@ -263,8 +263,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		"resolv-conf":               "/etc/resolv.conf",
 		"allow-privileged":          "true",
 		"cloud-provider":            c.CloudProvider.Name,
-		"kubeconfig":                pki.GetConfigPath(pki.KubeNodeCertName),
-		"client-ca-file":            pki.GetCertPath(pki.CACertName),
+		"kubeconfig":                pki.GetConfigPath(pki.KubeNodeCertName, c.KubernetesDirPath),
+		"client-ca-file":            pki.GetCertPath(pki.CACertName, c.KubernetesDirPath),
 		"anonymous-auth":            "false",
 		"volume-plugin-dir":         "/var/lib/kubelet/volumeplugins",
 		"fail-swap-on":              strconv.FormatBool(c.Services.Kubelet.FailSwapOn),
@@ -279,7 +279,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes:z",
+		c.KubernetesDirPath + ":" + c.KubernetesDirPath + ":z",
 		"/etc/cni:/etc/cni:ro,z",
 		"/opt/cni:/opt/cni:ro,z",
 		"/var/lib/cni:/var/lib/cni:z",
@@ -337,14 +337,14 @@ func (c *Cluster) BuildKubeProxyProcess() v3.Process {
 	CommandArgs := map[string]string{
 		"v": "2",
 		"healthz-bind-address": "0.0.0.0",
-		"kubeconfig":           pki.GetConfigPath(pki.KubeProxyCertName),
+		"kubeconfig":           pki.GetConfigPath(pki.KubeProxyCertName, c.KubernetesDirPath),
 	}
 
 	VolumesFrom := []string{
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes:z",
+		c.KubernetesDirPath + ":" + c.KubernetesDirPath + ":z",
 	}
 
 	for arg, value := range c.Services.Kubeproxy.ExtraArgs {
@@ -412,14 +412,14 @@ func (c *Cluster) BuildSchedulerProcess() v3.Process {
 		"leader-elect": "true",
 		"v":            "2",
 		"address":      "0.0.0.0",
-		"kubeconfig":   pki.GetConfigPath(pki.KubeSchedulerCertName),
+		"kubeconfig":   pki.GetConfigPath(pki.KubeSchedulerCertName, c.KubernetesDirPath),
 	}
 
 	VolumesFrom := []string{
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		"/etc/kubernetes:/etc/kubernetes:z",
+		c.KubernetesDirPath + ":" + c.KubernetesDirPath + ":z",
 	}
 
 	for arg, value := range c.Services.Scheduler.ExtraArgs {
@@ -492,17 +492,17 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host) v3
 		"initial-cluster-token":       "etcd-cluster-1",
 		"initial-cluster":             initCluster,
 		"initial-cluster-state":       clusterState,
-		"trusted-ca-file":             pki.GetCertPath(pki.CACertName),
-		"peer-trusted-ca-file":        pki.GetCertPath(pki.CACertName),
-		"cert-file":                   pki.GetCertPath(nodeName),
-		"key-file":                    pki.GetKeyPath(nodeName),
-		"peer-cert-file":              pki.GetCertPath(nodeName),
-		"peer-key-file":               pki.GetKeyPath(nodeName),
+		"trusted-ca-file":             pki.GetCertPath(pki.CACertName, c.KubernetesDirPath),
+		"peer-trusted-ca-file":        pki.GetCertPath(pki.CACertName, c.KubernetesDirPath),
+		"cert-file":                   pki.GetCertPath(nodeName, c.KubernetesDirPath),
+		"key-file":                    pki.GetKeyPath(nodeName, c.KubernetesDirPath),
+		"peer-cert-file":              pki.GetCertPath(nodeName, c.KubernetesDirPath),
+		"peer-key-file":               pki.GetKeyPath(nodeName, c.KubernetesDirPath),
 	}
 
 	Binds := []string{
 		"/var/lib/etcd:/var/lib/rancher/etcd:z",
-		"/etc/kubernetes:/etc/kubernetes:z",
+		c.KubernetesDirPath + ":" + c.KubernetesDirPath + ":z",
 	}
 
 	for arg, value := range c.Services.Etcd.ExtraArgs {

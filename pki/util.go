@@ -161,31 +161,31 @@ func GetEtcdCrtName(address string) string {
 	return fmt.Sprintf("%s-%s", EtcdCertName, newAddress)
 }
 
-func GetCertPath(name string) string {
-	return fmt.Sprintf("%s%s.pem", CertPathPrefix, name)
+func GetCertPath(name, k8sDirPath string) string {
+	return fmt.Sprintf("%s/%s.pem", filepath.Join(k8sDirPath, CertPathPrefix), name)
 }
 
-func GetKeyPath(name string) string {
-	return fmt.Sprintf("%s%s-key.pem", CertPathPrefix, name)
+func GetKeyPath(name, k8sDirPath string) string {
+	return fmt.Sprintf("%s/%s-key.pem", filepath.Join(k8sDirPath, CertPathPrefix), name)
 }
 
-func GetConfigPath(name string) string {
-	return fmt.Sprintf("%skubecfg-%s.yaml", CertPathPrefix, name)
+func GetConfigPath(name, k8sDirPath string) string {
+	return fmt.Sprintf("%s/kubecfg-%s.yaml", filepath.Join(k8sDirPath, CertPathPrefix), name)
 }
 
-func GetCertTempPath(name string) string {
-	return fmt.Sprintf("%s%s.pem", TempCertPath, name)
+func GetCertTempPath(name, k8sDirPath string) string {
+	return fmt.Sprintf("%s/%s.pem", filepath.Join(k8sDirPath, TempCertPath), name)
 }
 
-func GetKeyTempPath(name string) string {
-	return fmt.Sprintf("%s%s-key.pem", TempCertPath, name)
+func GetKeyTempPath(name, k8sDirPath string) string {
+	return fmt.Sprintf("%s/%s-key.pem", filepath.Join(k8sDirPath, TempCertPath), name)
 }
 
-func GetConfigTempPath(name string) string {
-	return fmt.Sprintf("%skubecfg-%s.yaml", TempCertPath, name)
+func GetConfigTempPath(name, k8sDirPath string) string {
+	return fmt.Sprintf("%s/kubecfg-%s.yaml", filepath.Join(k8sDirPath, TempCertPath), name)
 }
 
-func ToCertObject(componentName, commonName, ouName string, cert *x509.Certificate, key *rsa.PrivateKey) CertificatePKI {
+func ToCertObject(componentName, commonName, ouName, k8sDirPath string, cert *x509.Certificate, key *rsa.PrivateKey) CertificatePKI {
 	var config, configPath, configEnvName string
 	if len(commonName) == 0 {
 		commonName = getDefaultCN(componentName)
@@ -193,13 +193,13 @@ func ToCertObject(componentName, commonName, ouName string, cert *x509.Certifica
 
 	envName := getEnvFromName(componentName)
 	keyEnvName := getKeyEnvFromEnv(envName)
-	caCertPath := GetCertPath(CACertName)
-	path := GetCertPath(componentName)
-	keyPath := GetKeyPath(componentName)
+	caCertPath := GetCertPath(CACertName, k8sDirPath)
+	path := GetCertPath(componentName, k8sDirPath)
+	keyPath := GetKeyPath(componentName, k8sDirPath)
 
 	if componentName != CACertName && componentName != KubeAPICertName && !strings.Contains(componentName, EtcdCertName) {
 		config = getKubeConfigX509("https://127.0.0.1:6443", "local", componentName, caCertPath, path, keyPath)
-		configPath = GetConfigPath(componentName)
+		configPath = GetConfigPath(componentName, k8sDirPath)
 		configEnvName = getConfigEnvFromEnv(envName)
 	}
 

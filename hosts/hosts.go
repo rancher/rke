@@ -33,27 +33,25 @@ type Host struct {
 	ToDelTaints         []string
 	DockerInfo          types.Info
 	UpdateWorker        bool
+	KubernetesDirPath   string
 }
 
 const (
 	ToCleanEtcdDir       = "/var/lib/etcd"
-	ToCleanSSLDir        = "/etc/kubernetes"
 	ToCleanCNIConf       = "/etc/cni"
 	ToCleanCNIBin        = "/opt/cni"
 	ToCleanCNILib        = "/var/lib/cni"
 	ToCleanCalicoRun     = "/var/run/calico"
-	ToCleanTempCertPath  = "/etc/kubernetes/.tmp/"
 	CleanerContainerName = "kube-cleaner"
 )
 
 func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, externalEtcd bool) error {
 	log.Infof(ctx, "[hosts] Cleaning up host [%s]", h.Address)
 	toCleanPaths := []string{
-		ToCleanSSLDir,
+		h.KubernetesDirPath,
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
-		ToCleanTempCertPath,
 		ToCleanCNILib,
 	}
 	if !externalEtcd {
@@ -68,7 +66,7 @@ func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMa
 		return nil
 	}
 	toCleanPaths := []string{
-		ToCleanSSLDir,
+		h.KubernetesDirPath,
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
@@ -83,7 +81,7 @@ func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsM
 		return nil
 	}
 	toCleanPaths := []string{
-		ToCleanSSLDir,
+		h.KubernetesDirPath,
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
@@ -95,7 +93,7 @@ func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsM
 func (h *Host) CleanUpEtcdHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
 	toCleanPaths := []string{
 		ToCleanEtcdDir,
-		ToCleanSSLDir,
+		h.KubernetesDirPath,
 	}
 	if h.IsWorker || h.IsControl {
 		log.Infof(ctx, "[hosts] Host [%s] is already a worker or control host, skipping cleanup certs.", h.Address)
