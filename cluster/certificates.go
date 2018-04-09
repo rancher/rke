@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/rancher/rke/hosts"
@@ -54,7 +55,7 @@ func SetUpAuthentication(ctx context.Context, kubeCluster, currentCluster *Clust
 				return fmt.Errorf("Failed to generate Kubernetes certificates: %v", err)
 			}
 			log.Infof(ctx, "[certificates] Temporarily saving certs to control host [%s]", backupHost.Address)
-			if err := pki.DeployCertificatesOnHost(ctx, backupHost, kubeCluster.Certificates, kubeCluster.SystemImages.CertDownloader, pki.TempCertPath, kubeCluster.PrivateRegistriesMap); err != nil {
+			if err := pki.DeployCertificatesOnHost(ctx, backupHost, kubeCluster.Certificates, kubeCluster.SystemImages.CertDownloader, filepath.Join(backupHost.KubernetesDirPath, pki.TempCertPath), kubeCluster.PrivateRegistriesMap); err != nil {
 				return err
 			}
 			log.Infof(ctx, "[certificates] Saved certs to control host [%s]", backupHost.Address)
@@ -73,7 +74,7 @@ func regenerateAPICertificate(c *Cluster, certificates map[string]pki.Certificat
 	if err != nil {
 		return nil, err
 	}
-	certificates[pki.KubeAPICertName] = pki.ToCertObject(pki.KubeAPICertName, "", "", kubeAPICert, kubeAPIKey)
+	certificates[pki.KubeAPICertName] = pki.ToCertObject(pki.KubeAPICertName, "", "", c.KubernetesDirPath, kubeAPICert, kubeAPIKey)
 	return certificates, nil
 }
 

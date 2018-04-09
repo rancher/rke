@@ -180,3 +180,5 @@ ingress:
 
 cloud_provider:
   name: aws
+
+kubernetes_dir_path: /etc/k8s

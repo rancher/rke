@@ -35,6 +35,10 @@ const (
 )
 
 func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineConfig, configPath, configDir string) (map[string]CertificatePKI, error) {
+	kubernetesDirPath := "/etc/kubernetes"
+	if rkeConfig.KubernetesDirPath != "" {
+		kubernetesDirPath = rkeConfig.KubernetesDirPath
+	}
 	certs := make(map[string]CertificatePKI)
 	// generate CA certificate and key
 	log.Infof(ctx, "[certificates] Generating CA kubernetes certificates")
@@ -42,7 +46,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	certs[CACertName] = ToCertObject(CACertName, "", "", caCrt, caKey)
+	certs[CACertName] = ToCertObject(CACertName, "", "", kubernetesDirPath, caCrt, caKey)
 
 	// generate API certificate and key
 	log.Infof(ctx, "[certificates] Generating Kubernetes API server certificates")
@@ -57,7 +61,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", kubeAPICrt, kubeAPIKey)
+	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", kubernetesDirPath, kubeAPICrt, kubeAPIKey)
 
 	// generate Kube controller-manager certificate and key
 	log.Infof(ctx, "[certificates] Generating Kube Controller certificates")
@@ -65,7 +69,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	certs[KubeControllerCertName] = ToCertObject(KubeControllerCertName, "", "", kubeControllerCrt, kubeControllerKey)
+	certs[KubeControllerCertName] = ToCertObject(KubeControllerCertName, "", "", kubernetesDirPath, kubeControllerCrt, kubeControllerKey)
 
 	// generate Kube scheduler certificate and key
 	log.Infof(ctx, "[certificates] Generating Kube Scheduler certificates")
@@ -73,7 +77,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	certs[KubeSchedulerCertName] = ToCertObject(KubeSchedulerCertName, "", "", kubeSchedulerCrt, kubeSchedulerKey)
+	certs[KubeSchedulerCertName] = ToCertObject(KubeSchedulerCertName, "", "", kubernetesDirPath, kubeSchedulerCrt, kubeSchedulerKey)
 
 	// generate Kube Proxy certificate and key
 	log.Infof(ctx, "[certificates] Generating Kube Proxy certificates")
@@ -81,7 +85,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	certs[KubeProxyCertName] = ToCertObject(KubeProxyCertName, "", "", kubeProxyCrt, kubeProxyKey)
+	certs[KubeProxyCertName] = ToCertObject(KubeProxyCertName, "", "", kubernetesDirPath, kubeProxyCrt, kubeProxyKey)
 
 	// generate Kubelet certificate and key
 	log.Infof(ctx, "[certificates] Generating Node certificate")
@@ -89,7 +93,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	certs[KubeNodeCertName] = ToCertObject(KubeNodeCertName, KubeNodeCommonName, KubeNodeOrganizationName, nodeCrt, nodeKey)
+	certs[KubeNodeCertName] = ToCertObject(KubeNodeCertName, KubeNodeCommonName, KubeNodeOrganizationName, kubernetesDirPath, nodeCrt, nodeKey)
 
 	// generate Admin certificate and key
 	log.Infof(ctx, "[certificates] Generating admin certificates and kubeconfig")
@@ -101,7 +105,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	if err != nil {
 		return nil, err
 	}
-	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, kubeAdminCrt, kubeAdminKey)
+	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, kubernetesDirPath, kubeAdminCrt, kubeAdminKey)
 	if len(cpHosts) > 0 {
 		kubeAdminConfig := GetKubeConfigX509WithData(
 			"https://"+cpHosts[0].Address+":6443",
@@ -126,13 +130,13 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 		if err != nil {
 			return nil, err
 		}
-		certs[EtcdClientCertName] = ToCertObject(EtcdClientCertName, "", "", clientCert[0], clientKey.(*rsa.PrivateKey))
+		certs[EtcdClientCertName] = ToCertObject(EtcdClientCertName, "", "", kubernetesDirPath, clientCert[0], clientKey.(*rsa.PrivateKey))
 
 		caCert, err := cert.ParseCertsPEM([]byte(rkeConfig.Services.Etcd.CACert))
 		if err != nil {
 			return nil, err
 		}
-		certs[EtcdClientCACertName] = ToCertObject(EtcdClientCACertName, "", "", caCert[0], nil)
+		certs[EtcdClientCACertName] = ToCertObject(EtcdClientCACertName, "", "", kubernetesDirPath, caCert[0], nil)
 	}
 	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
 	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, kubernetesServiceIP, []string{})
@@ -143,7 +147,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 			return nil, err
 		}
 		etcdName := GetEtcdCrtName(host.InternalAddress)
-		certs[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey)
+		certs[etcdName] = ToCertObject(etcdName, "", "", kubernetesDirPath, etcdCrt, etcdKey)
 	}
 
 	return certs, nil
@@ -203,7 +207,7 @@ func RegenerateEtcdCertificate(
 		return nil, err
 	}
 	etcdName := GetEtcdCrtName(etcdHost.InternalAddress)
-	crtMap[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey)
+	crtMap[etcdName] = ToCertObject(etcdName, "", "", etcdHost.KubernetesDirPath, etcdCrt, etcdKey)
 	log.Infof(ctx, "[certificates] Successfully generated new etcd-%s certificate and key", etcdHost.InternalAddress)
 	return crtMap, nil
 }

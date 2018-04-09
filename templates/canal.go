@@ -374,7 +374,7 @@ spec:
             name: canal-config
         - name: etc-kubernetes
           hostPath:
-            path: /etc/kubernetes
+            path: {{.K8sDirPath}}
 
 
 # Create all the CustomResourceDefinitions needed for

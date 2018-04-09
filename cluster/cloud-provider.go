@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"path/filepath"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
@@ -15,21 +17,22 @@ import (
 const (
 	CloudConfigDeployer    = "cloud-config-deployer"
 	CloudConfigServiceName = "cloud"
-	CloudConfigPath        = "/etc/kubernetes/cloud-config.json"
+	CloudConfigPath        = "cloud-config.json"
 	CloudConfigEnv         = "RKE_CLOUD_CONFIG"
 )
 
-func deployCloudProviderConfig(ctx context.Context, uniqueHosts []*hosts.Host, alpineImage string, prsMap map[string]v3.PrivateRegistry, cloudConfig string) error {
+func deployCloudProviderConfig(ctx context.Context, uniqueHosts []*hosts.Host, alpineImage string, prsMap map[string]v3.PrivateRegistry, cloudConfig, k8sDirPath string) error {
 	for _, host := range uniqueHosts {
 		log.Infof(ctx, "[%s] Deploying cloud config file to node [%s]", CloudConfigServiceName, host.Address)
-		if err := doDeployConfigFile(ctx, host, cloudConfig, alpineImage, prsMap); err != nil {
+		if err := doDeployConfigFile(ctx, host, cloudConfig, alpineImage, prsMap, k8sDirPath); err != nil {
 			return fmt.Errorf("Failed to deploy cloud config file on node [%s]: %v", host.Address, err)
 		}
 	}
 	return nil
 }
 
-func doDeployConfigFile(ctx context.Context, host *hosts.Host, cloudConfig, alpineImage string, prsMap map[string]v3.PrivateRegistry) error {
+func doDeployConfigFile(ctx context.Context, host *hosts.Host, cloudConfig, alpineImage string, prsMap map[string]v3.PrivateRegistry, k8sDirPath string) error {
+	fullCloudConfigPath := filepath.Join(k8sDirPath, CloudConfigPath)
 	// remove existing container. Only way it's still here is if previous deployment failed
 	if err := docker.DoRemoveContainer(ctx, host.DClient, CloudConfigDeployer, host.Address); err != nil {
 		return err
@@ -40,13 +43,13 @@ func doDeployConfigFile(ctx context.Context, host *hosts.Host, cloudConfig, alpi
 		Cmd: []string{
 			"sh",
 			"-c",
-			fmt.Sprintf("if [ ! -f %s ]; then echo -e \"$%s\" > %s;fi", CloudConfigPath, CloudConfigEnv, CloudConfigPath),
+			fmt.Sprintf("if [ ! -f %s ]; then echo -e \"$%s\" > %s;fi", fullCloudConfigPath, CloudConfigEnv, fullCloudConfigPath),
 		},
 		Env: containerEnv,
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/etc/kubernetes:/etc/kubernetes",
+			k8sDirPath + ":" + k8sDirPath,
 		},
 		Privileged: true,
 	}

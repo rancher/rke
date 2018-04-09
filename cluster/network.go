@@ -93,8 +93,9 @@ const (
 
 	Calicoctl = "Calicoctl"
 
-	FlannelInterface = "FlannelInterface"
-	RBACConfig       = "RBACConfig"
+	FlannelInterface  = "FlannelInterface"
+	RBACConfig        = "RBACConfig"
+	KubernetesDirPath = "KubernetesDirPath"
 )
 
 var EtcdPortList = []string{
@@ -142,15 +143,16 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context) error {
 }
 
 func (c *Cluster) doCalicoDeploy(ctx context.Context) error {
-	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName)
+	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName, c.KubernetesDirPath)
 	calicoConfig := map[string]string{
-		KubeCfg:       clientConfig,
-		ClusterCIDR:   c.ClusterCIDR,
-		CNIImage:      c.SystemImages.CalicoCNI,
-		NodeImage:     c.SystemImages.CalicoNode,
-		Calicoctl:     c.SystemImages.CalicoCtl,
-		CloudProvider: c.Network.Options[CalicoCloudProvider],
-		RBACConfig:    c.Authorization.Mode,
+		KubeCfg:           clientConfig,
+		ClusterCIDR:       c.ClusterCIDR,
+		CNIImage:          c.SystemImages.CalicoCNI,
+		NodeImage:         c.SystemImages.CalicoNode,
+		Calicoctl:         c.SystemImages.CalicoCtl,
+		CloudProvider:     c.Network.Options[CalicoCloudProvider],
+		RBACConfig:        c.Authorization.Mode,
+		KubernetesDirPath: c.KubernetesDirPath,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(calicoConfig)
 	if err != nil {
@@ -160,18 +162,19 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context) error {
 }
 
 func (c *Cluster) doCanalDeploy(ctx context.Context) error {
-	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName)
+	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName, c.KubernetesDirPath)
 	canalConfig := map[string]string{
-		ClientCertPath:  pki.GetCertPath(pki.KubeNodeCertName),
-		APIRoot:         "https://127.0.0.1:6443",
-		ClientKeyPath:   pki.GetKeyPath(pki.KubeNodeCertName),
-		ClientCAPath:    pki.GetCertPath(pki.CACertName),
-		KubeCfg:         clientConfig,
-		ClusterCIDR:     c.ClusterCIDR,
-		NodeImage:       c.SystemImages.CanalNode,
-		CNIImage:        c.SystemImages.CanalCNI,
-		CanalFlannelImg: c.SystemImages.CanalFlannel,
-		RBACConfig:      c.Authorization.Mode,
+		ClientCertPath:    pki.GetCertPath(pki.KubeNodeCertName, c.KubernetesDirPath),
+		APIRoot:           "https://127.0.0.1:6443",
+		ClientKeyPath:     pki.GetKeyPath(pki.KubeNodeCertName, c.KubernetesDirPath),
+		ClientCAPath:      pki.GetCertPath(pki.CACertName, c.KubernetesDirPath),
+		KubeCfg:           clientConfig,
+		ClusterCIDR:       c.ClusterCIDR,
+		NodeImage:         c.SystemImages.CanalNode,
+		CNIImage:          c.SystemImages.CanalCNI,
+		CanalFlannelImg:   c.SystemImages.CanalFlannel,
+		RBACConfig:        c.Authorization.Mode,
+		KubernetesDirPath: c.KubernetesDirPath,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(canalConfig)
 	if err != nil {

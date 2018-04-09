@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -44,13 +45,15 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 	if err := docker.UseLocalOrPull(ctx, host.DClient, host.Address, certDownloaderImage, CertificatesServiceName, prsMap); err != nil {
 		return err
 	}
+	sslCertPath := filepath.Join(host.KubernetesDirPath, CertPathPrefix)
+	containerEnv = append(containerEnv, fmt.Sprintf("CRTS_DEPLOY_PATH=%s", sslCertPath))
 	imageCfg := &container.Config{
 		Image: certDownloaderImage,
 		Env:   containerEnv,
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/etc/kubernetes:/etc/kubernetes",
+			host.KubernetesDirPath + ":" + host.KubernetesDirPath,
 		},
 		Privileged: true,
 	}
@@ -133,7 +136,7 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 
 	for certName, config := range crtList {
 		certificate := CertificatePKI{}
-		crt, err := fetchFileFromHost(ctx, GetCertTempPath(certName), image, host, prsMap)
+		crt, err := fetchFileFromHost(ctx, GetCertTempPath(certName, host.KubernetesDirPath), image, host, prsMap)
 		if err != nil {
 			if strings.Contains(err.Error(), "no such file or directory") ||
 				strings.Contains(err.Error(), "Could not find the file") {
@@ -141,10 +144,10 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 			}
 			return nil, err
 		}
-		key, err := fetchFileFromHost(ctx, GetKeyTempPath(certName), image, host, prsMap)
+		key, err := fetchFileFromHost(ctx, GetKeyTempPath(certName, host.KubernetesDirPath), image, host, prsMap)
 
 		if config {
-			config, err := fetchFileFromHost(ctx, GetConfigTempPath(certName), image, host, prsMap)
+			config, err := fetchFileFromHost(ctx, GetConfigTempPath(certName, host.KubernetesDirPath), image, host, prsMap)
 			if err != nil {
 				return nil, err
 			}
@@ -167,7 +170,7 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 	if err := docker.RemoveContainer(ctx, host.DClient, host.Address, CertFetcherContainer); err != nil {
 		return nil, err
 	}
-	return populateCertMap(tmpCerts, localConfigPath, extraHosts), nil
+	return populateCertMap(tmpCerts, localConfigPath, extraHosts, host.KubernetesDirPath), nil
 
 }
 
@@ -178,7 +181,7 @@ func fetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/etc/kubernetes:/etc/kubernetes",
+			host.KubernetesDirPath + ":" + host.KubernetesDirPath,
 		},
 		Privileged: true,
 	}
@@ -203,22 +206,22 @@ func getTempPath(s string) string {
 	return TempCertPath + path.Base(s)
 }
 
-func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string, extraHosts []*hosts.Host) map[string]CertificatePKI {
+func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string, extraHosts []*hosts.Host, k8sDirPath string) map[string]CertificatePKI {
 	certs := make(map[string]CertificatePKI)
 	// CACert
-	certs[CACertName] = ToCertObject(CACertName, "", "", tmpCerts[CACertName].Certificate, tmpCerts[CACertName].Key)
+	certs[CACertName] = ToCertObject(CACertName, "", "", k8sDirPath, tmpCerts[CACertName].Certificate, tmpCerts[CACertName].Key)
 	// KubeAPI
-	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", tmpCerts[KubeAPICertName].Certificate, tmpCerts[KubeAPICertName].Key)
+	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", k8sDirPath, tmpCerts[KubeAPICertName].Certificate, tmpCerts[KubeAPICertName].Key)
 	// kubeController
-	certs[KubeControllerCertName] = ToCertObject(KubeControllerCertName, "", "", tmpCerts[KubeControllerCertName].Certificate, tmpCerts[KubeControllerCertName].Key)
+	certs[KubeControllerCertName] = ToCertObject(KubeControllerCertName, "", "", k8sDirPath, tmpCerts[KubeControllerCertName].Certificate, tmpCerts[KubeControllerCertName].Key)
 	// KubeScheduler
-	certs[KubeSchedulerCertName] = ToCertObject(KubeSchedulerCertName, "", "", tmpCerts[KubeSchedulerCertName].Certificate, tmpCerts[KubeSchedulerCertName].Key)
+	certs[KubeSchedulerCertName] = ToCertObject(KubeSchedulerCertName, "", "", k8sDirPath, tmpCerts[KubeSchedulerCertName].Certificate, tmpCerts[KubeSchedulerCertName].Key)
 	// KubeProxy
-	certs[KubeProxyCertName] = ToCertObject(KubeProxyCertName, "", "", tmpCerts[KubeProxyCertName].Certificate, tmpCerts[KubeProxyCertName].Key)
+	certs[KubeProxyCertName] = ToCertObject(KubeProxyCertName, "", "", k8sDirPath, tmpCerts[KubeProxyCertName].Certificate, tmpCerts[KubeProxyCertName].Key)
 	// KubeNode
-	certs[KubeNodeCertName] = ToCertObject(KubeNodeCertName, KubeNodeCommonName, KubeNodeOrganizationName, tmpCerts[KubeNodeCertName].Certificate, tmpCerts[KubeNodeCertName].Key)
+	certs[KubeNodeCertName] = ToCertObject(KubeNodeCertName, KubeNodeCommonName, KubeNodeOrganizationName, k8sDirPath, tmpCerts[KubeNodeCertName].Certificate, tmpCerts[KubeNodeCertName].Key)
 	// KubeAdmin
-	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, tmpCerts[KubeAdminCertName].Certificate, tmpCerts[KubeAdminCertName].Key)
+	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, k8sDirPath, tmpCerts[KubeAdminCertName].Certificate, tmpCerts[KubeAdminCertName].Key)
 	kubeAdminCertObj.Config = tmpCerts[KubeAdminCertName].Config
 	kubeAdminCertObj.ConfigPath = localConfigPath
 	certs[KubeAdminCertName] = kubeAdminCertObj
@@ -226,7 +229,7 @@ func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string,
 	for _, host := range extraHosts {
 		etcdName := GetEtcdCrtName(host.InternalAddress)
 		etcdCrt, etcdKey := tmpCerts[etcdName].Certificate, tmpCerts[etcdName].Key
-		certs[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey)
+		certs[etcdName] = ToCertObject(etcdName, "", "", host.KubernetesDirPath, etcdCrt, etcdKey)
 	}
 
 	return certs

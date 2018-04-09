@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
@@ -193,7 +194,7 @@ func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, ku
 	currentCluster.Certificates = crtMap
 	for _, etcdHost := range etcdToAdd {
 		// deploy certificates on new etcd host
-		if err := pki.DeployCertificatesOnHost(ctx, etcdHost, currentCluster.Certificates, kubeCluster.SystemImages.CertDownloader, pki.CertPathPrefix, kubeCluster.PrivateRegistriesMap); err != nil {
+		if err := pki.DeployCertificatesOnHost(ctx, etcdHost, currentCluster.Certificates, kubeCluster.SystemImages.CertDownloader, filepath.Join(kubeCluster.KubernetesDirPath, pki.CertPathPrefix), kubeCluster.PrivateRegistriesMap); err != nil {
 			return err
 		}
 
