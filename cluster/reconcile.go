@@ -209,9 +209,13 @@ func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, ku
 		}
 		etcdHost.ToAddEtcdMember = false
 		readyHosts := getReadyEtcdHosts(kubeCluster.EtcdHosts)
-		etcdProcessHostMap := kubeCluster.getEtcdProcessHostMap(readyHosts)
 
-		if err := services.ReloadEtcdCluster(ctx, readyHosts, currentCluster.LocalConnDialerFactory, clientCert, clientkey, currentCluster.PrivateRegistriesMap, etcdProcessHostMap, kubeCluster.SystemImages.Alpine); err != nil {
+		etcdNodePlanMap := make(map[string]v3.RKEConfigNodePlan)
+		for _, etcdReadyHost := range readyHosts {
+			etcdNodePlanMap[etcdReadyHost.Address] = BuildRKEConfigNodePlan(ctx, kubeCluster, etcdReadyHost, etcdReadyHost.DockerInfo)
+		}
+
+		if err := services.ReloadEtcdCluster(ctx, readyHosts, currentCluster.LocalConnDialerFactory, clientCert, clientkey, currentCluster.PrivateRegistriesMap, etcdNodePlanMap, kubeCluster.SystemImages.Alpine); err != nil {
 			return err
 		}
 	}
