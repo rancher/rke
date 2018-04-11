@@ -114,6 +114,14 @@ func (c *Cluster) BuildKubeAPIProcess() v3.Process {
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
+	// check if our version has specific options for this component
+	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
+	if ok && serviceOptions.KubeAPI != nil {
+		for k, v := range serviceOptions.KubeAPI {
+			CommandArgs[k] = v
+		}
+	}
+
 	args := []string{
 		"--etcd-cafile=" + etcdCAClientCert,
 		"--etcd-certfile=" + etcdClientCert,
@@ -196,6 +204,15 @@ func (c *Cluster) BuildKubeControllerProcess() v3.Process {
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
+
+	// check if our version has specific options for this component
+	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
+	if ok && serviceOptions.KubeController != nil {
+		for k, v := range serviceOptions.KubeController {
+			CommandArgs[k] = v
+		}
+	}
+
 	args := []string{}
 	if c.Authorization.Mode == services.RBACAuthorizationMode {
 		args = append(args, "--use-service-account-credentials=true")
@@ -275,6 +292,15 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host) v3.Process {
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
+
+	// check if our version has specific options for this component
+	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
+	if ok && serviceOptions.Kubelet != nil {
+		for k, v := range serviceOptions.Kubelet {
+			CommandArgs[k] = v
+		}
+	}
+
 	VolumesFrom := []string{
 		services.SidekickContainerName,
 	}
@@ -338,6 +364,14 @@ func (c *Cluster) BuildKubeProxyProcess() v3.Process {
 		"v": "2",
 		"healthz-bind-address": "0.0.0.0",
 		"kubeconfig":           pki.GetConfigPath(pki.KubeProxyCertName),
+	}
+
+	// check if our version has specific options for this component
+	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
+	if ok && serviceOptions.Kubeproxy != nil {
+		for k, v := range serviceOptions.Kubeproxy {
+			CommandArgs[k] = v
+		}
 	}
 
 	VolumesFrom := []string{
@@ -413,6 +447,14 @@ func (c *Cluster) BuildSchedulerProcess() v3.Process {
 		"v":            "2",
 		"address":      "0.0.0.0",
 		"kubeconfig":   pki.GetConfigPath(pki.KubeSchedulerCertName),
+	}
+
+	// check if our version has specific options for this component
+	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
+	if ok && serviceOptions.Scheduler != nil {
+		for k, v := range serviceOptions.Scheduler {
+			CommandArgs[k] = v
+		}
 	}
 
 	VolumesFrom := []string{
