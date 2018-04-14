@@ -100,10 +100,10 @@ func (c *Cluster) DeployWorkerPlane(ctx context.Context) error {
 	// Deploy Worker plane
 	workerNodePlanMap := make(map[string]v3.RKEConfigNodePlan)
 	// Build cp node plan map
-	for _, workerHost := range c.ControlPlaneHosts {
+	allHosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
+	for _, workerHost := range allHosts {
 		workerNodePlanMap[workerHost.Address] = BuildRKEConfigNodePlan(ctx, c, workerHost, workerHost.DockerInfo)
 	}
-	allHosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 	if err := services.RunWorkerPlane(ctx, allHosts,
 		c.LocalConnDialerFactory,
 		c.PrivateRegistriesMap,
