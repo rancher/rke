@@ -122,8 +122,8 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 	// check if our version has specific options for this component
-	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
-	if ok && serviceOptions.KubeAPI != nil {
+	serviceOptions := GetKubernetesServicesOptions(c.Version)
+	if serviceOptions.KubeAPI != nil {
 		for k, v := range serviceOptions.KubeAPI {
 			CommandArgs[k] = v
 		}
@@ -213,8 +213,8 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 	}
 
 	// check if our version has specific options for this component
-	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
-	if ok && serviceOptions.KubeController != nil {
+	serviceOptions := GetKubernetesServicesOptions(c.Version)
+	if serviceOptions.KubeController != nil {
 		for k, v := range serviceOptions.KubeController {
 			CommandArgs[k] = v
 		}
@@ -302,8 +302,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 
 	// check if our version has specific options for this component
-	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
-	if ok && serviceOptions.Kubelet != nil {
+	serviceOptions := GetKubernetesServicesOptions(c.Version)
+	if serviceOptions.Kubelet != nil {
 		for k, v := range serviceOptions.Kubelet {
 			CommandArgs[k] = v
 		}
@@ -375,8 +375,8 @@ func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
 	}
 
 	// check if our version has specific options for this component
-	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
-	if ok && serviceOptions.Kubeproxy != nil {
+	serviceOptions := GetKubernetesServicesOptions(c.Version)
+	if serviceOptions.Kubeproxy != nil {
 		for k, v := range serviceOptions.Kubeproxy {
 			CommandArgs[k] = v
 		}
@@ -458,8 +458,8 @@ func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
 	}
 
 	// check if our version has specific options for this component
-	serviceOptions, ok := v3.K8sVersionServiceOptions[c.Version]
-	if ok && serviceOptions.Scheduler != nil {
+	serviceOptions := GetKubernetesServicesOptions(c.Version)
+	if serviceOptions.Scheduler != nil {
 		for k, v := range serviceOptions.Scheduler {
 			CommandArgs[k] = v
 		}
@@ -608,4 +608,14 @@ func (c *Cluster) getPrefixPath(osType string) string {
 		prefixPath = c.PrefixPath
 	}
 	return prefixPath
+}
+
+func GetKubernetesServicesOptions(version string) v3.KubernetesServicesOptions {
+	splitVersion := strings.Split(version, ".")
+	majorVersion := strings.Join(splitVersion[:2], ".")
+	serviceOptions, ok := v3.K8sVersionServiceOptions[majorVersion]
+	if ok {
+		return serviceOptions
+	}
+	return v3.KubernetesServicesOptions{}
 }
