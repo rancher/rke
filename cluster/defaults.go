@@ -82,7 +82,9 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	if len(c.ClusterName) == 0 {
 		c.ClusterName = DefaultClusterName
 	}
-
+	if len(c.Version) == 0 {
+		c.Version = DefaultK8sVersion
+	}
 	c.setClusterImageDefaults()
 	c.setClusterServicesDefaults()
 	c.setClusterNetworkDefaults()
