@@ -615,10 +615,11 @@ func (c *Cluster) getPrefixPath(osType string) string {
 func (c *Cluster) GetKubernetesServicesOptions() v3.KubernetesServicesOptions {
 	clusterMajorVersion := getTagMajorVersion(c.Version)
 	NamedkK8sImage, _ := ref.ParseNormalizedNamed(c.SystemImages.Kubernetes)
+
 	k8sImageTag := NamedkK8sImage.(ref.Tagged).Tag()
 	k8sImageMajorVersion := getTagMajorVersion(k8sImageTag)
 
-	if clusterMajorVersion != k8sImageMajorVersion {
+	if clusterMajorVersion != k8sImageMajorVersion && k8sImageMajorVersion != "" {
 		clusterMajorVersion = k8sImageMajorVersion
 	}
 
@@ -631,5 +632,8 @@ func (c *Cluster) GetKubernetesServicesOptions() v3.KubernetesServicesOptions {
 
 func getTagMajorVersion(tag string) string {
 	splitTag := strings.Split(tag, ".")
+	if len(splitTag) < 2 {
+		return ""
+	}
 	return strings.Join(splitTag[:2], ".")
 }
