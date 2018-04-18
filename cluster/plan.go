@@ -321,6 +321,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"/sys:/sys:rprivate",
 		host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,rslave,z",
 		fmt.Sprintf("%s:%s:shared,z", path.Join(prefixPath, "/var/lib/kubelet"), path.Join(prefixPath, "/var/lib/kubelet")),
+		fmt.Sprintf("%s:%s:shared,z", path.Join(prefixPath, "/var/lib/rancher"), path.Join(prefixPath, "/var/lib/rancher")),
 		"/var/run:/var/run:rw,rprivate",
 		"/run:/run:rprivate",
 		fmt.Sprintf("%s:/etc/ceph", path.Join(prefixPath, "/etc/ceph")),
