@@ -437,7 +437,7 @@ func (c *Cluster) BuildProxyProcess() v3.Process {
 	return v3.Process{
 		Name:          services.NginxProxyContainerName,
 		Env:           Env,
-		Args:          Env,
+		Args:          []string{"nginx-proxy"},
 		NetworkMode:   "host",
 		RestartPolicy: "always",
 		HealthCheck:   v3.HealthCheck{},
