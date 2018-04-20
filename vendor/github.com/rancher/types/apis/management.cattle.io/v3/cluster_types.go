@@ -35,6 +35,7 @@ const (
 	ClusterConditionSystemAccountCreated     condition.Cond = "SystemAccountCreated"
 	ClusterConditionAgentDeployed            condition.Cond = "AgentDeployed"
 	ClusterConditionGlobalAdminsSynced       condition.Cond = "GlobalAdminsSynced"
+	ClusterConditionInitialRolesPopulated    condition.Cond = "InitialRolesPopulated"
 
 	ClusterDriverImported = "imported"
 	ClusterDriverLocal    = "local"
@@ -237,4 +238,15 @@ type ClusterRegistrationTokenStatus struct {
 
 type GenerateKubeConfigOutput struct {
 	Config string `json:"config"`
+}
+
+type ImportClusterYamlInput struct {
+	YAML             string `json:"yaml,omitempty"`
+	DefaultNamespace string `json:"defaultNamespace,omitempty"`
+	Namespace        string `json:"namespace,omitempty"`
+	ProjectName      string `json:"projectName,omitempty" norman:"type=reference[project]"`
+}
+
+type ImportYamlOutput struct {
+	Message string `json:"message,omitempty"`
 }
