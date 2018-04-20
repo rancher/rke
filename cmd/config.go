@@ -335,7 +335,7 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 	}
 
 	if strings.ContainsAny(additionalBinds, "Yes y Y yes") {
-		bindMounts, err := getConfig(reader, "Additional bind mounts (separated by \",\")", "/dev:/dev")
+		bindMounts, err := getConfig(reader, "Additional bind mounts (separated by \",\")", "")
 
 		if err != nil {
 			return nil, err
