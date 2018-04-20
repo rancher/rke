@@ -5,19 +5,21 @@ import (
 	"github.com/rancher/norman/types"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/version"
 )
 
 type ClusterConditionType string
 
 const (
 	// ClusterConditionReady Cluster ready to serve API (healthy when true, unhealthy when false)
-	ClusterConditionReady   condition.Cond = "Ready"
-	ClusterConditionPending condition.Cond = "Pending"
-	// ClusterConditionProvisioned Cluster is provisioned
-	ClusterConditionProvisioned condition.Cond = "Provisioned"
-	ClusterConditionUpdated     condition.Cond = "Updated"
-	ClusterConditionWaiting     condition.Cond = "Waiting"
-	ClusterConditionRemoved     condition.Cond = "Removed"
+	ClusterConditionReady          condition.Cond = "Ready"
+	ClusterConditionPending        condition.Cond = "Pending"
+	ClusterConditionCertsGenerated condition.Cond = "CertsGenerated"
+	ClusterConditionEtcd           condition.Cond = "etcd"
+	ClusterConditionProvisioned    condition.Cond = "Provisioned"
+	ClusterConditionUpdated        condition.Cond = "Updated"
+	ClusterConditionWaiting        condition.Cond = "Waiting"
+	ClusterConditionRemoved        condition.Cond = "Removed"
 	// ClusterConditionNoDiskPressure true when all cluster nodes have sufficient disk
 	ClusterConditionNoDiskPressure condition.Cond = "NoDiskPressure"
 	// ClusterConditionNoMemoryPressure true when all cluster nodes have sufficient memory
@@ -26,6 +28,9 @@ const (
 	ClusterConditionconditionDefautlProjectCreated condition.Cond = "DefaultProjectCreated"
 	// ClusterConditionDefaultNamespaceAssigned true when cluster's default namespace has been initially assigned
 	ClusterConditionDefaultNamespaceAssigned condition.Cond = "DefaultNamespaceAssigned"
+	// ClusterConditionSystemNamespacesAssigned true when cluster's system namespaces has been initially assigned to
+	// a system project
+	ClusterConditionSystemNamespacesAssigned condition.Cond = "SystemNamespacesAssigned"
 	ClusterConditionAddonDeploy              condition.Cond = "AddonDeploy"
 	ClusterConditionSystemAccountCreated     condition.Cond = "SystemAccountCreated"
 	ClusterConditionAgentDeployed            condition.Cond = "AgentDeployed"
@@ -50,16 +55,17 @@ type Cluster struct {
 }
 
 type ClusterSpec struct {
-	DisplayName                          string                         `json:"displayName"`
-	Description                          string                         `json:"description"`
-	Internal                             bool                           `json:"internal" norman:"nocreate,noupdate"`
-	DesiredAgentImage                    string                         `json:"desiredAgentImage"`
-	ImportedConfig                       *ImportedConfig                `json:"importedConfig,omitempty" norman:"nocreate,noupdate"`
-	GoogleKubernetesEngineConfig         *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
-	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
-	RancherKubernetesEngineConfig        *RancherKubernetesEngineConfig `json:"rancherKubernetesEngineConfig,omitempty"`
-	DefaultPodSecurityPolicyTemplateName string                         `json:"defaultPodSecurityPolicyTemplateName,omitempty" norman:"type=reference[podSecurityPolicyTemplate]"`
-	DefaultClusterRoleForProjectMembers  string                         `json:"defaultClusterRoleForProjectMembers,omitempty" norman:"type=reference[roleTemplate]"`
+	DisplayName                          string                               `json:"displayName"`
+	Description                          string                               `json:"description"`
+	Internal                             bool                                 `json:"internal" norman:"nocreate,noupdate"`
+	DesiredAgentImage                    string                               `json:"desiredAgentImage"`
+	ImportedConfig                       *ImportedConfig                      `json:"importedConfig,omitempty" norman:"nocreate,noupdate"`
+	GoogleKubernetesEngineConfig         *GoogleKubernetesEngineConfig        `json:"googleKubernetesEngineConfig,omitempty"`
+	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig        `json:"azureKubernetesServiceConfig,omitempty"`
+	RancherKubernetesEngineConfig        *RancherKubernetesEngineConfig       `json:"rancherKubernetesEngineConfig,omitempty"`
+	AmazonElasticContainerServiceConfig  *AmazonElasticContainerServiceConfig `json:"amazonElasticContainerServiceConfig,omitempty"`
+	DefaultPodSecurityPolicyTemplateName string                               `json:"defaultPodSecurityPolicyTemplateName,omitempty" norman:"type=reference[podSecurityPolicyTemplate]"`
+	DefaultClusterRoleForProjectMembers  string                               `json:"defaultClusterRoleForProjectMembers,omitempty" norman:"type=reference[roleTemplate]"`
 }
 
 type ImportedConfig struct {
@@ -72,19 +78,20 @@ type ClusterStatus struct {
 	Conditions []ClusterCondition `json:"conditions,omitempty"`
 	//Component statuses will represent cluster's components (etcd/controller/scheduler) health
 	// https://kubernetes.io/docs/api-reference/v1.8/#componentstatus-v1-core
-	Driver              string                   `json:"driver"`
-	AgentImage          string                   `json:"agentImage"`
-	ComponentStatuses   []ClusterComponentStatus `json:"componentStatuses,omitempty"`
-	APIEndpoint         string                   `json:"apiEndpoint,omitempty"`
-	ServiceAccountToken string                   `json:"serviceAccountToken,omitempty"`
-	CACert              string                   `json:"caCert,omitempty"`
-	Capacity            v1.ResourceList          `json:"capacity,omitempty"`
-	Allocatable         v1.ResourceList          `json:"allocatable,omitempty"`
-	AppliedSpec         ClusterSpec              `json:"appliedSpec,omitempty"`
-	FailedSpec          *ClusterSpec             `json:"failedSpec,omitempty"`
-	Requested           v1.ResourceList          `json:"requested,omitempty"`
-	Limits              v1.ResourceList          `json:"limits,omitempty"`
-	ClusterName         string                   `json:"clusterName,omitempty"`
+	Driver                               string                   `json:"driver"`
+	AgentImage                           string                   `json:"agentImage"`
+	ComponentStatuses                    []ClusterComponentStatus `json:"componentStatuses,omitempty"`
+	APIEndpoint                          string                   `json:"apiEndpoint,omitempty"`
+	ServiceAccountToken                  string                   `json:"serviceAccountToken,omitempty"`
+	CACert                               string                   `json:"caCert,omitempty"`
+	Capacity                             v1.ResourceList          `json:"capacity,omitempty"`
+	Allocatable                          v1.ResourceList          `json:"allocatable,omitempty"`
+	AppliedSpec                          ClusterSpec              `json:"appliedSpec,omitempty"`
+	FailedSpec                           *ClusterSpec             `json:"failedSpec,omitempty"`
+	Requested                            v1.ResourceList          `json:"requested,omitempty"`
+	Limits                               v1.ResourceList          `json:"limits,omitempty"`
+	Version                              *version.Info            `json:"version,omitempty"`
+	AppliedPodSecurityPolicyTemplateName string                   `json:"appliedPodSecurityPolicyTemplateId"`
 }
 
 type ClusterComponentStatus struct {
@@ -188,6 +195,11 @@ type AzureKubernetesServiceConfig struct {
 	TenantID string `json:"tenantId,omitempty" norman:"required"`
 	// Secret associated with the Client ID
 	ClientSecret string `json:"clientSecret,omitempty" norman:"required,type=password"`
+}
+
+type AmazonElasticContainerServiceConfig struct {
+	AccessKey string `json:"accessKey" norman:"required"`
+	SecretKey string `json:"secretKey" norman:"required,type=password"`
 }
 
 type ClusterEvent struct {

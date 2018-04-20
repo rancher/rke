@@ -30,6 +30,7 @@ type ingressOptions struct {
 	RBACConfig     string
 	Options        map[string]string
 	NodeSelector   map[string]string
+	ExtraArgs      map[string]string
 	AlpineImage    string
 	IngressImage   string
 	IngressBackend string
@@ -112,11 +113,8 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 
 func validateUserAddonYAML(addon []byte) error {
 	yamlContents := make(map[string]interface{})
-	if err := yaml.Unmarshal(addon, &yamlContents); err != nil {
-		return err
-	}
 
-	return nil
+	return yaml.Unmarshal(addon, &yamlContents)
 }
 
 func isFilePath(addonPath string) bool {
@@ -192,7 +190,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	}
 	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride)
 	if err != nil {
-		return fmt.Errorf("Failed to get Node [%s]: %v", node.Name, err)
+		return fmt.Errorf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err)
 	}
 	addonJob, err := addons.GetAddonsExcuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
 
@@ -235,9 +233,8 @@ func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, add
 }
 
 func (c *Cluster) ApplySystemAddonExcuteJob(addonJob string) error {
-
 	if err := k8s.ApplyK8sSystemJob(addonJob, c.LocalKubeConfigPath, c.K8sWrapTransport); err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 		return err
 	}
 	return nil
@@ -253,6 +250,7 @@ func (c *Cluster) deployIngress(ctx context.Context) error {
 		RBACConfig:     c.Authorization.Mode,
 		Options:        c.Ingress.Options,
 		NodeSelector:   c.Ingress.NodeSelector,
+		ExtraArgs:      c.Ingress.ExtraArgs,
 		AlpineImage:    c.SystemImages.Alpine,
 		IngressImage:   c.SystemImages.Ingress,
 		IngressBackend: c.SystemImages.IngressBackend,

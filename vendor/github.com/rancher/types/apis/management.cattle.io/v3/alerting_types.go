@@ -45,18 +45,18 @@ type AlertCommonSpec struct {
 type ClusterAlertSpec struct {
 	AlertCommonSpec
 
-	ClusterName         string              `json:"clusterName" norman:"type=reference[cluster]"`
-	TargetNode          TargetNode          `json:"targetNode,omitempty"`
-	TargetSystemService TargetSystemService `json:"targetSystemService,omitempty"`
-	TargetEvent         TargetEvent         `json:"targetEvent,omitempty"`
+	ClusterName         string               `json:"clusterName" norman:"type=reference[cluster]"`
+	TargetNode          *TargetNode          `json:"targetNode,omitempty"`
+	TargetSystemService *TargetSystemService `json:"targetSystemService,omitempty"`
+	TargetEvent         *TargetEvent         `json:"targetEvent,omitempty"`
 }
 
 type ProjectAlertSpec struct {
 	AlertCommonSpec
 
-	ProjectName    string         `json:"projectName" norman:"type=reference[project]"`
-	TargetWorkload TargetWorkload `json:"targetWorkload,omitempty"`
-	TargetPod      TargetPod      `json:"targetPod,omitempty"`
+	ProjectName    string          `json:"projectName" norman:"type=reference[project]"`
+	TargetWorkload *TargetWorkload `json:"targetWorkload,omitempty"`
+	TargetPod      *TargetPod      `json:"targetPod,omitempty"`
 }
 
 type Recipient struct {
@@ -81,13 +81,12 @@ type TargetPod struct {
 }
 
 type TargetEvent struct {
-	Type         string `json:"type,omitempty" norman:"required,options=Normal|Warning,default=Warning"`
-	ResourceKind string `json:"resourceKind,omitempty" norman:"required,options=Pod|Node|Deployment|Statefulset|Daemonset"`
+	EventType    string `json:"eventType,omitempty" norman:"required,options=Normal|Warning,default=Warning"`
+	ResourceKind string `json:"resourceKind,omitempty" norman:"required,options=Pod|Node|Deployment|StatefulSet|DaemonSet"`
 }
 
 type TargetWorkload struct {
 	WorkloadID          string            `json:"workloadId,omitempty"`
-	Type                string            `json:"type,omitempty" norman:"required,options=deployment|statefulset|daemonset,default=deployment"`
 	Selector            map[string]string `json:"selector,omitempty"`
 	AvailablePercentage int               `json:"availablePercentage,omitempty" norman:"required,min=1,max=100,default=70"`
 }
@@ -156,4 +155,9 @@ type WebhookConfig struct {
 }
 
 type NotifierStatus struct {
+}
+
+type AlertSystemImages struct {
+	AlertManager       string `json:"alertManager,omitempty"`
+	AlertManagerHelper string `json:"alertManagerHelper,omitempty"`
 }

@@ -8,7 +8,7 @@ Please check the [releases](https://github.com/rancher/rke/releases/) page.
 
 ## Requirements
 
-- Docker versions 1.12.6, 1.13.1, or 17.03 should be installed for Kubernetes 1.8.
+- Docker versions `1.11.2` up to `1.13.1` and `17.03.x` are validated for Kubernetes versions 1.8, 1.9 and 1.10
 - OpenSSH 7.0+ must be installed on each node for stream local forwarding to work.
 - The SSH user used for node access must be a member of the `docker` group:
 
@@ -21,7 +21,7 @@ usermod -aG docker <user_name>
 
 ## Getting Started
 
-Starting out with RKE? Check out this [blog post](http://rancher.com/an-introduction-to-rke/).
+Starting out with RKE? Check out this [blog post](http://rancher.com/an-introduction-to-rke/) or the [Quick Start Guide](https://github.com/rancher/rke/wiki/Quick-Start-Guide)
 
 ## Using RKE
 
@@ -38,24 +38,13 @@ You can view full sample of cluster.yml [here](https://github.com/rancher/rke/bl
 ### Minimal `cluster.yml` example
 
 ```yaml
+# default k8s version: v1.8.10-rancher1-1
+# default network plugin: canal
 nodes:
-  - address: 1.1.1.1
+  - address: 1.2.3.4
     user: ubuntu
     role: [controlplane,worker,etcd]
 
-services:
-  etcd:
-    image: quay.io/coreos/etcd:latest
-  kube-api:
-    image: rancher/k8s:v1.8.3-rancher2
-  kube-controller:
-    image: rancher/k8s:v1.8.3-rancher2
-  scheduler:
-    image: rancher/k8s:v1.8.3-rancher2
-  kubelet:
-    image: rancher/k8s:v1.8.3-rancher2
-  kubeproxy:
-    image: rancher/k8s:v1.8.3-rancher2
 ```
 
 ## Network Plugins
@@ -105,7 +94,7 @@ There are extra options that can be specified for each network plugin:
 
 ## Addons
 
-RKE support pluggable addons on cluster bootstrap, user can specify the addon yaml in the cluster.yml file, and when running
+RKE supports pluggable addons on cluster bootstrap, user can specify the addon yaml in the cluster.yml file, and when running
 
 ```yaml
 rke up --config cluster.yml
@@ -152,13 +141,13 @@ to start an HA cluster, just specify more than one host with role `controlplane`
 
 ## Adding/Removing Nodes
 
-RKE support adding/removing nodes for worker and controlplane hosts, in order to add additional nodes you will only need to update the `cluster.yml` file with additional nodes and run `rke up` with the same file.
+RKE supports adding/removing nodes for worker and controlplane hosts, in order to add additional nodes you will only need to update the `cluster.yml` file with additional nodes and run `rke up` with the same file.
 
 To remove nodes just remove them from the hosts list in the cluster configuration file `cluster.yml`, and re run `rke up` command.
 
 ## Cluster Remove
 
-RKE support `rke remove` command, the command does the following:
+RKE supports `rke remove` command, the command does the following:
 
 - Connect to each host and remove the kubernetes services deployed on it.
 - Clean each host from the directories left by the services:
@@ -172,7 +161,7 @@ Note that this command is irreversible and will destroy the kubernetes cluster e
 
 ## Cluster Upgrade
 
-RKE support kubernetes cluster upgrade through changing the image version of services, in order to do that change the image option for each services, for example:
+RKE supports kubernetes cluster upgrade through changing the image version of services, in order to do that change the image option for each services, for example:
 
 ```yaml
 image: rancher/k8s:v1.8.2-rancher1
@@ -194,9 +183,15 @@ RKE will first look for the local `kube_config_cluster.yml` and then tries to up
 
 > Note that rollback isn't supported in RKE and may lead to unxpected results
 
+## Service Upgrade
+
+Service can also be upgraded by changing any of the services arguments or extra args and run `rke up` again with the updated configuration file.
+
+> Please note that changing the following arguments: `service_cluster_ip_range` or `cluster_cidr` will result in a broken cluster, because currently the network pods will not be automatically upgraded.
+
 ## RKE Config
 
-RKE support command `rke config` which generates a cluster config template for the user, to start using this command just write:
+RKE supports command `rke config` which generates a cluster config template for the user, to start using this command just write:
 
 ```bash
 rke config --name mycluster.yml
@@ -204,15 +199,36 @@ rke config --name mycluster.yml
 
 RKE will ask some questions around the cluster file like number of the hosts, ips, ssh users, etc, `--empty` option will generate an empty cluster.yml file, also if you just want to print on the screen and not save it in a file you can use `--print`.
 
+RKE enable users to import docker-machine node configs during the rke config by adding the --from-machine or -m. In case a user has changed the docker-machine store-path (/home/$USER/.docker/machine/machines) it also prompts for the location. The next step is to provide a comma separated list of the machines to use for the nodes.
+It is important to note that the  user used during creation with docker-machine, which gets written to cluster.yml, MUST be in the docker group on the machine, or rke will fail to connect.
+
+This option also assumes that labels were passed to the engine and reads them to configure the node:
+
+  - worker=[true|false]
+  - controlplane=[true|false]
+  - etcd=[true|false]
+
+If no labels are passed, it assumes the node will have all roles, this of course could be changed once the config is generated.
+
+You can use this feature with `rke config -m` or `rke config -from-machine`
+```bash
+# rke config -m
+[+] Cluster Level SSH Private Key Path [~/.ssh/id_rsa]: 
+[+] Docker Machine storage path [/home/dhendel/.docker/machine/machines]: 
+[+] Which nodes would you like to use [rk8s01,rk8s02,rk8s03,rk8s04]: rk8s01,rk8s02,rk8s03
+```
+
 ## Ingress Controller
 
-RKE will deploy Nginx controller by default, user can disable this by specifying `none` to ingress `provider` option in the cluster configuration, user also can specify list of options for nginx config map listed in this [doc](https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/configmap.md), for example:
+RKE will deploy Nginx controller by default, user can disable this by specifying `none` to ingress `provider` option in the cluster configuration, user also can specify list of options for nginx config map listed in this [doc](https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/configmap.md), and command line extra_args listed in this [doc](https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/cli-arguments.md), for example:
 ```
 ingress:
   provider: nginx
   options:
     map-hash-bucket-size: "128"
     ssl-protocols: SSLv2
+  extra_args:
+    enable-ssl-passthrough: ""
 ```
 By default, RKE will deploy ingress controller on all schedulable nodes (controlplane and workers), to specify only certain nodes for ingress controller to be deployed, user has to specify `node_selector` for the ingress and the right label on the node, for example:
 ```
@@ -295,6 +311,85 @@ services:
 
 Note that RKE only supports connecting to TLS enabled etcd setup, user can enable multiple endpoints in the `external_urls` field. RKE will not accept having external urls and nodes with `etcd` role at the same time, user should only specify either etcd role for servers or external etcd but not both.
 
+## Cloud Providers
+
+Starting from v0.1.3 rke supports cloud providers.
+
+### AWS Cloud Provider
+
+To enable AWS cloud provider, you can set the following in the cluster configuration file:
+```
+cloud_provider:
+  name: aws
+```
+
+AWS cloud provider has to be enabled on ec2 instances with the right IAM role.
+
+### Azure Cloud provider
+
+Azure cloud provider can be enabled by passing `azure` as the cloud provider name and set of options to the configuration file:
+```
+cloud_provider:
+  name: azure
+  cloud_config:
+    aadClientId: xxxxxxxxxxxx
+    aadClientSecret: xxxxxxxxxxx
+    location: westus
+    resourceGroup: rke-rg
+    subnetName: rke-subnet
+    subscriptionId: xxxxxxxxxxx
+    vnetName: rke-vnet
+    tenantId: xxxxxxxxxx
+    securityGroupName: rke-nsg
+```
+
+You also have to make sure that the Azure node name must match the kubernetes node name, you can do that by changing the value of hostname_override in the config file:
+```
+nodes:
+  - address: x.x.x.x
+    hostname_override: azure-rke1
+    user: ubuntu
+    role:
+    - controlplane
+    - etcd
+    - worker
+```
+
+## Deploying Rancher 2.0 using rke
+Using RKE's pluggable user addons, it's possible to deploy Rancher 2.0 server in HA with a single command.
+
+Depending how you want to manage your ssl certificates, there are 2 deployment options:
+
+- Use own ssl cerficiates:
+  - Use [rancher-minimal-ssl.yml](https://github.com/rancher/rke/blob/master/rancher-minimal-ssl.yml)
+  - Update `nodes` configuration.
+  - Update <FQDN> at `cattle-ingress-http` ingress definition. FQDN should be a dns a entry pointing to all nodes IP's running ingress-controller (controlplane and workers by default).
+  - Update certificate, key and ca crt at `cattle-keys-server` secret, <BASE64_CRT>, <BASE64_KEY> and <BASE64_CA>. Content must be in base64 format, `cat <FILE> | base64`
+  - Update ssl certificate and key at `cattle-keys-ingress` secret, <BASE64_CRT> and <BASE64_KEY>. Content must be in base64 format, `cat <FILE> | base64`. If selfsigned, certificate and key must be signed by same CA.  
+  - Run RKE.
+
+  ```bash
+  rke up --config rancher-minimal-ssl.yml
+  ```
+
+- Use SSL-passthrough:
+  - Use [rancher-minimal-passthrough.yml](https://github.com/rancher/rke/blob/master/rancher-minimal-passthrough.yml)
+  - Update `nodes` configuration.
+  - Update FQDN at `cattle-ingress-http` ingress definition. FQDN should be a dns a entry, pointing to all nodes IP's running ingress-controller (controlplane and workers by default).
+  - Run RKE.
+
+  ```bash
+  rke up --config rancher-minimal-passthrough.yml
+  ```
+
+Once RKE execution finish, rancher is deployed at `cattle-system` namespace. You could access to your rancher instance by `https://<FQDN>`
+
+By default, rancher deployment has just 1 replica, scale it to desired replicas. 
+
+```
+kubectl -n cattle-system scale deployment cattle --replicas=3
+```
+
 ## Operating Systems Notes
 
 ### Atomic OS
@@ -316,7 +411,7 @@ Note that RKE only supports connecting to TLS enabled etcd setup, user can enabl
 
 ## License
 
-Copyright (c) 2017 [Rancher Labs, Inc.](http://rancher.com)
+Copyright (c) 2018 [Rancher Labs, Inc.](http://rancher.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

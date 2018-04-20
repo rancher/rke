@@ -3,6 +3,7 @@ package hosts
 import (
 	"context"
 	"fmt"
+	"path"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -33,11 +34,12 @@ type Host struct {
 	ToDelTaints         []string
 	DockerInfo          types.Info
 	UpdateWorker        bool
+	PrefixPath          string
 }
 
 const (
 	ToCleanEtcdDir       = "/var/lib/etcd"
-	ToCleanSSLDir        = "/etc/kubernetes/ssl"
+	ToCleanSSLDir        = "/etc/kubernetes"
 	ToCleanCNIConf       = "/etc/cni"
 	ToCleanCNIBin        = "/opt/cni"
 	ToCleanCNILib        = "/var/lib/cni"
@@ -49,15 +51,15 @@ const (
 func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, externalEtcd bool) error {
 	log.Infof(ctx, "[hosts] Cleaning up host [%s]", h.Address)
 	toCleanPaths := []string{
-		ToCleanSSLDir,
+		path.Join(h.PrefixPath, ToCleanSSLDir),
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
-		ToCleanTempCertPath,
-		ToCleanCNILib,
+		path.Join(h.PrefixPath, ToCleanTempCertPath),
+		path.Join(h.PrefixPath, ToCleanCNILib),
 	}
 	if !externalEtcd {
-		toCleanPaths = append(toCleanPaths, ToCleanEtcdDir)
+		toCleanPaths = append(toCleanPaths, path.Join(h.PrefixPath, ToCleanEtcdDir))
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
 }
@@ -68,11 +70,11 @@ func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMa
 		return nil
 	}
 	toCleanPaths := []string{
-		ToCleanSSLDir,
+		path.Join(h.PrefixPath, ToCleanSSLDir),
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
-		ToCleanCNILib,
+		path.Join(h.PrefixPath, ToCleanCNILib),
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
 }
@@ -83,24 +85,24 @@ func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsM
 		return nil
 	}
 	toCleanPaths := []string{
-		ToCleanSSLDir,
+		path.Join(h.PrefixPath, ToCleanSSLDir),
 		ToCleanCNIConf,
 		ToCleanCNIBin,
 		ToCleanCalicoRun,
-		ToCleanCNILib,
+		path.Join(h.PrefixPath, ToCleanCNILib),
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
 }
 
 func (h *Host) CleanUpEtcdHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
 	toCleanPaths := []string{
-		ToCleanEtcdDir,
-		ToCleanSSLDir,
+		path.Join(h.PrefixPath, ToCleanEtcdDir),
+		path.Join(h.PrefixPath, ToCleanSSLDir),
 	}
 	if h.IsWorker || h.IsControl {
 		log.Infof(ctx, "[hosts] Host [%s] is already a worker or control host, skipping cleanup certs.", h.Address)
 		toCleanPaths = []string{
-			ToCleanEtcdDir,
+			path.Join(h.PrefixPath, ToCleanEtcdDir),
 		}
 	}
 	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
@@ -114,7 +116,7 @@ func (h *Host) CleanUp(ctx context.Context, toCleanPaths []string, cleanerImage 
 		return err
 	}
 
-	if err := docker.WaitForContainer(ctx, h.DClient, CleanerContainerName); err != nil {
+	if err := docker.WaitForContainer(ctx, h.DClient, h.Address, CleanerContainerName); err != nil {
 		return err
 	}
 
@@ -126,7 +128,7 @@ func (h *Host) CleanUp(ctx context.Context, toCleanPaths []string, cleanerImage 
 	return nil
 }
 
-func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.Clientset, hasAnotherRole bool) error {
+func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.Clientset, hasAnotherRole bool, cloudProvider string) error {
 	if hasAnotherRole {
 		log.Infof(ctx, "[hosts] host [%s] has another role, skipping delete from kubernetes cluster", toDeleteHost.Address)
 		return nil
@@ -144,7 +146,7 @@ func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.
 		return err
 	}
 	log.Infof(ctx, "[hosts] Deleting host [%s] from the cluster", toDeleteHost.Address)
-	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride); err != nil {
+	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride, cloudProvider); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[hosts] Successfully deleted host [%s] from the cluster", toDeleteHost.Address)

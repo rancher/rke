@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -15,10 +16,21 @@ import (
 )
 
 const (
-	HostnameLabel = "kubernetes.io/hostname"
+	HostnameLabel             = "kubernetes.io/hostname"
+	InternalAddressAnnotation = "rke.cattle.io/internal-ip"
+	ExternalAddressAnnotation = "rke.cattle.io/external-ip"
+	AWSCloudProvider          = "aws"
 )
 
-func DeleteNode(k8sClient *kubernetes.Clientset, nodeName string) error {
+func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProvider string) error {
+
+	if cloudProvider == AWSCloudProvider {
+		node, err := GetNode(k8sClient, nodeName)
+		if err != nil {
+			return err
+		}
+		nodeName = node.Name
+	}
 	return k8sClient.CoreV1().Nodes().Delete(nodeName, &metav1.DeleteOptions{})
 }
 
@@ -32,7 +44,7 @@ func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error)
 		return nil, err
 	}
 	for _, node := range nodes.Items {
-		if node.Labels[HostnameLabel] == nodeName {
+		if strings.ToLower(node.Labels[HostnameLabel]) == strings.ToLower(nodeName) {
 			return &node, nil
 		}
 	}
@@ -42,7 +54,7 @@ func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error)
 func CordonUncordon(k8sClient *kubernetes.Clientset, nodeName string, cordoned bool) error {
 	updated := false
 	for retries := 0; retries <= 5; retries++ {
-		node, err := k8sClient.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+		node, err := GetNode(k8sClient, nodeName)
 		if err != nil {
 			logrus.Debugf("Error getting node %s: %v", nodeName, err)
 			time.Sleep(time.Second * 5)
@@ -243,4 +255,31 @@ func toTaint(taintStr string) v1.Taint {
 		Value:  value,
 		Effect: effect,
 	}
+}
+
+func SetAddressesAnnotations(k8sClient *kubernetes.Clientset, nodeName, internalAddress, externalAddress string) error {
+	var listErr error
+	for retries := 0; retries <= 5; retries++ {
+		node, err := GetNode(k8sClient, nodeName)
+		if err != nil {
+			listErr = errors.Wrapf(err, "Failed to get kubernetes node [%s]", nodeName)
+			time.Sleep(time.Second * 5)
+			continue
+		}
+		currentExternalAnnotation := node.Annotations[ExternalAddressAnnotation]
+		currentInternalAnnotation := node.Annotations[ExternalAddressAnnotation]
+		if currentExternalAnnotation == externalAddress && currentInternalAnnotation == internalAddress {
+			return nil
+		}
+		node.Annotations[ExternalAddressAnnotation] = externalAddress
+		node.Annotations[InternalAddressAnnotation] = internalAddress
+		_, err = k8sClient.CoreV1().Nodes().Update(node)
+		if err != nil {
+			listErr = errors.Wrapf(err, "Error updating node [%s] with address annotations: %v", nodeName, err)
+			time.Sleep(time.Second * 5)
+			continue
+		}
+		return nil
+	}
+	return listErr
 }

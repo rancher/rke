@@ -72,6 +72,28 @@ type NodeStatus struct {
 	NodeAnnotations    map[string]string `json:"nodeAnnotations,omitempty"`
 	NodeLabels         map[string]string `json:"nodeLabels,omitempty"`
 	NodeTaints         []v1.Taint        `json:"nodeTaints,omitempty"`
+	DockerInfo         *DockerInfo       `json:"dockerInfo,omitempty"`
+}
+
+type DockerInfo struct {
+	ID                 string
+	Driver             string
+	Debug              bool
+	LoggingDriver      string
+	CgroupDriver       string
+	KernelVersion      string
+	OperatingSystem    string
+	OSType             string
+	Architecture       string
+	IndexServerAddress string
+	DockerRootDir      string
+	HTTPProxy          string
+	HTTPSProxy         string
+	NoProxy            string
+	Name               string
+	Labels             []string
+	ExperimentalBuild  bool
+	ServerVersion      string
 }
 
 var (
@@ -200,6 +222,7 @@ type NodeDriverStatus struct {
 
 var (
 	NodeDriverConditionDownloaded condition.Cond = "Downloaded"
+	NodeDriverConditionInstalled  condition.Cond = "Installed"
 	NodeDriverConditionActive     condition.Cond = "Active"
 	NodeDriverConditionInactive   condition.Cond = "Inactive"
 )
@@ -220,24 +243,31 @@ type Condition struct {
 }
 
 type NodeDriverSpec struct {
-	DisplayName string `json:"displayName"`
-	Description string `json:"description"`
-	URL         string `json:"url" norman:"required"`
-	ExternalID  string `json:"externalId"`
-	Builtin     bool   `json:"builtin"`
-	Active      bool   `json:"active"`
-	Checksum    string `json:"checksum"`
-	UIURL       string `json:"uiUrl"`
+	DisplayName      string   `json:"displayName"`
+	Description      string   `json:"description"`
+	URL              string   `json:"url" norman:"required"`
+	ExternalID       string   `json:"externalId"`
+	Builtin          bool     `json:"builtin"`
+	Active           bool     `json:"active"`
+	Checksum         string   `json:"checksum"`
+	UIURL            string   `json:"uiUrl"`
+	WhitelistDomains []string `json:"whitelistDomains,omitempty"`
 }
 
 type PublicEndpoint struct {
-	NodeName string `json:"nodeName,omitempty" norman:"type=reference[/v3/schemas/node],nocreate,noupdate"`
-	Address  string `json:"address,omitempty" norman:"nocreate,noupdate"`
-	Port     int32  `json:"port,omitempty" norman:"nocreate,noupdate"`
-	Protocol string `json:"protocol,omitempty" norman:"nocreate,noupdate"`
-	// for node port service
+	NodeName  string   `json:"nodeName,omitempty" norman:"type=reference[/v3/schemas/node],nocreate,noupdate"`
+	Addresses []string `json:"addresses,omitempty" norman:"nocreate,noupdate"`
+	Port      int32    `json:"port,omitempty" norman:"nocreate,noupdate"`
+	Protocol  string   `json:"protocol,omitempty" norman:"nocreate,noupdate"`
+	// for node port service endpoint
 	ServiceName string `json:"serviceName,omitempty" norman:"type=reference[service],nocreate,noupdate"`
-	// for host port
+	// for host port endpoint
 	PodName string `json:"podName,omitempty" norman:"type=reference[pod],nocreate,noupdate"`
-	//serviceName and podName are mutually exclusive
+	// for ingress endpoint. ServiceName, podName, ingressName are mutually exclusive
+	IngressName string `json:"ingressName,omitempty" norman:"type=reference[ingress],nocreate,noupdate"`
+	// Hostname/path are set for Ingress endpoints
+	Hostname string `json:"hostname,omitempty" norman:"nocreate,noupdate"`
+	Path     string `json:"path,omitempty" norman:"nocreate,noupdate"`
+	// True when endpoint is exposed on every node
+	AllNodes bool `json:"allNodes" norman:"nocreate,noupdate"`
 }

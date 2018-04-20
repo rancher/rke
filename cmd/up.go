@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/hosts"
@@ -53,82 +54,82 @@ func ClusterUp(
 	rkeConfig *v3.RancherKubernetesEngineConfig,
 	dockerDialerFactory, localConnDialerFactory hosts.DialerFactory,
 	k8sWrapTransport k8s.WrapTransport,
-	local bool, configDir string, updateOnly, disablePortCheck bool) (string, string, string, string, error) {
+	local bool, configDir string, updateOnly, disablePortCheck bool) (string, string, string, string, map[string]pki.CertificatePKI, error) {
 
 	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
 	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dockerDialerFactory, localConnDialerFactory, k8sWrapTransport)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = kubeCluster.TunnelHosts(ctx, local)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	currentCluster, err := kubeCluster.GetClusterState(ctx)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 	if !disablePortCheck {
 		if err = kubeCluster.CheckClusterPorts(ctx, currentCluster); err != nil {
-			return APIURL, caCrt, clientCert, clientKey, err
+			return APIURL, caCrt, clientCert, clientKey, nil, err
 		}
 	}
 
 	err = cluster.SetUpAuthentication(ctx, kubeCluster, currentCluster)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = cluster.ReconcileCluster(ctx, kubeCluster, currentCluster, updateOnly)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = kubeCluster.SetUpHosts(ctx)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	if err := kubeCluster.PrePullK8sImages(ctx); err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = kubeCluster.DeployControlPlane(ctx)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	// Apply Authz configuration after deploying controlplane
 	err = cluster.ApplyAuthzResources(ctx, kubeCluster.RancherKubernetesEngineConfig, clusterFilePath, configDir, k8sWrapTransport)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = kubeCluster.SaveClusterState(ctx, rkeConfig)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = kubeCluster.DeployWorkerPlane(ctx)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	if err = kubeCluster.CleanDeadLogs(ctx); err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = kubeCluster.SyncLabelsAndTaints(ctx)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
 	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, clusterFilePath, configDir, k8sWrapTransport, false)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, err
+		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 	if len(kubeCluster.ControlPlaneHosts) > 0 {
 		APIURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].Address + ":6443")
@@ -137,8 +138,25 @@ func ClusterUp(
 	}
 	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
 
+	if err := checkAllIncluded(kubeCluster); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
 	log.Infof(ctx, "Finished building Kubernetes cluster successfully")
-	return APIURL, caCrt, clientCert, clientKey, nil
+	return APIURL, caCrt, clientCert, clientKey, kubeCluster.Certificates, nil
+}
+
+func checkAllIncluded(cluster *cluster.Cluster) error {
+	if len(cluster.InactiveHosts) == 0 {
+		return nil
+	}
+
+	var names []string
+	for _, host := range cluster.InactiveHosts {
+		names = append(names, host.Address)
+	}
+
+	return fmt.Errorf("Provisioning incomplete, host(s) [%s] skipped because they could not be contacted", strings.Join(names, ","))
 }
 
 func clusterUpFromCli(ctx *cli.Context) error {
@@ -163,7 +181,7 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	updateOnly := ctx.Bool("update-only")
 	disablePortCheck := ctx.Bool("disable-port-check")
 
-	_, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, nil, false, "", updateOnly, disablePortCheck)
+	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, nil, false, "", updateOnly, disablePortCheck)
 	return err
 }
 
@@ -181,6 +199,6 @@ func clusterUpLocal(ctx *cli.Context) error {
 		}
 		rkeConfig.Nodes = []v3.RKEConfigNode{*cluster.GetLocalRKENodeConfig()}
 	}
-	_, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, hosts.LocalHealthcheckFactory, nil, true, "", false, false)
+	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, hosts.LocalHealthcheckFactory, nil, true, "", false, false)
 	return err
 }
