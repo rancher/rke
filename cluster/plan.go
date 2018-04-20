@@ -578,9 +578,8 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	}
 
 	Binds = append(Binds, c.Services.Etcd.ExtraBinds...)
-
 	healthCheck := v3.HealthCheck{
-		URL: services.EtcdHealthCheckURL,
+		URL: fmt.Sprintf("https://%s:2379/health", host.InternalAddress),
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Etcd.Image, c.PrivateRegistriesMap)
 
