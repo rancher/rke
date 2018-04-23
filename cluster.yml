@@ -43,7 +43,7 @@ services:
     #   xxxxxxxxxx
     #   -----END PRIVATE KEY-----
   kube-api:
-    service_cluster_ip_range: 10.42.0.0/16
+    service_cluster_ip_range: 10.43.0.0/16
     pod_security_policy: false
     # add additional arguments to the kubernetes component
     # Note that this WILL OVERRIDE existing defaults
