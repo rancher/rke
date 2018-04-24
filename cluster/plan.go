@@ -332,6 +332,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"/dev:/host/dev:rprivate",
 		fmt.Sprintf("%s:/var/log/containers:z", path.Join(prefixPath, "/var/log/containers")),
 		fmt.Sprintf("%s:/var/log/pods:z", path.Join(prefixPath, "/var/log/pods")),
+		"/usr:/host/usr:ro",
+		"/etc:/host/etc:ro",
 	}
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
