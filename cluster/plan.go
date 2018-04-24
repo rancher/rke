@@ -318,8 +318,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 	Binds := []string{
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
-		"/etc/cni:/etc/cni:ro,z",
-		"/opt/cni:/opt/cni:ro,z",
+		"/etc/cni:/etc/cni:rw,z",
+		"/opt/cni:/opt/cni:rw,z",
 		fmt.Sprintf("%s:/var/lib/cni:z", path.Join(prefixPath, "/var/lib/cni")),
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys:rprivate",
