@@ -83,7 +83,7 @@ addons: |-
           app: cattle
       spec:
         containers:
-        - image: rancher/server:master
+        - image: rancher/rancher:master
           imagePullPolicy: Always
           name: cattle-server
           ports:
