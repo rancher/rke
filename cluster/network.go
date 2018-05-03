@@ -406,7 +406,6 @@ func (c *Cluster) runServicePortChecks(ctx context.Context) error {
 
 func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList []string, planeHosts []*hosts.Host, image string, prsMap map[string]v3.PrivateRegistry) error {
 	var hosts []string
-	var portCheckLogs []string
 	var containerStdout bytes.Buffer
 	var containerStderr bytes.Buffer
 
@@ -451,7 +450,7 @@ func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList 
 	if err := docker.RemoveContainer(ctx, host.DClient, host.Address, PortCheckContainer); err != nil {
 		return err
 	}
-	logrus.Debugf("[network] Length of portCheckLogs is [%d] on host: %s", len(portCheckLogs), host.Address)
+	logrus.Debugf("[network] Length of containerLog is [%d] on host: %s", len(containerLog), host.Address)
 	if len(containerLog) > 0 {
 		portCheckLogs := strings.Join(strings.Split(strings.TrimSpace(containerLog), "\n"), ", ")
 		return fmt.Errorf("[network] Port check for ports: [%s] failed on host: [%s]", portCheckLogs, host.Address)
