@@ -253,14 +253,24 @@ func InspectContainer(ctx context.Context, dClient *client.Client, hostname stri
 }
 
 func StopRenameContainer(ctx context.Context, dClient *client.Client, hostname string, oldContainerName string, newContainerName string) error {
+	// make sure we don't have an old old-container from a previous broken update
+	exists, err := IsContainerRunning(ctx, dClient, hostname, newContainerName, true)
+	if err != nil {
+		return err
+	}
+	if exists {
+		if err := RemoveContainer(ctx, dClient, hostname, newContainerName); err != nil {
+			return err
+		}
+	}
 	if err := StopContainer(ctx, dClient, hostname, oldContainerName); err != nil {
 		return err
 	}
 	if err := WaitForContainer(ctx, dClient, hostname, oldContainerName); err != nil {
 		return nil
 	}
-	err := RenameContainer(ctx, dClient, hostname, oldContainerName, newContainerName)
-	return err
+	return RenameContainer(ctx, dClient, hostname, oldContainerName, newContainerName)
+
 }
 
 func WaitForContainer(ctx context.Context, dClient *client.Client, hostname string, containerName string) error {
