@@ -5,7 +5,7 @@ source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
-OS_PLATFORM_ARG=(linux darwin)
+OS_PLATFORM_ARG=(linux darwin windows)
 OS_ARCH_ARG[linux]="amd64 arm"
 OS_ARCH_ARG[windows]="386 amd64"
 OS_ARCH_ARG[darwin]="amd64"
