@@ -92,6 +92,8 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 	etcdClientCert := pki.GetCertPath(pki.KubeNodeCertName)
 	etcdClientKey := pki.GetKeyPath(pki.KubeNodeCertName)
 	etcdCAClientCert := pki.GetCertPath(pki.CACertName)
+	// check apiserver count
+	apiserverCount := len(c.ControlPlaneHosts)
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		etcdConnectionString = strings.Join(c.Services.Etcd.ExternalURLs, ",")
 		etcdPathPrefix = c.Services.Etcd.Path
@@ -122,6 +124,7 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"kubelet-client-certificate":      pki.GetCertPath(pki.KubeAPICertName),
 		"kubelet-client-key":              pki.GetKeyPath(pki.KubeAPICertName),
 		"service-account-key-file":        pki.GetKeyPath(pki.KubeAPICertName),
+		"apiserver-count":                 strconv.Itoa(apiserverCount),
 	}
 	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != AWSCloudProvider {
 		CommandArgs["cloud-config"] = CloudConfigPath
