@@ -589,10 +589,18 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Etcd.Image, c.PrivateRegistriesMap)
 
+	Env := []string{}
+	Env = append(Env, "ETCDCTL_API=3")
+	Env = append(Env, fmt.Sprintf("ETCDCTL_ENDPOINT=https://%s:2379", listenAddress))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_CACERT=%s", pki.GetCertPath(pki.CACertName)))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_CERT=%s", pki.GetCertPath(nodeName)))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_KEY=%s", pki.GetKeyPath(nodeName)))
+
 	return v3.Process{
 		Name:                    services.EtcdContainerName,
 		Args:                    args,
 		Binds:                   Binds,
+		Env:                     Env,
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
 		Image:                   c.Services.Etcd.Image,
