@@ -20,11 +20,12 @@ import (
 )
 
 const (
-	EtcdPathPrefix = "/registry"
-	B2DOS          = "Boot2Docker"
-	B2DPrefixPath  = "/mnt/sda1/rke"
-	ROS            = "RancherOS"
-	ROSPrefixPath  = "/opt/rke"
+	EtcdPathPrefix     = "/registry"
+	B2DOS              = "Boot2Docker"
+	B2DPrefixPath      = "/mnt/sda1/rke"
+	ROS                = "RancherOS"
+	ROSPrefixPath      = "/opt/rke"
+	ContainerNameLabel = "io.rancher.rke.container.name"
 )
 
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, hostsInfoMap map[string]types.Info) (v3.RKEPlan, error) {
@@ -190,6 +191,9 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		Image:                   c.Services.KubeAPI.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeAPIContainerName,
+		},
 	}
 }
 
@@ -268,6 +272,9 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 		Image:                   c.Services.KubeController.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeControllerContainerName,
+		},
 	}
 }
 
@@ -371,6 +378,9 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		Privileged:              true,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeletContainerName,
+		},
 	}
 }
 
@@ -430,6 +440,9 @@ func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
 		HealthCheck:   healthCheck,
 		Image:         c.Services.Kubeproxy.Image,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeproxyContainerName,
+		},
 	}
 }
 
@@ -455,6 +468,9 @@ func (c *Cluster) BuildProxyProcess() v3.Process {
 		HealthCheck:   v3.HealthCheck{},
 		Image:         c.SystemImages.NginxProxy,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.NginxProxyContainerName,
+		},
 	}
 }
 
@@ -513,6 +529,9 @@ func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
 		Image:                   c.Services.Scheduler.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.SchedulerContainerName,
+		},
 	}
 }
 
@@ -524,6 +543,9 @@ func (c *Cluster) BuildSidecarProcess() v3.Process {
 		Image:                   c.SystemImages.KubernetesServicesSidecar,
 		HealthCheck:             v3.HealthCheck{},
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.SidekickContainerName,
+		},
 	}
 }
 
@@ -609,6 +631,9 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 		Image:                   c.Services.Etcd.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.EtcdContainerName,
+		},
 	}
 }
 
