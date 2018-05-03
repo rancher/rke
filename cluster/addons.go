@@ -152,6 +152,7 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 		addons.DNSMasqImage:           c.SystemImages.DNSmasq,
 		addons.KubeDNSSidecarImage:    c.SystemImages.KubeDNSSidecar,
 		addons.KubeDNSAutoScalerImage: c.SystemImages.KubeDNSAutoscaler,
+		addons.RBAC:                   c.Authorization.Mode,
 	}
 	kubeDNSYaml, err := addons.GetKubeDNSManifest(kubeDNSConfig)
 	if err != nil {
