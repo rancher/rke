@@ -72,6 +72,7 @@ func GetProcessConfig(process v3.Process) (*container.Config, *container.HostCon
 		Cmd:        process.Args,
 		Env:        process.Env,
 		Image:      process.Image,
+		Labels:     process.Labels,
 	}
 	// var pidMode container.PidMode
 	// pidMode = process.PidMode
