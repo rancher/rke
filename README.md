@@ -367,7 +367,7 @@ Using RKE's pluggable user addons, it's possible to deploy Rancher 2.0 server in
 
 Depending how you want to manage your ssl certificates, there are 2 deployment options:
 
-- Use own ssl cerficiates:
+- Use own ssl certificates:
   - Use [rancher-minimal-ssl.yml](https://github.com/rancher/rke/blob/master/rancher-minimal-ssl.yml)
   - Update `nodes` configuration.
   - Update <FQDN> at `cattle-ingress-http` ingress definition. FQDN should be a dns a entry pointing to all nodes IP's running ingress-controller (controlplane and workers by default).
