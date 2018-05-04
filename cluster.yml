@@ -48,6 +48,11 @@ services:
     # add additional arguments to the kubernetes component
     # Note that this WILL OVERRIDE existing defaults
     extra_args:
+      # Enable audit log to stdout
+      audit-log-path: "-"
+      # Increase number of delete workers
+      delete-collection-workers: 3
+      # Set the level of log output to debug-level
       v: 4
   kube-controller:
     cluster_cidr: 10.42.0.0/16
