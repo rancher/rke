@@ -289,7 +289,14 @@ func (c *Cluster) deployAddons(ctx context.Context) error {
 	if err := c.deployK8sAddOns(ctx); err != nil {
 		return err
 	}
-	return c.deployUserAddOns(ctx)
+	if err := c.deployUserAddOns(ctx); err != nil {
+		if err, ok := err.(*addonError); ok && err.isCritical {
+			return err
+		}
+		log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", UserAddonsIncludeResourceName, err)
+
+	}
+	return nil
 }
 
 func (c *Cluster) SyncLabelsAndTaints(ctx context.Context) error {
@@ -349,9 +356,14 @@ func ConfigureCluster(
 	if len(kubeCluster.ControlPlaneHosts) > 0 {
 		kubeCluster.Certificates = crtBundle
 		if err := kubeCluster.deployNetworkPlugin(ctx); err != nil {
+			if err, ok := err.(*addonError); ok && err.isCritical {
+				return err
+			}
+			log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", NetworkPluginResourceName, err)
+		}
+		if err := kubeCluster.deployAddons(ctx); err != nil {
 			return err
 		}
-		return kubeCluster.deployAddons(ctx)
 	}
 	return nil
 }
