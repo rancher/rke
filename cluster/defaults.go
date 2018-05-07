@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 
+	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
@@ -86,6 +87,9 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	}
 	if len(c.Version) == 0 {
 		c.Version = DefaultK8sVersion
+	}
+	if c.AddonJobTimeout == 0 {
+		c.AddonJobTimeout = k8s.DefaultTimeout
 	}
 	c.setClusterImageDefaults()
 	c.setClusterServicesDefaults()
