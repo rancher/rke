@@ -296,7 +296,7 @@ authentication:
 
 RKE supports using external etcd instead of deploying etcd servers, to enable external etcd the following parameters should be populated:
 
-```
+```yaml
 services:
   etcd:
     path: /etcdcluster
@@ -325,7 +325,7 @@ Starting from v0.1.3 rke supports cloud providers.
 ### AWS Cloud Provider
 
 To enable AWS cloud provider, you can set the following in the cluster configuration file:
-```
+```yaml
 cloud_provider:
   name: aws
 ```
@@ -335,7 +335,7 @@ AWS cloud provider has to be enabled on ec2 instances with the right IAM role.
 ### Azure Cloud provider
 
 Azure cloud provider can be enabled by passing `azure` as the cloud provider name and set of options to the configuration file:
-```
+```yaml
 cloud_provider:
   name: azure
   cloud_config:
@@ -351,7 +351,7 @@ cloud_provider:
 ```
 
 You also have to make sure that the Azure node name must match the kubernetes node name, you can do that by changing the value of hostname_override in the config file:
-```
+```yaml
 nodes:
   - address: x.x.x.x
     hostname_override: azure-rke1
@@ -360,6 +360,21 @@ nodes:
     - controlplane
     - etcd
     - worker
+```
+
+### Openstack provider
+
+Openstack provider can be enabled by passing `openstack` as the cloud provider name and set of options to the configuration file that correspond to the authentication parameters in the `[Global]` section (see https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#cloud-conf).
+
+```yaml
+cloud_provider:
+  name: openstack
+  cloud_config:
+    auth-url: https://localhost:5000/v3
+    username: user
+    password: pass
+    tenant-name: project
+    domain-name: Default
 ```
 
 ## Deploying Rancher 2.0 using rke
