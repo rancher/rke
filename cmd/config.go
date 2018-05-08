@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/rancher/rke/cluster"
@@ -16,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gopkg.in/yaml.v2"
+	"strconv"
 )
 
 const (
@@ -41,10 +41,6 @@ func ConfigCommand() cli.Command {
 			cli.BoolFlag{
 				Name:  "print,p",
 				Usage: "Print configuration",
-			},
-			cli.StringFlag{
-				Name:  "node-provider,P",
-				Usage: "Get node configuration from a provisioner ie. docker-machine",
 			},
 		},
 	}
@@ -150,6 +146,7 @@ func clusterConfig(ctx *cli.Context) error {
 			cluster.Nodes = append(cluster.Nodes, *hostCfg)
 		}
 	}
+
 	// Get Network config
 	networkConfig, err := getNetworkConfig(reader)
 	if err != nil {
@@ -177,6 +174,16 @@ func clusterConfig(ctx *cli.Context) error {
 		return err
 	}
 	cluster.Services = *serviceConfig
+
+	//Get addon manifests
+	addonsInclude, err := getAddonManifests(reader)
+	if err != nil {
+		return err
+	}
+
+	if len(addonsInclude) > 0 {
+		cluster.AddonsInclude = append(cluster.AddonsInclude, addonsInclude...)
+	}
 
 	return writeConfig(&cluster, configFile, print)
 }
@@ -366,4 +373,40 @@ func getNetworkConfig(reader *bufio.Reader) (*v3.NetworkConfig, error) {
 	}
 	networkConfig.Plugin = networkPlugin
 	return &networkConfig, nil
+}
+
+func getAddonManifests(reader *bufio.Reader) ([]string, error) {
+	var addonSlice []string
+	var resume = true
+
+	includeAddons, err := getConfig(reader, "Add addon manifest urls or yaml files", "no")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ContainsAny(includeAddons, "Yes YES Y yes y") {
+		for resume {
+			addonPath, err := getConfig(reader, "Enter the Path or URL for the manifest", "")
+			if err != nil {
+				return nil, err
+			}
+
+			addonSlice = append(addonSlice, addonPath)
+
+			cont, err := getConfig(reader, "Add another addon", "no")
+			if err != nil {
+				return nil, err
+			}
+
+			if strings.ContainsAny(cont, "Yes y Y yes YES") {
+				resume = true
+			} else {
+				resume = false
+			}
+
+		}
+	}
+
+	return addonSlice, nil
 }
