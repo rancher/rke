@@ -56,6 +56,7 @@ const (
 	CanalNodeImage     = "canal_node_image"
 	CanalCNIImage      = "canal_cni_image"
 	CanalFlannelImage  = "canal_flannel_image"
+	CanalIface         = "canal_iface"
 
 	WeaveNetworkPlugin = "weave"
 	WeaveImage         = "weave_node_image"
@@ -94,6 +95,7 @@ const (
 	Calicoctl = "Calicoctl"
 
 	FlannelInterface = "FlannelInterface"
+	CanalInterface   = "CanalInterface"
 	RBACConfig       = "RBACConfig"
 )
 
@@ -172,6 +174,7 @@ func (c *Cluster) doCanalDeploy(ctx context.Context) error {
 		CNIImage:        c.SystemImages.CanalCNI,
 		CanalFlannelImg: c.SystemImages.CanalFlannel,
 		RBACConfig:      c.Authorization.Mode,
+		CanalInterface:  c.Network.Options[CanalIface],
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(canalConfig)
 	if err != nil {
@@ -403,7 +406,6 @@ func (c *Cluster) runServicePortChecks(ctx context.Context) error {
 
 func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList []string, planeHosts []*hosts.Host, image string, prsMap map[string]v3.PrivateRegistry) error {
 	var hosts []string
-	var portCheckLogs []string
 	var containerStdout bytes.Buffer
 	var containerStderr bytes.Buffer
 
@@ -448,7 +450,7 @@ func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList 
 	if err := docker.RemoveContainer(ctx, host.DClient, host.Address, PortCheckContainer); err != nil {
 		return err
 	}
-	logrus.Debugf("[network] Length of portCheckLogs is [%d] on host: %s", len(portCheckLogs), host.Address)
+	logrus.Debugf("[network] Length of containerLog is [%d] on host: %s", len(containerLog), host.Address)
 	if len(containerLog) > 0 {
 		portCheckLogs := strings.Join(strings.Split(strings.TrimSpace(containerLog), "\n"), ", ")
 		return fmt.Errorf("[network] Port check for ports: [%s] failed on host: [%s]", portCheckLogs, host.Address)

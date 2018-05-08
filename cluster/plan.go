@@ -36,6 +36,7 @@ func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConf
 	// rkeConfig.Nodes are already unique. But they don't have role flags. So I will use the parsed cluster.Hosts to make use of the role flags.
 	uniqHosts := hosts.GetUniqueHostList(myCluster.EtcdHosts, myCluster.ControlPlaneHosts, myCluster.WorkerHosts)
 	for _, host := range uniqHosts {
+		host.DockerInfo = hostsInfoMap[host.Address]
 		clusterPlan.Nodes = append(clusterPlan.Nodes, BuildRKEConfigNodePlan(ctx, myCluster, host, hostsInfoMap[host.Address]))
 	}
 	return clusterPlan, nil
@@ -91,6 +92,8 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 	etcdClientCert := pki.GetCertPath(pki.KubeNodeCertName)
 	etcdClientKey := pki.GetKeyPath(pki.KubeNodeCertName)
 	etcdCAClientCert := pki.GetCertPath(pki.CACertName)
+	// check apiserver count
+	apiserverCount := len(c.ControlPlaneHosts)
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		etcdConnectionString = strings.Join(c.Services.Etcd.ExternalURLs, ",")
 		etcdPathPrefix = c.Services.Etcd.Path
@@ -121,8 +124,9 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"kubelet-client-certificate":      pki.GetCertPath(pki.KubeAPICertName),
 		"kubelet-client-key":              pki.GetKeyPath(pki.KubeAPICertName),
 		"service-account-key-file":        pki.GetKeyPath(pki.KubeAPICertName),
+		"apiserver-count":                 strconv.Itoa(apiserverCount),
 	}
-	if len(c.CloudProvider.Name) > 0 {
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != AWSCloudProvider {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 	// check if our version has specific options for this component
@@ -212,7 +216,7 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 		"service-account-private-key-file": pki.GetKeyPath(pki.KubeAPICertName),
 		"root-ca-file":                     pki.GetCertPath(pki.CACertName),
 	}
-	if len(c.CloudProvider.Name) > 0 {
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != AWSCloudProvider {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 
@@ -301,7 +305,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	if host.Address != host.InternalAddress {
 		CommandArgs["node-ip"] = host.InternalAddress
 	}
-	if len(c.CloudProvider.Name) > 0 {
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != AWSCloudProvider {
 		CommandArgs["cloud-config"] = CloudConfigPath
 	}
 
@@ -318,9 +322,10 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 	Binds := []string{
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
-		"/etc/cni:/etc/cni:ro,z",
-		"/opt/cni:/opt/cni:ro,z",
+		"/etc/cni:/etc/cni:rw,z",
+		"/opt/cni:/opt/cni:rw,z",
 		fmt.Sprintf("%s:/var/lib/cni:z", path.Join(prefixPath, "/var/lib/cni")),
+		"/var/lib/calico:/var/lib/calico:z",
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys:rprivate",
 		host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,rslave,z",
@@ -332,6 +337,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"/dev:/host/dev:rprivate",
 		fmt.Sprintf("%s:/var/log/containers:z", path.Join(prefixPath, "/var/log/containers")),
 		fmt.Sprintf("%s:/var/log/pods:z", path.Join(prefixPath, "/var/log/pods")),
+		"/usr:/host/usr:ro",
+		"/etc:/host/etc:ro",
 	}
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
@@ -438,9 +445,11 @@ func (c *Cluster) BuildProxyProcess() v3.Process {
 
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.SystemImages.NginxProxy, c.PrivateRegistriesMap)
 	return v3.Process{
-		Name:          services.NginxProxyContainerName,
-		Env:           Env,
-		Args:          []string{"nginx-proxy"},
+		Name: services.NginxProxyContainerName,
+		Env:  Env,
+		// we do this to force container update when CP hosts change.
+		Args:          Env,
+		Command:       []string{"nginx-proxy"},
 		NetworkMode:   "host",
 		RestartPolicy: "always",
 		HealthCheck:   v3.HealthCheck{},
@@ -537,13 +546,19 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 		"--client-cert-auth",
 	}
 
+	// If InternalAddress is not explicitly set, it's set to the same value as Address. This is all good until we deploy on a host with a DNATed public address like AWS, in that case we can't bind to that address so we fall back to 0.0.0.0
+	listenAddress := host.InternalAddress
+	if host.Address == host.InternalAddress {
+		listenAddress = "0.0.0.0"
+	}
+
 	CommandArgs := map[string]string{
 		"name":                        "etcd-" + host.HostnameOverride,
 		"data-dir":                    "/var/lib/rancher/etcd",
 		"advertise-client-urls":       "https://" + host.InternalAddress + ":2379,https://" + host.InternalAddress + ":4001",
-		"listen-client-urls":          "https://" + host.InternalAddress + ":2379",
+		"listen-client-urls":          "https://" + listenAddress + ":2379",
 		"initial-advertise-peer-urls": "https://" + host.InternalAddress + ":2380",
-		"listen-peer-urls":            "https://" + host.InternalAddress + ":2380",
+		"listen-peer-urls":            "https://" + listenAddress + ":2380",
 		"initial-cluster-token":       "etcd-cluster-1",
 		"initial-cluster":             initCluster,
 		"initial-cluster-state":       clusterState,
@@ -572,16 +587,23 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	}
 
 	Binds = append(Binds, c.Services.Etcd.ExtraBinds...)
-
 	healthCheck := v3.HealthCheck{
-		URL: services.EtcdHealthCheckURL,
+		URL: fmt.Sprintf("https://%s:2379/health", host.InternalAddress),
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Etcd.Image, c.PrivateRegistriesMap)
+
+	Env := []string{}
+	Env = append(Env, "ETCDCTL_API=3")
+	Env = append(Env, fmt.Sprintf("ETCDCTL_ENDPOINT=https://%s:2379", listenAddress))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_CACERT=%s", pki.GetCertPath(pki.CACertName)))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_CERT=%s", pki.GetCertPath(nodeName)))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_KEY=%s", pki.GetKeyPath(nodeName)))
 
 	return v3.Process{
 		Name:                    services.EtcdContainerName,
 		Args:                    args,
 		Binds:                   Binds,
+		Env:                     Env,
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
 		Image:                   c.Services.Etcd.Image,

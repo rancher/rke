@@ -16,7 +16,7 @@ const (
 	DefaultClusterName           = "local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
 
-	DefaultK8sVersion = v3.K8sV18
+	DefaultK8sVersion = v3.DefaultK8s
 
 	DefaultSSHPort        = "22"
 	DefaultDockerSockPath = "/var/run/docker.sock"
@@ -168,6 +168,9 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	}
 	if c.Network.FlannelNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[FlannelIface] = c.Network.FlannelNetworkProvider.Iface
+	}
+	if c.Network.CanalNetworkProvider != nil {
+		networkPluginConfigDefaultsMap[CanalIface] = c.Network.CanalNetworkProvider.Iface
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)

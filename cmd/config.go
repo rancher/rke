@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"strconv"
 	"strings"
 
-	"encoding/json"
-	"github.com/pkg/errors"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/rke/providers"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
@@ -44,9 +42,9 @@ func ConfigCommand() cli.Command {
 				Name:  "print,p",
 				Usage: "Print configuration",
 			},
-			cli.BoolFlag{
-				Name:  "from-machine,m",
-				Usage: "Get node configuration from docker-machine",
+			cli.StringFlag{
+				Name:  "node-provider,P",
+				Usage: "Get node configuration from a provisioner ie. docker-machine",
 			},
 		},
 	}
@@ -108,12 +106,28 @@ func clusterConfig(ctx *cli.Context) error {
 	cluster.SSHKeyPath = sshKeyPath
 
 	cluster.Nodes = make([]v3.RKEConfigNode, 0)
-	if ctx.Bool("from-machine") {
-		nodes, err := configureFromMachine(reader)
+	if ctx.String("node-provider") != "" {
+
+		providerString, err := getConfig(reader, "Which node provider would you like to use", "docker-machine")
 
 		if err != nil {
 			return err
 		}
+
+		provider, ok := providers.GetNodeProvider(providerString)
+
+		if !ok {
+			return fmt.Errorf("provider does not exist, please provide a supported provider. %s", providers.ListProviders())
+		}
+
+		machines, err := provider.ListNodes(reader)
+
+		nodes, err := provider.GetNodesConfig(machines)
+
+		if err != nil {
+			return err
+		}
+
 		cluster.Nodes = append(cluster.Nodes, nodes...)
 	} else {
 
@@ -352,152 +366,4 @@ func getNetworkConfig(reader *bufio.Reader) (*v3.NetworkConfig, error) {
 	}
 	networkConfig.Plugin = networkPlugin
 	return &networkConfig, nil
-}
-
-type NodeMachineConfig struct {
-	ConfigVersion int `json:"ConfigVersion,omitempty"`
-	Driver        struct {
-		IPAddress  string `json:"IPAddress"`
-		SSHKeyPair string `json:"SSHKeyPair"`
-		SSHKeyPath string `json:"SSHKeyPath"`
-		SSHPort    int    `json:"SSHPort"`
-		SSHUser    string `json:"SSHUser"`
-	} `json:"Driver,omitempty"`
-	HostOptions struct {
-		EngineOptions struct {
-			Labels []string `json:"Labels,omitempty"`
-		} `json:"EngineOptions,omitempty"`
-	}
-	Name string `json:"Name,omitempty"`
-}
-
-func configureFromMachine(reader *bufio.Reader) ([]v3.RKEConfigNode, error) {
-
-	dockerMachineStore := os.Getenv("MACHINE_STORAGE_PATH")
-
-	if dockerMachineStore == "" {
-		usr, err := user.Current()
-		if err != nil {
-			return nil, err
-		}
-		dockerMachineStore = fmt.Sprintf("%s/.docker/machine/machines", usr.HomeDir)
-	} else {
-		if !strings.Contains(dockerMachineStore, "machines") {
-			dockerMachineStore = fmt.Sprintf("%s/machines", dockerMachineStore)
-		}
-	}
-
-	// Get the docker-machine store path
-	machineStorePath, err := getConfig(reader, "Docker Machine storage path", dockerMachineStore)
-
-	if err != nil {
-		return nil, err
-	}
-
-	machines, err := getMachines(machineStorePath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	selectedNodes, err := getConfig(reader, "Which nodes would you like to use", strings.Join(machines, ","))
-	if err != nil {
-		return nil, err
-	}
-	nodes := make([]v3.RKEConfigNode, 0)
-	for _, m := range strings.Split(selectedNodes, ",") {
-		node, err := getMachineConfig(machineStorePath, m)
-
-		if err != nil {
-			return nil, err
-		}
-
-		nodes = append(nodes, node)
-	}
-
-	return nodes, nil
-}
-
-func getMachines(storePath string) ([]string, error) {
-	var machines []string
-	dirs, err := ioutil.ReadDir(storePath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, d := range dirs {
-		machines = append(machines, d.Name())
-	}
-
-	return machines, nil
-}
-
-func getMachineConfig(storePath, machine string) (v3.RKEConfigNode, error) {
-	nodeConfig := v3.RKEConfigNode{}
-	configPath := fmt.Sprintf("%s/%s/config.json", storePath, machine)
-	configFile, err := ioutil.ReadFile(configPath)
-
-	if err != nil {
-		return nodeConfig, err
-	}
-
-	config := &NodeMachineConfig{}
-
-	if err := json.Unmarshal(configFile, config); err != nil {
-		return nodeConfig, err
-	}
-
-	if config.Driver.IPAddress == "" {
-		return nodeConfig, errors.New(fmt.Sprintf("IPAddress not defined in config.json for %s. "+
-			"Please ensure that the driver is setting these values correctly", machine))
-	}
-
-	sshPort := strconv.Itoa(config.Driver.SSHPort)
-
-	if sshPort == "" {
-		sshPort = "22"
-	}
-
-	nodeConfig.Role = getRolesFromLabels(config)
-	nodeConfig.SSHKeyPath = config.Driver.SSHKeyPath
-	nodeConfig.User = config.Driver.SSHUser
-	nodeConfig.Address = config.Driver.IPAddress
-	nodeConfig.Port = sshPort
-
-	return nodeConfig, nil
-}
-
-func getRolesFromLabels(conf *NodeMachineConfig) []string {
-	var nodeRoles []string
-	labels := conf.HostOptions.EngineOptions.Labels
-
-	if len(labels) == 0 {
-		return append(nodeRoles, "worker", "controlplane", "etcd")
-	}
-
-	// Parse the labels and determine roles
-	for _, l := range labels {
-		if strings.ContainsAny(l, "worker controlplane etcd") {
-			label := strings.Split(l, "=")
-			ok, err := strconv.ParseBool(label[1])
-
-			if err != nil {
-				logrus.Infof("[config] Could not parse bool from label %s", label[0])
-				continue
-			}
-
-			if ok {
-				nodeRoles = append(nodeRoles, label[0])
-			}
-
-		}
-	}
-
-	if len(nodeRoles) == 0 {
-		nodeRoles = append(nodeRoles, "worker", "controlplane", "etcd")
-	}
-
-	return nodeRoles
-
 }

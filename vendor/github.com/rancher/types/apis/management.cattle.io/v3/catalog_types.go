@@ -71,16 +71,13 @@ type TemplateSpec struct {
 	CatalogID                string `json:"catalogId,omitempty" norman:"type=reference[catalog]"`
 	DefaultTemplateVersionID string `json:"defaultTemplateVersionId,omitempty" norman:"type=reference[templateVersion]"`
 
-	IsSystem       string `json:"isSystem,omitempty"`
 	Description    string `json:"description,omitempty"`
 	DefaultVersion string `json:"defaultVersion,omitempty" yaml:"default_version,omitempty"`
 	Path           string `json:"path,omitempty"`
 	Maintainer     string `json:"maintainer,omitempty"`
-	License        string `json:"license,omitempty"`
 	ProjectURL     string `json:"projectURL,omitempty" yaml:"project_url,omitempty"`
 	UpgradeFrom    string `json:"upgradeFrom,omitempty"`
 	FolderName     string `json:"folderName,omitempty"`
-	Base           string `json:"templateBase"`
 	Icon           string `json:"icon,omitempty"`
 	IconFilename   string `json:"iconFilename,omitempty"`
 	Readme         string `json:"readme,omitempty"`
@@ -106,16 +103,14 @@ type TemplateVersion struct {
 }
 
 type TemplateVersionSpec struct {
-	ExternalID            string            `json:"externalId,omitempty"`
-	Revision              *int              `json:"revision,omitempty"`
-	Version               string            `json:"version,omitempty"`
-	MinimumRancherVersion string            `json:"minimumRancherVersion,omitempty" yaml:"minimum_rancher_version,omitempty"`
-	MaximumRancherVersion string            `json:"maximumRancherVersion,omitempty" yaml:"maximum_rancher_version,omitempty"`
-	UpgradeFrom           string            `json:"upgradeFrom,omitempty" yaml:"upgrade_from,omitempty"`
-	Readme                string            `json:"readme,omitempty"`
-	AppReadme             string            `json:"appReadme,omitempty"`
-	UpgradeVersionLinks   map[string]string `json:"upgradeVersionLinks,omitempty"`
-	Digest                string            `json:"digest,omitempty"`
+	ExternalID          string            `json:"externalId,omitempty"`
+	Version             string            `json:"version,omitempty"`
+	RancherVersion      string            `json:"rancherVersion,omitempty"`
+	KubeVersion         string            `json:"kubeVersion,omitempty"`
+	Readme              string            `json:"readme,omitempty"`
+	AppReadme           string            `json:"appReadme,omitempty"`
+	UpgradeVersionLinks map[string]string `json:"upgradeVersionLinks,omitempty"`
+	Digest              string            `json:"digest,omitempty"`
 
 	Files     map[string]string `json:"files,omitempty"`
 	Questions []Question        `json:"questions,omitempty"`

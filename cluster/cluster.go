@@ -61,6 +61,9 @@ const (
 	CloudProvider              = "CloudProvider"
 	AzureCloudProvider         = "azure"
 	AWSCloudProvider           = "aws"
+	ControlPlane               = "controlPlane"
+	WorkerPlane                = "workerPlan"
+	EtcdPlane                  = "etcd"
 )
 
 func (c *Cluster) DeployControlPlane(ctx context.Context) error {
@@ -90,7 +93,8 @@ func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 		c.PrivateRegistriesMap,
 		cpNodePlanMap,
 		c.UpdateWorkersOnly,
-		c.SystemImages.Alpine); err != nil {
+		c.SystemImages.Alpine,
+		c.Certificates); err != nil {
 		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 	}
 
