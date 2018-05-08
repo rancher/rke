@@ -185,6 +185,10 @@ func ParseCluster(
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse cloud config file: %v", err)
 	}
+	// Create k8s wrap transport for bastion host
+	if len(c.BastionHost.Address) > 0 {
+		c.K8sWrapTransport = hosts.BastionHostWrapTransport(c.BastionHost)
+	}
 	return c, nil
 }
 
