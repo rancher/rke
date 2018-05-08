@@ -156,14 +156,15 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		c.Network.Options = make(map[string]string)
 	}
 	networkPluginConfigDefaultsMap := make(map[string]string)
+	// This is still needed because RKE doesn't use c.Network.*NetworkProvider, that's a rancher type
 	switch c.Network.Plugin {
-
 	case CalicoNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{
 			CalicoCloudProvider: DefaultNetworkCloudProvider,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
+		setDefaultIfEmpty(&c.Network.CalicoNetworkProvider.CloudProvider, DefaultNetworkCloudProvider)
 		networkPluginConfigDefaultsMap[CalicoCloudProvider] = c.Network.CalicoNetworkProvider.CloudProvider
 	}
 	if c.Network.FlannelNetworkProvider != nil {
@@ -175,5 +176,4 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
 	}
-
 }
