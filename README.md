@@ -225,7 +225,14 @@ rke config --name mycluster.yml
 
 RKE will ask some questions around the cluster file like number of the hosts, ips, ssh users, etc, `--empty` option will generate an empty cluster.yml file, also if you just want to print on the screen and not save it in a file you can use `--print`.
 
-RKE enable users to import docker-machine node configs during the rke config by adding the --from-machine or -m. In case a user has changed the docker-machine store-path (/home/$USER/.docker/machine/machines) it also prompts for the location. The next step is to provide a comma separated list of the machines to use for the nodes.
+RKE also enables users to import node configurations from different providers by adding the `--node-provider or -P` flag.
+Node Providers are implemented through the NodeProvider interface in the providers package.
+
+Available node providers:
+- docker-machine
+
+##### Docker-Machine Provider
+RKE will prompt for the docker-machine store-path (/home/$USER/.docker/machine/machines) in case a custom path was used when creating the machines. The next step is to provide a comma separated list of the machines to use for the nodes.
 It is important to note that the  user used during creation with docker-machine, which gets written to cluster.yml, MUST be in the docker group on the machine, or rke will fail to connect.
 
 This option also assumes that labels were passed to the engine and reads them to configure the node:
@@ -236,9 +243,9 @@ This option also assumes that labels were passed to the engine and reads them to
 
 If no labels are passed, it assumes the node will have all roles, this of course could be changed once the config is generated.
 
-You can use this feature with `rke config -m` or `rke config -from-machine`
+You can use this feature with `rke config -P docker-machine` or `rke config --node-provider docker-machine`
 ```bash
-# rke config -m
+# rke config -P
 [+] Cluster Level SSH Private Key Path [~/.ssh/id_rsa]: 
 [+] Docker Machine storage path [/home/dhendel/.docker/machine/machines]: 
 [+] Which nodes would you like to use [rk8s01,rk8s02,rk8s03,rk8s04]: rk8s01,rk8s02,rk8s03

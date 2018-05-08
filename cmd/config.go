@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"errors"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/providers"
@@ -41,6 +42,10 @@ func ConfigCommand() cli.Command {
 			cli.BoolFlag{
 				Name:  "print,p",
 				Usage: "Print configuration",
+			},
+			cli.StringFlag{
+				Name:  "node-provider,P",
+				Usage: "Get node configurations from a node provider. ie. docker-machine",
 			},
 		},
 	}
@@ -89,12 +94,21 @@ func clusterConfig(ctx *cli.Context) error {
 	// Get cluster config from user
 	reader := bufio.NewReader(os.Stdin)
 
+	var nodeProvider providers.NodeProvider
 	// Generate empty configuration file
 	if ctx.Bool("empty") {
 		cluster.Nodes = make([]v3.RKEConfigNode, 1)
 		return writeConfig(&cluster, configFile, print)
 	}
 
+	if ctx.String("node-provider") != "" {
+		var ok bool
+		nodeProvider, ok = providers.GetNodeProvider(ctx.String("node-provider"))
+
+		if !ok {
+			return fmt.Errorf("provider does not exist, please provide a supported provider. %s", providers.ListProviders())
+		}
+	}
 	sshKeyPath, err := getConfig(reader, "Cluster Level SSH Private Key Path", "~/.ssh/id_rsa")
 	if err != nil {
 		return err
@@ -102,23 +116,15 @@ func clusterConfig(ctx *cli.Context) error {
 	cluster.SSHKeyPath = sshKeyPath
 
 	cluster.Nodes = make([]v3.RKEConfigNode, 0)
-	if ctx.String("node-provider") != "" {
+	if nodeProvider != nil {
 
-		providerString, err := getConfig(reader, "Which node provider would you like to use", "docker-machine")
+		machines, err := nodeProvider.ListNodes(reader)
 
-		if err != nil {
-			return err
+		if machines[0] == "" {
+			return errors.New("No nodes were passed to be used. Please pass at least one node")
 		}
 
-		provider, ok := providers.GetNodeProvider(providerString)
-
-		if !ok {
-			return fmt.Errorf("provider does not exist, please provide a supported provider. %s", providers.ListProviders())
-		}
-
-		machines, err := provider.ListNodes(reader)
-
-		nodes, err := provider.GetNodesConfig(machines)
+		nodes, err := nodeProvider.GetNodesConfig(machines)
 
 		if err != nil {
 			return err
