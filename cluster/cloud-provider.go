@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"path"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/rancher/rke/docker"
@@ -40,13 +41,13 @@ func doDeployConfigFile(ctx context.Context, host *hosts.Host, cloudConfig, alpi
 		Cmd: []string{
 			"sh",
 			"-c",
-			fmt.Sprintf("if [ ! -f %s ]; then echo -e \"$%s\" > %s;fi", CloudConfigPath, CloudConfigEnv, CloudConfigPath),
+			fmt.Sprintf("t=$(mktemp); echo -e \"$%s\" > $t && mv $t %s", CloudConfigEnv, CloudConfigPath),
 		},
 		Env: containerEnv,
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/etc/kubernetes:/etc/kubernetes",
+			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 		Privileged: true,
 	}

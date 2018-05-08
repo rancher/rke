@@ -4,8 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/rancher/norman/clientbase"
 	"github.com/rancher/norman/controller"
+	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/restwatch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 )
@@ -32,6 +33,7 @@ type Interface interface {
 	CatalogsGetter
 	TemplatesGetter
 	TemplateVersionsGetter
+	TemplateContentsGetter
 	GroupsGetter
 	GroupMembersGetter
 	PrincipalsGetter
@@ -81,6 +83,7 @@ type Client struct {
 	catalogControllers                                 map[string]CatalogController
 	templateControllers                                map[string]TemplateController
 	templateVersionControllers                         map[string]TemplateVersionController
+	templateContentControllers                         map[string]TemplateContentController
 	groupControllers                                   map[string]GroupController
 	groupMemberControllers                             map[string]GroupMemberController
 	principalControllers                               map[string]PrincipalController
@@ -113,7 +116,7 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		config.NegotiatedSerializer = configConfig.NegotiatedSerializer
 	}
 
-	restClient, err := rest.UnversionedRESTClientFor(&config)
+	restClient, err := restwatch.UnversionedRESTClientFor(&config)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +142,7 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		catalogControllers:                                 map[string]CatalogController{},
 		templateControllers:                                map[string]TemplateController{},
 		templateVersionControllers:                         map[string]TemplateVersionController{},
+		templateContentControllers:                         map[string]TemplateContentController{},
 		groupControllers:                                   map[string]GroupController{},
 		groupMemberControllers:                             map[string]GroupMemberController{},
 		principalControllers:                               map[string]PrincipalController{},
@@ -183,7 +187,7 @@ type NodePoolsGetter interface {
 }
 
 func (c *Client) NodePools(namespace string) NodePoolInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodePoolResource, NodePoolGroupVersionKind, nodePoolFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &NodePoolResource, NodePoolGroupVersionKind, nodePoolFactory{})
 	return &nodePoolClient{
 		ns:           namespace,
 		client:       c,
@@ -196,7 +200,7 @@ type NodesGetter interface {
 }
 
 func (c *Client) Nodes(namespace string) NodeInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodeResource, NodeGroupVersionKind, nodeFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &NodeResource, NodeGroupVersionKind, nodeFactory{})
 	return &nodeClient{
 		ns:           namespace,
 		client:       c,
@@ -209,7 +213,7 @@ type NodeDriversGetter interface {
 }
 
 func (c *Client) NodeDrivers(namespace string) NodeDriverInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodeDriverResource, NodeDriverGroupVersionKind, nodeDriverFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &NodeDriverResource, NodeDriverGroupVersionKind, nodeDriverFactory{})
 	return &nodeDriverClient{
 		ns:           namespace,
 		client:       c,
@@ -222,7 +226,7 @@ type NodeTemplatesGetter interface {
 }
 
 func (c *Client) NodeTemplates(namespace string) NodeTemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NodeTemplateResource, NodeTemplateGroupVersionKind, nodeTemplateFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &NodeTemplateResource, NodeTemplateGroupVersionKind, nodeTemplateFactory{})
 	return &nodeTemplateClient{
 		ns:           namespace,
 		client:       c,
@@ -235,7 +239,7 @@ type ProjectsGetter interface {
 }
 
 func (c *Client) Projects(namespace string) ProjectInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectResource, ProjectGroupVersionKind, projectFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ProjectResource, ProjectGroupVersionKind, projectFactory{})
 	return &projectClient{
 		ns:           namespace,
 		client:       c,
@@ -248,7 +252,7 @@ type GlobalRolesGetter interface {
 }
 
 func (c *Client) GlobalRoles(namespace string) GlobalRoleInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GlobalRoleResource, GlobalRoleGroupVersionKind, globalRoleFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &GlobalRoleResource, GlobalRoleGroupVersionKind, globalRoleFactory{})
 	return &globalRoleClient{
 		ns:           namespace,
 		client:       c,
@@ -261,7 +265,7 @@ type GlobalRoleBindingsGetter interface {
 }
 
 func (c *Client) GlobalRoleBindings(namespace string) GlobalRoleBindingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GlobalRoleBindingResource, GlobalRoleBindingGroupVersionKind, globalRoleBindingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &GlobalRoleBindingResource, GlobalRoleBindingGroupVersionKind, globalRoleBindingFactory{})
 	return &globalRoleBindingClient{
 		ns:           namespace,
 		client:       c,
@@ -274,7 +278,7 @@ type RoleTemplatesGetter interface {
 }
 
 func (c *Client) RoleTemplates(namespace string) RoleTemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &RoleTemplateResource, RoleTemplateGroupVersionKind, roleTemplateFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &RoleTemplateResource, RoleTemplateGroupVersionKind, roleTemplateFactory{})
 	return &roleTemplateClient{
 		ns:           namespace,
 		client:       c,
@@ -287,7 +291,7 @@ type PodSecurityPolicyTemplatesGetter interface {
 }
 
 func (c *Client) PodSecurityPolicyTemplates(namespace string) PodSecurityPolicyTemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PodSecurityPolicyTemplateResource, PodSecurityPolicyTemplateGroupVersionKind, podSecurityPolicyTemplateFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PodSecurityPolicyTemplateResource, PodSecurityPolicyTemplateGroupVersionKind, podSecurityPolicyTemplateFactory{})
 	return &podSecurityPolicyTemplateClient{
 		ns:           namespace,
 		client:       c,
@@ -300,7 +304,7 @@ type PodSecurityPolicyTemplateProjectBindingsGetter interface {
 }
 
 func (c *Client) PodSecurityPolicyTemplateProjectBindings(namespace string) PodSecurityPolicyTemplateProjectBindingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PodSecurityPolicyTemplateProjectBindingResource, PodSecurityPolicyTemplateProjectBindingGroupVersionKind, podSecurityPolicyTemplateProjectBindingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PodSecurityPolicyTemplateProjectBindingResource, PodSecurityPolicyTemplateProjectBindingGroupVersionKind, podSecurityPolicyTemplateProjectBindingFactory{})
 	return &podSecurityPolicyTemplateProjectBindingClient{
 		ns:           namespace,
 		client:       c,
@@ -313,7 +317,7 @@ type ClusterRoleTemplateBindingsGetter interface {
 }
 
 func (c *Client) ClusterRoleTemplateBindings(namespace string) ClusterRoleTemplateBindingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterRoleTemplateBindingResource, ClusterRoleTemplateBindingGroupVersionKind, clusterRoleTemplateBindingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterRoleTemplateBindingResource, ClusterRoleTemplateBindingGroupVersionKind, clusterRoleTemplateBindingFactory{})
 	return &clusterRoleTemplateBindingClient{
 		ns:           namespace,
 		client:       c,
@@ -326,7 +330,7 @@ type ProjectRoleTemplateBindingsGetter interface {
 }
 
 func (c *Client) ProjectRoleTemplateBindings(namespace string) ProjectRoleTemplateBindingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectRoleTemplateBindingResource, ProjectRoleTemplateBindingGroupVersionKind, projectRoleTemplateBindingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ProjectRoleTemplateBindingResource, ProjectRoleTemplateBindingGroupVersionKind, projectRoleTemplateBindingFactory{})
 	return &projectRoleTemplateBindingClient{
 		ns:           namespace,
 		client:       c,
@@ -339,7 +343,7 @@ type ClustersGetter interface {
 }
 
 func (c *Client) Clusters(namespace string) ClusterInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterResource, ClusterGroupVersionKind, clusterFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterResource, ClusterGroupVersionKind, clusterFactory{})
 	return &clusterClient{
 		ns:           namespace,
 		client:       c,
@@ -352,7 +356,7 @@ type ClusterEventsGetter interface {
 }
 
 func (c *Client) ClusterEvents(namespace string) ClusterEventInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterEventResource, ClusterEventGroupVersionKind, clusterEventFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterEventResource, ClusterEventGroupVersionKind, clusterEventFactory{})
 	return &clusterEventClient{
 		ns:           namespace,
 		client:       c,
@@ -365,7 +369,7 @@ type ClusterRegistrationTokensGetter interface {
 }
 
 func (c *Client) ClusterRegistrationTokens(namespace string) ClusterRegistrationTokenInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterRegistrationTokenResource, ClusterRegistrationTokenGroupVersionKind, clusterRegistrationTokenFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterRegistrationTokenResource, ClusterRegistrationTokenGroupVersionKind, clusterRegistrationTokenFactory{})
 	return &clusterRegistrationTokenClient{
 		ns:           namespace,
 		client:       c,
@@ -378,7 +382,7 @@ type CatalogsGetter interface {
 }
 
 func (c *Client) Catalogs(namespace string) CatalogInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &CatalogResource, CatalogGroupVersionKind, catalogFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &CatalogResource, CatalogGroupVersionKind, catalogFactory{})
 	return &catalogClient{
 		ns:           namespace,
 		client:       c,
@@ -391,7 +395,7 @@ type TemplatesGetter interface {
 }
 
 func (c *Client) Templates(namespace string) TemplateInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &TemplateResource, TemplateGroupVersionKind, templateFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &TemplateResource, TemplateGroupVersionKind, templateFactory{})
 	return &templateClient{
 		ns:           namespace,
 		client:       c,
@@ -404,8 +408,21 @@ type TemplateVersionsGetter interface {
 }
 
 func (c *Client) TemplateVersions(namespace string) TemplateVersionInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &TemplateVersionResource, TemplateVersionGroupVersionKind, templateVersionFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &TemplateVersionResource, TemplateVersionGroupVersionKind, templateVersionFactory{})
 	return &templateVersionClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type TemplateContentsGetter interface {
+	TemplateContents(namespace string) TemplateContentInterface
+}
+
+func (c *Client) TemplateContents(namespace string) TemplateContentInterface {
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &TemplateContentResource, TemplateContentGroupVersionKind, templateContentFactory{})
+	return &templateContentClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
@@ -417,7 +434,7 @@ type GroupsGetter interface {
 }
 
 func (c *Client) Groups(namespace string) GroupInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GroupResource, GroupGroupVersionKind, groupFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &GroupResource, GroupGroupVersionKind, groupFactory{})
 	return &groupClient{
 		ns:           namespace,
 		client:       c,
@@ -430,7 +447,7 @@ type GroupMembersGetter interface {
 }
 
 func (c *Client) GroupMembers(namespace string) GroupMemberInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GroupMemberResource, GroupMemberGroupVersionKind, groupMemberFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &GroupMemberResource, GroupMemberGroupVersionKind, groupMemberFactory{})
 	return &groupMemberClient{
 		ns:           namespace,
 		client:       c,
@@ -443,7 +460,7 @@ type PrincipalsGetter interface {
 }
 
 func (c *Client) Principals(namespace string) PrincipalInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PrincipalResource, PrincipalGroupVersionKind, principalFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PrincipalResource, PrincipalGroupVersionKind, principalFactory{})
 	return &principalClient{
 		ns:           namespace,
 		client:       c,
@@ -456,7 +473,7 @@ type UsersGetter interface {
 }
 
 func (c *Client) Users(namespace string) UserInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &UserResource, UserGroupVersionKind, userFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &UserResource, UserGroupVersionKind, userFactory{})
 	return &userClient{
 		ns:           namespace,
 		client:       c,
@@ -469,7 +486,7 @@ type AuthConfigsGetter interface {
 }
 
 func (c *Client) AuthConfigs(namespace string) AuthConfigInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &AuthConfigResource, AuthConfigGroupVersionKind, authConfigFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &AuthConfigResource, AuthConfigGroupVersionKind, authConfigFactory{})
 	return &authConfigClient{
 		ns:           namespace,
 		client:       c,
@@ -482,7 +499,7 @@ type TokensGetter interface {
 }
 
 func (c *Client) Tokens(namespace string) TokenInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &TokenResource, TokenGroupVersionKind, tokenFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &TokenResource, TokenGroupVersionKind, tokenFactory{})
 	return &tokenClient{
 		ns:           namespace,
 		client:       c,
@@ -495,7 +512,7 @@ type DynamicSchemasGetter interface {
 }
 
 func (c *Client) DynamicSchemas(namespace string) DynamicSchemaInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &DynamicSchemaResource, DynamicSchemaGroupVersionKind, dynamicSchemaFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &DynamicSchemaResource, DynamicSchemaGroupVersionKind, dynamicSchemaFactory{})
 	return &dynamicSchemaClient{
 		ns:           namespace,
 		client:       c,
@@ -508,7 +525,7 @@ type PreferencesGetter interface {
 }
 
 func (c *Client) Preferences(namespace string) PreferenceInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PreferenceResource, PreferenceGroupVersionKind, preferenceFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PreferenceResource, PreferenceGroupVersionKind, preferenceFactory{})
 	return &preferenceClient{
 		ns:           namespace,
 		client:       c,
@@ -521,7 +538,7 @@ type ProjectNetworkPoliciesGetter interface {
 }
 
 func (c *Client) ProjectNetworkPolicies(namespace string) ProjectNetworkPolicyInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectNetworkPolicyResource, ProjectNetworkPolicyGroupVersionKind, projectNetworkPolicyFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ProjectNetworkPolicyResource, ProjectNetworkPolicyGroupVersionKind, projectNetworkPolicyFactory{})
 	return &projectNetworkPolicyClient{
 		ns:           namespace,
 		client:       c,
@@ -534,7 +551,7 @@ type ClusterLoggingsGetter interface {
 }
 
 func (c *Client) ClusterLoggings(namespace string) ClusterLoggingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterLoggingResource, ClusterLoggingGroupVersionKind, clusterLoggingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterLoggingResource, ClusterLoggingGroupVersionKind, clusterLoggingFactory{})
 	return &clusterLoggingClient{
 		ns:           namespace,
 		client:       c,
@@ -547,7 +564,7 @@ type ProjectLoggingsGetter interface {
 }
 
 func (c *Client) ProjectLoggings(namespace string) ProjectLoggingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectLoggingResource, ProjectLoggingGroupVersionKind, projectLoggingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ProjectLoggingResource, ProjectLoggingGroupVersionKind, projectLoggingFactory{})
 	return &projectLoggingClient{
 		ns:           namespace,
 		client:       c,
@@ -560,7 +577,7 @@ type ListenConfigsGetter interface {
 }
 
 func (c *Client) ListenConfigs(namespace string) ListenConfigInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ListenConfigResource, ListenConfigGroupVersionKind, listenConfigFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ListenConfigResource, ListenConfigGroupVersionKind, listenConfigFactory{})
 	return &listenConfigClient{
 		ns:           namespace,
 		client:       c,
@@ -573,7 +590,7 @@ type SettingsGetter interface {
 }
 
 func (c *Client) Settings(namespace string) SettingInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &SettingResource, SettingGroupVersionKind, settingFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &SettingResource, SettingGroupVersionKind, settingFactory{})
 	return &settingClient{
 		ns:           namespace,
 		client:       c,
@@ -586,7 +603,7 @@ type NotifiersGetter interface {
 }
 
 func (c *Client) Notifiers(namespace string) NotifierInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &NotifierResource, NotifierGroupVersionKind, notifierFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &NotifierResource, NotifierGroupVersionKind, notifierFactory{})
 	return &notifierClient{
 		ns:           namespace,
 		client:       c,
@@ -599,7 +616,7 @@ type ClusterAlertsGetter interface {
 }
 
 func (c *Client) ClusterAlerts(namespace string) ClusterAlertInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterAlertResource, ClusterAlertGroupVersionKind, clusterAlertFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterAlertResource, ClusterAlertGroupVersionKind, clusterAlertFactory{})
 	return &clusterAlertClient{
 		ns:           namespace,
 		client:       c,
@@ -612,7 +629,7 @@ type ProjectAlertsGetter interface {
 }
 
 func (c *Client) ProjectAlerts(namespace string) ProjectAlertInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectAlertResource, ProjectAlertGroupVersionKind, projectAlertFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ProjectAlertResource, ProjectAlertGroupVersionKind, projectAlertFactory{})
 	return &projectAlertClient{
 		ns:           namespace,
 		client:       c,
@@ -625,7 +642,7 @@ type ClusterPipelinesGetter interface {
 }
 
 func (c *Client) ClusterPipelines(namespace string) ClusterPipelineInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterPipelineResource, ClusterPipelineGroupVersionKind, clusterPipelineFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterPipelineResource, ClusterPipelineGroupVersionKind, clusterPipelineFactory{})
 	return &clusterPipelineClient{
 		ns:           namespace,
 		client:       c,
@@ -638,7 +655,7 @@ type SourceCodeCredentialsGetter interface {
 }
 
 func (c *Client) SourceCodeCredentials(namespace string) SourceCodeCredentialInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &SourceCodeCredentialResource, SourceCodeCredentialGroupVersionKind, sourceCodeCredentialFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &SourceCodeCredentialResource, SourceCodeCredentialGroupVersionKind, sourceCodeCredentialFactory{})
 	return &sourceCodeCredentialClient{
 		ns:           namespace,
 		client:       c,
@@ -651,7 +668,7 @@ type PipelinesGetter interface {
 }
 
 func (c *Client) Pipelines(namespace string) PipelineInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PipelineResource, PipelineGroupVersionKind, pipelineFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PipelineResource, PipelineGroupVersionKind, pipelineFactory{})
 	return &pipelineClient{
 		ns:           namespace,
 		client:       c,
@@ -664,7 +681,7 @@ type PipelineExecutionsGetter interface {
 }
 
 func (c *Client) PipelineExecutions(namespace string) PipelineExecutionInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PipelineExecutionResource, PipelineExecutionGroupVersionKind, pipelineExecutionFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PipelineExecutionResource, PipelineExecutionGroupVersionKind, pipelineExecutionFactory{})
 	return &pipelineExecutionClient{
 		ns:           namespace,
 		client:       c,
@@ -677,7 +694,7 @@ type PipelineExecutionLogsGetter interface {
 }
 
 func (c *Client) PipelineExecutionLogs(namespace string) PipelineExecutionLogInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &PipelineExecutionLogResource, PipelineExecutionLogGroupVersionKind, pipelineExecutionLogFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &PipelineExecutionLogResource, PipelineExecutionLogGroupVersionKind, pipelineExecutionLogFactory{})
 	return &pipelineExecutionLogClient{
 		ns:           namespace,
 		client:       c,
@@ -690,7 +707,7 @@ type SourceCodeRepositoriesGetter interface {
 }
 
 func (c *Client) SourceCodeRepositories(namespace string) SourceCodeRepositoryInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &SourceCodeRepositoryResource, SourceCodeRepositoryGroupVersionKind, sourceCodeRepositoryFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &SourceCodeRepositoryResource, SourceCodeRepositoryGroupVersionKind, sourceCodeRepositoryFactory{})
 	return &sourceCodeRepositoryClient{
 		ns:           namespace,
 		client:       c,
@@ -703,7 +720,7 @@ type GlobalComposeConfigsGetter interface {
 }
 
 func (c *Client) GlobalComposeConfigs(namespace string) GlobalComposeConfigInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &GlobalComposeConfigResource, GlobalComposeConfigGroupVersionKind, globalComposeConfigFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &GlobalComposeConfigResource, GlobalComposeConfigGroupVersionKind, globalComposeConfigFactory{})
 	return &globalComposeConfigClient{
 		ns:           namespace,
 		client:       c,
@@ -716,7 +733,7 @@ type ClusterComposeConfigsGetter interface {
 }
 
 func (c *Client) ClusterComposeConfigs(namespace string) ClusterComposeConfigInterface {
-	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ClusterComposeConfigResource, ClusterComposeConfigGroupVersionKind, clusterComposeConfigFactory{})
+	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterComposeConfigResource, ClusterComposeConfigGroupVersionKind, clusterComposeConfigFactory{})
 	return &clusterComposeConfigClient{
 		ns:           namespace,
 		client:       c,

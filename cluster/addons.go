@@ -30,6 +30,7 @@ type ingressOptions struct {
 	RBACConfig     string
 	Options        map[string]string
 	NodeSelector   map[string]string
+	ExtraArgs      map[string]string
 	AlpineImage    string
 	IngressImage   string
 	IngressBackend string
@@ -151,6 +152,7 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 		addons.DNSMasqImage:           c.SystemImages.DNSmasq,
 		addons.KubeDNSSidecarImage:    c.SystemImages.KubeDNSSidecar,
 		addons.KubeDNSAutoScalerImage: c.SystemImages.KubeDNSAutoscaler,
+		addons.RBAC:                   c.Authorization.Mode,
 	}
 	kubeDNSYaml, err := addons.GetKubeDNSManifest(kubeDNSConfig)
 	if err != nil {
@@ -249,6 +251,7 @@ func (c *Cluster) deployIngress(ctx context.Context) error {
 		RBACConfig:     c.Authorization.Mode,
 		Options:        c.Ingress.Options,
 		NodeSelector:   c.Ingress.NodeSelector,
+		ExtraArgs:      c.Ingress.ExtraArgs,
 		AlpineImage:    c.SystemImages.Alpine,
 		IngressImage:   c.SystemImages.Ingress,
 		IngressBackend: c.SystemImages.IngressBackend,
