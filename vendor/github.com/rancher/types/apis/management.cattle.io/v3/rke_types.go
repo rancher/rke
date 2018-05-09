@@ -37,6 +37,23 @@ type RancherKubernetesEngineConfig struct {
 	PrefixPath string `yaml:"prefix_path" json:"prefixPath,omitempty"`
 	// Number of status check retries for addon deployment jobs
 	AddonJobRetries int `yaml:"addon_job_retries" json:"addonJobRetries,omitempty" norman:"default=5"`
+	// Bastion/Jump Host configuration
+	BastionHost BastionHost `yaml:"bastion_host" json:"bastionHost,omitempty"`
+}
+
+type BastionHost struct {
+	// Address of Bastion Host
+	Address string `yaml:"address" json:"address,omitempty"`
+	// SSH Port of Bastion Host
+	Port string `yaml:"port" json:"port,omitempty"`
+	// ssh User to Bastion Host
+	User string `yaml:"user" json:"user,omitempty"`
+	// SSH Agent Auth enable
+	SSHAgentAuth bool `yaml:"ssh_agent_auth,omitempty" json:"sshAgentAuth,omitempty"`
+	// SSH Private Key
+	SSHKey string `yaml:"ssh_key" json:"sshKey,omitempty"`
+	// SSH Private Key Path
+	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
 }
 
 type PrivateRegistry struct {
@@ -154,6 +171,12 @@ type ETCDService struct {
 	Key string `yaml:"key" json:"key,omitempty"`
 	// External etcd prefix
 	Path string `yaml:"path" json:"path,omitempty"`
+	// Etcd Backup Service
+	Backup bool `yaml:"backup" json:"backup,omitempty"`
+	// Etcd Backup Retention period
+	Retention string `yaml:"retention" json:"retention,omitempty"`
+	// Etcd Backup Creation period
+	Creation string `yaml:"creation" json:"creation,omitempty"`
 }
 
 type KubeAPIService struct {

@@ -266,23 +266,27 @@ func StopRenameContainer(ctx context.Context, dClient *client.Client, hostname s
 	if err := StopContainer(ctx, dClient, hostname, oldContainerName); err != nil {
 		return err
 	}
-	if err := WaitForContainer(ctx, dClient, hostname, oldContainerName); err != nil {
+	if _, err := WaitForContainer(ctx, dClient, hostname, oldContainerName); err != nil {
 		return nil
 	}
 	return RenameContainer(ctx, dClient, hostname, oldContainerName, newContainerName)
 
 }
 
-func WaitForContainer(ctx context.Context, dClient *client.Client, hostname string, containerName string) error {
+func WaitForContainer(ctx context.Context, dClient *client.Client, hostname string, containerName string) (int64, error) {
+	// We capture the status exit code of the container
 	statusCh, errCh := dClient.ContainerWait(ctx, containerName, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("Error waiting for container [%s] on host [%s]: %v", containerName, hostname, err)
+			// if error is present return 1 exit code
+			return 1, fmt.Errorf("Error waiting for container [%s] on host [%s]: %v", containerName, hostname, err)
 		}
-	case <-statusCh:
+	case status := <-statusCh:
+		// return the status exit code of the container
+		return status.StatusCode, nil
 	}
-	return nil
+	return 0, nil
 }
 
 func IsContainerUpgradable(ctx context.Context, dClient *client.Client, imageCfg *container.Config, containerName string, hostname string, plane string) (bool, error) {

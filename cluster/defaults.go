@@ -27,7 +27,9 @@ const (
 	DefaultNetworkPlugin        = "canal"
 	DefaultNetworkCloudProvider = "none"
 
-	DefaultIngressController = "nginx"
+	DefaultIngressController         = "nginx"
+	DefaultEtcdBackupCreationPeriod  = "5m0s"
+	DefaultEtcdBackupRetentionPeriod = "24h"
 )
 
 func setDefaultIfEmptyMapValue(configMap map[string]string, key string, value string) {
@@ -105,6 +107,8 @@ func (c *Cluster) setClusterServicesDefaults() {
 		&c.Services.Kubelet.Image:                        c.SystemImages.Kubernetes,
 		&c.Services.Kubeproxy.Image:                      c.SystemImages.Kubernetes,
 		&c.Services.Etcd.Image:                           c.SystemImages.Etcd,
+		&c.Services.Etcd.Creation:                        DefaultEtcdBackupCreationPeriod,
+		&c.Services.Etcd.Retention:                       DefaultEtcdBackupRetentionPeriod,
 	}
 	for k, v := range serviceConfigDefaultsMap {
 		setDefaultIfEmpty(k, v)
