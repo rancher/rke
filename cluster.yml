@@ -64,7 +64,6 @@ services:
     infra_container_image: gcr.io/google_containers/pause-amd64:3.0
     # Optionally define additional volume binds to a service
     extra_binds:
-      - "/host/dev:/dev"
       - "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins"
   kubeproxy:
 
