@@ -593,7 +593,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	}
 
 	Binds := []string{
-		fmt.Sprintf("%s:/var/lib/rancher/etcd:z", path.Join(prefixPath, "/var/lib/etcd")),
+		fmt.Sprintf("%s:/var/lib/rancher/:z", path.Join(prefixPath, "/var/lib/")),
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
 	}
 
