@@ -77,7 +77,12 @@ func (c *Cluster) DeployControlPlane(ctx context.Context) error {
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		log.Infof(ctx, "[etcd] External etcd connection string has been specified, skipping etcd plane")
 	} else {
-		if err := services.RunEtcdPlane(ctx, c.EtcdHosts, etcdNodePlanMap, c.LocalConnDialerFactory, c.PrivateRegistriesMap, c.UpdateWorkersOnly, c.SystemImages.Alpine); err != nil {
+		etcdBackup := services.EtcdBackup{
+			Backup:    c.Services.Etcd.Backup,
+			Creation:  c.Services.Etcd.Creation,
+			Retention: c.Services.Etcd.Retention,
+		}
+		if err := services.RunEtcdPlane(ctx, c.EtcdHosts, etcdNodePlanMap, c.LocalConnDialerFactory, c.PrivateRegistriesMap, c.UpdateWorkersOnly, c.SystemImages.Alpine, etcdBackup); err != nil {
 			return fmt.Errorf("[etcd] Failed to bring up Etcd Plane: %v", err)
 		}
 	}
