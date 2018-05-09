@@ -35,8 +35,8 @@ type RancherKubernetesEngineConfig struct {
 	CloudProvider CloudProvider `yaml:"cloud_provider" json:"cloudProvider,omitempty"`
 	// kubernetes directory path
 	PrefixPath string `yaml:"prefix_path" json:"prefixPath,omitempty"`
-	// Number of status check retries for addon deployment jobs
-	AddonJobRetries int `yaml:"addon_job_retries" json:"addonJobRetries,omitempty" norman:"default=5"`
+	// Timeout in seconds for status check on addon deployment jobs
+	AddonJobTimeout int `yaml:"addon_job_timeout" json:"addonJobTimeout,omitempty" norman:"default=30"`
 	// Bastion/Jump Host configuration
 	BastionHost BastionHost `yaml:"bastion_host" json:"bastionHost,omitempty"`
 }
