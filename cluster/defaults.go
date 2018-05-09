@@ -53,6 +53,17 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	if len(c.PrefixPath) == 0 {
 		c.PrefixPath = "/"
 	}
+	// Set bastion/jump host defaults
+	if len(c.BastionHost.Address) > 0 {
+		if len(c.BastionHost.Port) == 0 {
+			c.BastionHost.Port = DefaultSSHPort
+		}
+		if len(c.BastionHost.SSHKeyPath) == 0 {
+			c.BastionHost.SSHKeyPath = c.SSHKeyPath
+		}
+		c.BastionHost.SSHAgentAuth = c.SSHAgentAuth
+
+	}
 	for i, host := range c.Nodes {
 		if len(host.InternalAddress) == 0 {
 			c.Nodes[i].InternalAddress = c.Nodes[i].Address

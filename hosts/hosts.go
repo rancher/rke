@@ -36,6 +36,7 @@ type Host struct {
 	DockerInfo          types.Info
 	UpdateWorker        bool
 	PrefixPath          string
+	BastionHost         v3.BastionHost
 }
 
 const (
