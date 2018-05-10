@@ -20,6 +20,8 @@ import (
 const (
 	comments = `# If you intened to deploy Kubernetes in an air-gapped environment,
 # please consult the documentation on how to configure custom RKE images.`
+	defaultFlexVolumeBindPath = "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins:z"
+	yesAnswer = "Yes yes y Y"
 )
 
 func ConfigCommand() cli.Command {
@@ -305,26 +307,24 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 	servicesConfig.Kubelet.InfraContainerImage = infraPodImage
 
 	// Add the flexvolume mount to kublet ExtraBinds
-	flexVolMount, err := getConfig(reader, "Enable the FlexVolume driver mount", "no")
+	enableFlexVolMount, err := getConfig(reader, "Enable the FlexVolume driver mount", "no")
 	if err != nil {
 		return nil, err
 	}
 
-	if strings.ContainsAny(flexVolMount, "Yes y Y yes") {
-		gkeBind := "/home/kubernetes/flexvolume:/home/kubernetes/flexvolume"
-		rkeBind := "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins"
-
-		getCE, err := getConfig(reader, "Deploying to GKE or RKE environment", "rke")
+	if strings.ContainsAny(enableFlexVolMount, yesAnswer) {
+		// Allow the user to set custom flex volume mount points
+		FlexVolumeBind, err := getConfig(reader, "Flex volume bind mount path for the kubelet service", defaultFlexVolumeBindPath)
 
 		if err != nil {
 			return nil, err
 		}
 
-		if strings.ToLower(getCE) == "gke" {
-			servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, gkeBind)
-		} else {
-			servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, rkeBind)
-		}
+		// Set the --volume-plugin-dir extra_args for kubelet service
+		volPluginDir := strings.Split(FlexVolumeBind, ":")
+		servicesConfig.Kubelet.ExtraArgs["--volume-plugin-dir"] = volPluginDir[1]
+
+		servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, FlexVolumeBind)
 
 	}
 
@@ -334,7 +334,7 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 		return nil, err
 	}
 
-	if strings.ContainsAny(additionalBinds, "Yes y Y yes") {
+	if strings.ContainsAny(additionalBinds, yesAnswer) {
 		bindMounts, err := getConfig(reader, "Additional bind mounts (separated by \",\")", "")
 
 		if err != nil {
