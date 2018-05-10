@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 
+	"errors"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/rke/providers"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gopkg.in/yaml.v2"
+	"strconv"
 )
 
 const (
@@ -40,6 +42,10 @@ func ConfigCommand() cli.Command {
 			cli.BoolFlag{
 				Name:  "print,p",
 				Usage: "Print configuration",
+			},
+			cli.StringFlag{
+				Name:  "node-provider,P",
+				Usage: "Get node configurations from a node provider. ie. docker-machine",
 			},
 		},
 	}
@@ -88,36 +94,63 @@ func clusterConfig(ctx *cli.Context) error {
 	// Get cluster config from user
 	reader := bufio.NewReader(os.Stdin)
 
+	var nodeProvider providers.NodeProvider
 	// Generate empty configuration file
 	if ctx.Bool("empty") {
 		cluster.Nodes = make([]v3.RKEConfigNode, 1)
 		return writeConfig(&cluster, configFile, print)
 	}
 
+	if ctx.String("node-provider") != "" {
+		var ok bool
+		nodeProvider, ok = providers.GetNodeProvider(ctx.String("node-provider"))
+
+		if !ok {
+			return fmt.Errorf("provider does not exist, please provide a supported provider. %s", providers.ListProviders())
+		}
+	}
 	sshKeyPath, err := getConfig(reader, "Cluster Level SSH Private Key Path", "~/.ssh/id_rsa")
 	if err != nil {
 		return err
 	}
 	cluster.SSHKeyPath = sshKeyPath
 
-	// Get number of hosts
-	numberOfHostsString, err := getConfig(reader, "Number of Hosts", "1")
-	if err != nil {
-		return err
-	}
-	numberOfHostsInt, err := strconv.Atoi(numberOfHostsString)
-	if err != nil {
-		return err
-	}
-
-	// Get Hosts config
 	cluster.Nodes = make([]v3.RKEConfigNode, 0)
-	for i := 0; i < numberOfHostsInt; i++ {
-		hostCfg, err := getHostConfig(reader, i, cluster.SSHKeyPath)
+	if nodeProvider != nil {
+
+		machines, err := nodeProvider.ListNodes(reader)
+
+		if machines[0] == "" {
+			return errors.New("No nodes were passed to be used. Please pass at least one node")
+		}
+
+		nodes, err := nodeProvider.GetNodesConfig(machines)
+
 		if err != nil {
 			return err
 		}
-		cluster.Nodes = append(cluster.Nodes, *hostCfg)
+
+		cluster.Nodes = append(cluster.Nodes, nodes...)
+	} else {
+
+		// Get number of hosts
+		numberOfHostsString, err := getConfig(reader, "Number of Hosts", "1")
+		if err != nil {
+			return err
+		}
+		numberOfHostsInt, err := strconv.Atoi(numberOfHostsString)
+		if err != nil {
+			return err
+		}
+
+		// Get Hosts config
+		for i := 0; i < numberOfHostsInt; i++ {
+			hostCfg, err := getHostConfig(reader, i, cluster.SSHKeyPath)
+			if err != nil {
+				return err
+			}
+			cluster.Nodes = append(cluster.Nodes, *hostCfg)
+		}
 	}
 
 	// Get Network config
