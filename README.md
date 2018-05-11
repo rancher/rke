@@ -184,10 +184,10 @@ RKE uses kubernetes Jobs to deploy addons. In some cases, addons deployment take
 addon_job_timeout: 30
 ```
 
-#### Critical and uncritical addons
-As of version `0.1.7-rc1`, addons are split into two categories: critical and uncritical.
+#### Critical and noncritical addons
+As of version `0.1.7-rc1`, addons are split into two categories: critical and noncritical.
 
-Critical addons will cause RKE to error out if they fail to deploy for any reason. While uncritical addons will just log a warning and continue with the deployment. Currently only the network plugin is considered critical.
+Critical addons will cause RKE to error out if they fail to deploy for any reason. While noncritical addons will just log a warning and continue with the deployment. Currently only the network plugin is considered critical.
 ## High Availability
 
 RKE is HA ready, you can specify more than one controlplane host in the `cluster.yml` file, and rke will deploy master components on all of them, the kubelets are configured to connect to `127.0.0.1:6443` by default which is the address of `nginx-proxy` service that proxy requests to all master nodes.
