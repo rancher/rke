@@ -459,17 +459,17 @@ Backups are saved to the following directory: `/opt/rke/etcdbackup/`. Backups ar
 
 RKE also added two commands that for etcd backup management:
 ```
-./rke etcd backup [NAME]
+./rke etcd backup --name NAME
 ```
 and
 ```
-./rke etcd restore [NAME]
+./rke etcd restore --name NAME
 ```
 
-The backup command saves a snapshot of etcd in `/opt/rke/etcdbackup`. This command also creates a container for the backup. When the backup completes, the container is removed.
+The backup command saves a snapshot of etcd from each etcd nodes in the cluster config file and will save it in `/opt/rke/etcdbackup`. This command also creates a container for the backup. When the backup completes, the container is removed.
 
 ```
-# ./rke etcd backup --name snapshot
+# ./rke etcd backup --name snapshot --config cluster.yml
 
 INFO[0000] Starting Backup on etcd hosts
 INFO[0000] [dialer] Setup tunnel for host [x.x.x.x]
@@ -490,7 +490,7 @@ INFO[0011] Finished backup on all etcd hosts
 >**Warning:** Restoring an etcd backup deletes your current etcd cluster and replaces it with a new one. Before you run the `etcd restore` command, backup any important data in your current cluster.
 
 ```
-./rke etcd restore --name snapshot --config test-aws.yml
+./rke etcd restore --name snapshot --config cluster.yml
 INFO[0000] Starting restore on etcd hosts
 INFO[0000] [dialer] Setup tunnel for host [x.x.x.x]
 INFO[0002] [dialer] Setup tunnel for host [y.y.y.y]
