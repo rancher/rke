@@ -655,6 +655,8 @@ func BuildPortChecksFromPortList(host *hosts.Host, portList []string, proto stri
 func (c *Cluster) getPrefixPath(osType string) string {
 	var prefixPath string
 	switch {
+	case c.PrefixPath != "/":
+		prefixPath = c.PrefixPath
 	case strings.Contains(osType, B2DOS):
 		prefixPath = B2DPrefixPath
 	case strings.Contains(osType, ROS):
