@@ -37,6 +37,10 @@ func UpCommand() cli.Command {
 			Name:  "disable-port-check",
 			Usage: "Disable port check validation between nodes",
 		},
+		cli.StringFlag{
+			Name:  "rancher-tag",
+			Usage: "update image tag for cattle-system deployement(if rancher 2.x is deployed)",
+		},
 	}
 
 	upFlags = append(upFlags, sshCliOptions...)
@@ -72,6 +76,7 @@ func ClusterUp(
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
+
 	if !disablePortCheck {
 		if err = kubeCluster.CheckClusterPorts(ctx, currentCluster); err != nil {
 			return APIURL, caCrt, clientCert, clientKey, nil, err
@@ -163,6 +168,10 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	if ctx.Bool("local") {
 		return clusterUpLocal(ctx)
 	}
+	rancherVersion := ctx.String("rancher-tag")
+	if len(rancherVersion) > 0 {
+		return updateRancherVersion(ctx, rancherVersion)
+	}
 	clusterFile, filePath, err := resolveClusterFile(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to resolve cluster file: %v", err)
@@ -201,4 +210,9 @@ func clusterUpLocal(ctx *cli.Context) error {
 	}
 	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, hosts.LocalHealthcheckFactory, nil, true, "", false, false)
 	return err
+}
+
+func updateRancherVersion(ctx *cli.Context, rancherVersion string) error {
+	localKubeConfig := pki.GetLocalKubeConfig(ctx.String("config"), "")
+	return cluster.UpdateRancherVersion(context.Background(), localKubeConfig, rancherVersion)
 }
