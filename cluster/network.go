@@ -41,26 +41,15 @@ const (
 	ProtocolUDP = "UDP"
 
 	FlannelNetworkPlugin = "flannel"
-	FlannelImage         = "flannel_image"
-	FlannelCNIImage      = "flannel_cni_image"
 	FlannelIface         = "flannel_iface"
 
-	CalicoNetworkPlugin    = "calico"
-	CalicoNodeImage        = "calico_node_image"
-	CalicoCNIImage         = "calico_cni_image"
-	CalicoControllersImage = "calico_controllers_image"
-	CalicoctlImage         = "calicoctl_image"
-	CalicoCloudProvider    = "calico_cloud_provider"
+	CalicoNetworkPlugin = "calico"
+	CalicoCloudProvider = "calico_cloud_provider"
 
 	CanalNetworkPlugin = "canal"
-	CanalNodeImage     = "canal_node_image"
-	CanalCNIImage      = "canal_cni_image"
-	CanalFlannelImage  = "canal_flannel_image"
 	CanalIface         = "canal_iface"
 
 	WeaveNetworkPlugin = "weave"
-	WeaveImage         = "weave_node_image"
-	WeaveCNIImage      = "weave_cni_image"
 
 	// List of map keys to be used with network templates
 
@@ -140,7 +129,7 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName)
+	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName, true)
 }
 
 func (c *Cluster) doCalicoDeploy(ctx context.Context) error {
@@ -158,7 +147,7 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName)
+	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName, true)
 }
 
 func (c *Cluster) doCanalDeploy(ctx context.Context) error {
@@ -180,7 +169,7 @@ func (c *Cluster) doCanalDeploy(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName)
+	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName, true)
 }
 
 func (c *Cluster) doWeaveDeploy(ctx context.Context) error {
@@ -194,7 +183,7 @@ func (c *Cluster) doWeaveDeploy(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName)
+	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName, true)
 }
 
 func (c *Cluster) getNetworkPluginManifest(pluginConfig map[string]string) (string, error) {
@@ -231,10 +220,13 @@ func (c *Cluster) CheckClusterPorts(ctx context.Context, currentCluster *Cluster
 	if err := c.runServicePortChecks(ctx); err != nil {
 		return err
 	}
-	if c.K8sWrapTransport == nil {
+	// Skip kubeapi check if we are using custom k8s dialer or bastion/jump host
+	if c.K8sWrapTransport == nil && len(c.BastionHost.Address) == 0 {
 		if err := c.checkKubeAPIPort(ctx); err != nil {
 			return err
 		}
+	} else {
+		log.Infof(ctx, "[network] Skipping kubeapi port check")
 	}
 
 	return c.removeTCPPortListeners(ctx)
