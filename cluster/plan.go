@@ -20,11 +20,14 @@ import (
 )
 
 const (
-	EtcdPathPrefix = "/registry"
-	B2DOS          = "Boot2Docker"
-	B2DPrefixPath  = "/mnt/sda1/rke"
-	ROS            = "RancherOS"
-	ROSPrefixPath  = "/opt/rke"
+	EtcdPathPrefix     = "/registry"
+	B2DOS              = "Boot2Docker"
+	B2DPrefixPath      = "/mnt/sda1/rke"
+	ROS                = "RancherOS"
+	ROSPrefixPath      = "/opt/rke"
+	CoreOS             = "CoreOS"
+	CoreOSPrefixPath   = "/opt/rke"
+	ContainerNameLabel = "io.rancher.rke.container.name"
 )
 
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, hostsInfoMap map[string]types.Info) (v3.RKEPlan, error) {
@@ -190,6 +193,9 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		Image:                   c.Services.KubeAPI.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeAPIContainerName,
+		},
 	}
 }
 
@@ -268,6 +274,9 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 		Image:                   c.Services.KubeController.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeControllerContainerName,
+		},
 	}
 }
 
@@ -371,6 +380,9 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		Privileged:              true,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeletContainerName,
+		},
 	}
 }
 
@@ -430,6 +442,9 @@ func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
 		HealthCheck:   healthCheck,
 		Image:         c.Services.Kubeproxy.Image,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.KubeproxyContainerName,
+		},
 	}
 }
 
@@ -455,6 +470,9 @@ func (c *Cluster) BuildProxyProcess() v3.Process {
 		HealthCheck:   v3.HealthCheck{},
 		Image:         c.SystemImages.NginxProxy,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.NginxProxyContainerName,
+		},
 	}
 }
 
@@ -513,6 +531,9 @@ func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
 		Image:                   c.Services.Scheduler.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.SchedulerContainerName,
+		},
 	}
 }
 
@@ -524,6 +545,9 @@ func (c *Cluster) BuildSidecarProcess() v3.Process {
 		Image:                   c.SystemImages.KubernetesServicesSidecar,
 		HealthCheck:             v3.HealthCheck{},
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.SidekickContainerName,
+		},
 	}
 }
 
@@ -554,7 +578,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 
 	CommandArgs := map[string]string{
 		"name":                        "etcd-" + host.HostnameOverride,
-		"data-dir":                    "/var/lib/rancher/etcd",
+		"data-dir":                    services.EtcdDataDir,
 		"advertise-client-urls":       "https://" + host.InternalAddress + ":2379,https://" + host.InternalAddress + ":4001",
 		"listen-client-urls":          "https://" + listenAddress + ":2379",
 		"initial-advertise-peer-urls": "https://" + host.InternalAddress + ":2380",
@@ -571,7 +595,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	}
 
 	Binds := []string{
-		fmt.Sprintf("%s:/var/lib/rancher/etcd:z", path.Join(prefixPath, "/var/lib/etcd")),
+		fmt.Sprintf("%s:%s:z", path.Join(prefixPath, "/var/lib/etcd"), services.EtcdDataDir),
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
 	}
 
@@ -609,6 +633,9 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 		Image:                   c.Services.Etcd.Image,
 		HealthCheck:             healthCheck,
 		ImageRegistryAuthConfig: registryAuthConfig,
+		Labels: map[string]string{
+			ContainerNameLabel: services.EtcdContainerName,
+		},
 	}
 }
 
@@ -627,11 +654,16 @@ func BuildPortChecksFromPortList(host *hosts.Host, portList []string, proto stri
 
 func (c *Cluster) getPrefixPath(osType string) string {
 	var prefixPath string
-	if strings.Contains(osType, B2DOS) {
+	switch {
+	case c.PrefixPath != "/":
+		prefixPath = c.PrefixPath
+	case strings.Contains(osType, B2DOS):
 		prefixPath = B2DPrefixPath
-	} else if strings.Contains(osType, ROS) {
+	case strings.Contains(osType, ROS):
 		prefixPath = ROSPrefixPath
-	} else {
+	case strings.Contains(osType, CoreOS):
+		prefixPath = CoreOSPrefixPath
+	default:
 		prefixPath = c.PrefixPath
 	}
 	return prefixPath
