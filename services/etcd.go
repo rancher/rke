@@ -229,6 +229,7 @@ func RunEtcdBackup(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]
 			"--cert", pki.GetCertPath(pki.KubeNodeCertName),
 			"--key", pki.GetKeyPath(pki.KubeNodeCertName),
 			"--name", name,
+			"--endpoints=" + etcdHost.InternalAddress + ":2379",
 		},
 		Image: etcdBackupImage,
 	}
@@ -268,6 +269,7 @@ func RestoreEtcdBackup(ctx context.Context, etcdHost *hosts.Host, prsMap map[str
 		Cmd: []string{
 			"sh", "-c", strings.Join([]string{
 				"/usr/local/bin/etcdctl",
+				fmt.Sprintf("--endpoints=[%s:2379]", etcdHost.InternalAddress),
 				"--cacert", pki.GetCertPath(pki.CACertName),
 				"--cert", pki.GetCertPath(nodeName),
 				"--key", pki.GetKeyPath(nodeName),
