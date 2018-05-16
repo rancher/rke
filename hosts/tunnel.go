@@ -9,8 +9,6 @@ import (
 
 	"net"
 
-	"net"
-
 	"github.com/docker/docker/client"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/log"
