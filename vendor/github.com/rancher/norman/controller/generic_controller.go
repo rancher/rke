@@ -3,15 +3,21 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/juju/ratelimit"
-	"github.com/rancher/norman/clientbase"
+	errors2 "github.com/pkg/errors"
+	"github.com/rancher/norman/objectclient"
 	"github.com/rancher/norman/types"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 )
@@ -31,6 +37,12 @@ type GenericController interface {
 	Start(ctx context.Context, threadiness int) error
 }
 
+type Backend interface {
+	List(opts metav1.ListOptions) (runtime.Object, error)
+	Watch(opts metav1.ListOptions) (watch.Interface, error)
+	ObjectFactory() objectclient.ObjectFactory
+}
+
 type handlerDef struct {
 	name    string
 	handler HandlerFunc
@@ -46,13 +58,13 @@ type genericController struct {
 	synced   bool
 }
 
-func NewGenericController(name string, objectClient *clientbase.ObjectClient) GenericController {
+func NewGenericController(name string, genericClient Backend) GenericController {
 	informer := cache.NewSharedIndexInformer(
 		&cache.ListWatch{
-			ListFunc:  objectClient.List,
-			WatchFunc: objectClient.Watch,
+			ListFunc:  genericClient.List,
+			WatchFunc: genericClient.Watch,
 		},
-		objectClient.Factory.Object(), resyncPeriod, cache.Indexers{})
+		genericClient.ObjectFactory().Object(), resyncPeriod, cache.Indexers{})
 
 	rl := workqueue.NewMaxOfRateLimiter(
 		workqueue.NewItemExponentialFailureRateLimiter(500*time.Millisecond, 1000*time.Second),
@@ -188,10 +200,45 @@ func (g *genericController) processNextWorkItem() bool {
 		return true
 	}
 
-	utilruntime.HandleError(fmt.Errorf("%v %v %v", g.name, key, err))
+	if err := filterConflictsError(err); err != nil {
+		utilruntime.HandleError(fmt.Errorf("%v %v %v", g.name, key, err))
+	}
+
 	g.queue.AddRateLimited(key)
 
 	return true
+}
+
+func ignoreError(err error, checkString bool) bool {
+	err = errors2.Cause(err)
+	if errors.IsConflict(err) {
+		return true
+	}
+	if _, ok := err.(*ForgetError); ok {
+		return true
+	}
+	if checkString {
+		return strings.HasSuffix(err.Error(), "please apply your changes to the latest version and try again")
+	}
+	return false
+}
+
+func filterConflictsError(err error) error {
+	if ignoreError(err, false) {
+		return nil
+	}
+
+	if errs, ok := errors2.Cause(err).(*types.MultiErrors); ok {
+		var newErrors []error
+		for _, err := range errs.Errors {
+			if !ignoreError(err, true) {
+				newErrors = append(newErrors)
+			}
+		}
+		return types.NewErrors(newErrors...)
+	}
+
+	return err
 }
 
 func (g *genericController) syncHandler(s string) (err error) {
@@ -199,6 +246,7 @@ func (g *genericController) syncHandler(s string) (err error) {
 
 	var errs []error
 	for _, handler := range g.handlers {
+		logrus.Debugf("%s calling handler %s %s", g.name, handler.name, s)
 		if err := handler.handler(s); err != nil {
 			errs = append(errs, &handlerError{
 				name: handler.name,
@@ -206,7 +254,7 @@ func (g *genericController) syncHandler(s string) (err error) {
 			})
 		}
 	}
-	err = types.NewErrors(errs)
+	err = types.NewErrors(errs...)
 	return
 }
 
@@ -217,4 +265,8 @@ type handlerError struct {
 
 func (h *handlerError) Error() string {
 	return fmt.Sprintf("[%s] failed with : %v", h.name, h.err)
+}
+
+func (h *handlerError) Cause() error {
+	return h.err
 }

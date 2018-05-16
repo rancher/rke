@@ -3,7 +3,6 @@ package cluster
 import (
 	"context"
 
-	ref "github.com/docker/distribution/reference"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
@@ -17,7 +16,7 @@ const (
 	DefaultClusterName           = "local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
 
-	DefaultK8sVersion = v3.K8sV18
+	DefaultK8sVersion = v3.DefaultK8s
 
 	DefaultSSHPort        = "22"
 	DefaultDockerSockPath = "/var/run/docker.sock"
@@ -25,7 +24,7 @@ const (
 	DefaultAuthStrategy      = "x509"
 	DefaultAuthorizationMode = "rbac"
 
-	DefaultNetworkPlugin        = "flannel"
+	DefaultNetworkPlugin        = "canal"
 	DefaultNetworkCloudProvider = "none"
 
 	DefaultIngressController = "nginx"
@@ -47,7 +46,10 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	if len(c.SSHKeyPath) == 0 {
 		c.SSHKeyPath = DefaultClusterSSHKeyPath
 	}
-
+	// Default Path prefix
+	if len(c.PrefixPath) == 0 {
+		c.PrefixPath = "/"
+	}
 	for i, host := range c.Nodes {
 		if len(host.InternalAddress) == 0 {
 			c.Nodes[i].InternalAddress = c.Nodes[i].Address
@@ -80,26 +82,12 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	if len(c.ClusterName) == 0 {
 		c.ClusterName = DefaultClusterName
 	}
-
+	if len(c.Version) == 0 {
+		c.Version = DefaultK8sVersion
+	}
 	c.setClusterImageDefaults()
-	c.setClusterKubernetesImageVersion(ctx)
 	c.setClusterServicesDefaults()
 	c.setClusterNetworkDefaults()
-}
-
-func (c *Cluster) setClusterKubernetesImageVersion(ctx context.Context) {
-	k8sImageNamed, _ := ref.ParseNormalizedNamed(c.SystemImages.Kubernetes)
-	// Kubernetes image is already set by c.setClusterImageDefaults(),
-	// I will override it here if Version is set.
-	var VersionedImageNamed ref.NamedTagged
-	if c.Version != "" {
-		VersionedImageNamed, _ = ref.WithTag(ref.TrimNamed(k8sImageNamed), c.Version)
-		c.SystemImages.Kubernetes = VersionedImageNamed.String()
-	}
-	normalizedSystemImage, _ := ref.ParseNormalizedNamed(c.SystemImages.Kubernetes)
-	if normalizedSystemImage.String() != k8sImageNamed.String() {
-		log.Infof(ctx, "Overrding Kubernetes image [%s] with tag [%s]", VersionedImageNamed.Name(), VersionedImageNamed.Tag())
-	}
 }
 
 func (c *Cluster) setClusterServicesDefaults() {
@@ -180,6 +168,9 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	}
 	if c.Network.FlannelNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[FlannelIface] = c.Network.FlannelNetworkProvider.Iface
+	}
+	if c.Network.CanalNetworkProvider != nil {
+		networkPluginConfigDefaultsMap[CanalIface] = c.Network.CanalNetworkProvider.Iface
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)

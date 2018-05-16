@@ -17,8 +17,8 @@ import (
 
 const (
 	HostnameLabel             = "kubernetes.io/hostname"
-	InternalAddressAnnotation = "rke.io/internal-ip"
-	ExternalAddressAnnotation = "rke.io/external-ip"
+	InternalAddressAnnotation = "rke.cattle.io/internal-ip"
+	ExternalAddressAnnotation = "rke.cattle.io/external-ip"
 	AWSCloudProvider          = "aws"
 )
 
@@ -44,7 +44,7 @@ func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error)
 		return nil, err
 	}
 	for _, node := range nodes.Items {
-		if node.Labels[HostnameLabel] == nodeName {
+		if strings.ToLower(node.Labels[HostnameLabel]) == strings.ToLower(nodeName) {
 			return &node, nil
 		}
 	}

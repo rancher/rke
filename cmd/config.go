@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/rke/providers"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gopkg.in/yaml.v2"
+	"strconv"
 )
 
 const (
@@ -42,6 +44,10 @@ func ConfigCommand() cli.Command {
 			cli.BoolFlag{
 				Name:  "print,p",
 				Usage: "Print configuration",
+			},
+			cli.StringFlag{
+				Name:  "node-provider,P",
+				Usage: "Get node configurations from a node provider. ie. docker-machine",
 			},
 		},
 	}
@@ -87,6 +93,7 @@ func clusterConfig(ctx *cli.Context) error {
 	print := ctx.Bool("print")
 	cluster := v3.RancherKubernetesEngineConfig{}
 
+	var nodeProvider providers.NodeProvider
 	// Get cluster config from user
 	reader := bufio.NewReader(os.Stdin)
 
@@ -96,30 +103,57 @@ func clusterConfig(ctx *cli.Context) error {
 		return writeConfig(&cluster, configFile, print)
 	}
 
+	if ctx.String("node-provider") != "" {
+		var ok bool
+		nodeProvider, ok = providers.GetNodeProvider(ctx.String("node-provider"))
+
+		if !ok {
+			return fmt.Errorf("provider does not exist, please provide a supported provider. %s", providers.ListProviders())
+		}
+	}
+
 	sshKeyPath, err := getConfig(reader, "Cluster Level SSH Private Key Path", "~/.ssh/id_rsa")
 	if err != nil {
 		return err
 	}
 	cluster.SSHKeyPath = sshKeyPath
 
-	// Get number of hosts
-	numberOfHostsString, err := getConfig(reader, "Number of Hosts", "1")
-	if err != nil {
-		return err
-	}
-	numberOfHostsInt, err := strconv.Atoi(numberOfHostsString)
-	if err != nil {
-		return err
-	}
-
-	// Get Hosts config
 	cluster.Nodes = make([]v3.RKEConfigNode, 0)
-	for i := 0; i < numberOfHostsInt; i++ {
-		hostCfg, err := getHostConfig(reader, i, cluster.SSHKeyPath)
+	if nodeProvider != nil {
+
+		machines, err := nodeProvider.ListNodes(reader)
+
+		if machines[0] == "" {
+			return errors.New("No nodes were passed to be used. Please pass at least one node")
+		}
+
+		nodes, err := nodeProvider.GetNodesConfig(machines)
+
 		if err != nil {
 			return err
 		}
-		cluster.Nodes = append(cluster.Nodes, *hostCfg)
+
+		cluster.Nodes = append(cluster.Nodes, nodes...)
+	} else {
+
+		// Get number of hosts
+		numberOfHostsString, err := getConfig(reader, "Number of Hosts", "1")
+		if err != nil {
+			return err
+		}
+		numberOfHostsInt, err := strconv.Atoi(numberOfHostsString)
+		if err != nil {
+			return err
+		}
+
+		// Get Hosts config
+		for i := 0; i < numberOfHostsInt; i++ {
+			hostCfg, err := getHostConfig(reader, i, cluster.SSHKeyPath)
+			if err != nil {
+				return err
+			}
+			cluster.Nodes = append(cluster.Nodes, *hostCfg)
+		}
 	}
 
 	// Get Network config
@@ -149,6 +183,16 @@ func clusterConfig(ctx *cli.Context) error {
 		return err
 	}
 	cluster.Services = *serviceConfig
+
+	//Get addon manifests
+	addonsInclude, err := getAddonManifests(reader)
+	if err != nil {
+		return err
+	}
+
+	if len(addonsInclude) > 0 {
+		cluster.AddonsInclude = append(cluster.AddonsInclude, addonsInclude...)
+	}
 
 	return writeConfig(&cluster, configFile, print)
 }
@@ -347,6 +391,7 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 		servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, strings.Split(bindMounts, ",")...)
 	}
 
+
 	return &servicesConfig, nil
 }
 
@@ -380,4 +425,40 @@ func getNetworkConfig(reader *bufio.Reader) (*v3.NetworkConfig, error) {
 	}
 	networkConfig.Plugin = networkPlugin
 	return &networkConfig, nil
+}
+
+func getAddonManifests(reader *bufio.Reader) ([]string, error) {
+	var addonSlice []string
+	var resume = true
+
+	includeAddons, err := getConfig(reader, "Add addon manifest urls or yaml files", "no")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ContainsAny(includeAddons, "Yes YES Y yes y") {
+		for resume {
+			addonPath, err := getConfig(reader, "Enter the Path or URL for the manifest", "")
+			if err != nil {
+				return nil, err
+			}
+
+			addonSlice = append(addonSlice, addonPath)
+
+			cont, err := getConfig(reader, "Add another addon", "no")
+			if err != nil {
+				return nil, err
+			}
+
+			if strings.ContainsAny(cont, "Yes y Y yes YES") {
+				resume = true
+			} else {
+				resume = false
+			}
+
+		}
+	}
+
+	return addonSlice, nil
 }

@@ -8,7 +8,7 @@ Please check the [releases](https://github.com/rancher/rke/releases/) page.
 
 ## Requirements
 
-- Docker versions 1.12.6, 1.13.1, or 17.03 should be installed for Kubernetes 1.8.
+- Docker versions `1.11.2` up to `1.13.1` and `17.03.x` are validated for Kubernetes versions 1.8, 1.9 and 1.10
 - OpenSSH 7.0+ must be installed on each node for stream local forwarding to work.
 - The SSH user used for node access must be a member of the `docker` group:
 
@@ -21,7 +21,7 @@ usermod -aG docker <user_name>
 
 ## Getting Started
 
-Starting out with RKE? Check out this [blog post](http://rancher.com/an-introduction-to-rke/).
+Starting out with RKE? Check out this [blog post](http://rancher.com/an-introduction-to-rke/) or the [Quick Start Guide](https://github.com/rancher/rke/wiki/Quick-Start-Guide)
 
 ## Using RKE
 
@@ -38,8 +38,8 @@ You can view full sample of cluster.yml [here](https://github.com/rancher/rke/bl
 ### Minimal `cluster.yml` example
 
 ```yaml
-# default k8s version: v1.8.9-rancher1-1
-# default network plugin: flannel
+# default k8s version: v1.8.10-rancher1-1
+# default network plugin: canal
 nodes:
   - address: 1.2.3.4
     user: ubuntu
@@ -91,6 +91,32 @@ There are extra options that can be specified for each network plugin:
 
 - **weave_node_image**: Weave Node Docker image
 - **weave_cni_image**: Weave CNI binary installer Docker image
+
+### RKE System Images
+
+Prior to version `0.1.6`, RKE used the following list of images for deployment and cluster configuration:
+```
+system_images:
+  etcd: rancher/etcd:v3.0.17
+  kubernetes: rancher/k8s:v1.8.9-rancher1-1
+  alpine: alpine:latest
+  nginx_proxy: rancher/rke-nginx-proxy:v0.1.1
+  cert_downloader: rancher/rke-cert-deployer:v0.1.1
+  kubernetes_services_sidecar: rancher/rke-service-sidekick:v0.1.0
+  kubedns: rancher/k8s-dns-kube-dns-amd64:1.14.5
+  dnsmasq: rancher/k8s-dns-dnsmasq-nanny-amd64:1.14.5
+  kubedns_sidecar: rancher/k8s-dns-sidecar-amd64:1.14.5
+  kubedns_autoscaler: rancher/cluster-proportional-autoscaler-amd64:1.0.0
+  flannel: rancher/coreos-flannel:v0.9.1
+  flannel_cni: rancher/coreos-flannel-cni:v0.2.0
+```
+As of version `0.1.6`, we consolidated several of those images into a single image to simplify and speed the deployment process.
+
+The following images are no longer required, and can be replaced by `rancher/rke-tools:v0.1.4`:
+- alpine:latest
+- rancher/rke-nginx-proxy:v0.1.1
+- rancher/rke-cert-deployer:v0.1.1
+- rancher/rke-service-sidekick:v0.1.0
 
 ## Addons
 
@@ -164,13 +190,13 @@ Note that this command is irreversible and will destroy the kubernetes cluster e
 RKE supports kubernetes cluster upgrade through changing the image version of services, in order to do that change the image option for each services, for example:
 
 ```yaml
-image: rancher/k8s:v1.8.2-rancher1
+image: rancher/hyperkube:v1.9.7
 ```
 
 TO
 
 ```yaml
-image: rancher/k8s:v1.8.3-rancher2
+image: rancher/hyperkube:v1.10.1
 ```
 
 And then run:
@@ -199,15 +225,43 @@ rke config --name mycluster.yml
 
 RKE will ask some questions around the cluster file like number of the hosts, ips, ssh users, etc, `--empty` option will generate an empty cluster.yml file, also if you just want to print on the screen and not save it in a file you can use `--print`.
 
+RKE also enables users to import node configurations from different providers by adding the `--node-provider or -P` flag.
+Node Providers are implemented through the NodeProvider interface in the providers package.
+
+Available node providers:
+- docker-machine
+
+##### Docker-Machine Provider
+RKE will prompt for the docker-machine store-path (/home/$USER/.docker/machine/machines) in case a custom path was used when creating the machines. The next step is to provide a comma separated list of the machines to use for the nodes.
+It is important to note that the  user used during creation with docker-machine, which gets written to cluster.yml, MUST be in the docker group on the machine, or rke will fail to connect.
+
+This option also assumes that labels were passed to the engine and reads them to configure the node:
+
+  - worker=[true|false]
+  - controlplane=[true|false]
+  - etcd=[true|false]
+
+If no labels are passed, it assumes the node will have all roles, this of course could be changed once the config is generated.
+
+You can use this feature with `rke config -P docker-machine` or `rke config --node-provider docker-machine`
+```bash
+# rke config -P
+[+] Cluster Level SSH Private Key Path [~/.ssh/id_rsa]: 
+[+] Docker Machine storage path [/home/dhendel/.docker/machine/machines]: 
+[+] Which nodes would you like to use [rk8s01,rk8s02,rk8s03,rk8s04]: rk8s01,rk8s02,rk8s03
+```
+
 ## Ingress Controller
 
-RKE will deploy Nginx controller by default, user can disable this by specifying `none` to ingress `provider` option in the cluster configuration, user also can specify list of options for nginx config map listed in this [doc](https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/configmap.md), for example:
+RKE will deploy Nginx controller by default, user can disable this by specifying `none` to ingress `provider` option in the cluster configuration, user also can specify list of options for nginx config map listed in this [doc](https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/configmap.md), and command line extra_args listed in this [doc](https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/cli-arguments.md), for example:
 ```
 ingress:
   provider: nginx
   options:
     map-hash-bucket-size: "128"
     ssl-protocols: SSLv2
+  extra_args:
+    enable-ssl-passthrough: ""
 ```
 By default, RKE will deploy ingress controller on all schedulable nodes (controlplane and workers), to specify only certain nodes for ingress controller to be deployed, user has to specify `node_selector` for the ingress and the right label on the node, for example:
 ```
@@ -344,11 +398,40 @@ nodes:
 ```
 
 ## Deploying Rancher 2.0 using rke
-Using RKE's pluggable user addons, it's possible to deploy Rancher 2.0 server with a single command after updating the node settings in the [rancher-minimal.yml](https://github.com/rancher/rke/blob/master/rancher-minimal.yml) cluster configuration:
+Using RKE's pluggable user addons, it's possible to deploy Rancher 2.0 server in HA with a single command.
 
-```bash
-rke up --config rancher-minimal.yml
+Depending how you want to manage your ssl certificates, there are 2 deployment options:
+
+- Use own ssl certificates:
+  - Use [rancher-minimal-ssl.yml](https://github.com/rancher/rke/blob/master/rancher-minimal-ssl.yml)
+  - Update `nodes` configuration.
+  - Update <FQDN> at `cattle-ingress-http` ingress definition. FQDN should be a dns a entry pointing to all nodes IP's running ingress-controller (controlplane and workers by default).
+  - Update certificate, key and ca crt at `cattle-keys-server` secret, <BASE64_CRT>, <BASE64_KEY> and <BASE64_CA>. Content must be in base64 format, `cat <FILE> | base64`
+  - Update ssl certificate and key at `cattle-keys-ingress` secret, <BASE64_CRT> and <BASE64_KEY>. Content must be in base64 format, `cat <FILE> | base64`. If selfsigned, certificate and key must be signed by same CA.  
+  - Run RKE.
+
+  ```bash
+  rke up --config rancher-minimal-ssl.yml
+  ```
+
+- Use SSL-passthrough:
+  - Use [rancher-minimal-passthrough.yml](https://github.com/rancher/rke/blob/master/rancher-minimal-passthrough.yml)
+  - Update `nodes` configuration.
+  - Update FQDN at `cattle-ingress-http` ingress definition. FQDN should be a dns a entry, pointing to all nodes IP's running ingress-controller (controlplane and workers by default).
+  - Run RKE.
+
+  ```bash
+  rke up --config rancher-minimal-passthrough.yml
+  ```
+
+Once RKE execution finish, rancher is deployed at `cattle-system` namespace. You could access to your rancher instance by `https://<FQDN>`
+
+By default, rancher deployment has just 1 replica, scale it to desired replicas.
+
 ```
+kubectl -n cattle-system scale deployment cattle --replicas=3
+```
+
 ## Operating Systems Notes
 
 ### Atomic OS
@@ -370,7 +453,7 @@ rke up --config rancher-minimal.yml
 
 ## License
 
-Copyright (c) 2017 [Rancher Labs, Inc.](http://rancher.com)
+Copyright (c) 2018 [Rancher Labs, Inc.](http://rancher.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -46,11 +46,12 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 	}
 	imageCfg := &container.Config{
 		Image: certDownloaderImage,
+		Cmd:   []string{"cert-deployer"},
 		Env:   containerEnv,
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/etc/kubernetes:/etc/kubernetes",
+			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 		Privileged: true,
 	}
@@ -134,12 +135,19 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 	for certName, config := range crtList {
 		certificate := CertificatePKI{}
 		crt, err := fetchFileFromHost(ctx, GetCertTempPath(certName), image, host, prsMap)
-		if err != nil {
+		// I will only exit with an error if it's not a not-found-error and this is not an etcd certificate
+		if err != nil && !strings.HasPrefix(certName, "kube-etcd") {
 			if strings.Contains(err.Error(), "no such file or directory") ||
 				strings.Contains(err.Error(), "Could not find the file") {
 				return nil, nil
 			}
 			return nil, err
+
+		}
+		// If I can't find an etcd cert, I will not fail and will create it later.
+		if crt == "" && strings.HasPrefix(certName, "kube-etcd") {
+			tmpCerts[certName] = CertificatePKI{}
+			continue
 		}
 		key, err := fetchFileFromHost(ctx, GetKeyTempPath(certName), image, host, prsMap)
 
@@ -178,7 +186,7 @@ func fetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/etc/kubernetes:/etc/kubernetes",
+			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 		Privileged: true,
 	}

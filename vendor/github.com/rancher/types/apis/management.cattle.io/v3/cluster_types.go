@@ -28,10 +28,14 @@ const (
 	ClusterConditionconditionDefautlProjectCreated condition.Cond = "DefaultProjectCreated"
 	// ClusterConditionDefaultNamespaceAssigned true when cluster's default namespace has been initially assigned
 	ClusterConditionDefaultNamespaceAssigned condition.Cond = "DefaultNamespaceAssigned"
+	// ClusterConditionSystemNamespacesAssigned true when cluster's system namespaces has been initially assigned to
+	// a system project
+	ClusterConditionSystemNamespacesAssigned condition.Cond = "SystemNamespacesAssigned"
 	ClusterConditionAddonDeploy              condition.Cond = "AddonDeploy"
 	ClusterConditionSystemAccountCreated     condition.Cond = "SystemAccountCreated"
 	ClusterConditionAgentDeployed            condition.Cond = "AgentDeployed"
 	ClusterConditionGlobalAdminsSynced       condition.Cond = "GlobalAdminsSynced"
+	ClusterConditionInitialRolesPopulated    condition.Cond = "InitialRolesPopulated"
 
 	ClusterDriverImported = "imported"
 	ClusterDriverLocal    = "local"
@@ -52,16 +56,17 @@ type Cluster struct {
 }
 
 type ClusterSpec struct {
-	DisplayName                          string                         `json:"displayName"`
-	Description                          string                         `json:"description"`
-	Internal                             bool                           `json:"internal" norman:"nocreate,noupdate"`
-	DesiredAgentImage                    string                         `json:"desiredAgentImage"`
-	ImportedConfig                       *ImportedConfig                `json:"importedConfig,omitempty" norman:"nocreate,noupdate"`
-	GoogleKubernetesEngineConfig         *GoogleKubernetesEngineConfig  `json:"googleKubernetesEngineConfig,omitempty"`
-	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig  `json:"azureKubernetesServiceConfig,omitempty"`
-	RancherKubernetesEngineConfig        *RancherKubernetesEngineConfig `json:"rancherKubernetesEngineConfig,omitempty"`
-	DefaultPodSecurityPolicyTemplateName string                         `json:"defaultPodSecurityPolicyTemplateName,omitempty" norman:"type=reference[podSecurityPolicyTemplate]"`
-	DefaultClusterRoleForProjectMembers  string                         `json:"defaultClusterRoleForProjectMembers,omitempty" norman:"type=reference[roleTemplate]"`
+	DisplayName                          string                               `json:"displayName"`
+	Description                          string                               `json:"description"`
+	Internal                             bool                                 `json:"internal" norman:"nocreate,noupdate"`
+	DesiredAgentImage                    string                               `json:"desiredAgentImage"`
+	ImportedConfig                       *ImportedConfig                      `json:"importedConfig,omitempty" norman:"nocreate,noupdate"`
+	GoogleKubernetesEngineConfig         *GoogleKubernetesEngineConfig        `json:"googleKubernetesEngineConfig,omitempty"`
+	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig        `json:"azureKubernetesServiceConfig,omitempty"`
+	RancherKubernetesEngineConfig        *RancherKubernetesEngineConfig       `json:"rancherKubernetesEngineConfig,omitempty"`
+	AmazonElasticContainerServiceConfig  *AmazonElasticContainerServiceConfig `json:"amazonElasticContainerServiceConfig,omitempty"`
+	DefaultPodSecurityPolicyTemplateName string                               `json:"defaultPodSecurityPolicyTemplateName,omitempty" norman:"type=reference[podSecurityPolicyTemplate]"`
+	DefaultClusterRoleForProjectMembers  string                               `json:"defaultClusterRoleForProjectMembers,omitempty" norman:"type=reference[roleTemplate]"`
 }
 
 type ImportedConfig struct {
@@ -86,7 +91,6 @@ type ClusterStatus struct {
 	FailedSpec                           *ClusterSpec             `json:"failedSpec,omitempty"`
 	Requested                            v1.ResourceList          `json:"requested,omitempty"`
 	Limits                               v1.ResourceList          `json:"limits,omitempty"`
-	ClusterName                          string                   `json:"clusterName,omitempty"`
 	Version                              *version.Info            `json:"version,omitempty"`
 	AppliedPodSecurityPolicyTemplateName string                   `json:"appliedPodSecurityPolicyTemplateId"`
 }
@@ -138,13 +142,13 @@ type GoogleKubernetesEngineConfig struct {
 	// Enable alpha feature
 	EnableAlphaFeature bool `json:"enableAlphaFeature,omitempty"`
 	// Configuration for the HTTP (L7) load balancing controller addon
-	HTTPLoadBalancing bool `json:"httpLoadBalancing,omitempty"`
+	DisableHTTPLoadBalancing bool `json:"disableHttpLoadBalancing,omitempty"`
 	// Configuration for the horizontal pod autoscaling feature, which increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods
-	HorizontalPodAutoscaling bool `json:"horizontalPodAutoscaling,omitempty"`
+	DisableHorizontalPodAutoscaling bool `json:"disableHorizontalPodAutoscaling,omitempty"`
 	// Configuration for the Kubernetes Dashboard
-	KubernetesDashboard bool `json:"kubernetesDashboard,omitempty"`
+	EnableKubernetesDashboard bool `json:"enableKubernetesDashboard,omitempty"`
 	// Configuration for NetworkPolicy
-	NetworkPolicyConfig bool `json:"networkPolicyConfig,omitempty"`
+	DisableNetworkPolicyConfig bool `json:"disableNetworkPolicyConfig,omitempty"`
 	// The list of Google Compute Engine locations in which the cluster's nodes should be located
 	Locations []string `json:"locations,omitempty"`
 	// Image Type
@@ -154,7 +158,7 @@ type GoogleKubernetesEngineConfig struct {
 	// Sub Network
 	SubNetwork string `json:"subNetwork,omitempty"`
 	// Configuration for LegacyAbac
-	LegacyAbac bool `json:"legacyAbac,omitempty"`
+	EnableLegacyAbac bool `json:"enableLegacyAbac,omitempty"`
 }
 
 type AzureKubernetesServiceConfig struct {
@@ -194,6 +198,11 @@ type AzureKubernetesServiceConfig struct {
 	ClientSecret string `json:"clientSecret,omitempty" norman:"required,type=password"`
 }
 
+type AmazonElasticContainerServiceConfig struct {
+	AccessKey string `json:"accessKey" norman:"required"`
+	SecretKey string `json:"secretKey" norman:"required,type=password"`
+}
+
 type ClusterEvent struct {
 	types.Namespaced
 	v1.Event
@@ -229,4 +238,15 @@ type ClusterRegistrationTokenStatus struct {
 
 type GenerateKubeConfigOutput struct {
 	Config string `json:"config"`
+}
+
+type ImportClusterYamlInput struct {
+	YAML             string `json:"yaml,omitempty"`
+	DefaultNamespace string `json:"defaultNamespace,omitempty"`
+	Namespace        string `json:"namespace,omitempty"`
+	ProjectName      string `json:"projectName,omitempty" norman:"type=reference[project]"`
+}
+
+type ImportYamlOutput struct {
+	Message string `json:"message,omitempty"`
 }

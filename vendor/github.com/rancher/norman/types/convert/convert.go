@@ -163,7 +163,7 @@ func ToMapSlice(obj interface{}) []map[string]interface{} {
 		return v
 	}
 	vs, _ := obj.([]interface{})
-	result := []map[string]interface{}{}
+	var result []map[string]interface{}
 	for _, item := range vs {
 		if v, ok := item.(map[string]interface{}); ok {
 			result = append(result, v)
@@ -198,6 +198,10 @@ func ToObj(data interface{}, into interface{}) error {
 }
 
 func EncodeToMap(obj interface{}) (map[string]interface{}, error) {
+	if m, ok := obj.(map[string]interface{}); ok {
+		return m, nil
+	}
+
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err

@@ -1,9 +1,10 @@
 package lifecycle
 
 import (
+	"fmt"
 	"reflect"
 
-	"github.com/rancher/norman/clientbase"
+	"github.com/rancher/norman/objectclient"
 	"github.com/rancher/norman/types/slice"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,10 +27,10 @@ type objectLifecycleAdapter struct {
 	name          string
 	clusterScoped bool
 	lifecycle     ObjectLifecycle
-	objectClient  *clientbase.ObjectClient
+	objectClient  *objectclient.ObjectClient
 }
 
-func NewObjectLifecycleAdapter(name string, clusterScoped bool, lifecycle ObjectLifecycle, objectClient *clientbase.ObjectClient) func(key string, obj runtime.Object) error {
+func NewObjectLifecycleAdapter(name string, clusterScoped bool, lifecycle ObjectLifecycle, objectClient *objectclient.ObjectClient) func(key string, obj runtime.Object) error {
 	o := objectLifecycleAdapter{
 		name:          name,
 		clusterScoped: clusterScoped,
@@ -59,7 +60,9 @@ func (o *objectLifecycleAdapter) sync(key string, obj runtime.Object) error {
 
 	copyObj := obj.DeepCopyObject()
 	newObj, err := o.lifecycle.Updated(copyObj)
-	o.update(metadata.GetName(), obj, newObj)
+	if newObj != nil {
+		o.update(metadata.GetName(), obj, newObj)
+	}
 	return err
 }
 
@@ -82,21 +85,18 @@ func (o *objectLifecycleAdapter) finalize(metadata metav1.Object, obj runtime.Ob
 
 	copyObj := obj.DeepCopyObject()
 	if newObj, err := o.lifecycle.Finalize(copyObj); err != nil {
-		o.update(metadata.GetName(), obj, newObj)
+		if newObj != nil {
+			o.update(metadata.GetName(), obj, newObj)
+		}
 		return false, err
 	} else if newObj != nil {
 		copyObj = newObj
 	}
 
-	if err := removeFinalizer(o.constructFinalizerKey(), copyObj); err != nil {
-		return false, err
-	}
-
-	_, err := o.objectClient.Update(metadata.GetName(), copyObj)
-	return false, err
+	return false, o.removeFinalizer(o.constructFinalizerKey(), copyObj)
 }
 
-func removeFinalizer(name string, obj runtime.Object) error {
+func (o *objectLifecycleAdapter) removeFinalizer(name string, obj runtime.Object) error {
 	metadata, err := meta.Accessor(obj)
 	if err != nil {
 		return err
@@ -111,7 +111,26 @@ func removeFinalizer(name string, obj runtime.Object) error {
 	}
 	metadata.SetFinalizers(finalizers)
 
-	return nil
+	for i := 0; i < 3; i++ {
+		_, err := o.objectClient.Update(metadata.GetName(), obj)
+		if err == nil {
+			return nil
+		}
+
+		obj, err = o.objectClient.GetNamespaced(metadata.GetNamespace(), metadata.GetName(), metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		metadata, err := meta.Accessor(obj)
+		if err != nil {
+			return err
+		}
+
+		metadata.SetFinalizers(finalizers)
+	}
+
+	return fmt.Errorf("failed to remove finalizer on %s:%s", metadata.GetNamespace(), metadata.GetName())
 }
 
 func (o *objectLifecycleAdapter) createKey() string {
