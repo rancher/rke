@@ -21,7 +21,7 @@ const (
 	comments = `# If you intened to deploy Kubernetes in an air-gapped environment,
 # please consult the documentation on how to configure custom RKE images.`
 	defaultFlexVolumeBindPath = "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins:z"
-	yesAnswer = "Yes yes y Y"
+	yesAnswer                 = "Yes yes y Y"
 )
 
 func ConfigCommand() cli.Command {
@@ -322,7 +322,10 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 
 		// Set the --volume-plugin-dir extra_args for kubelet service
 		volPluginDir := strings.Split(FlexVolumeBind, ":")
-		servicesConfig.Kubelet.ExtraArgs["--volume-plugin-dir"] = volPluginDir[1]
+
+		extraArgs := map[string]string{"volume-plugin-dir": volPluginDir[1]}
+
+		servicesConfig.Kubelet.ExtraArgs = extraArgs
 
 		servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, FlexVolumeBind)
 
