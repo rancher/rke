@@ -20,6 +20,8 @@ import (
 const (
 	comments = `# If you intened to deploy Kubernetes in an air-gapped environment,
 # please consult the documentation on how to configure custom RKE images.`
+	yesAnswer                 = "Yes yes y Y"
+	defaultFlexVolumeBindPath = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/`:/usr/libexec/kubernetes/kubelet-plugins/volume/exec/:z"
 )
 
 func ConfigCommand() cli.Command {
@@ -313,6 +315,48 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 		return nil, err
 	}
 	servicesConfig.Kubelet.InfraContainerImage = infraPodImage
+
+	// Add the flexvolume mount to kublet ExtraBinds
+	enableFlexVolMount, err := getConfig(reader, "Enable the FlexVolume driver mount", "no")
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ContainsAny(enableFlexVolMount, yesAnswer) {
+		// Allow the user to set custom flex volume mount points
+		FlexVolumeBind, err := getConfig(reader, "Flex volume bind mount path for the kubelet service", defaultFlexVolumeBindPath)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Set the --volume-plugin-dir extra_args for kubelet service
+		volPluginDir := strings.Split(FlexVolumeBind, ":")
+
+		extraArgs := map[string]string{"volume-plugin-dir": volPluginDir[1]}
+
+		servicesConfig.Kubelet.ExtraArgs = extraArgs
+
+		servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, FlexVolumeBind)
+
+	}
+
+	// Add additional ExtraBinds
+	additionalBinds, err := getConfig(reader, "Add additional bind mounts for kubelet service", "no")
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ContainsAny(additionalBinds, yesAnswer) {
+		bindMounts, err := getConfig(reader, "Additional bind mounts (separated by \",\")", "")
+
+		if err != nil {
+			return nil, err
+		}
+
+		servicesConfig.Kubelet.ExtraBinds = append(servicesConfig.Kubelet.ExtraBinds, strings.Split(bindMounts, ",")...)
+	}
+
 	return &servicesConfig, nil
 }
 
@@ -358,7 +402,7 @@ func getAddonManifests(reader *bufio.Reader) ([]string, error) {
 		return nil, err
 	}
 
-	if strings.ContainsAny(includeAddons, "Yes YES Y yes y") {
+	if strings.ContainsAny(includeAddons, yesAnswer) {
 		for resume {
 			addonPath, err := getConfig(reader, "Enter the Path or URL for the manifest", "")
 			if err != nil {
@@ -372,7 +416,7 @@ func getAddonManifests(reader *bufio.Reader) ([]string, error) {
 				return nil, err
 			}
 
-			if strings.ContainsAny(cont, "Yes y Y yes YES") {
+			if strings.ContainsAny(cont, yesAnswer) {
 				resume = true
 			} else {
 				resume = false

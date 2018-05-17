@@ -309,6 +309,14 @@ services:
       - "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins:z"
 ```
 
+## FlexVolume Binds
+When prompted to `Enable the FlexVolume driver mount [n]: ` if the user answers yes, then rke will also prompt for the flexvolume bind mount path. 
+By default, Kubernetes uses `/usr/libexec/kubernetes/kubelet-plugins/volume/exec/` and rke sets this as the default in the prompt.
+
+Please consult your vendors documentation for the correct path. For example, GKE uses `/home/kubernetes/flexvolume`.
+
+To find the correct directory run `ps aux|grep kubelet` on the host and check the value of `--volume-plugin-dir` parameter. 
+If no value is set, the default `/usr/libexec/kubernetes/kubelet-plugins/volume/exec/` will be used.
 ## Authentication
 
 RKE Supports x509 authentication strategy. You can additionally define a list of SANs (Subject Alternative Names) to add to the Kubernetes API Server PKI certificates. This allows you to connect to your Kubernetes cluster API Server through a load balancer, for example, rather than a single node.
