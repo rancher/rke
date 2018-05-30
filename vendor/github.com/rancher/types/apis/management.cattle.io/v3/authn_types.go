@@ -24,6 +24,7 @@ type Token struct {
 	Description     string            `json:"description"`
 	Expired         bool              `json:"expired"`
 	ExpiresAt       string            `json:"expiresAt"`
+	Current         bool              `json:"current"`
 }
 
 type User struct {
@@ -298,5 +299,9 @@ type PingConfig struct {
 }
 
 type ADFSConfig struct {
+	SamlConfig `json:",inline" mapstructure:",squash"`
+}
+
+type KeyCloakConfig struct {
 	SamlConfig `json:",inline" mapstructure:",squash"`
 }
