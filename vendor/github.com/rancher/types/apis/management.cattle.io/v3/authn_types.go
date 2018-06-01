@@ -100,10 +100,10 @@ type GithubConfig struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	AuthConfig        `json:",inline" mapstructure:",squash"`
 
-	Hostname     string `json:"hostname,omitempty" norman:"default=github.com" norman:"noupdate"`
-	TLS          bool   `json:"tls,omitempty" norman:"notnullable,default=true" norman:"noupdate"`
-	ClientID     string `json:"clientId,omitempty" norman:"noupdate"`
-	ClientSecret string `json:"clientSecret,omitempty" norman:"noupdate,type=password"`
+	Hostname     string `json:"hostname,omitempty" norman:"default=github.com" norman:"required"`
+	TLS          bool   `json:"tls,omitempty" norman:"notnullable,default=true" norman:"required"`
+	ClientID     string `json:"clientId,omitempty" norman:"required"`
+	ClientSecret string `json:"clientSecret,omitempty" norman:"required,type=password"`
 }
 
 type GithubConfigTestOutput struct {
@@ -141,7 +141,7 @@ type ActiveDirectoryConfig struct {
 	GroupNameAttribute          string   `json:"groupNameAttribute,omitempty"          norman:"default=name,required"`
 	GroupDNAttribute            string   `json:"groupDNAttribute,omitempty"            norman:"default=distinguishedName,required"`
 	GroupMemberUserAttribute    string   `json:"groupMemberUserAttribute,omitempty"    norman:"default=distinguishedName,required"`
-	GroupMemberMappingAttribute string   `json:"groupMemberMappingAttribute,omitempty"`
+	GroupMemberMappingAttribute string   `json:"groupMemberMappingAttribute,omitempty" norman:"default=member,required"`
 	ConnectionTimeout           int64    `json:"connectionTimeout,omitempty"           norman:"default=5000"`
 }
 
@@ -150,22 +150,4 @@ type ActiveDirectoryTestAndApplyInput struct {
 	Username              string                `json:"username"`
 	Password              string                `json:"password"`
 	Enabled               bool                  `json:"enabled,omitempty"`
-}
-
-type AzureADConfig struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	AuthConfig        `json:",inline" mapstructure:",squash"`
-
-	TenantID     string `json:"tenantId,omitempty"                          norman:"required"`
-	ClientID     string `json:"clientId,omitempty"                          norman:"required"`
-	Domain       string `json:"domain,omitempty"                            norman:"required"`
-	ClientSecret string `json:"clientSecret,omitempty"`
-}
-
-type AzureADTestAndApplyInput struct {
-	AzureADConfig AzureADConfig `json:"azureAdConfig, omitempty"`
-	Username      string        `json:"username"`
-	Password      string        `json:"password"`
-	Enabled       bool          `json:"enabled,omitempty"`
 }
