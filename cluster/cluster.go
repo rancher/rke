@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 
 	"github.com/rancher/rke/authz"
@@ -389,29 +388,6 @@ func (c *Cluster) parseCloudConfig(ctx context.Context) (string, error) {
 	if len(c.CloudProvider.CloudConfig) == 0 {
 		return "", nil
 	}
-	// handle generic cloud config
-	tmpMap := make(map[string]interface{})
-	for key, value := range c.CloudProvider.CloudConfig {
-		tmpBool, err := strconv.ParseBool(value)
-		if err == nil {
-			tmpMap[key] = tmpBool
-			continue
-		}
-		tmpInt, err := strconv.ParseInt(value, 10, 64)
-		if err == nil {
-			tmpMap[key] = tmpInt
-			continue
-		}
-		tmpFloat, err := strconv.ParseFloat(value, 64)
-		if err == nil {
-			tmpMap[key] = tmpFloat
-			continue
-		}
-		tmpMap[key] = value
-	}
-	jsonString, err := json.MarshalIndent(tmpMap, "", "\n")
-	if err != nil {
-		return "", err
-	}
-	return string(jsonString), nil
+
+	return GenerateCloudConfig(&c.CloudProvider)
 }
