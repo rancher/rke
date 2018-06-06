@@ -184,6 +184,8 @@ type KubeAPIService struct {
 	BaseService `yaml:",inline" json:",inline"`
 	// Virtual IP range that will be used by Kubernetes services
 	ServiceClusterIPRange string `yaml:"service_cluster_ip_range" json:"serviceClusterIpRange,omitempty"`
+	// Port range for services defined with NodePort type
+	ServiceNodePortRange string `yaml:"service_node_port_range" json:"serviceNodePortRange,omitempty"`
 	// Enabled/Disable PodSecurityPolicy
 	PodSecurityPolicy bool `yaml:"pod_security_policy" json:"podSecurityPolicy,omitempty"`
 }
