@@ -190,6 +190,7 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		Args:                    args,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   Binds,
+		Env:                     c.Services.KubeAPI.ExtraEnv,
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
 		Image:                   c.Services.KubeAPI.Image,
@@ -271,6 +272,7 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 		Args:                    args,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   Binds,
+		Env:                     c.Services.KubeController.ExtraEnv,
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
 		Image:                   c.Services.KubeController.Image,
@@ -375,6 +377,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		Command:                 Command,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   Binds,
+		Env:                     c.Services.Kubelet.ExtraEnv,
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
 		Image:                   c.Services.Kubelet.Image,
@@ -437,6 +440,7 @@ func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
 		Command:       Command,
 		VolumesFrom:   VolumesFrom,
 		Binds:         Binds,
+		Env:           c.Services.Kubeproxy.ExtraEnv,
 		NetworkMode:   "host",
 		RestartPolicy: "always",
 		PidMode:       "host",
@@ -527,6 +531,7 @@ func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
 		Name:                    services.SchedulerContainerName,
 		Command:                 Command,
 		Binds:                   Binds,
+		Env:                     c.Services.Scheduler.ExtraEnv,
 		VolumesFrom:             VolumesFrom,
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
@@ -624,6 +629,8 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	Env = append(Env, fmt.Sprintf("ETCDCTL_CACERT=%s", pki.GetCertPath(pki.CACertName)))
 	Env = append(Env, fmt.Sprintf("ETCDCTL_CERT=%s", pki.GetCertPath(nodeName)))
 	Env = append(Env, fmt.Sprintf("ETCDCTL_KEY=%s", pki.GetKeyPath(nodeName)))
+
+	Env = append(Env, c.Services.Etcd.ExtraEnv...)
 
 	return v3.Process{
 		Name:                    services.EtcdContainerName,
