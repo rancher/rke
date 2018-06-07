@@ -102,6 +102,10 @@ var WorkerPortList = []string{
 	KubeletPort,
 }
 
+var EtcdClientPortList = []string{
+	EtcdPort1,
+}
+
 func (c *Cluster) deployNetworkPlugin(ctx context.Context) error {
 	log.Infof(ctx, "[network] Setting up network plugin: %s", c.Network.Plugin)
 	switch c.Network.Plugin {
@@ -365,12 +369,12 @@ func (c *Cluster) runServicePortChecks(ctx context.Context) error {
 			return err
 		}
 	}
-	// check all -> etcd connectivity
+	// check control -> etcd connectivity
 	log.Infof(ctx, "[network] Running control plane -> etcd port checks")
 	for _, host := range c.ControlPlaneHosts {
 		runHost := host
 		errgrp.Go(func() error {
-			return checkPlaneTCPPortsFromHost(ctx, runHost, EtcdPortList, c.EtcdHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap)
+			return checkPlaneTCPPortsFromHost(ctx, runHost, EtcdClientPortList, c.EtcdHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap)
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
