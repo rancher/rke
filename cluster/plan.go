@@ -121,7 +121,7 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"kubelet-preferred-address-types": "InternalIP,ExternalIP,Hostname",
 		"service-cluster-ip-range":        c.Services.KubeAPI.ServiceClusterIPRange,
 		"service-node-port-range":         c.Services.KubeAPI.ServiceNodePortRange,
-		"admission-control":               "ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
+		"admission-control":               "PersistentVolumeClaimResize,ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
 		"storage-backend":                 "etcd3",
 		"client-ca-file":                  pki.GetCertPath(pki.CACertName),
 		"tls-cert-file":                   pki.GetCertPath(pki.KubeAPICertName),
