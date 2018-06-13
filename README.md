@@ -309,9 +309,11 @@ services:
       - "/usr/libexec/kubernetes/kubelet-plugins:/usr/libexec/kubernetes/kubelet-plugins:z"
 ```
 
-## FlexVolume Binds
-When prompted to `Enable the FlexVolume driver mount [n]: ` if the user answers yes, then rke will also prompt for the flexvolume bind mount path. 
+## FlexVolume Kubelet Extra-Binds Binds
+When running `rke config` the user is prompted to `Enable the FlexVolume driver mount [n]: ` if the user answers yes, then rke will also prompt for the flexvolume bind mount path. 
 By default, Kubernetes uses `/usr/libexec/kubernetes/kubelet-plugins/volume/exec/` and rke sets this as the default in the prompt.
+
+This relates to using storage plugins such as Longhorn and Rook that depend on the flexvolume plugin.
 
 Please consult your vendors documentation for the correct path. For example, GKE uses `/home/kubernetes/flexvolume`.
 

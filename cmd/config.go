@@ -208,7 +208,7 @@ func getHostConfig(reader *bufio.Reader, index int, clusterSSHKeyPath string) (*
 	if err != nil {
 		return nil, err
 	}
-	if isControlHost == "y" || isControlHost == "Y" {
+	if strings.Contains(isControlHost, yesAnswer) {
 		host.Role = append(host.Role, services.ControlRole)
 	}
 
@@ -216,7 +216,7 @@ func getHostConfig(reader *bufio.Reader, index int, clusterSSHKeyPath string) (*
 	if err != nil {
 		return nil, err
 	}
-	if isWorkerHost == "y" || isWorkerHost == "Y" {
+	if strings.Contains(isWorkerHost, yesAnswer) {
 		host.Role = append(host.Role, services.WorkerRole)
 	}
 
@@ -224,7 +224,7 @@ func getHostConfig(reader *bufio.Reader, index int, clusterSSHKeyPath string) (*
 	if err != nil {
 		return nil, err
 	}
-	if isEtcdHost == "y" || isEtcdHost == "Y" {
+	if strings.Contains(isEtcdHost, yesAnswer) {
 		host.Role = append(host.Role, services.ETCDRole)
 	}
 
@@ -292,7 +292,7 @@ func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
 	if err != nil {
 		return nil, err
 	}
-	if podSecurityPolicy == "y" || podSecurityPolicy == "Y" {
+	if strings.Contains(podSecurityPolicy, yesAnswer) {
 		servicesConfig.KubeAPI.PodSecurityPolicy = true
 	} else {
 		servicesConfig.KubeAPI.PodSecurityPolicy = false
