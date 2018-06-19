@@ -415,7 +415,8 @@ func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
 	}
 
 	CommandArgs := map[string]string{
-		"v": "2",
+		"cluster-cidr": c.ClusterCIDR,
+		"v":            "2",
 		"healthz-bind-address": "0.0.0.0",
 		"kubeconfig":           pki.GetConfigPath(pki.KubeProxyCertName),
 	}
