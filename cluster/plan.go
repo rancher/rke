@@ -55,7 +55,7 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 	// Everybody gets a sidecar and a kubelet..
 	processes[services.SidekickContainerName] = myCluster.BuildSidecarProcess()
 	processes[services.KubeletContainerName] = myCluster.BuildKubeletProcess(host, prefixPath)
-	processes[services.KubeproxyContainerName] = myCluster.BuildKubeProxyProcess(prefixPath)
+	processes[services.KubeproxyContainerName] = myCluster.BuildKubeProxyProcess(host, prefixPath)
 
 	portChecks = append(portChecks, BuildPortChecksFromPortList(host, WorkerPortList, ProtocolTCP)...)
 	// Do we need an nginxProxy for this one ?
@@ -408,7 +408,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 }
 
-func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
+func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.Process {
 	Command := []string{
 		"/opt/rke/entrypoint.sh",
 		"kube-proxy",
@@ -417,6 +417,7 @@ func (c *Cluster) BuildKubeProxyProcess(prefixPath string) v3.Process {
 	CommandArgs := map[string]string{
 		"v": "2",
 		"healthz-bind-address": "0.0.0.0",
+		"hostname-override":    host.HostnameOverride,
 		"kubeconfig":           pki.GetConfigPath(pki.KubeProxyCertName),
 	}
 
