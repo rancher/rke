@@ -145,7 +145,12 @@ system_images:
   flannel_cni: rancher/coreos-flannel-cni:v0.2.0
 
 
+# Global SSH private key
 ssh_key_path: ~/.ssh/test
+
+# Enable use of SSH agent to use SSH private keys with passphrase
+# This requires the environment `SSH_AUTH_SOCK` configured pointing to your SSH agent which has the private key added
+ssh_agent_auth: true
 
 # Kubernetes authorization mode
 # Use `mode: rbac` to enable RBAC
