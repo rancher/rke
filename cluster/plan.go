@@ -314,7 +314,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"kubeconfig":                pki.GetConfigPath(pki.KubeNodeCertName),
 		"client-ca-file":            pki.GetCertPath(pki.CACertName),
 		"anonymous-auth":            "false",
-		"volume-plugin-dir":         "/var/lib/kubelet/volumeplugins",
+		"volume-plugin-dir":         path.Join(prefixPath, "/var/lib/kubelet/volumeplugins"),
 		"fail-swap-on":              strconv.FormatBool(c.Services.Kubelet.FailSwapOn),
 		"root-dir":                  path.Join(prefixPath, "/var/lib/kubelet"),
 	}
