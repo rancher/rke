@@ -107,7 +107,6 @@ func DeployCertificatesOnHost(ctx context.Context, host *hosts.Host, crtMap map[
 		"CRTS_DEPLOY_PATH=" + certPath,
 	}
 	for _, crt := range crtMap {
-
 		env = append(env, crt.ToEnv()...)
 	}
 	return doRunDeployer(ctx, host, env, certDownloaderImage, prsMap)
@@ -118,13 +117,15 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 	tmpCerts := make(map[string]CertificatePKI)
 
 	crtList := map[string]bool{
-		CACertName:             false,
-		KubeAPICertName:        false,
-		KubeControllerCertName: true,
-		KubeSchedulerCertName:  true,
-		KubeProxyCertName:      true,
-		KubeNodeCertName:       true,
-		KubeAdminCertName:      false,
+		CACertName:              false,
+		KubeAPICertName:         false,
+		KubeControllerCertName:  true,
+		KubeSchedulerCertName:   true,
+		KubeProxyCertName:       true,
+		KubeNodeCertName:        true,
+		KubeAdminCertName:       false,
+		RequestHeaderCACertName: false,
+		APIProxyClientCertName:  false,
 	}
 
 	for _, etcdHost := range extraHosts {
