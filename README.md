@@ -47,6 +47,42 @@ nodes:
 
 ```
 
+## SSH access
+
+You can either specify the full path of the key using `ssh_key_path: /home/user/.ssh/id_rsa` or embed the contents of your private key file into the parameter `ssh_key` like shown below:
+
+```
+nodes:
+- address: 2.2.2.2
+  user: ubuntu
+  role: [worker]
+  ssh_key: |-
+  -----BEGIN RSA PRIVATE KEY-----
+  -----END RSA PRIVATE KEY-----
+```
+
+You can also set `ssh_key_path` as top level parameter, so it will be used for every node configured.
+
+```
+nodes:
+- address: 2.2.2.2
+  user: ubuntu
+  role: [worker]
+ssh_key_path: /home/user/.ssh/id_rsa
+```
+
+If you want to use an SSH private key with a passphrase, you will need to add your key to `ssh-agent` and have the environment variable `SSH_AUTH_SOCK` configured. See the example below:
+
+```
+$ eval "$(ssh-agent -s)"
+Agent pid 3975
+$ ssh-add /home/user/.ssh/id_rsa
+Enter passphrase for /home/user/.ssh/id_rsa:
+Identity added: /home/user/.ssh/id_rsa (/home/user/.ssh/id_rsa)
+$ echo $SSH_AUTH_SOCK
+/tmp/ssh-118TMqxrXsEx/agent.3974
+```
+
 ## Kubernetes Version
 
 The current default kubernetes version used by RKE is `v1.10.1-rancher1`.
