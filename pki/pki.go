@@ -43,7 +43,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 	certs := make(map[string]CertificatePKI)
 	// generate CA certificate and key
 	log.Infof(ctx, "[certificates] Generating CA kubernetes certificates")
-	caCrt, caKey, err := generateCACertAndKey()
+	caCrt, caKey, err := generateCACertAndKey(CACertName)
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +150,22 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 		etcdName := GetEtcdCrtName(host.InternalAddress)
 		certs[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey)
 	}
+
+	// generate request header client CA certificate and key
+	log.Infof(ctx, "[certificates] Generating Kubernetes API server aggregation layer requestheader client CA certificates")
+	requestHeaderCACrt, requestHeaderCAKey, err := generateCACertAndKey(RequestHeaderCACertName)
+	if err != nil {
+		return nil, err
+	}
+	certs[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, "", "", requestHeaderCACrt, requestHeaderCAKey)
+
+	//generate API server proxy client key and certs
+	log.Infof(ctx, "[certificates] Generating Kubernetes API server porxy client certificates")
+	apiserverProxyClientCrt, apiserverProxyClientKey, err := GenerateSignedCertAndKey(requestHeaderCACrt, requestHeaderCAKey, false, APIProxyClientCertName, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	certs[APIProxyClientCertName] = ToCertObject(APIProxyClientCertName, "", "", apiserverProxyClientCrt, apiserverProxyClientKey)
 
 	return certs, nil
 }
