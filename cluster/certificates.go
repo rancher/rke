@@ -14,6 +14,7 @@ import (
 	"github.com/rancher/rke/services"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/cert"
 )
@@ -97,6 +98,20 @@ func regenerateAPICertificate(c *Cluster, certificates map[string]pki.Certificat
 		return nil, err
 	}
 	certificates[pki.KubeAPICertName] = pki.ToCertObject(pki.KubeAPICertName, "", "", kubeAPICert, kubeAPIKey)
+
+	if _, ok := certificates[pki.RequestHeaderCACertName]; !ok {
+		cert, key, err := pki.GenerateCACertAndKey(pki.RequestHeaderCACertName)
+		if err != nil {
+			return nil, err
+		}
+		certificates[pki.RequestHeaderCACertName] = pki.ToCertObject(pki.RequestHeaderCACertName, "", "", cert, key)
+		clientCert, clientKey, err := pki.GenerateSignedCertAndKey(cert, key, false, pki.APIProxyClientCertName, nil, nil, nil)
+		if err != nil {
+			return nil, err
+		}
+		certificates[pki.APIProxyClientCertName] = pki.ToCertObject(pki.APIProxyClientCertName, pki.APIProxyClientCertName, "", clientCert, clientKey)
+	}
+
 	return certificates, nil
 }
 
@@ -110,6 +125,8 @@ func getClusterCerts(ctx context.Context, kubeClient *kubernetes.Clientset, etcd
 		pki.KubeControllerCertName,
 		pki.KubeSchedulerCertName,
 		pki.KubeAdminCertName,
+		pki.APIProxyClientCertName,
+		pki.RequestHeaderCACertName,
 	}
 
 	for _, etcdHost := range etcdHosts {
@@ -120,6 +137,12 @@ func getClusterCerts(ctx context.Context, kubeClient *kubernetes.Clientset, etcd
 	certMap := make(map[string]pki.CertificatePKI)
 	for _, certName := range certificatesNames {
 		secret, err := k8s.GetSecret(kubeClient, certName)
+		//There is a senerio that those parameters are missing when upgrading
+		if err != nil && apierrors.IsNotFound(err) &&
+			(certName == pki.APIProxyClientCertName || certName == pki.RequestHeaderCACertName) {
+			continue
+		}
+
 		if err != nil && !strings.HasPrefix(certName, "kube-etcd") {
 			return nil, err
 		}
