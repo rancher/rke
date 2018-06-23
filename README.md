@@ -8,26 +8,15 @@ Please check the [releases](https://github.com/rancher/rke/releases/) page.
 
 ## Requirements
 
-- Docker versions `1.11.2` up to `1.13.1` and `17.03.x` are validated for Kubernetes versions 1.8, 1.9 and 1.10
-- OpenSSH 7.0+ must be installed on each node for stream local forwarding to work.
-- The SSH user used for node access must be a member of the `docker` group:
-
-```bash
-usermod -aG docker <user_name>
-```
-
-- Ports 6443, 2379, and 2380 should be opened between cluster nodes.
-- Swap disabled on worker nodes.
+Please review the [OS requirements](https://rancher.com/docs/rke/v0.1.x/en/installation/os/) for each node in your Kubernetes cluster.
 
 ## Getting Started
-
-Starting out with RKE? Check out this [blog post](http://rancher.com/an-introduction-to-rke/) or the [Quick Start Guide](http://rancher.com/docs/rke/v0.1.x/en/quick-start-guide).
 
 Please refer to our [RKE docs](http://staging.rancher.com/docs/rke/v0.1.x/en/) for information on how to get started!
 
 ## Deploying Rancher 2.x using rke
 
-Using RKE's pluggable user addons, it's possible to deploy Rancher 2.x server in HA with a single command. Detailed instructions can be found [here](https://rancher.com/docs/rancher/v2.x/en/installation/ha-server-install/).
+Using RKE's pluggable [user defined add-ons](https://rancher.com/docs/rke/v0.1.x/en/config-options/user-defined-addons/), it's possible to deploy Rancher 2.x server in HA with a single command. Detailed instructions can be found [here](https://rancher.com/docs/rancher/v2.x/en/installation/ha-server-install/).
 
 ## License
 
