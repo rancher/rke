@@ -20,11 +20,12 @@ func mainErr() error {
 	app := cli.NewApp()
 	app.Name = "rke"
 	app.Version = VERSION
-	app.Usage = "Rancher Kubernetes Engine, Running kubernetes cluster in the cloud"
+	app.Usage = "Rancher Kubernetes Engine, an extremely simple, lightning fast Kubernetes installer that works everywhere"
 	app.Before = func(ctx *cli.Context) error {
 		if ctx.GlobalBool("debug") {
 			logrus.SetLevel(logrus.DebugLevel)
 		}
+		logrus.Debugf("RKE version %s", app.Version)
 		return nil
 	}
 	app.Author = "Rancher Labs, Inc."
