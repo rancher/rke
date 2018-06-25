@@ -22,7 +22,7 @@ const (
 	K8sVersion       = "1.8"
 )
 
-func (h *Host) TunnelUp(ctx context.Context, dialerFactory DialerFactory) error {
+func (h *Host) TunnelUp(ctx context.Context, dialerFactory DialerFactory, clusterPrefixPath string) error {
 	if h.DClient != nil {
 		return nil
 	}
@@ -37,7 +37,11 @@ func (h *Host) TunnelUp(ctx context.Context, dialerFactory DialerFactory) error 
 	if err != nil {
 		return fmt.Errorf("Can't initiate NewClient: %v", err)
 	}
-	return checkDockerVersion(ctx, h)
+	if err := checkDockerVersion(ctx, h); err != nil {
+		return err
+	}
+	h.PrefixPath = GetPrefixPath(h.DockerInfo.OperatingSystem, clusterPrefixPath)
+	return nil
 }
 
 func (h *Host) TunnelUpLocal(ctx context.Context) error {
