@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -47,6 +48,13 @@ const (
 	ToCleanCalicoRun     = "/var/run/calico/"
 	ToCleanTempCertPath  = "/etc/kubernetes/.tmp/"
 	CleanerContainerName = "kube-cleaner"
+
+	B2DOS            = "Boot2Docker"
+	B2DPrefixPath    = "/mnt/sda1/rke"
+	ROS              = "RancherOS"
+	ROSPrefixPath    = "/opt/rke"
+	CoreOS           = "CoreOS"
+	CoreOSPrefixPath = "/opt/rke"
 )
 
 func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, externalEtcd bool) error {
@@ -282,4 +290,21 @@ func GetUniqueHostList(etcdHosts, cpHosts, workerHosts []*Host) []*Host {
 		uniqHostList = append(uniqHostList, host)
 	}
 	return uniqHostList
+}
+
+func GetPrefixPath(osType, ClusterPrefixPath string) string {
+	var prefixPath string
+	switch {
+	case ClusterPrefixPath != "/":
+		prefixPath = ClusterPrefixPath
+	case strings.Contains(osType, B2DOS):
+		prefixPath = B2DPrefixPath
+	case strings.Contains(osType, ROS):
+		prefixPath = ROSPrefixPath
+	case strings.Contains(osType, CoreOS):
+		prefixPath = CoreOSPrefixPath
+	default:
+		prefixPath = ClusterPrefixPath
+	}
+	return prefixPath
 }
