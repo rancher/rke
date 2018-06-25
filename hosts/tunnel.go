@@ -82,10 +82,6 @@ func parsePrivateKey(keyBuff string) (ssh.Signer, error) {
 	return ssh.ParsePrivateKey([]byte(keyBuff))
 }
 
-func parsePrivateKeyWithPassPhrase(keyBuff string, passphrase []byte) (ssh.Signer, error) {
-	return ssh.ParsePrivateKeyWithPassphrase([]byte(keyBuff), passphrase)
-}
-
 func getSSHConfig(username, sshPrivateKeyString string, useAgentAuth bool) (*ssh.ClientConfig, error) {
 	config := &ssh.ClientConfig{
 		User:            username,
@@ -116,12 +112,15 @@ func getSSHConfig(username, sshPrivateKeyString string, useAgentAuth bool) (*ssh
 	return config, nil
 }
 
-func privateKeyPath(sshKeyPath string) string {
+func privateKeyPath(sshKeyPath string) (string, error) {
 	if sshKeyPath[:2] == "~/" {
 		sshKeyPath = filepath.Join(userHome(), sshKeyPath[2:])
 	}
-	buff, _ := ioutil.ReadFile(sshKeyPath)
-	return string(buff)
+	buff, err := ioutil.ReadFile(sshKeyPath)
+	if err != nil {
+		return "", fmt.Errorf("Error while reading SSH key file: %v", err)
+	}
+	return string(buff), nil
 }
 
 func userHome() string {
