@@ -176,6 +176,13 @@ spec:
         prometheus.io/scrape: 'true'
     spec:
       hostNetwork: true
+      tolerations:
+      - effect: NoExecute
+        key: "node-role.kubernetes.io/etcd"
+        value: "true"
+      - effect: NoSchedule
+        key: "node-role.kubernetes.io/controlplane"
+        value: "true"
       nodeSelector:
       {{ range $k, $v := .NodeSelector }}
         {{ $k }}: {{ $v }}
