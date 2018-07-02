@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"regexp"
 
 	"github.com/rancher/rke/cmd"
 	"github.com/sirupsen/logrus"
@@ -9,6 +10,7 @@ import (
 )
 
 var VERSION = "v0.0.12-dev"
+var released = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
 
 func main() {
 	if err := mainErr(); err != nil {
@@ -26,6 +28,10 @@ func mainErr() error {
 			logrus.SetLevel(logrus.DebugLevel)
 		}
 		logrus.Debugf("RKE version %s", app.Version)
+		if released.MatchString(app.Version) {
+			return nil
+		}
+		logrus.Warnf("This is not an officially supported version (%s) of RKE. Please download the latest official release at https://github.com/rancher/rke/releases/latest", app.Version)
 		return nil
 	}
 	app.Author = "Rancher Labs, Inc."
