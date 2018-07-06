@@ -124,6 +124,11 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"kubelet-client-certificate":      pki.GetCertPath(pki.KubeAPICertName),
 		"kubelet-client-key":              pki.GetKeyPath(pki.KubeAPICertName),
 		"service-account-key-file":        pki.GetKeyPath(pki.KubeAPICertName),
+		"etcd-cafile":                     etcdCAClientCert,
+		"etcd-certfile":                   etcdClientCert,
+		"etcd-keyfile":                    etcdClientKey,
+		"etcd-servers":                    etcdConnectionString,
+		"etcd-prefix":                     etcdPathPrefix,
 	}
 	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != aws.AWSCloudProviderName {
 		CommandArgs["cloud-config"] = CloudConfigPath
@@ -143,14 +148,6 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 	// check api server count for k8s v1.8
 	if getTagMajorVersion(c.Version) == "v1.8" {
 		CommandArgs["apiserver-count"] = strconv.Itoa(len(c.ControlPlaneHosts))
-	}
-
-	args := []string{
-		"--etcd-cafile=" + etcdCAClientCert,
-		"--etcd-certfile=" + etcdClientCert,
-		"--etcd-keyfile=" + etcdClientKey,
-		"--etcd-servers=" + etcdConnectionString,
-		"--etcd-prefix=" + etcdPathPrefix,
 	}
 
 	if c.Authorization.Mode == services.RBACAuthorizationMode {
@@ -190,7 +187,6 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 	return v3.Process{
 		Name:                    services.KubeAPIContainerName,
 		Command:                 Command,
-		Args:                    args,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   Binds,
 		Env:                     getUniqStringList(c.Services.KubeAPI.ExtraEnv),
