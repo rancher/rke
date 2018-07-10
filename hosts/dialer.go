@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DockerDialerTimeout = 30
+	DockerDialerTimeout = 50
 )
 
 type DialerFactory func(h *Host) (func(network, address string) (net.Conn, error), error)
