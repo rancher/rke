@@ -79,6 +79,9 @@ func ClusterRemove(
 }
 
 func clusterRemoveFromCli(ctx *cli.Context) error {
+	if ctx.Bool("local") {
+		return clusterRemoveLocal(ctx)
+	}
 	clusterFile, filePath, err := resolveClusterFile(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to resolve cluster file: %v", err)
@@ -95,9 +98,6 @@ func clusterRemoveFromCli(ctx *cli.Context) error {
 		if input != "y" && input != "Y" {
 			return nil
 		}
-	}
-	if ctx.Bool("local") {
-		return clusterRemoveLocal(ctx)
 	}
 	if ctx.Bool("dind") {
 		return clusterRemoveDind(ctx)
@@ -120,7 +120,7 @@ func clusterRemoveLocal(ctx *cli.Context) error {
 	var rkeConfig *v3.RancherKubernetesEngineConfig
 	clusterFile, filePath, err := resolveClusterFile(ctx)
 	if err != nil {
-		log.Infof(context.Background(), "Failed to resolve cluster file, using default cluster instead")
+		log.Warnf(context.Background(), "Failed to resolve cluster file, using default cluster instead")
 		rkeConfig = cluster.GetLocalRKEConfig()
 	} else {
 		clusterFilePath = filePath
