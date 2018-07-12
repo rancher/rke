@@ -2,7 +2,7 @@ package addons
 
 import "github.com/rancher/rke/templates"
 
-func GetAddonsExcuteJob(addonName, nodeName, image string) (string, error) {
+func GetAddonsExecuteJob(addonName, nodeName, image string) (string, error) {
 	jobConfig := map[string]string{
 		"AddonName": addonName,
 		"NodeName":  nodeName,

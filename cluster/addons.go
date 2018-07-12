@@ -214,13 +214,13 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}
-	addonJob, err := addons.GetAddonsExcuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
+	addonJob, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
 
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to generate addon execute job: %v", err), isCritical}
 	}
 
-	if err = c.ApplySystemAddonExcuteJob(addonJob, addonUpdated); err != nil {
+	if err = c.ApplySystemAddonExecuteJob(addonJob, addonUpdated); err != nil {
 		return &addonError{fmt.Sprintf("%v", err), isCritical}
 	}
 	return nil
@@ -256,7 +256,7 @@ func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, add
 	}
 }
 
-func (c *Cluster) ApplySystemAddonExcuteJob(addonJob string, addonUpdated bool) error {
+func (c *Cluster) ApplySystemAddonExecuteJob(addonJob string, addonUpdated bool) error {
 	if err := k8s.ApplyK8sSystemJob(addonJob, c.LocalKubeConfigPath, c.K8sWrapTransport, c.AddonJobTimeout, addonUpdated); err != nil {
 		logrus.Error(err)
 		return err
