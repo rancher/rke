@@ -301,11 +301,11 @@ func ApplyAuthzResources(ctx context.Context, rkeConfig v3.RancherKubernetesEngi
 	return nil
 }
 
-func (c *Cluster) deployAddons(ctx context.Context) error {
+func (c *Cluster) deployAddons(ctx context.Context, enableValidateUseraddons bool) error {
 	if err := c.deployK8sAddOns(ctx); err != nil {
 		return err
 	}
-	if err := c.deployUserAddOns(ctx); err != nil {
+	if err := c.deployUserAddOns(ctx, enableValidateUseraddons); err != nil {
 		if err, ok := err.(*addonError); ok && err.isCritical {
 			return err
 		}
@@ -362,7 +362,8 @@ func ConfigureCluster(
 	crtBundle map[string]pki.CertificatePKI,
 	clusterFilePath, configDir string,
 	k8sWrapTransport k8s.WrapTransport,
-	useKubectl bool) error {
+	useKubectl bool,
+	enableValidateUseraddons bool) error {
 	// dialer factories are not needed here since we are not uses docker only k8s jobs
 	kubeCluster, err := ParseCluster(ctx, &rkeConfig, clusterFilePath, configDir, nil, nil, k8sWrapTransport)
 	if err != nil {
@@ -377,7 +378,7 @@ func ConfigureCluster(
 			}
 			log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", NetworkPluginResourceName, err)
 		}
-		if err := kubeCluster.deployAddons(ctx); err != nil {
+		if err := kubeCluster.deployAddons(ctx, enableValidateUseraddons); err != nil {
 			return err
 		}
 	}

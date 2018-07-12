@@ -50,6 +50,10 @@ func UpCommand() cli.Command {
 			Name:  "disable-port-check",
 			Usage: "Disable port check validation between nodes",
 		},
+		cli.BoolFlag{
+			Name:  "enable-validate-useraddons",
+			Usage: "Enable validating user addons",
+		},
 	}
 
 	upFlags = append(upFlags, commonFlags...)
@@ -67,7 +71,7 @@ func ClusterUp(
 	rkeConfig *v3.RancherKubernetesEngineConfig,
 	dockerDialerFactory, localConnDialerFactory hosts.DialerFactory,
 	k8sWrapTransport k8s.WrapTransport,
-	local bool, configDir string, updateOnly, disablePortCheck bool) (string, string, string, string, map[string]pki.CertificatePKI, error) {
+	local bool, configDir string, updateOnly, disablePortCheck bool, enableValidateUseraddons bool) (string, string, string, string, map[string]pki.CertificatePKI, error) {
 
 	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
@@ -140,7 +144,7 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, clusterFilePath, configDir, k8sWrapTransport, false)
+	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, clusterFilePath, configDir, k8sWrapTransport, false, enableValidateUseraddons)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
@@ -196,11 +200,11 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	}
 	updateOnly := ctx.Bool("update-only")
 	disablePortCheck := ctx.Bool("disable-port-check")
+	enableValidateUseraddons := ctx.Bool("enable-validate-useraddons")
 
-	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, nil, false, "", updateOnly, disablePortCheck)
+	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, nil, false, "", updateOnly, disablePortCheck, enableValidateUseraddons)
 	return err
 }
-
 func clusterUpLocal(ctx *cli.Context) error {
 	var rkeConfig *v3.RancherKubernetesEngineConfig
 	clusterFile, filePath, err := resolveClusterFile(ctx)
@@ -218,7 +222,7 @@ func clusterUpLocal(ctx *cli.Context) error {
 
 	rkeConfig.IgnoreDockerVersion = ctx.Bool("ignore-docker-version")
 
-	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, hosts.LocalHealthcheckFactory, nil, true, "", false, false)
+	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, hosts.LocalHealthcheckFactory, nil, true, "", false, false, false)
 	return err
 }
 
@@ -233,7 +237,7 @@ func clusterUpDind(ctx *cli.Context) error {
 		return err
 	}
 	// start cluster
-	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, hosts.DindConnFactory, hosts.DindHealthcheckConnFactory, nil, false, "", false, disablePortCheck)
+	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, hosts.DindConnFactory, hosts.DindHealthcheckConnFactory, nil, false, "", false, disablePortCheck, false)
 	return err
 }
 

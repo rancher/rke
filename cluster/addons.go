@@ -13,10 +13,11 @@ import (
 	"strings"
 
 	"github.com/rancher/rke/addons"
+	"k8s.io/client-go/kubernetes/scheme"
+
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -80,15 +81,21 @@ func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
 	return nil
 }
 
-func (c *Cluster) deployUserAddOns(ctx context.Context) error {
+func (c *Cluster) deployUserAddOns(ctx context.Context, enableValidateUseraddons bool) error {
 	log.Infof(ctx, "[addons] Setting up user addons")
 	if c.Addons != "" {
+		addonYAML := []byte(c.Addons)
+		if enableValidateUseraddons {
+			if err := validateUserAddonYAML(addonYAML); err != nil {
+				return err
+			}
+		}
 		if err := c.doAddonDeploy(ctx, c.Addons, UserAddonResourceName, false); err != nil {
 			return err
 		}
 	}
 	if len(c.AddonsInclude) > 0 {
-		if err := c.deployAddonsInclude(ctx); err != nil {
+		if err := c.deployAddonsInclude(ctx, enableValidateUseraddons); err != nil {
 			return err
 		}
 	}
@@ -100,7 +107,7 @@ func (c *Cluster) deployUserAddOns(ctx context.Context) error {
 	return nil
 }
 
-func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
+func (c *Cluster) deployAddonsInclude(ctx context.Context, enableValidateUseraddons bool) error {
 	var manifests []byte
 	log.Infof(ctx, "[addons] Checking for included user addons")
 
@@ -117,8 +124,10 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 			log.Infof(ctx, "[addons] Adding addon from url %s", addon)
 			logrus.Debugf("URL Yaml: %s", addonYAML)
 
-			if err := validateUserAddonYAML(addonYAML); err != nil {
-				return err
+			if enableValidateUseraddons {
+				if err := validateUserAddonYAML(addonYAML); err != nil {
+					return err
+				}
 			}
 			manifests = append(manifests, addonYAML...)
 		} else if isFilePath(addon) {
@@ -134,8 +143,10 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 			if !strings.HasPrefix(addonYAMLStr, "---") {
 				addonYAML = []byte(fmt.Sprintf("%s\n%s", "---", addonYAMLStr))
 			}
-			if err := validateUserAddonYAML(addonYAML); err != nil {
-				return err
+			if enableValidateUseraddons {
+				if err := validateUserAddonYAML(addonYAML); err != nil {
+					return err
+				}
 			}
 			manifests = append(manifests, addonYAML...)
 		} else {
@@ -149,9 +160,24 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 }
 
 func validateUserAddonYAML(addon []byte) error {
-	yamlContents := make(map[string]interface{})
+	// Credits to https://github.com/kubernetes/client-go/issues/193#issuecomment-363318588
+	fileAsString := string(addon[:])
+	sepYamlfiles := strings.Split(fileAsString, "---")
+	for _, f := range sepYamlfiles {
+		if f == "\n" || f == "" {
+			// ignore empty cases
+			continue
+		}
 
-	return yaml.Unmarshal(addon, &yamlContents)
+		decode := scheme.Codecs.UniversalDeserializer().Decode
+		_, _, err := decode([]byte(f), nil, nil)
+
+		if err != nil {
+			return &addonError{fmt.Sprintf("User addons cannot be decoded as valid YAML. Error: %s \nPlease check the following section in your configuration file: %s", err, f), false}
+		}
+	}
+
+	return nil
 }
 
 func isFilePath(addonPath string) bool {
