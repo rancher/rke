@@ -24,6 +24,9 @@ const (
 	UserAddonResourceName         = "rke-user-addon"
 	IngressAddonResourceName      = "rke-ingress-controller"
 	UserAddonsIncludeResourceName = "rke-user-includes-addons"
+
+	IngressAddonJobName       = "rke-ingress-controller-deploy-job"
+	IngressAddonDeleteJobName = "rke-ingress-controller-delete-job"
 )
 
 type ingressOptions struct {
@@ -226,6 +229,39 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	return nil
 }
 
+func (c *Cluster) doAddonDelete(ctx context.Context, resourceName string, isCritical bool) error {
+	k8sClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+	if err != nil {
+		return &addonError{fmt.Sprintf("%v", err), isCritical}
+	}
+	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride)
+	if err != nil {
+		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
+	}
+	deleteJob, err := addons.GetAddonsDeleteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
+	if err != nil {
+		return &addonError{fmt.Sprintf("Failed to generate addon delete job: %v", err), isCritical}
+	}
+	if err := k8s.ApplyK8sSystemJob(deleteJob, c.LocalKubeConfigPath, c.K8sWrapTransport, c.AddonJobTimeout, false); err != nil {
+		return &addonError{fmt.Sprintf("%v", err), isCritical}
+	}
+	// At this point, the addon should be deleted. We need to clean up by deleting the deploy and delete jobs.
+	tmpJobYaml, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
+	if err != nil {
+		return err
+	}
+	if err := k8s.DeleteK8sSystemJob(tmpJobYaml, k8sClient, c.AddonJobTimeout); err != nil {
+		return err
+	}
+
+	if err := k8s.DeleteK8sSystemJob(deleteJob, k8sClient, c.AddonJobTimeout); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, addonName string) (bool, error) {
 	log.Infof(ctx, "[addons] Saving addon ConfigMap to Kubernetes")
 	updated := false
@@ -258,7 +294,6 @@ func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, add
 
 func (c *Cluster) ApplySystemAddonExecuteJob(addonJob string, addonUpdated bool) error {
 	if err := k8s.ApplyK8sSystemJob(addonJob, c.LocalKubeConfigPath, c.K8sWrapTransport, c.AddonJobTimeout, addonUpdated); err != nil {
-		logrus.Error(err)
 		return err
 	}
 	return nil
@@ -266,7 +301,20 @@ func (c *Cluster) ApplySystemAddonExecuteJob(addonJob string, addonUpdated bool)
 
 func (c *Cluster) deployIngress(ctx context.Context) error {
 	if c.Ingress.Provider == "none" {
-		log.Infof(ctx, "[ingress] ingress controller is not defined, skipping ingress controller")
+		addonJobExists, err := addons.AddonJobExists(IngressAddonJobName, c.LocalKubeConfigPath, c.K8sWrapTransport)
+		if err != nil {
+			return nil
+		}
+		if addonJobExists {
+			log.Infof(ctx, "[ingress] removing installed ingress controller")
+			if err := c.doAddonDelete(ctx, IngressAddonResourceName, false); err != nil {
+				return err
+			}
+
+			log.Infof(ctx, "[ingress] ingress controller removed successfully")
+		} else {
+			log.Infof(ctx, "[ingress] ingress controller is disabled, skipping ingress controller")
+		}
 		return nil
 	}
 	log.Infof(ctx, "[ingress] Setting up %s ingress controller", c.Ingress.Provider)
