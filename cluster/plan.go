@@ -129,6 +129,10 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"etcd-keyfile":                    etcdClientKey,
 		"etcd-servers":                    etcdConnectionString,
 		"etcd-prefix":                     etcdPathPrefix,
+		"requestheader-client-ca-file":    pki.GetCertPath(pki.RequestHeaderCACertName),
+		"requestheader-allowed-names":     pki.APIProxyClientCertName,
+		"proxy-client-key-file":           pki.GetKeyPath(pki.APIProxyClientCertName),
+		"proxy-client-cert-file":          pki.GetCertPath(pki.APIProxyClientCertName),
 	}
 	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != aws.AWSCloudProviderName {
 		CommandArgs["cloud-config"] = CloudConfigPath
