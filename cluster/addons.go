@@ -25,8 +25,9 @@ const (
 	IngressAddonResourceName      = "rke-ingress-controller"
 	UserAddonsIncludeResourceName = "rke-user-includes-addons"
 
-	IngressAddonJobName       = "rke-ingress-controller-deploy-job"
-	IngressAddonDeleteJobName = "rke-ingress-controller-delete-job"
+	IngressAddonJobName            = "rke-ingress-controller-deploy-job"
+	IngressAddonDeleteJobName      = "rke-ingress-controller-delete-job"
+	MetricsServerAddonResourceName = "rke-metrics-addon"
 )
 
 type ingressOptions struct {
@@ -37,6 +38,12 @@ type ingressOptions struct {
 	AlpineImage    string
 	IngressImage   string
 	IngressBackend string
+}
+
+type MetricsServerOptions struct {
+	RBACConfig         string
+	Options            map[string]string
+	MetricsServerImage string
 }
 
 type addonError struct {
@@ -54,6 +61,14 @@ func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
 			return err
 		}
 		log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", KubeDNSAddonResourceName, err)
+	}
+	if c.Monitoring.Provider == DefaultMonitoringProvider {
+		if err := c.deployMetricServer(ctx); err != nil {
+			if err, ok := err.(*addonError); ok && err.isCritical {
+				return err
+			}
+			log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", MetricsServerAddonResourceName, err)
+		}
 	}
 	if err := c.deployIngress(ctx); err != nil {
 		if err, ok := err.(*addonError); ok && err.isCritical {
@@ -181,6 +196,24 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 		return err
 	}
 	if err := c.doAddonDeploy(ctx, kubeDNSYaml, KubeDNSAddonResourceName, false); err != nil {
+		return err
+	}
+	log.Infof(ctx, "[addons] KubeDNS deployed successfully..")
+	return nil
+}
+
+func (c *Cluster) deployMetricServer(ctx context.Context) error {
+	log.Infof(ctx, "[addons] Setting up Metrics Server")
+	MetricsServerConfig := MetricsServerOptions{
+		MetricsServerImage: c.SystemImages.MetricsServer,
+		RBACConfig:         c.Authorization.Mode,
+		Options:            c.Monitoring.Options,
+	}
+	kubeDNSYaml, err := addons.GetMetricsServerManifest(MetricsServerConfig)
+	if err != nil {
+		return err
+	}
+	if err := c.doAddonDeploy(ctx, kubeDNSYaml, MetricsServerAddonResourceName, false); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[addons] KubeDNS deployed successfully..")
