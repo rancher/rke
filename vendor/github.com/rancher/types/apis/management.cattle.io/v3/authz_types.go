@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	NamespaceBackedResource     condition.Cond = "BackingNamespaceCreated"
-	CreatorMadeOwner            condition.Cond = "CreatorMadeOwner"
-	DefaultNetworkPolicyCreated condition.Cond = "DefaultNetworkPolicyCreated"
+	NamespaceBackedResource               condition.Cond = "BackingNamespaceCreated"
+	CreatorMadeOwner                      condition.Cond = "CreatorMadeOwner"
+	DefaultNetworkPolicyCreated           condition.Cond = "DefaultNetworkPolicyCreated"
+	ProjectConditionInitialRolesPopulated condition.Cond = "InitialRolesPopulated"
 )
 
 type Project struct {
@@ -46,19 +47,20 @@ type ProjectCondition struct {
 }
 
 type ProjectSpec struct {
-	DisplayName string `json:"displayName,omitempty" norman:"required"`
-	Description string `json:"description"`
-	ClusterName string `json:"clusterName,omitempty" norman:"required,type=reference[cluster]"`
+	DisplayName   string                `json:"displayName,omitempty" norman:"required"`
+	Description   string                `json:"description"`
+	ClusterName   string                `json:"clusterName,omitempty" norman:"required,type=reference[cluster]"`
+	ResourceQuota *ProjectResourceQuota `json:"resourceQuota,omitempty"`
 }
 
 type GlobalRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	DisplayName string              `json:"displayName,omitempty" norman:"required"`
-	Description string              `json:"description"`
-	Rules       []rbacv1.PolicyRule `json:"rules,omitempty"`
-	Builtin     bool                `json:"builtin" norman:"nocreate,noupdate"`
+	DisplayName    string              `json:"displayName,omitempty" norman:"required,noupdate"`
+	Description    string              `json:"description" norman:"noupdate"`
+	Rules          []rbacv1.PolicyRule `json:"rules,omitempty" norman:"noupdate"`
+	NewUserDefault bool                `json:"newUserDefault,omitempty" norman:"required"`
 }
 
 type GlobalRoleBinding struct {
@@ -73,15 +75,17 @@ type RoleTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	DisplayName       string              `json:"displayName,omitempty" norman:"required"`
-	Description       string              `json:"description"`
-	Rules             []rbacv1.PolicyRule `json:"rules,omitempty"`
-	Builtin           bool                `json:"builtin" norman:"nocreate,noupdate"`
-	External          bool                `json:"external"`
-	Hidden            bool                `json:"hidden"`
-	Locked            bool                `json:"locked,omitempty" norman:"type=boolean"`
-	Context           string              `json:"context" norman:"type=string,options=project|cluster"`
-	RoleTemplateNames []string            `json:"roleTemplateNames,omitempty" norman:"type=array[reference[roleTemplate]]"`
+	DisplayName           string              `json:"displayName,omitempty" norman:"required"`
+	Description           string              `json:"description"`
+	Rules                 []rbacv1.PolicyRule `json:"rules,omitempty"`
+	Builtin               bool                `json:"builtin" norman:"nocreate,noupdate"`
+	External              bool                `json:"external"`
+	Hidden                bool                `json:"hidden"`
+	Locked                bool                `json:"locked,omitempty" norman:"type=boolean"`
+	ClusterCreatorDefault bool                `json:"clusterCreatorDefault,omitempty" norman:"required"`
+	ProjectCreatorDefault bool                `json:"projectCreatorDefault,omitempty" norman:"required"`
+	Context               string              `json:"context" norman:"type=string,options=project|cluster"`
+	RoleTemplateNames     []string            `json:"roleTemplateNames,omitempty" norman:"type=array[reference[roleTemplate]]"`
 }
 
 type PodSecurityPolicyTemplate struct {
