@@ -2,6 +2,7 @@ package docker
 
 import (
 	"archive/tar"
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -17,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
@@ -360,6 +362,22 @@ func ReadFileFromContainer(ctx context.Context, dClient *client.Client, hostname
 
 func ReadContainerLogs(ctx context.Context, dClient *client.Client, containerName string, follow bool, tail string) (io.ReadCloser, error) {
 	return dClient.ContainerLogs(ctx, containerName, types.ContainerLogsOptions{Follow: follow, ShowStdout: true, ShowStderr: true, Timestamps: false, Tail: tail})
+}
+
+func GetContainerLogsStdoutStderr(ctx context.Context, dClient *client.Client, containerName, tail string) (string, error) {
+	var containerStderr bytes.Buffer
+	var containerStdout bytes.Buffer
+	var containerLog string
+	clogs, logserr := ReadContainerLogs(ctx, dClient, containerName, false, tail)
+	if logserr != nil {
+		logrus.Debug("logserr: %v", logserr)
+		return containerLog, fmt.Errorf("Failed to get gather logs from container [%s]: %v", containerName, logserr)
+	}
+	defer clogs.Close()
+	stdcopy.StdCopy(&containerStdout, &containerStderr, clogs)
+	containerLog = containerStderr.String()
+	containerLog = strings.TrimSuffix(containerLog, "\n")
+	return containerLog, nil
 }
 
 func tryRegistryAuth(pr v3.PrivateRegistry) types.RequestPrivilegeFunc {
