@@ -364,11 +364,11 @@ func ReadContainerLogs(ctx context.Context, dClient *client.Client, containerNam
 	return dClient.ContainerLogs(ctx, containerName, types.ContainerLogsOptions{Follow: follow, ShowStdout: true, ShowStderr: true, Timestamps: false, Tail: tail})
 }
 
-func GetContainerLogsStdoutStderr(ctx context.Context, dClient *client.Client, containerName, tail string) (string, error) {
+func GetContainerLogsStdoutStderr(ctx context.Context, dClient *client.Client, containerName, tail string, follow bool) (string, error) {
 	var containerStderr bytes.Buffer
 	var containerStdout bytes.Buffer
 	var containerLog string
-	clogs, logserr := ReadContainerLogs(ctx, dClient, containerName, false, tail)
+	clogs, logserr := ReadContainerLogs(ctx, dClient, containerName, follow, tail)
 	if logserr != nil {
 		logrus.Debug("logserr: %v", logserr)
 		return containerLog, fmt.Errorf("Failed to get gather logs from container [%s]: %v", containerName, logserr)
@@ -376,7 +376,6 @@ func GetContainerLogsStdoutStderr(ctx context.Context, dClient *client.Client, c
 	defer clogs.Close()
 	stdcopy.StdCopy(&containerStdout, &containerStderr, clogs)
 	containerLog = containerStderr.String()
-	containerLog = strings.TrimSuffix(containerLog, "\n")
 	return containerLog, nil
 }
 
