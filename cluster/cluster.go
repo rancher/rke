@@ -491,6 +491,7 @@ func RestartClusterPods(ctx context.Context, kubeCluster *Cluster) error {
 		fmt.Sprintf("%s=%s", KubeAppLabel, DefaultMonitoringProvider),
 		fmt.Sprintf("%s=%s", KubeAppLabel, KubeDNSAddonAppName),
 		fmt.Sprintf("%s=%s", KubeAppLabel, KubeDNSAutoscalerAppName),
+		fmt.Sprintf("%s=%s", KubeAppLabel, CoreDNSAutoscalerAppName),
 	}
 	var errgrp errgroup.Group
 	labelQueue := util.GetObjectQueue(labelsList)
