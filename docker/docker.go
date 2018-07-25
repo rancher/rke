@@ -309,10 +309,15 @@ func IsContainerUpgradable(ctx context.Context, dClient *client.Client, imageCfg
 	if err != nil {
 		return false, err
 	}
+	// image inspect to compare the env correctly
+	imageInspect, _, err := dClient.ImageInspectWithRaw(ctx, imageCfg.Image)
+	if err != nil {
+		return false, err
+	}
 	if containerInspect.Config.Image != imageCfg.Image ||
 		!sliceEqualsIgnoreOrder(containerInspect.Config.Entrypoint, imageCfg.Entrypoint) ||
 		!sliceEqualsIgnoreOrder(containerInspect.Config.Cmd, imageCfg.Cmd) ||
-		!isContainerRKEEnvChanged(containerInspect.Config.Env, imageCfg.Env) ||
+		!isContainerEnvChanged(containerInspect.Config.Env, imageCfg.Env, imageInspect.Config.Env) ||
 		!sliceEqualsIgnoreOrder(containerInspect.HostConfig.Binds, hostCfg.Binds) {
 		logrus.Debugf("[%s] Container [%s] is eligible for upgrade on host [%s]", plane, containerName, hostname)
 		return true, nil
@@ -420,20 +425,8 @@ func convertToSemver(version string) (*semver.Version, error) {
 	return semver.NewVersion(strings.Join(compVersion, "."))
 }
 
-func isContainerRKEEnvChanged(containerEnv, imageConfigEnv []string) bool {
+func isContainerEnvChanged(containerEnv, imageConfigEnv, dockerfileEnv []string) bool {
 	// remove PATH env from the container env
-	cleanedContainerEnv := getRKEEnvVars(containerEnv)
-	cleanedImageConfigEnv := getRKEEnvVars(imageConfigEnv)
-
-	return sliceEqualsIgnoreOrder(cleanedContainerEnv, cleanedImageConfigEnv)
-}
-
-func getRKEEnvVars(env []string) []string {
-	tmp := []string{}
-	for _, e := range env {
-		if strings.HasPrefix(e, "RKE_") {
-			tmp = append(tmp, e)
-		}
-	}
-	return tmp
+	allImageEnv := append(imageConfigEnv, dockerfileEnv...)
+	return sliceEqualsIgnoreOrder(allImageEnv, containerEnv)
 }
