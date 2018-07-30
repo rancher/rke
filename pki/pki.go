@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -269,7 +270,7 @@ func ExtractBackupBundleOnHost(ctx context.Context, host *hosts.Host, alpineSyst
 				TempCertPath,
 				BundleCertPath,
 				TempCertPath,
-				len(strings.Split(TempCertPath, "/"))-1),
+				len(strings.Split(filepath.Clean(TempCertPath), "/"))-1),
 		},
 		Image: alpineSystemImage,
 	}
