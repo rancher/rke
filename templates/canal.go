@@ -289,6 +289,9 @@ spec:
             # No IP address needed.
             - name: IP
               value: ""
+            # Port range that Felix should treat as Kubernetes node ports.
+            - name: FELIX_KUBENODEPORTRANGES
+              value: "{{.NodePortRange}}
             - name: NODENAME
               valueFrom:
                 fieldRef:

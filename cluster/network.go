@@ -70,7 +70,8 @@ const (
 
 	KubeCfg = "KubeCfg"
 
-	ClusterCIDR = "ClusterCIDR"
+	ClusterCIDR   = "ClusterCIDR"
+	NodePortRange = "NodePortRange"
 	// Images key names
 
 	Image              = "Image"
@@ -140,6 +141,7 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context) error {
 	calicoConfig := map[string]string{
 		KubeCfg:       clientConfig,
 		ClusterCIDR:   c.ClusterCIDR,
+		NodePortRange: c.Services.KubeAPI.ServiceNodePortRange,
 		CNIImage:      c.SystemImages.CalicoCNI,
 		NodeImage:     c.SystemImages.CalicoNode,
 		Calicoctl:     c.SystemImages.CalicoCtl,
@@ -162,6 +164,7 @@ func (c *Cluster) doCanalDeploy(ctx context.Context) error {
 		ClientCAPath:    pki.GetCertPath(pki.CACertName),
 		KubeCfg:         clientConfig,
 		ClusterCIDR:     c.ClusterCIDR,
+		NodePortRange:   c.Services.KubeAPI.ServiceNodePortRange,
 		NodeImage:       c.SystemImages.CanalNode,
 		CNIImage:        c.SystemImages.CanalCNI,
 		CanalFlannelImg: c.SystemImages.CanalFlannel,

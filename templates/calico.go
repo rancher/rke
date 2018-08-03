@@ -245,6 +245,9 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: typha_service_name
+            # Port range that Felix should treat as Kubernetes node ports.
+            - name: FELIX_KUBENODEPORTRANGES
+              value: "{{.NodePortRange}}"
             # Set based on the k8s node name.
             - name: NODENAME
               valueFrom:
