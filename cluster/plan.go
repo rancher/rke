@@ -27,15 +27,9 @@ const (
 	ContainerNameLabel = "io.rancher.rke.container.name"
 	CloudConfigSumEnv  = "RKE_CLOUD_CONFIG_CHECKSUM"
 
-	DefaultToolsEntrypoint = "/opt/rke-tools/entrypoint.sh"
-)
-
-// set the key to the version when started using that particular entrypoint
-var (
-	RkeToolsEntrypoints = map[string]string{
-		"0.1.1":  "/opt/rke/entrypoint.sh",
-		"0.1.13": "/opt/rke-tools/entrypoint.sh",
-	}
+	DefaultToolsEntrypoint        = "/opt/rke-tools/entrypoint.sh"
+	DefaultToolsEntrypointVersion = "0.1.13"
+	LegacyToolsEntrypoint         = "/opt/rke/entrypoint.sh"
 )
 
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, hostsInfoMap map[string]types.Info) (v3.RKEPlan, error) {
@@ -740,19 +734,14 @@ func getUniqStringList(l []string) []string {
 }
 
 func (c *Cluster) getRKEToolsEntryPoint() string {
-	entrypoint := DefaultToolsEntrypoint
-
 	v := strings.Split(c.SystemImages.KubernetesServicesSidecar, ":")
 	if len(v) < 2 {
-		return entrypoint
+		return DefaultToolsEntrypoint
 	}
-	toolsSemVer := strToSemVer(v[1])
-	for version, entry := range RkeToolsEntrypoints {
-		if toolsSemVer.Compare(*strToSemVer(version)) >= 0 {
-			entrypoint = entry
-		}
+	if strToSemVer(v[1]).LessThan(*strToSemVer(DefaultToolsEntrypointVersion)) {
+		return LegacyToolsEntrypoint
 	}
-	return entrypoint
+	return DefaultToolsEntrypoint
 }
 
 func strToSemVer(version string) *semver.Version {
