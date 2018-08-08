@@ -126,8 +126,8 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"client-ca-file":                     pki.GetCertPath(pki.CACertName),
 		"tls-cert-file":                      pki.GetCertPath(pki.KubeAPICertName),
 		"tls-private-key-file":               pki.GetKeyPath(pki.KubeAPICertName),
-		"kubelet-client-certificate":         pki.GetCertPath(pki.KubeAPICertName),
-		"kubelet-client-key":                 pki.GetKeyPath(pki.KubeAPICertName),
+		"kubelet-client-certificate":         pki.GetCertPath(pki.KubeNodeCertName),
+		"kubelet-client-key":                 pki.GetKeyPath(pki.KubeNodeCertName),
 		"service-account-key-file":           pki.GetKeyPath(pki.KubeAPICertName),
 		"etcd-cafile":                        etcdCAClientCert,
 		"etcd-certfile":                      etcdClientCert,
@@ -174,7 +174,28 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.CACertName)), pki.GetCertPath(pki.CACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.KubeAPICertName)), pki.GetCertPath(pki.KubeAPICertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeAPICertName)), pki.GetKeyPath(pki.KubeAPICertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.KubeNodeCertName)), pki.GetCertPath(pki.KubeNodeCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeNodeCertName)), pki.GetKeyPath(pki.KubeNodeCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.RequestHeaderCACertName)), pki.GetCertPath(pki.RequestHeaderCACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.APIProxyClientCertName)), pki.GetCertPath(pki.APIProxyClientCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.APIProxyClientCertName)), pki.GetKeyPath(pki.APIProxyClientCertName)),
+	}
+
+	if len(c.Services.Etcd.ExternalURLs) > 0 {
+		EtcdBinds := []string{
+			fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.EtcdClientCACertName)), pki.GetCertPath(pki.EtcdClientCACertName)),
+			fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.EtcdClientCertName)), pki.GetCertPath(pki.EtcdClientCertName)),
+			fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.EtcdClientCertName)), pki.GetKeyPath(pki.EtcdClientCertName)),
+		}
+
+		Binds = append(Binds, EtcdBinds...)
+	}
+
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != aws.AWSCloudProviderName {
+		Binds = append(Binds, fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, CloudConfigPath), CloudConfigPath))
 	}
 
 	// Override args if they exist, add additional args
@@ -260,7 +281,15 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetConfigPath(pki.KubeControllerCertName)), pki.GetConfigPath(pki.KubeControllerCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.CACertName)), pki.GetCertPath(pki.CACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.KubeControllerCertName)), pki.GetCertPath(pki.KubeControllerCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeControllerCertName)), pki.GetKeyPath(pki.KubeControllerCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeAPICertName)), pki.GetKeyPath(pki.KubeAPICertName)),
+	}
+
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != aws.AWSCloudProviderName {
+		Binds = append(Binds, fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, CloudConfigPath), CloudConfigPath))
 	}
 
 	for arg, value := range c.Services.KubeController.ExtraArgs {
@@ -357,7 +386,10 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.CACertName)), pki.GetCertPath(pki.CACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetConfigPath(pki.KubeNodeCertName)), pki.GetConfigPath(pki.KubeNodeCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.KubeNodeCertName)), pki.GetCertPath(pki.KubeNodeCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeNodeCertName)), pki.GetKeyPath(pki.KubeNodeCertName)),
 		"/etc/cni:/etc/cni:rw,z",
 		"/opt/cni:/opt/cni:rw,z",
 		fmt.Sprintf("%s:/var/lib/cni:z", path.Join(prefixPath, "/var/lib/cni")),
@@ -379,6 +411,10 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	// Special case to simplify using flex volumes
 	if path.Join(prefixPath, "/var/lib/kubelet") != "/var/lib/kubelet" {
 		Binds = append(Binds, "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins:shared,z")
+	}
+
+	if len(c.CloudProvider.Name) > 0 && c.CloudProvider.Name != aws.AWSCloudProviderName {
+		Binds = append(Binds, fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, CloudConfigPath), CloudConfigPath))
 	}
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
@@ -444,7 +480,10 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.CACertName)), pki.GetCertPath(pki.CACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetConfigPath(pki.KubeProxyCertName)), pki.GetConfigPath(pki.KubeProxyCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.KubeProxyCertName)), pki.GetCertPath(pki.KubeProxyCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeProxyCertName)), pki.GetKeyPath(pki.KubeProxyCertName)),
 	}
 
 	for arg, value := range c.Services.Kubeproxy.ExtraArgs {
@@ -536,7 +575,10 @@ func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.CACertName)), pki.GetCertPath(pki.CACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetConfigPath(pki.KubeSchedulerCertName)), pki.GetConfigPath(pki.KubeSchedulerCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.KubeSchedulerCertName)), pki.GetCertPath(pki.KubeSchedulerCertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(pki.KubeSchedulerCertName)), pki.GetKeyPath(pki.KubeSchedulerCertName)),
 	}
 
 	for arg, value := range c.Services.Scheduler.ExtraArgs {
@@ -632,7 +674,9 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 
 	Binds := []string{
 		fmt.Sprintf("%s:%s:z", path.Join(prefixPath, "/var/lib/etcd"), services.EtcdDataDir),
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(pki.CACertName)), pki.GetCertPath(pki.CACertName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetCertPath(nodeName)), pki.GetCertPath(nodeName)),
+		fmt.Sprintf("%s:%s:ro", path.Join(prefixPath, pki.GetKeyPath(nodeName)), pki.GetKeyPath(nodeName)),
 	}
 
 	for arg, value := range c.Services.Etcd.ExtraArgs {
