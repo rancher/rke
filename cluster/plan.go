@@ -734,17 +734,23 @@ func getUniqStringList(l []string) []string {
 }
 
 func (c *Cluster) getRKEToolsEntryPoint() string {
+	// default if we don't have an image tag
 	v := strings.Split(c.SystemImages.KubernetesServicesSidecar, ":")
 	if len(v) < 2 {
 		return DefaultToolsEntrypoint
 	}
-	if strToSemVer(v[1]).LessThan(*strToSemVer(DefaultToolsEntrypointVersion)) {
+	toolsSemVer, err := strToSemVer(v[1])
+	// non-semver version, use default
+	if err != nil {
+		return DefaultToolsEntrypoint
+	}
+	defaultSemVer, _ := strToSemVer(DefaultToolsEntrypointVersion)
+	if toolsSemVer.LessThan(*defaultSemVer) {
 		return LegacyToolsEntrypoint
 	}
 	return DefaultToolsEntrypoint
 }
 
-func strToSemVer(version string) *semver.Version {
-	v, _ := semver.NewVersion(strings.TrimPrefix(version, "v"))
-	return v
+func strToSemVer(version string) (*semver.Version, error) {
+	return semver.NewVersion(strings.TrimPrefix(version, "v"))
 }
