@@ -329,7 +329,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"anonymous-auth":               "false",
 		"volume-plugin-dir":            "/var/lib/kubelet/volumeplugins",
 		"fail-swap-on":                 strconv.FormatBool(c.Services.Kubelet.FailSwapOn),
-		"root-dir":                     path.Join(prefixPath, "/var/lib/kubelet"),
+		"root-dir":                     "/var/lib/kubelet",
 		"authentication-token-webhook": "true",
 	}
 	if host.IsControl && !host.IsWorker {
@@ -366,7 +366,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"/etc/resolv.conf:/etc/resolv.conf",
 		"/sys:/sys:rprivate",
 		host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,rslave,z",
-		fmt.Sprintf("%s:%s:shared,z", path.Join(prefixPath, "/var/lib/kubelet"), path.Join(prefixPath, "/var/lib/kubelet")),
+		fmt.Sprintf("%s:%s:shared,z", path.Join(prefixPath, "/var/lib/kubelet"), "/var/lib/kubelet"),
 		"/var/lib/rancher:/var/lib/rancher:shared,z",
 		"/var/run:/var/run:rw,rprivate",
 		"/run:/run:rprivate",
@@ -377,9 +377,13 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		"/usr:/host/usr:ro",
 		"/etc:/host/etc:ro",
 	}
-	// Special case to simplify using flex volumes
+	// Special case to simplify using flex volumes and CSI
 	if path.Join(prefixPath, "/var/lib/kubelet") != "/var/lib/kubelet" {
+		// Flexvolume
 		Binds = append(Binds, "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins:shared,z")
+		// CSI
+		Binds = append(Binds, "/var/lib/kubelet/plugins:/var/lib/kubelet/plugins")
+		Binds = append(Binds, "/var/lib/kubelet/pods:/var/lib/kubelet/pods:shared,z")
 	}
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
