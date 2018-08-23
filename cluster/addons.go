@@ -21,6 +21,7 @@ import (
 
 const (
 	KubeDNSAddonResourceName      = "rke-kubedns-addon"
+	CoreDNSAddonResourceName      = "rke-kubedns-addon"
 	UserAddonResourceName         = "rke-user-addon"
 	IngressAddonResourceName      = "rke-ingress-controller"
 	UserAddonsIncludeResourceName = "rke-user-includes-addons"
@@ -56,12 +57,12 @@ func (e *addonError) Error() string {
 }
 
 func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
-	if err := c.deployKubeDNS(ctx); err != nil {
-		if err, ok := err.(*addonError); ok && err.isCritical {
+        if err := c.deployCoreDNS(ctx); err != nil {
+        	if err, ok := err.(*addonError); ok && err.isCritical {
 			return err
 		}
-		log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", KubeDNSAddonResourceName, err)
-	}
+                log.Warnf(ctx, "Failed to deploy addon execute job [%s]: %v", CoreDNSAddonResourceName, err)
+        }
 	if c.Monitoring.Provider == DefaultMonitoringProvider {
 		if err := c.deployMetricServer(ctx); err != nil {
 			if err, ok := err.(*addonError); ok && err.isCritical {
@@ -198,8 +199,24 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 	if err := c.doAddonDeploy(ctx, kubeDNSYaml, KubeDNSAddonResourceName, false); err != nil {
 		return err
 	}
-	log.Infof(ctx, "[addons] KubeDNS deployed successfully..")
+	log.Infof(ctx, "[addons] CoreDNS deployed successfully..")
 	return nil
+}
+
+func (c *Cluster) deployCoreDNS(ctx context.Context) error {
+        log.Infof(ctx, "[addons] Setting up CoreDNS")
+        coreDNSConfig := map[string]string{
+                addons.CoreDNSImage:           c.SystemImages.CoreDNS,
+        }
+        coreDNSYaml, err := addons.GetCoreDNSManifest(coreDNSConfig)
+        if err != nil {
+                return err
+        }
+        if err := c.doAddonDeploy(ctx, coreDNSYaml, CoreDNSAddonResourceName, false); err != nil {
+                return err
+        }
+        log.Infof(ctx, "[addons] CoreDNS deployed successfully..")
+        return nil
 }
 
 func (c *Cluster) deployMetricServer(ctx context.Context) error {
@@ -216,7 +233,8 @@ func (c *Cluster) deployMetricServer(ctx context.Context) error {
 	if err := c.doAddonDeploy(ctx, metricsYaml, MetricsServerAddonResourceName, false); err != nil {
 		return err
 	}
-	log.Infof(ctx, "[addons] KubeDNS deployed successfully..")
+	log.Infof(ctx, "[addons] CoreDNS deployed successfully..")
+	// log.Infof(ctx, "[addons] KubeDNS deployed successfully..")
 	return nil
 }
 

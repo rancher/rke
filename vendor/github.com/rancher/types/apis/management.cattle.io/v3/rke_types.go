@@ -118,6 +118,8 @@ type RKESystemImages struct {
 	IngressBackend string `yaml:"ingress_backend" json:"ingressBackend,omitempty"`
 	// Metrics Server image
 	MetricsServer string `yaml:"metrics_server" json:"metricsServer,omitempty"`
+        // CoreDNS image
+        CoreDNS string `yaml:"coredns" json:"coredns,omitempty"`
 }
 
 type RKEConfigNode struct {

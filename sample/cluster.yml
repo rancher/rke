@@ -1,0 +1,138 @@
+nodes:
+- address: "192.168.122.37"
+  port: "22"
+  internal_address: ""
+  role:
+  - controlplane
+  - etcd
+  - worker
+  hostname_override: ""
+  user: pentium
+  docker_socket: /var/run/docker.sock
+  ssh_key: ""
+  ssh_key_path: ~/.ssh/id_rsa
+  labels: {}
+- address: "192.168.122.38"
+  port: "22"
+  internal_address: ""
+  role:
+  - controlplane
+  - etcd
+  - worker
+  hostname_override: ""
+  user: pentium
+  docker_socket: /var/run/docker.sock
+  ssh_key: ""
+  ssh_key_path: ~/.ssh/id_rsa
+  labels: {}
+services:
+  etcd:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    external_urls: []
+    ca_cert: ""
+    cert: ""
+    key: ""
+    path: ""
+    snapshot: false
+    retention: ""
+    creation: ""
+  kube-api:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    service_cluster_ip_range: 10.43.0.0/16
+    service_node_port_range: ""
+    pod_security_policy: false
+  kube-controller:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_cidr: 10.42.0.0/16
+    service_cluster_ip_range: 10.43.0.0/16
+  scheduler:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+  kubelet:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+    cluster_domain: cluster.local
+    infra_container_image: ""
+    cluster_dns_server: 10.43.0.10
+    fail_swap_on: false
+  kubeproxy:
+    image: ""
+    extra_args: {}
+    extra_binds: []
+    extra_env: []
+network:
+  plugin: calico
+  options: {}
+authentication:
+  strategy: x509
+  options: {}
+  sans: []
+addons: ""
+addons_include: []
+system_images:
+  etcd: rancher/coreos-etcd:v3.2.18
+  alpine: rancher/rke-tools:v0.1.13
+  nginx_proxy: rancher/rke-tools:v0.1.13
+  cert_downloader: rancher/rke-tools:v0.1.13
+  kubernetes_services_sidecar: rancher/rke-tools:v0.1.13
+  kubedns: rancher/k8s-dns-kube-dns-amd64:1.14.10
+  dnsmasq: rancher/k8s-dns-dnsmasq-nanny-amd64:1.14.10
+  kubedns_sidecar: rancher/k8s-dns-sidecar-amd64:1.14.10
+  kubedns_autoscaler: rancher/cluster-proportional-autoscaler-amd64:1.0.0
+  coredns: coredns/coredns:1.2.0
+  kubernetes: rancher/hyperkube:v1.11.1-rancher1
+  flannel: rancher/coreos-flannel:v0.9.1
+  flannel_cni: rancher/coreos-flannel-cni:v0.2.0
+  calico_node: rancher/calico-node:v3.1.1
+  calico_cni: rancher/calico-cni:v3.1.1
+  calico_controllers: ""
+  calico_ctl: rancher/calico-ctl:v2.0.0
+  canal_node: rancher/calico-node:v3.1.1
+  canal_cni: rancher/calico-cni:v3.1.1
+  canal_flannel: rancher/coreos-flannel:v0.9.1
+  wave_node: weaveworks/weave-kube:2.1.2
+  weave_cni: weaveworks/weave-npc:2.1.2
+  pod_infra_container: rancher/pause-amd64:3.1
+  ingress: rancher/nginx-ingress-controller:0.16.2-rancher1
+  ingress_backend: rancher/nginx-ingress-controller-defaultbackend:1.4
+  metrics_server: rancher/metrics-server-amd64:v0.2.1
+ssh_key_path: ~/.ssh/id_rsa
+ssh_agent_auth: false
+authorization:
+  mode: rbac
+  options: {}
+ignore_docker_version: true
+kubernetes_version: ""
+private_registries: []
+ingress:
+  provider: ""
+  options: {}
+  node_selector: {}
+  extra_args: {}
+cluster_name: "rkecluster"
+cloud_provider:
+  name: ""
+prefix_path: ""
+addon_job_timeout: 0
+bastion_host:
+  address: ""
+  port: ""
+  user: ""
+  ssh_key: ""
+  ssh_key_path: ""
+monitoring:
+  provider: ""
+  options: {}
