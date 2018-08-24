@@ -206,7 +206,10 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 func (c *Cluster) deployCoreDNS(ctx context.Context) error {
         log.Infof(ctx, "[addons] Setting up CoreDNS")
         coreDNSConfig := map[string]string{
-                addons.CoreDNSImage:           c.SystemImages.CoreDNS,
+		addons.CoreDNSServer:          c.ClusterDNSServer,
+		addons.CoreDNSClusterDomain:   c.ClusterDomain,
+		addons.CoreDNSImage:           c.SystemImages.CoreDNS,
+		addons.CoreDNSAutoScalerImage: c.SystemImages.CoreDNSAutoscaler,
         }
         coreDNSYaml, err := addons.GetCoreDNSManifest(coreDNSConfig)
         if err != nil {

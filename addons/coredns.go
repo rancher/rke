@@ -4,6 +4,9 @@ import "github.com/rancher/rke/templates"
 
 const (
 	CoreDNSImage           = "CoreDNSImage"
+        CoreDNSAutoScalerImage = "CoreDNSAutoScalerImage"
+        CoreDNSServer          = "ClusterDNSServer"
+        CoreDNSClusterDomain   = "ClusterDomain"
 )
 
 func GetCoreDNSManifest(coreDNSConfig map[string]string) (string, error) {

@@ -120,6 +120,8 @@ type RKESystemImages struct {
 	MetricsServer string `yaml:"metrics_server" json:"metricsServer,omitempty"`
         // CoreDNS image
         CoreDNS string `yaml:"coredns" json:"coredns,omitempty"`
+        // CoreDNS autoscaler image
+        CoreDNSAutoscaler string `yaml:"coredns_autoscaler" json:"corednsAutoscaler,omitempty"`
 }
 
 type RKEConfigNode struct {

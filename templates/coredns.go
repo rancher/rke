@@ -95,7 +95,7 @@ spec:
           operator: "Exists"
       containers:
       - name: coredns
-        image: coredns/coredns:1.2.0
+        image: {{.CoreDNSImage}}
         imagePullPolicy: IfNotPresent
         resources:
           limits:
@@ -159,7 +159,7 @@ metadata:
 spec:
   selector:
     k8s-app: kube-dns
-  clusterIP: 10.43.0.10
+  clusterIP: {{.ClusterDNSServer}}
   ports:
   - name: dns
     port: 53
