@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -28,6 +29,7 @@ import (
 const (
 	DockerRegistryURL = "docker.io"
 	RestartTimeout    = 30
+	DefaultFilesMode  = 0644
 )
 
 var K8sDockerVersions = map[string][]string{
@@ -35,6 +37,12 @@ var K8sDockerVersions = map[string][]string{
 	"1.9":  {"1.11.x", "1.12.x", "1.13.x", "17.03.x"},
 	"1.10": {"1.11.x", "1.12.x", "1.13.x", "17.03.x"},
 }
+
+type dockerConfig struct {
+	Auths map[string]authConfig `json:"auths,omitempty"`
+}
+
+type authConfig types.AuthConfig
 
 func DoRunContainer(ctx context.Context, dClient *client.Client, imageCfg *container.Config, hostCfg *container.HostConfig, containerName string, hostname string, plane string, prsMap map[string]v3.PrivateRegistry) error {
 	container, err := dClient.ContainerInspect(ctx, containerName)
@@ -369,6 +377,20 @@ func ReadFileFromContainer(ctx context.Context, dClient *client.Client, hostname
 	return string(file), nil
 }
 
+func WriteFileToContainer(ctx context.Context, dClient *client.Client, hostname, container, filePath, content string) error {
+	file := map[string]string{
+		path.Base(filePath): content,
+	}
+	tarFileReader, err := tarFiles(file)
+	if err != nil {
+		return err
+	}
+	if err := dClient.CopyToContainer(ctx, container, path.Dir(filePath), tarFileReader, types.CopyToContainerOptions{}); err != nil {
+		return fmt.Errorf("Failed to write file [%s] to container [%s] on host [%s]: %v", filePath, container, hostname, err)
+	}
+	return nil
+}
+
 func ReadContainerLogs(ctx context.Context, dClient *client.Client, containerName string, follow bool, tail string) (io.ReadCloser, error) {
 	return dClient.ContainerLogs(ctx, containerName, types.ContainerLogsOptions{Follow: follow, ShowStdout: true, ShowStderr: true, Timestamps: false, Tail: tail})
 }
@@ -433,4 +455,43 @@ func isContainerEnvChanged(containerEnv, imageConfigEnv, dockerfileEnv []string)
 	// remove PATH env from the container env
 	allImageEnv := append(imageConfigEnv, dockerfileEnv...)
 	return sliceEqualsIgnoreOrder(allImageEnv, containerEnv)
+}
+
+func tarFiles(files map[string]string) (io.Reader, error) {
+	buff := bytes.Buffer{}
+	tarWriter := tar.NewWriter(&buff)
+	defer tarWriter.Close()
+
+	for fileName, content := range files {
+		contentBytes := []byte(content)
+
+		header := tar.Header{
+			Name:    path.Base(fileName),
+			Mode:    DefaultFilesMode,
+			Size:    int64(len(contentBytes)),
+			ModTime: time.Now(),
+		}
+
+		if err := tarWriter.WriteHeader(&header); err != nil {
+			return nil, err
+		}
+		if _, err := tarWriter.Write(contentBytes); err != nil {
+			return nil, err
+		}
+	}
+	return &buff, nil
+}
+
+func GetKubeletDockerConfig(prsMap map[string]v3.PrivateRegistry) (string, error) {
+	auths := map[string]authConfig{}
+
+	for url, pr := range prsMap {
+		auth := base64.URLEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", pr.User, pr.Password)))
+		auths[url] = authConfig{Auth: auth}
+	}
+	cfg, err := json.Marshal(dockerConfig{auths})
+	if err != nil {
+		return "", err
+	}
+	return string(cfg), nil
 }

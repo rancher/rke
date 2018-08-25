@@ -52,6 +52,7 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 	prefixPath := hosts.GetPrefixPath(hostDockerInfo.OperatingSystem, myCluster.PrefixPath)
 	processes := map[string]v3.Process{}
 	portChecks := []v3.PortCheck{}
+	nodeFiles := []v3.File{}
 	// Everybody gets a sidecar and a kubelet..
 	processes[services.SidekickContainerName] = myCluster.BuildSidecarProcess()
 	processes[services.KubeletContainerName] = myCluster.BuildKubeletProcess(host, prefixPath)
@@ -74,15 +75,23 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 
 		portChecks = append(portChecks, BuildPortChecksFromPortList(host, EtcdPortList, ProtocolTCP)...)
 	}
-	cloudConfig := v3.File{
+	// cloud config
+	nodeFiles = append(nodeFiles, v3.File{
 		Name:     CloudConfigPath,
 		Contents: b64.StdEncoding.EncodeToString([]byte(myCluster.CloudConfigFile)),
+	})
+	if len(myCluster.PrivateRegistriesMap) > 0 {
+		dockerConfig, _ := docker.GetKubeletDockerConfig(myCluster.PrivateRegistriesMap)
+		nodeFiles = append(nodeFiles, v3.File{
+			Name:     path.Join(prefixPath, services.KubeletDockerConfigPath),
+			Contents: b64.StdEncoding.EncodeToString([]byte(dockerConfig)),
+		})
 	}
 	return v3.RKEConfigNodePlan{
 		Address:    host.Address,
 		Processes:  processes,
 		PortChecks: portChecks,
-		Files:      []v3.File{cloudConfig},
+		Files:      nodeFiles,
 		Annotations: map[string]string{
 			k8s.ExternalAddressAnnotation: host.Address,
 			k8s.InternalAddressAnnotation: host.InternalAddress,
