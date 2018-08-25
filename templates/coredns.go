@@ -166,4 +166,38 @@ spec:
     protocol: UDP
   - name: dns-tcp
     port: 53
-    protocol: TCP`
+    protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-dns-autoscaler
+  namespace: kube-system
+  labels:
+    k8s-app: core-dns-autoscaler
+spec:
+  selector:
+    matchLabels:
+       k8s-app: core-dns-autoscaler
+  template:
+    metadata:
+      labels:
+        k8s-app: core-dns-autoscaler
+    spec:
+      containers:
+      - name: autoscaler
+        image: {{.CoreDNSAutoScalerImage}}
+        resources:
+            requests:
+                cpu: "20m"
+                memory: "10Mi"
+        command:
+          - /cluster-proportional-autoscaler
+          - --namespace=kube-system
+          - --configmap=core-dns-autoscaler
+          - --target=Deployment/coredns
+          # When cluster is using large nodes(with more cores), "coresPerReplica" should dominate.
+          # If using small nodes, "nodesPerReplica" should dominate.
+          - --default-params={"linear":{"coresPerReplica":128,"nodesPerReplica":4,"min":1}}
+          - --logtostderr=true
+          - --v=2`

@@ -152,6 +152,8 @@ func (c *Cluster) setClusterImageDefaults() {
 		&c.SystemImages.KubeDNSSidecar:            imageDefaults.KubeDNSSidecar,
 		&c.SystemImages.DNSmasq:                   imageDefaults.DNSmasq,
 		&c.SystemImages.KubeDNSAutoscaler:         imageDefaults.KubeDNSAutoscaler,
+                &c.SystemImages.CoreDNS:                   imageDefaults.CoreDNS,
+                &c.SystemImages.CoreDNSAutoscaler:         imageDefaults.CoreDNSAutoscaler,
 		&c.SystemImages.KubernetesServicesSidecar: imageDefaults.KubernetesServicesSidecar,
 		&c.SystemImages.Etcd:                      imageDefaults.Etcd,
 		&c.SystemImages.Kubernetes:                imageDefaults.Kubernetes,

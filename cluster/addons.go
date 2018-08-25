@@ -21,7 +21,7 @@ import (
 
 const (
 	KubeDNSAddonResourceName      = "rke-kubedns-addon"
-	CoreDNSAddonResourceName      = "rke-kubedns-addon"
+	CoreDNSAddonResourceName      = "rke-coredns-addon"
 	UserAddonResourceName         = "rke-user-addon"
 	IngressAddonResourceName      = "rke-ingress-controller"
 	UserAddonsIncludeResourceName = "rke-user-includes-addons"
