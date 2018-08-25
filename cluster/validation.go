@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/rancher/rke/services"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 func (c *Cluster) ValidateCluster() error {
@@ -66,6 +67,9 @@ func validateHostsOptions(c *Cluster) error {
 		}
 		if len(host.Role) == 0 {
 			return fmt.Errorf("Role for host (%d) is not provided", i+1)
+		}
+		if errs := validation.IsDNS1123Subdomain(host.HostnameOverride); len(errs) > 0 {
+			return fmt.Errorf("Hostname_override [%s] for host (%d) is not valid: %v", host.HostnameOverride, i+1, errs)
 		}
 		for _, role := range host.Role {
 			if role != services.ETCDRole && role != services.ControlRole && role != services.WorkerRole {
