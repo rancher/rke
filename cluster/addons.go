@@ -57,6 +57,9 @@ func (e *addonError) Error() string {
 }
 
 func (c *Cluster) deployK8sAddOns(ctx context.Context) error {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/addons.go deployK8sAddOns")
+	
         if err := c.deployCoreDNS(ctx); err != nil {
         	if err, ok := err.(*addonError); ok && err.isCritical {
 			return err
@@ -182,6 +185,9 @@ func getAddonFromURL(yamlURL string) ([]byte, error) {
 }
 
 func (c *Cluster) deployKubeDNS(ctx context.Context) error {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/addons.go deployKubeDNS")
+	
 	log.Infof(ctx, "[addons] Setting up KubeDNS")
 	kubeDNSConfig := map[string]string{
 		addons.KubeDNSServer:          c.ClusterDNSServer,
@@ -204,6 +210,9 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 }
 
 func (c *Cluster) deployCoreDNS(ctx context.Context) error {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/addons.go deployCoreDNS")
+	
         log.Infof(ctx, "[addons] Setting up CoreDNS")
         coreDNSConfig := map[string]string{
 		addons.CoreDNSServer:          c.ClusterDNSServer,
@@ -223,6 +232,9 @@ func (c *Cluster) deployCoreDNS(ctx context.Context) error {
 }
 
 func (c *Cluster) deployMetricServer(ctx context.Context) error {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/addons.go deployMetricServer")
+	
 	log.Infof(ctx, "[addons] Setting up Metrics Server")
 	MetricsServerConfig := MetricsServerOptions{
 		MetricsServerImage: c.SystemImages.MetricsServer,

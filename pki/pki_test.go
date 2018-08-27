@@ -16,6 +16,9 @@ const (
 )
 
 func TestPKI(t *testing.T) {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/pki/pki_test.go TestPKI")
+	
 	rkeConfig := v3.RancherKubernetesEngineConfig{
 		Nodes: []v3.RKEConfigNode{
 			v3.RKEConfigNode{

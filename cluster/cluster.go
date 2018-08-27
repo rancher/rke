@@ -139,6 +139,9 @@ func ParseCluster(
 	dockerDialerFactory,
 	localConnDialerFactory hosts.DialerFactory,
 	k8sWrapTransport k8s.WrapTransport) (*Cluster, error) {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/cluster.go ParseCluster")
+	
 	var err error
 	c := &Cluster{
 		RancherKubernetesEngineConfig: *rkeConfig,
@@ -148,6 +151,7 @@ func ParseCluster(
 		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
 		K8sWrapTransport:              k8sWrapTransport,
 	}
+	
 	// Setting cluster Defaults
 	c.setClusterDefaults(ctx)
 

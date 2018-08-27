@@ -77,6 +77,9 @@ func validateHostsOptions(c *Cluster) error {
 }
 
 func validateServicesOptions(c *Cluster) error {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/validation.go validateServicesOptions ")
+	
 	servicesOptions := map[string]string{
 		"etcd_image":                               c.Services.Etcd.Image,
 		"kube_api_image":                           c.Services.KubeAPI.Image,
@@ -91,6 +94,7 @@ func validateServicesOptions(c *Cluster) error {
 		"kubelet_infra_container_image":            c.Services.Kubelet.InfraContainerImage,
 		"kubeproxy_image":                          c.Services.Kubeproxy.Image,
 	}
+	
 	for optionName, OptionValue := range servicesOptions {
 		if len(OptionValue) == 0 {
 			return fmt.Errorf("%s can't be empty", strings.Join(strings.Split(optionName, "_"), " "))

@@ -68,6 +68,9 @@ func GenerateCACertAndKey(commonName string) (*x509.Certificate, *rsa.PrivateKey
 }
 
 func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP net.IP, SANs []string) *cert.AltNames {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/pki/util.go GetAltNames")
+	
 	ips := []net.IP{}
 	dnsNames := []string{}
 	for _, host := range cpHosts {

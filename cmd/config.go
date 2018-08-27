@@ -270,6 +270,9 @@ func getSystemImagesConfig(reader *bufio.Reader) (*v3.RKESystemImages, error) {
 }
 
 func getServiceConfig(reader *bufio.Reader) (*v3.RKEConfigServices, error) {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cmd/config.go getServiceConfig")
+	
 	servicesConfig := v3.RKEConfigServices{}
 	servicesConfig.Etcd = v3.ETCDService{}
 	servicesConfig.KubeAPI = v3.KubeAPIService{}

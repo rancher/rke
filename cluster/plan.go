@@ -306,7 +306,9 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		c.getRKEToolsEntryPoint(),
 		"kubelet",
 	}
-
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/plan.go BuildKubeletProcess")
+	
 	CommandArgs := map[string]string{
 		"v":                            "2",
 		"address":                      "0.0.0.0",

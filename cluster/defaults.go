@@ -1,6 +1,9 @@
 package cluster
 
 import (
+	
+	"fmt"
+	
 	"context"
 
 	"github.com/rancher/rke/k8s"
@@ -113,6 +116,9 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 }
 
 func (c *Cluster) setClusterServicesDefaults() {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/defaults.go setClusterServicesDefaults")
+	
 	// We don't accept per service images anymore.
 	c.Services.KubeAPI.Image = c.SystemImages.Kubernetes
 	c.Services.Scheduler.Image = c.SystemImages.Kubernetes
@@ -133,12 +139,16 @@ func (c *Cluster) setClusterServicesDefaults() {
 		&c.Services.Etcd.Creation:                        DefaultEtcdBackupCreationPeriod,
 		&c.Services.Etcd.Retention:                       DefaultEtcdBackupRetentionPeriod,
 	}
+	
 	for k, v := range serviceConfigDefaultsMap {
 		setDefaultIfEmpty(k, v)
 	}
 }
 
 func (c *Cluster) setClusterImageDefaults() {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/cluster/defaults.go setClusterImageDefaults")
+	
 	imageDefaults, ok := v3.K8sVersionToRKESystemImages[c.Version]
 	if !ok {
 		imageDefaults = v3.K8sVersionToRKESystemImages[DefaultK8sVersion]
@@ -172,7 +182,7 @@ func (c *Cluster) setClusterImageDefaults() {
 		&c.SystemImages.IngressBackend:            imageDefaults.IngressBackend,
 		&c.SystemImages.MetricsServer:             imageDefaults.MetricsServer,
 	}
-
+	
 	for k, v := range systemImagesDefaultsMap {
 		setDefaultIfEmpty(k, v)
 	}
