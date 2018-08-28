@@ -205,7 +205,7 @@ func (c *Cluster) deployKubeDNS(ctx context.Context) error {
 	if err := c.doAddonDeploy(ctx, kubeDNSYaml, KubeDNSAddonResourceName, false); err != nil {
 		return err
 	}
-	log.Infof(ctx, "[addons] CoreDNS deployed successfully..")
+	log.Infof(ctx, "[addons] KubeDNS deployed successfully..")
 	return nil
 }
 

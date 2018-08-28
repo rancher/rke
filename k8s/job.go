@@ -71,6 +71,9 @@ func DeleteK8sSystemJob(jobYaml string, k8sClient *kubernetes.Clientset, timeout
 }
 
 func ensureJobCompleted(k8sClient *kubernetes.Clientset, j interface{}) error {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/k8s/job.go ensureJobCompleted")
+	
 	job := j.(v1.Job)
 
 	jobStatus, err := GetK8sJobStatus(k8sClient, job.Name, job.Namespace)
@@ -107,10 +110,16 @@ func deleteK8sJob(k8sClient *kubernetes.Clientset, name, namespace string) error
 }
 
 func getK8sJob(k8sClient *kubernetes.Clientset, name, namespace string) (*v1.Job, error) {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/k8s/job.go getK8sJob")
+	
 	return k8sClient.BatchV1().Jobs(namespace).Get(name, metav1.GetOptions{})
 }
 
 func GetK8sJobStatus(k8sClient *kubernetes.Clientset, name, namespace string) (JobStatus, error) {
+	
+	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/k8s/job.go GetK8sJobStatus")
+	
 	existingJob, err := getK8sJob(k8sClient, name, namespace)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
