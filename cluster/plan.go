@@ -31,6 +31,10 @@ const (
 	DefaultToolsEntrypoint        = "/opt/rke-tools/entrypoint.sh"
 	DefaultToolsEntrypointVersion = "0.1.13"
 	LegacyToolsEntrypoint         = "/opt/rke/entrypoint.sh"
+
+	KubeletDockerConfigEnv     = "RKE_KUBELET_DOCKER_CONFIG"
+	KubeletDockerConfigFileEnv = "RKE_KUBELET_DOCKER_FILE"
+	KubeletDockerConfigPath    = "/var/lib/kubelet/config.json"
 )
 
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, hostsInfoMap map[string]types.Info) (v3.RKEPlan, error) {
@@ -345,6 +349,17 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		c.Services.Kubelet.ExtraEnv = append(
 			c.Services.Kubelet.ExtraEnv,
 			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudProvider)))
+	}
+	if len(c.PrivateRegistriesMap) > 0 {
+		kubeletDcokerConfig, _ := docker.GetKubeletDockerConfig(c.PrivateRegistriesMap)
+		c.Services.Kubelet.ExtraEnv = append(
+			c.Services.Kubelet.ExtraEnv,
+			fmt.Sprintf("%s=%s", KubeletDockerConfigEnv,
+				b64.StdEncoding.EncodeToString([]byte(kubeletDcokerConfig))))
+
+		c.Services.Kubelet.ExtraEnv = append(
+			c.Services.Kubelet.ExtraEnv,
+			fmt.Sprintf("%s=%s", KubeletDockerConfigFileEnv, path.Join(prefixPath, KubeletDockerConfigPath)))
 	}
 	// check if our version has specific options for this component
 	serviceOptions := c.GetKubernetesServicesOptions()
