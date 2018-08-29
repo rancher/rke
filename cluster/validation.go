@@ -128,7 +128,14 @@ func validateIngressOptions(c *Cluster) error {
 
 func ValidateHostCount(c *Cluster) error {
 	if len(c.EtcdHosts) == 0 && len(c.Services.Etcd.ExternalURLs) == 0 {
-		return fmt.Errorf("Cluster must have at least one etcd plane host")
+		failedEtcdHosts := []string{}
+		for _, host := range c.InactiveHosts {
+			if host.IsEtcd {
+				failedEtcdHosts = append(failedEtcdHosts, host.Address)
+			}
+			return fmt.Errorf("Cluster must have at least one etcd plane host: failed to connect to the following etcd host(s) %v", failedEtcdHosts)
+		}
+		return fmt.Errorf("Cluster must have at least one etcd plane host: please specify one or more etcd in cluster config")
 	}
 	if len(c.EtcdHosts) > 0 && len(c.Services.Etcd.ExternalURLs) > 0 {
 		return fmt.Errorf("Cluster can't have both internal and external etcd")
