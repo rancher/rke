@@ -37,6 +37,8 @@ const (
 	KubeletDockerConfigPath    = "/var/lib/kubelet/config.json"
 )
 
+var admissionControlOptionNames = []string{"enable-admission-plugins", "admission-control"}
+
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, hostsInfoMap map[string]types.Info) (v3.RKEPlan, error) {
 	clusterPlan := v3.RKEPlan{}
 	myCluster, err := ParseCluster(ctx, rkeConfig, "", "", nil, nil, nil)
@@ -126,7 +128,6 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 		"kubelet-preferred-address-types":    "InternalIP,ExternalIP,Hostname",
 		"service-cluster-ip-range":           c.Services.KubeAPI.ServiceClusterIPRange,
 		"service-node-port-range":            c.Services.KubeAPI.ServiceNodePortRange,
-		"admission-control":                  "ServiceAccount,NamespaceLifecycle,LimitRanger,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds",
 		"storage-backend":                    "etcd3",
 		"client-ca-file":                     pki.GetCertPath(pki.CACertName),
 		"tls-cert-file":                      pki.GetCertPath(pki.KubeAPICertName),
@@ -172,7 +173,12 @@ func (c *Cluster) BuildKubeAPIProcess(prefixPath string) v3.Process {
 	}
 	if c.Services.KubeAPI.PodSecurityPolicy {
 		CommandArgs["runtime-config"] = "extensions/v1beta1/podsecuritypolicy=true"
-		CommandArgs["admission-control"] = CommandArgs["admission-control"] + ",PodSecurityPolicy"
+		for _, optionName := range admissionControlOptionNames {
+			if _, ok := CommandArgs[optionName]; ok {
+				CommandArgs[optionName] = CommandArgs[optionName] + ",PodSecurityPolicy"
+				break
+			}
+		}
 	}
 
 	VolumesFrom := []string{
