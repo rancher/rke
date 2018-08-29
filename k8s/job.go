@@ -120,7 +120,14 @@ func GetK8sJobStatus(k8sClient *kubernetes.Clientset, name, namespace string) (J
 	
 	fmt.Println(">>>>> >>>>> /root/go/src/github.com/rancher/rke/k8s/job.go GetK8sJobStatus")
 	
+	fmt.Println(">>>>> >>>>> GetK8sJobStatus >>>>> >>>>> current name : ", name)
+	
+	fmt.Println(">>>>> >>>>> GetK8sJobStatus >>>>> >>>>> current namespaces : ", namespace)
+	
 	existingJob, err := getK8sJob(k8sClient, name, namespace)
+	
+	fmt.Println(">>>>> >>>>> GetK8sJobStatus >>>>> >>>>> current existingJob : ", existingJob)
+	
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return JobStatus{}, nil
