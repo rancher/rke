@@ -53,7 +53,7 @@ type BastionHost struct {
 	// SSH Agent Auth enable
 	SSHAgentAuth bool `yaml:"ssh_agent_auth,omitempty" json:"sshAgentAuth,omitempty"`
 	// SSH Private Key
-	SSHKey string `yaml:"ssh_key" json:"sshKey,omitempty"`
+	SSHKey string `yaml:"ssh_key" json:"sshKey,omitempty" norman:"type=password"`
 	// SSH Private Key Path
 	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
 }
@@ -65,6 +65,8 @@ type PrivateRegistry struct {
 	User string `yaml:"user" json:"user,omitempty"`
 	// Password for registry access
 	Password string `yaml:"password" json:"password,omitempty"`
+	// Default registry
+	IsDefault bool `yaml:"is_default" json:"isDefault,omitempty"`
 }
 
 type RKESystemImages struct {
