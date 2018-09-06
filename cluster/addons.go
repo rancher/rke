@@ -355,7 +355,6 @@ func (c *Cluster) deployIngress(ctx context.Context) error {
 		Options:        c.Ingress.Options,
 		NodeSelector:   c.Ingress.NodeSelector,
 		ExtraArgs:      c.Ingress.ExtraArgs,
-		AlpineImage:    c.SystemImages.Alpine,
 		IngressImage:   c.SystemImages.Ingress,
 		IngressBackend: c.SystemImages.IngressBackend,
 	}
