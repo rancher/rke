@@ -10,6 +10,9 @@ import (
 	"strings"
 
 	"github.com/rancher/rke/cluster"
+	"github.com/rancher/rke/nodeconfigproviders"
+	// Importing dockermachine nodeprovider so that it inits when config command is executed
+	_ "github.com/rancher/rke/nodeconfigproviders/dockermachine"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
@@ -53,6 +56,10 @@ func ConfigCommand() cli.Command {
 			cli.StringFlag{
 				Name:  "version",
 				Usage: "Generate the default system images for specific k8s versions",
+			},
+			cli.StringFlag{
+				Name:  "node-provider,N",
+				Usage: "Get node configurations from a node provider. ie. docker-machine",
 			},
 		},
 	}
@@ -115,25 +122,53 @@ func clusterConfig(ctx *cli.Context) error {
 		return err
 	}
 	cluster.SSHKeyPath = sshKeyPath
+	var nodeProvider nodeconfigproviders.NodeConfigProvider
 
-	// Get number of hosts
-	numberOfHostsString, err := getConfig(reader, "Number of Hosts", "1")
-	if err != nil {
-		return err
-	}
-	numberOfHostsInt, err := strconv.Atoi(numberOfHostsString)
-	if err != nil {
-		return err
-	}
+	if ctx.String("node-provider") != "" {
+		providerName := ctx.String("node-provider")
+		nodeProvider, err = nodeconfigproviders.GetNodeProvider(providerName)
 
-	// Get Hosts config
-	cluster.Nodes = make([]v3.RKEConfigNode, 0)
-	for i := 0; i < numberOfHostsInt; i++ {
-		hostCfg, err := getHostConfig(reader, i, cluster.SSHKeyPath)
 		if err != nil {
 			return err
 		}
-		cluster.Nodes = append(cluster.Nodes, *hostCfg)
+	}
+
+	cluster.Nodes = make([]v3.RKEConfigNode, 0)
+	if nodeProvider != nil {
+
+		machines, err := nodeProvider.GetNodesFromConfig(reader)
+
+		if len(machines) == 0 {
+			return fmt.Errorf("no nodes were selected. Please select at least one node")
+		}
+
+		nodes, err := nodeProvider.ReadNodeConfigurations(machines)
+
+		if err != nil {
+			return err
+		}
+
+		cluster.Nodes = append(cluster.Nodes, nodes...)
+	} else {
+
+		// Get number of hosts
+		numberOfHostsString, err := getConfig(reader, "Number of Hosts", "1")
+		if err != nil {
+			return err
+		}
+		numberOfHostsInt, err := strconv.Atoi(numberOfHostsString)
+		if err != nil {
+			return err
+		}
+
+		// Get Hosts config
+		for i := 0; i < numberOfHostsInt; i++ {
+			hostCfg, err := getHostConfig(reader, i, cluster.SSHKeyPath)
+			if err != nil {
+				return err
+			}
+			cluster.Nodes = append(cluster.Nodes, *hostCfg)
+		}
 	}
 
 	// Get Network config
