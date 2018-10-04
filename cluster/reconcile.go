@@ -96,6 +96,10 @@ func reconcileControl(ctx context.Context, currentCluster, kubeCluster *Cluster,
 	}
 	if len(cpToDelete) == len(currentCluster.ControlPlaneHosts) {
 		log.Infof(ctx, "[reconcile] Deleting all current controlplane nodes, skipping deleting from k8s cluster")
+		// rebuilding local admin config to enable saving cluster state
+		if err := rebuildLocalAdminConfig(ctx, kubeCluster); err != nil {
+			return err
+		}
 		return nil
 	}
 	for _, toDeleteHost := range cpToDelete {
@@ -244,8 +248,12 @@ func cleanControlNode(ctx context.Context, kubeCluster, currentCluster *Cluster,
 	if err != nil {
 		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
 	}
-	if err := hosts.DeleteNode(ctx, toDeleteHost, kubeClient, toDeleteHost.IsWorker, kubeCluster.CloudProvider.Name); err != nil {
-		return fmt.Errorf("Failed to delete controlplane node [%s] from cluster: %v", toDeleteHost.Address, err)
+
+	// if I am deleting a node that's already in the config, it's probably being replaced and I shouldn't remove it  from ks8
+	if !hosts.IsNodeInList(toDeleteHost, kubeCluster.ControlPlaneHosts) {
+		if err := hosts.DeleteNode(ctx, toDeleteHost, kubeClient, toDeleteHost.IsWorker, kubeCluster.CloudProvider.Name); err != nil {
+			return fmt.Errorf("Failed to delete controlplane node [%s] from cluster: %v", toDeleteHost.Address, err)
+		}
 	}
 	// attempting to clean services/files on the host
 	if err := reconcileHost(ctx, toDeleteHost, false, false, currentCluster.SystemImages.Alpine, currentCluster.DockerDialerFactory, currentCluster.PrivateRegistriesMap, currentCluster.PrefixPath, currentCluster.Version); err != nil {
