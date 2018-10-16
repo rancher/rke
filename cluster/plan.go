@@ -418,8 +418,15 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 		Binds = append(Binds, "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins:shared,z")
 	}
 
+	// Cluster level override kubelet command option
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
 		if _, ok := c.Services.Kubelet.ExtraArgs[arg]; ok {
+			CommandArgs[arg] = value
+		}
+	}
+	// Node level override kubelet command option
+	for arg, value := range host.RKEConfigNode.Services.Kubelet.ExtraArgs {
+		if _, ok := host.RKEConfigNode.Services.Kubelet.ExtraArgs[arg]; ok {
 			CommandArgs[arg] = value
 		}
 	}
@@ -489,8 +496,15 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
 	}
 
+	// Cluster level override kubeproxy command option
 	for arg, value := range c.Services.Kubeproxy.ExtraArgs {
 		if _, ok := c.Services.Kubeproxy.ExtraArgs[arg]; ok {
+			CommandArgs[arg] = value
+		}
+	}
+	// Node level override kubeproxy command option
+	for arg, value := range host.RKEConfigNode.Services.Kubeproxy.ExtraArgs {
+		if _, ok := host.RKEConfigNode.Services.Kubeproxy.ExtraArgs[arg]; ok {
 			CommandArgs[arg] = value
 		}
 	}
