@@ -26,6 +26,24 @@ func EtcdCommand() cli.Command {
 			Value:  pki.ClusterConfig,
 			EnvVar: "RKE_CONFIG",
 		},
+		cli.BoolTFlag{
+			Name:  "s3",
+			Usage: "Upload Snapshot to AWS S3",
+		},
+		cli.StringFlag{
+			Name:  "s3-bucket",
+			Usage: "Specify an AWS S3 bucket name",
+		},
+		cli.StringFlag{
+			Name:  "s3-credentials",
+			Usage: "Load AWS S3 credentials from `FILE`",
+			Value: "~/.aws/credentials",
+		},
+		cli.StringFlag{
+			Name:  "s3-config",
+			Usage: "Load AWS S3 configuration from `FILE`",
+			Value: "~/.aws/config",
+		},
 	}
 
 	snapshotFlags = append(snapshotFlags, commonFlags...)
@@ -54,7 +72,8 @@ func SnapshotSaveEtcdHosts(
 	ctx context.Context,
 	rkeConfig *v3.RancherKubernetesEngineConfig,
 	dockerDialerFactory hosts.DialerFactory,
-	configDir, snapshotName string) error {
+	configDir, snapshotName,
+	s3bucket, s3credsfile, s3configfile string, s3 bool) error {
 
 	log.Infof(ctx, "Starting saving snapshot on etcd hosts")
 	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dockerDialerFactory, nil, nil)
@@ -65,7 +84,7 @@ func SnapshotSaveEtcdHosts(
 	if err := kubeCluster.TunnelHosts(ctx, false); err != nil {
 		return err
 	}
-	if err := kubeCluster.SnapshotEtcd(ctx, snapshotName); err != nil {
+	if err := kubeCluster.SnapshotEtcd(ctx, snapshotName, s3bucket, s3credsfile, s3configfile, s3); err != nil {
 		return err
 	}
 
@@ -124,7 +143,7 @@ func SnapshotSaveEtcdHostsFromCli(ctx *cli.Context) error {
 		etcdSnapshotName = fmt.Sprintf("rke_etcd_snapshot_%s", time.Now().Format(time.RFC3339))
 		logrus.Warnf("Name of the snapshot is not specified using [%s]", etcdSnapshotName)
 	}
-	return SnapshotSaveEtcdHosts(context.Background(), rkeConfig, nil, "", etcdSnapshotName)
+	return SnapshotSaveEtcdHosts(context.Background(), rkeConfig, nil, "", etcdSnapshotName, ctx.String("s3-bucket"), ctx.String("s3-credentials"), ctx.String("s3-config"), ctx.Bool("s3"))
 }
 
 func RestoreEtcdSnapshotFromCli(ctx *cli.Context) error {

@@ -1,12 +1,13 @@
 package services
 
 import (
+	"context"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"strings"
 	"time"
-
-	"context"
 
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/docker/docker/api/types/container"
@@ -55,7 +56,7 @@ func RunEtcdPlane(
 			return err
 		}
 		if etcdSnapshot.Snapshot {
-			if err := RunEtcdSnapshotSave(ctx, host, prsMap, alpineImage, etcdSnapshot.Creation, etcdSnapshot.Retention, EtcdSnapshotContainerName, false); err != nil {
+			if err := RunEtcdSnapshotSave(ctx, host, prsMap, alpineImage, etcdSnapshot.Creation, etcdSnapshot.Retention, EtcdSnapshotContainerName, "", "", "", false, false); err != nil {
 				return err
 			}
 			if err := pki.SaveBackupBundleOnHost(ctx, host, alpineImage, EtcdSnapshotPath, prsMap); err != nil {
@@ -235,7 +236,7 @@ func IsEtcdMember(ctx context.Context, etcdHost *hosts.Host, etcdHosts []*hosts.
 	return false, nil
 }
 
-func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, creation, retention, name string, once bool) error {
+func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, creation, retention, name, s3bucket, s3credsfile, s3configfile string, s3, once bool) error {
 	log.Infof(ctx, "[etcd] Saving snapshot [%s] on host [%s]", name, etcdHost.Address)
 	imageCfg := &container.Config{
 		Cmd: []string{
@@ -255,6 +256,34 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	if !once {
 		imageCfg.Cmd = append(imageCfg.Cmd, "--retention="+retention)
 		imageCfg.Cmd = append(imageCfg.Cmd, "--creation="+creation)
+	}
+	// boolean flag to export to AWS S3 is true -> set parameters for login and backup location
+	if s3 {
+		imageCfg.Cmd = append(imageCfg.Cmd, "--s3")
+		imageCfg.Cmd = append(imageCfg.Cmd, "--s3bucket="+s3bucket)
+
+		// read the credentials file
+		s3creds, err := ioutil.ReadFile(s3credsfile)
+		if err != nil {
+			return fmt.Errorf("Could not read AWS S3 credentials file (%s), %v", s3credsfile, err)
+		}
+		// Base64-encode the file contents to avoid problems with special characters
+		s3credsEnc := base64.StdEncoding.EncodeToString(s3creds)
+		imageCfg.Cmd = append(imageCfg.Cmd, "--s3creds="+s3credsEnc)
+
+		// tell the AWS SDK to load config from file
+		imageCfg.Env = []string{
+			"AWS_SDK_LOAD_CONFIG=true",
+		}
+		// read the config file
+		s3config, err := ioutil.ReadFile(s3configfile)
+		if err != nil {
+			return fmt.Errorf("Could not read AWS S3 config file (%s), %v", s3configfile, err)
+		}
+		// Base64-encode the file contents to avoid problems with special characters
+		s3configEnc := base64.StdEncoding.EncodeToString(s3config)
+		imageCfg.Cmd = append(imageCfg.Cmd, "--s3conf="+s3configEnc)
+
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{

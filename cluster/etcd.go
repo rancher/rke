@@ -11,9 +11,9 @@ import (
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 )
 
-func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
+func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName, s3bucket, s3credsfile, s3configfile string, s3 bool) error {
 	for _, host := range c.EtcdHosts {
-		if err := services.RunEtcdSnapshotSave(ctx, host, c.PrivateRegistriesMap, c.SystemImages.Alpine, c.Services.Etcd.Creation, c.Services.Etcd.Retention, snapshotName, true); err != nil {
+		if err := services.RunEtcdSnapshotSave(ctx, host, c.PrivateRegistriesMap, c.SystemImages.Alpine, c.Services.Etcd.Creation, c.Services.Etcd.Retention, snapshotName, s3bucket, s3credsfile, s3configfile, s3, true); err != nil {
 			return err
 		}
 	}
