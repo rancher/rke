@@ -11,7 +11,7 @@ OS_ARCH_ARG[windows]="386 amd64"
 OS_ARCH_ARG[darwin]="amd64"
 
 mkdir -p bin
-[ "$(uname)" != "Darwin" ] && LINKFLAGS="-linkmode external -extldflags -static -s"
+[ "$(uname)" != "Darwin" ] && LINKFLAGS="-extldflags -static -s"
 CGO_ENABLED=0 go build -ldflags "-X main.VERSION=$VERSION $LINKFLAGS" -o bin/rke
 
 if [ -n "$CROSS" ]; then
