@@ -11,6 +11,7 @@ import (
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	"github.com/rancher/rke/util"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -118,13 +119,20 @@ func (c *Cluster) InvertIndexHosts() error {
 func (c *Cluster) SetUpHosts(ctx context.Context) error {
 	if c.Authentication.Strategy == X509AuthenticationProvider {
 		log.Infof(ctx, "[certificates] Deploying kubernetes certificates to Cluster nodes")
-		hosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
+		hostList := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 		var errgrp errgroup.Group
 
-		for _, host := range hosts {
-			runHost := host
+		hostsQueue := util.GetObjectQueue(hostList)
+		for w := 0; w < WorkerThreads; w++ {
 			errgrp.Go(func() error {
-				return pki.DeployCertificatesOnPlaneHost(ctx, runHost, c.RancherKubernetesEngineConfig, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap)
+				var errList []error
+				for host := range hostsQueue {
+					err := pki.DeployCertificatesOnPlaneHost(ctx, host.(*hosts.Host), c.RancherKubernetesEngineConfig, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap)
+					if err != nil {
+						errList = append(errList, err)
+					}
+				}
+				return util.ErrList(errList)
 			})
 		}
 		if err := errgrp.Wait(); err != nil {
@@ -136,7 +144,7 @@ func (c *Cluster) SetUpHosts(ctx context.Context) error {
 		}
 		log.Infof(ctx, "[certificates] Successfully deployed kubernetes certificates to Cluster nodes")
 		if c.CloudProvider.Name != "" {
-			if err := deployCloudProviderConfig(ctx, hosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, c.CloudConfigFile); err != nil {
+			if err := deployCloudProviderConfig(ctx, hostList, c.SystemImages.Alpine, c.PrivateRegistriesMap, c.CloudConfigFile); err != nil {
 				return err
 			}
 			log.Infof(ctx, "[%s] Successfully deployed kubernetes cloud config to Cluster nodes", CloudConfigServiceName)

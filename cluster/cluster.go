@@ -16,6 +16,7 @@ import (
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	"github.com/rancher/rke/util"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -65,6 +66,8 @@ const (
 	ControlPlane               = "controlPlane"
 	WorkerPlane                = "workerPlan"
 	EtcdPlane                  = "etcd"
+
+	WorkerThreads = util.WorkerThreads
 )
 
 func (c *Cluster) DeployControlPlane(ctx context.Context) error {
@@ -405,13 +408,22 @@ func setNodeAnnotationsLabelsTaints(k8sClient *kubernetes.Clientset, host *hosts
 func (c *Cluster) PrePullK8sImages(ctx context.Context) error {
 	log.Infof(ctx, "Pre-pulling kubernetes images")
 	var errgrp errgroup.Group
-	hosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
-	for _, host := range hosts {
-		runHost := host
+	hostList := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
+	hostsQueue := util.GetObjectQueue(hostList)
+	for w := 0; w < WorkerThreads; w++ {
 		errgrp.Go(func() error {
-			return docker.UseLocalOrPull(ctx, runHost.DClient, runHost.Address, c.SystemImages.Kubernetes, "pre-deploy", c.PrivateRegistriesMap)
+			var errList []error
+			for host := range hostsQueue {
+				runHost := host.(*hosts.Host)
+				err := docker.UseLocalOrPull(ctx, runHost.DClient, runHost.Address, c.SystemImages.Kubernetes, "pre-deploy", c.PrivateRegistriesMap)
+				if err != nil {
+					errList = append(errList, err)
+				}
+			}
+			return util.ErrList(errList)
 		})
 	}
+
 	if err := errgrp.Wait(); err != nil {
 		return err
 	}
