@@ -2,6 +2,7 @@ package objectclient
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/rancher/norman/restwatch"
@@ -11,10 +12,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	json2 "k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/apimachinery/pkg/runtime/serializer/streaming"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
+	restclientwatch "k8s.io/client-go/rest/watch"
 )
 
 type ObjectFactory interface {
@@ -90,9 +93,20 @@ func (p *ObjectClient) getAPIPrefix() string {
 
 func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 	ns := p.ns
-	if obj, ok := o.(metav1.Object); ok && obj.GetNamespace() != "" {
+	obj, ok := o.(metav1.Object)
+	if ok && obj.GetNamespace() != "" {
 		ns = obj.GetNamespace()
 	}
+
+	if ok {
+		labels := obj.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+		labels["cattle.io/creator"] = "norman"
+		obj.SetLabels(labels)
+	}
+
 	if t, err := meta.TypeAccessor(o); err == nil {
 		if t.GetKind() == "" {
 			t.SetKind(p.gvk.Kind)
@@ -123,7 +137,7 @@ func (p *ObjectClient) GetNamespaced(namespace, name string, opts metav1.GetOpti
 	}
 	err := req.
 		Resource(p.resource.Name).
-		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
+		VersionedParams(&opts, metav1.ParameterCodec).
 		Name(name).
 		Do().
 		Into(result)
@@ -138,7 +152,7 @@ func (p *ObjectClient) Get(name string, opts metav1.GetOptions) (runtime.Object,
 		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
-		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
+		VersionedParams(&opts, metav1.ParameterCodec).
 		Name(name).
 		Do().
 		Into(result)
@@ -200,7 +214,7 @@ func (p *ObjectClient) List(opts metav1.ListOptions) (runtime.Object, error) {
 		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
-		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
+		VersionedParams(&opts, metav1.ParameterCodec).
 		Do().
 		Into(result)
 }
@@ -216,16 +230,47 @@ func (p *ObjectClient) Watch(opts metav1.ListOptions) (watch.Interface, error) {
 		Prefix("watch").
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
-		VersionedParams(&opts, dynamic.VersionedParameterEncoderWithV1Fallback).
+		VersionedParams(&opts, metav1.ParameterCodec).
 		Stream()
 	if err != nil {
 		return nil, err
 	}
-	return watch.NewStreamWatcher(&dynamicDecoder{
+
+	embeddedDecoder := &structuredDecoder{
 		factory: p.Factory,
-		dec:     json.NewDecoder(r),
-		close:   r.Close,
-	}), nil
+	}
+	streamDecoder := streaming.NewDecoder(json2.Framer.NewFrameReader(r), embeddedDecoder)
+	decoder := restclientwatch.NewDecoder(streamDecoder, embeddedDecoder)
+	return watch.NewStreamWatcher(decoder), nil
+}
+
+type structuredDecoder struct {
+	factory ObjectFactory
+}
+
+func (d *structuredDecoder) Decode(data []byte, defaults *schema.GroupVersionKind, into runtime.Object) (runtime.Object, *schema.GroupVersionKind, error) {
+	if into == nil {
+		into = d.factory.Object()
+	}
+
+	err := json.Unmarshal(data, &into)
+	if err != nil {
+		status := &metav1.Status{}
+		if err := json.Unmarshal(data, status); err == nil && strings.ToLower(status.Kind) == "status" {
+			return status, defaults, nil
+		}
+		return nil, nil, err
+	}
+
+	if _, ok := into.(*metav1.Status); !ok && strings.ToLower(into.GetObjectKind().GroupVersionKind().Kind) == "status" {
+		into = &metav1.Status{}
+		err := json.Unmarshal(data, into)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return into, defaults, err
 }
 
 func (p *ObjectClient) DeleteCollection(deleteOptions *metav1.DeleteOptions, listOptions metav1.ListOptions) error {
@@ -233,7 +278,7 @@ func (p *ObjectClient) DeleteCollection(deleteOptions *metav1.DeleteOptions, lis
 		Prefix(p.getAPIPrefix(), p.gvk.Group, p.gvk.Version).
 		NamespaceIfScoped(p.ns, p.resource.Namespaced).
 		Resource(p.resource.Name).
-		VersionedParams(&listOptions, dynamic.VersionedParameterEncoderWithV1Fallback).
+		VersionedParams(&listOptions, metav1.ParameterCodec).
 		Body(deleteOptions).
 		Do().
 		Error()
@@ -262,41 +307,4 @@ func (p *ObjectClient) Patch(name string, o runtime.Object, data []byte, subreso
 
 func (p *ObjectClient) ObjectFactory() ObjectFactory {
 	return p.Factory
-}
-
-type dynamicDecoder struct {
-	factory ObjectFactory
-	dec     *json.Decoder
-	close   func() error
-}
-
-func (d *dynamicDecoder) Close() {
-	d.close()
-}
-
-func (d *dynamicDecoder) Decode() (action watch.EventType, object runtime.Object, err error) {
-	e := dynamicEvent{
-		Object: holder{
-			factory: d.factory,
-		},
-	}
-	if err := d.dec.Decode(&e); err != nil {
-		return watch.Error, nil, err
-	}
-	return e.Type, e.Object.obj, nil
-}
-
-type dynamicEvent struct {
-	Type   watch.EventType
-	Object holder
-}
-
-type holder struct {
-	factory ObjectFactory
-	obj     runtime.Object
-}
-
-func (h *holder) UnmarshalJSON(b []byte) error {
-	h.obj = h.factory.Object()
-	return json.Unmarshal(b, h.obj)
 }

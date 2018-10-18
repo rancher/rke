@@ -3,11 +3,13 @@ package controller
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	errors2 "github.com/pkg/errors"
+	"github.com/rancher/norman/metrics"
 	"github.com/rancher/norman/objectclient"
 	"github.com/rancher/norman/types"
 	"github.com/sirupsen/logrus"
@@ -22,9 +24,22 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
+const MetricsQueueEnv = "NORMAN_QUEUE_METRICS"
+const MetricsReflectorEnv = "NORMAN_REFLECTOR_METRICS"
+
 var (
 	resyncPeriod = 2 * time.Hour
 )
+
+// Override the metrics providers
+func init() {
+	if os.Getenv(MetricsQueueEnv) != "true" {
+		DisableControllerWorkqueuMetrics()
+	}
+	if os.Getenv(MetricsReflectorEnv) != "true" {
+		DisableControllerReflectorMetrics()
+	}
+}
 
 type HandlerFunc func(key string) error
 
@@ -194,7 +209,7 @@ func (g *genericController) processNextWorkItem() bool {
 	}
 	if _, ok := checkErr.(*ForgetError); err == nil || ok {
 		if ok {
-			logrus.Infof("%v %v completed with dropped err: %v", g.name, key, err)
+			logrus.Debugf("%v %v completed with dropped err: %v", g.name, key, err)
 		}
 		g.queue.Forget(key)
 		return true
@@ -247,7 +262,11 @@ func (g *genericController) syncHandler(s string) (err error) {
 	var errs []error
 	for _, handler := range g.handlers {
 		logrus.Debugf("%s calling handler %s %s", g.name, handler.name, s)
+		metrics.IncTotalHandlerExecution(g.name, handler.name)
 		if err := handler.handler(s); err != nil {
+			if !ignoreError(err, false) {
+				metrics.IncTotalHandlerFailure(g.name, handler.name, s)
+			}
 			errs = append(errs, &handlerError{
 				name: handler.name,
 				err:  err,
