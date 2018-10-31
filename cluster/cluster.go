@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/cloudprovider"
 	"github.com/rancher/rke/docker"
@@ -31,6 +32,7 @@ type Cluster struct {
 	v3.RancherKubernetesEngineConfig `yaml:",inline"`
 	ConfigPath                       string
 	LocalKubeConfigPath              string
+	StateFilePath                    string
 	EtcdHosts                        []*hosts.Host
 	WorkerHosts                      []*hosts.Host
 	ControlPlaneHosts                []*hosts.Host
@@ -151,9 +153,12 @@ func ParseCluster(
 	localConnDialerFactory hosts.DialerFactory,
 	k8sWrapTransport k8s.WrapTransport) (*Cluster, error) {
 	var err error
+	// get state filepath
+	stateFilePath := GetStateFilePath(clusterFilePath, configDir)
 	c := &Cluster{
 		RancherKubernetesEngineConfig: *rkeConfig,
 		ConfigPath:                    clusterFilePath,
+		StateFilePath:                 stateFilePath,
 		DockerDialerFactory:           dockerDialerFactory,
 		LocalConnDialerFactory:        localConnDialerFactory,
 		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
@@ -505,4 +510,13 @@ func RestartClusterPods(ctx context.Context, kubeCluster *Cluster) error {
 		return err
 	}
 	return nil
+}
+
+func (c *Cluster) GetHostInfoMap() map[string]types.Info {
+	hostsInfoMap := make(map[string]types.Info)
+	allHosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
+	for _, host := range allHosts {
+		hostsInfoMap[host.Address] = host.DockerInfo
+	}
+	return hostsInfoMap
 }
