@@ -2,9 +2,13 @@ package cluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rancher/rke/hosts"
@@ -18,7 +22,22 @@ import (
 	"gopkg.in/yaml.v2"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/util/cert"
 )
+
+const (
+	stateFileExt = ".rkestate"
+)
+
+type RKEFullState struct {
+	DesiredState RKEState `json:"desiredState,omitempty"`
+	CurrentState RKEState `json:"currentState,omitempty"`
+}
+
+type RKEState struct {
+	RancherKubernetesEngineConfig *v3.RancherKubernetesEngineConfig `json:"rkeConfig,omitempty"`
+	CertificatesBundle            map[string]v3.CertificatePKI      `json:"certificatesBundle,omitempty"`
+}
 
 func (c *Cluster) SaveClusterState(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig) error {
 	if len(c.ControlPlaneHosts) > 0 {
@@ -248,4 +267,87 @@ func GetK8sVersion(localConfigPath string, k8sWrapTransport k8s.WrapTransport) (
 		return "", fmt.Errorf("Failed to get Kubernetes server version: %v", err)
 	}
 	return fmt.Sprintf("%#v", *serverVersion), nil
+}
+
+func GenerateDesiredState(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, rkeFullState *RKEFullState) (RKEState, error) {
+	var desiredState RKEState
+	if rkeFullState.DesiredState.CertificatesBundle == nil {
+		// Get the certificate Bundle
+		certBundle, err := pki.GenerateRKECerts(ctx, *rkeConfig, "", "")
+		if err != nil {
+			return desiredState, fmt.Errorf("Failed to generate certificate bundle: %v", err)
+		}
+		// Convert rke certs to v3.certs
+		certificatesBundle := make(map[string]v3.CertificatePKI)
+		for name, certPKI := range certBundle {
+			certificatePEM := string(cert.EncodeCertPEM(certPKI.Certificate))
+			keyPEM := string(cert.EncodePrivateKeyPEM(certPKI.Key))
+			certificatesBundle[name] = v3.CertificatePKI{
+				Name:          certPKI.Name,
+				Config:        certPKI.Config,
+				Certificate:   certificatePEM,
+				Key:           keyPEM,
+				EnvName:       certPKI.EnvName,
+				KeyEnvName:    certPKI.KeyEnvName,
+				ConfigEnvName: certPKI.ConfigEnvName,
+				Path:          certPKI.Path,
+				KeyPath:       certPKI.KeyPath,
+				ConfigPath:    certPKI.ConfigPath,
+				CommonName:    certPKI.CommonName,
+				OUName:        certPKI.OUName,
+			}
+		}
+		desiredState.CertificatesBundle = certificatesBundle
+	} else {
+		desiredState.CertificatesBundle = rkeFullState.DesiredState.CertificatesBundle
+	}
+	desiredState.RancherKubernetesEngineConfig = rkeConfig
+
+	return desiredState, nil
+}
+
+func (s *RKEFullState) WriteStateFile(ctx context.Context, statePath string) error {
+	stateFile, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return fmt.Errorf("Failed to Marshal state object: %v", err)
+	}
+	logrus.Debugf("Writing state file: %s", stateFile)
+	if err := ioutil.WriteFile(statePath, []byte(stateFile), 0640); err != nil {
+		return fmt.Errorf("Failed to write state file: %v", err)
+	}
+	log.Infof(ctx, "Successfully Deployed state file at [%s]", statePath)
+	return nil
+}
+
+func GetStateFilePath(configPath, configDir string) string {
+	baseDir := filepath.Dir(configPath)
+	if len(configDir) > 0 {
+		baseDir = filepath.Dir(configDir)
+	}
+	fileName := filepath.Base(configPath)
+	baseDir += "/"
+	fullPath := fmt.Sprintf("%s%s", baseDir, fileName)
+	trimmedName := strings.TrimSuffix(fullPath, filepath.Ext(fullPath))
+	return trimmedName + stateFileExt
+}
+
+func ReadStateFile(ctx context.Context, statePath string) (*RKEFullState, error) {
+	rkeFullState := &RKEFullState{}
+	fp, err := filepath.Abs(statePath)
+	if err != nil {
+		return rkeFullState, fmt.Errorf("failed to lookup current directory name: %v", err)
+	}
+	file, err := os.Open(fp)
+	if err != nil {
+		return rkeFullState, fmt.Errorf("Can not find RKE state file: %v", err)
+	}
+	defer file.Close()
+	buf, err := ioutil.ReadAll(file)
+	if err != nil {
+		return rkeFullState, fmt.Errorf("failed to read file: %v", err)
+	}
+	if err := json.Unmarshal(buf, rkeFullState); err != nil {
+		return rkeFullState, fmt.Errorf("failed to unmarshal the state file: %v", err)
+	}
+	return rkeFullState, nil
 }

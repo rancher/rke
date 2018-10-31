@@ -282,6 +282,8 @@ type IngressConfig struct {
 type RKEPlan struct {
 	// List of node Plans
 	Nodes []RKEConfigNodePlan `json:"nodes,omitempty"`
+	// Certificates Key Pair
+	CertificatesBundle map[string]CertificatePKI `json:"certificatesBundle,omitempty"`
 }
 
 type RKEConfigNodePlan struct {
@@ -566,4 +568,31 @@ type MonitoringConfig struct {
 	Provider string `yaml:"provider" json:"provider,omitempty" norman:"default=metrics-server"`
 	// Metrics server options
 	Options map[string]string `yaml:"options" json:"options,omitempty"`
+}
+
+type CertificatePKI struct {
+	// Name of the certificate pki
+	Name string
+	// Certificate in PEM format
+	Certificate string
+	// Key in PEM Format
+	Key string
+	// Kubeconfig file
+	Config string
+	// CommonName in the certificate
+	CommonName string
+	// Organizational Name in the certificate
+	OUName string
+	// Environment name of the certificate
+	EnvName string
+	// Path of the certificate on disk
+	Path string
+	// Environment name of the key
+	KeyEnvName string
+	// Path of the key on disk
+	KeyPath string
+	// Environment name of the kubeconfig
+	ConfigEnvName string
+	// Path of the kubeconfig on disk
+	ConfigPath string
 }
