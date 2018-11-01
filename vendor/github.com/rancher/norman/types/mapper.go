@@ -104,6 +104,12 @@ func (t *typeMapper) FromInternal(data map[string]interface{}) {
 			}
 		}
 	}
+
+	if _, ok := data["type"]; !ok && data != nil {
+		if _, ok := data["id"]; ok {
+			data["type"] = t.typeName
+		}
+	}
 }
 
 func (t *typeMapper) ToInternal(data map[string]interface{}) error {

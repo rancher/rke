@@ -2,6 +2,7 @@ package condition
 
 import (
 	"reflect"
+	"regexp"
 	"time"
 
 	"github.com/pkg/errors"
@@ -11,6 +12,8 @@ import (
 )
 
 type Cond string
+
+var temfileRegexp = regexp.MustCompile("/tmp/[-_a-zA-Z0-9]+")
 
 func (c Cond) True(obj runtime.Object) {
 	setStatus(obj, string(c), "True")
@@ -86,9 +89,16 @@ func (c Cond) ReasonAndMessageFromError(obj runtime.Object, err error) {
 	}
 	cond := findOrCreateCond(obj, string(c))
 	setValue(cond, "Message", err.Error())
-	if ce, ok := err.(*conditionError); ok {
+	switch ce := err.(type) {
+	case *conditionError:
 		setValue(cond, "Reason", ce.reason)
-	} else {
+	case *controller.ForgetError:
+		if ce.Reason != "" {
+			setValue(cond, "Reason", ce.Reason)
+		} else {
+			setValue(cond, "Reason", "Error")
+		}
+	default:
 		setValue(cond, "Reason", "Error")
 	}
 }
@@ -133,9 +143,14 @@ func (c Cond) do(obj runtime.Object, f func() (runtime.Object, error)) (runtime.
 
 	// This is to prevent non stop flapping of states and update
 	if status == c.GetStatus(obj) &&
-		reason == c.GetReason(obj) &&
-		message == c.GetMessage(obj) {
-		c.LastUpdated(obj, ts)
+		reason == c.GetReason(obj) {
+		if message != c.GetMessage(obj) {
+			replaced := temfileRegexp.ReplaceAllString(c.GetMessage(obj), "file_path_redacted")
+			c.Message(obj, replaced)
+		}
+		if message == c.GetMessage(obj) {
+			c.LastUpdated(obj, ts)
+		}
 	}
 
 	return obj, err

@@ -86,9 +86,6 @@ func (s *Schemas) doRemoveSchema(schema Schema) *Schemas {
 }
 
 func (s *Schemas) removeReferences(schema *Schema) {
-	fullType := convert.ToFullReference(schema.Version.Path, schema.ID)
-	delete(s.references, fullType)
-
 	for name, values := range s.references {
 		changed := false
 		var modified []BackReference
@@ -173,7 +170,12 @@ func (s *Schemas) embed(schema *Schema) {
 	newSchema.ResourceFields = map[string]Field{}
 
 	for k, v := range target.ResourceFields {
-		newSchema.ResourceFields[k] = v
+		// We remove the dynamic fields off the existing schema in case
+		// they've been removed from the dynamic schema so they won't
+		// be accidentally left over
+		if !v.DynamicField {
+			newSchema.ResourceFields[k] = v
+		}
 	}
 	for k, v := range schema.ResourceFields {
 		newSchema.ResourceFields[k] = v
