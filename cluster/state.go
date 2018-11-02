@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -39,6 +40,16 @@ type RKEState struct {
 	CertificatesBundle            map[string]v3.CertificatePKI      `json:"certificatesBundle,omitempty"`
 }
 
+func (c *Cluster) UpdateClusterSate(ctx context.Context, fullState *RKEFullState) error {
+	currentState, err := RebuildState(ctx, &c.RancherKubernetesEngineConfig, fullState.CurrentState)
+	if err != nil {
+		return err
+	}
+	currentState.CertificatesBundle = TransformCertsToV3Certs(c.Certificates)
+	fullState.CurrentState = currentState
+	return fullState.WriteStateFile(ctx, c.StateFilePath)
+}
+
 func (c *Cluster) SaveClusterState(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig) error {
 	if len(c.ControlPlaneHosts) > 0 {
 		// Reinitialize kubernetes Client
@@ -62,6 +73,98 @@ func (c *Cluster) SaveClusterState(ctx context.Context, rkeConfig *v3.RancherKub
 		return fmt.Errorf("[state] Failed to save configuration state to nodes: %v", err)
 	}
 	return nil
+}
+
+func TransformV3CertsToCerts(in map[string]v3.CertificatePKI) map[string]pki.CertificatePKI {
+	out := map[string]pki.CertificatePKI{}
+	for k, v := range in {
+		certs, _ := cert.ParseCertsPEM([]byte(v.Certificate))
+		key, _ := cert.ParsePrivateKeyPEM([]byte(v.Key))
+		o := pki.CertificatePKI{
+			ConfigEnvName: v.ConfigEnvName,
+			Name:          v.Name,
+			Config:        v.Config,
+			CommonName:    v.CommonName,
+			OUName:        v.OUName,
+			EnvName:       v.EnvName,
+			Path:          v.Path,
+			KeyEnvName:    v.KeyEnvName,
+			KeyPath:       v.KeyPath,
+			ConfigPath:    v.ConfigPath,
+			Certificate:   certs[0],
+			Key:           key.(*rsa.PrivateKey),
+		}
+		out[k] = o
+	}
+	return out
+}
+
+func TransformCertsToV3Certs(in map[string]pki.CertificatePKI) map[string]v3.CertificatePKI {
+	out := map[string]v3.CertificatePKI{}
+	for k, v := range in {
+		certificate := string(cert.EncodeCertPEM(v.Certificate))
+		key := string(cert.EncodePrivateKeyPEM(v.Key))
+		o := v3.CertificatePKI{
+			Name:          v.Name,
+			Config:        v.Config,
+			Certificate:   certificate,
+			Key:           key,
+			EnvName:       v.EnvName,
+			KeyEnvName:    v.KeyEnvName,
+			ConfigEnvName: v.ConfigEnvName,
+			Path:          v.Path,
+			KeyPath:       v.KeyPath,
+			ConfigPath:    v.ConfigPath,
+			CommonName:    v.CommonName,
+			OUName:        v.OUName,
+		}
+		out[k] = o
+	}
+	return out
+}
+func (c *Cluster) NewGetClusterState(ctx context.Context, fullState *RKEFullState, configDir string) (*Cluster, error) {
+	var err error
+	// no current state, take me home
+	if fullState.CurrentState.RancherKubernetesEngineConfig == nil {
+		return nil, nil
+	}
+	// Do I still need to check and fix kube config ?
+
+	currentCluster, err := InitClusterObject(ctx, fullState.CurrentState.RancherKubernetesEngineConfig, c.ConfigPath, configDir)
+	if err != nil {
+		return nil, err
+	}
+
+	currentCluster.Certificates = TransformV3CertsToCerts(fullState.CurrentState.CertificatesBundle)
+
+	currentCluster.SetupDialers(ctx, c.DockerDialerFactory, c.LocalConnDialerFactory, c.K8sWrapTransport)
+
+	activeEtcdHosts := currentCluster.EtcdHosts
+	for _, inactiveHost := range c.InactiveHosts {
+		activeEtcdHosts = removeFromHosts(inactiveHost, activeEtcdHosts)
+	}
+	// make sure I have all the etcd certs, We need handle dialer failure for etcd nodes https://github.com/rancher/rancher/issues/12898
+	for _, host := range activeEtcdHosts {
+		certName := pki.GetEtcdCrtName(host.InternalAddress)
+		if (currentCluster.Certificates[certName] == pki.CertificatePKI{}) {
+			if currentCluster.Certificates, err = pki.RegenerateEtcdCertificate(ctx,
+				currentCluster.Certificates,
+				host,
+				activeEtcdHosts,
+				currentCluster.ClusterDomain,
+				currentCluster.KubernetesServiceIP); err != nil {
+				return nil, err
+			}
+		}
+	}
+	currentCluster.Certificates, err = regenerateAPICertificate(c, currentCluster.Certificates)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to regenerate KubeAPI certificate %v", err)
+	}
+
+	currentCluster.setClusterDefaults(ctx)
+
+	return currentCluster, nil
 }
 
 func (c *Cluster) GetClusterState(ctx context.Context) (*Cluster, error) {
@@ -269,41 +372,22 @@ func GetK8sVersion(localConfigPath string, k8sWrapTransport k8s.WrapTransport) (
 	return fmt.Sprintf("%#v", *serverVersion), nil
 }
 
-func GenerateDesiredState(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, rkeFullState *RKEFullState) (RKEState, error) {
-	var desiredState RKEState
-	if rkeFullState.DesiredState.CertificatesBundle == nil {
+func RebuildState(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, oldState RKEState) (RKEState, error) {
+	var newState RKEState
+	if oldState.CertificatesBundle == nil {
 		// Get the certificate Bundle
 		certBundle, err := pki.GenerateRKECerts(ctx, *rkeConfig, "", "")
 		if err != nil {
-			return desiredState, fmt.Errorf("Failed to generate certificate bundle: %v", err)
+			return newState, fmt.Errorf("Failed to generate certificate bundle: %v", err)
 		}
 		// Convert rke certs to v3.certs
-		certificatesBundle := make(map[string]v3.CertificatePKI)
-		for name, certPKI := range certBundle {
-			certificatePEM := string(cert.EncodeCertPEM(certPKI.Certificate))
-			keyPEM := string(cert.EncodePrivateKeyPEM(certPKI.Key))
-			certificatesBundle[name] = v3.CertificatePKI{
-				Name:          certPKI.Name,
-				Config:        certPKI.Config,
-				Certificate:   certificatePEM,
-				Key:           keyPEM,
-				EnvName:       certPKI.EnvName,
-				KeyEnvName:    certPKI.KeyEnvName,
-				ConfigEnvName: certPKI.ConfigEnvName,
-				Path:          certPKI.Path,
-				KeyPath:       certPKI.KeyPath,
-				ConfigPath:    certPKI.ConfigPath,
-				CommonName:    certPKI.CommonName,
-				OUName:        certPKI.OUName,
-			}
-		}
-		desiredState.CertificatesBundle = certificatesBundle
+		newState.CertificatesBundle = TransformCertsToV3Certs(certBundle)
 	} else {
-		desiredState.CertificatesBundle = rkeFullState.DesiredState.CertificatesBundle
+		newState.CertificatesBundle = oldState.CertificatesBundle
 	}
-	desiredState.RancherKubernetesEngineConfig = rkeConfig
+	newState.RancherKubernetesEngineConfig = rkeConfig
 
-	return desiredState, nil
+	return newState, nil
 }
 
 func (s *RKEFullState) WriteStateFile(ctx context.Context, statePath string) error {
