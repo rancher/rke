@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/authz"
-	"github.com/rancher/rke/cloudprovider"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
@@ -145,6 +144,63 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	return &rkeConfig, nil
 }
 
+func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath, configDir string) (*Cluster, error) {
+	// basic cluster object from rkeConfig
+	c := &Cluster{
+		RancherKubernetesEngineConfig: *rkeConfig,
+		ConfigPath:                    clusterFilePath,
+		StateFilePath:                 GetStateFilePath(clusterFilePath, configDir),
+		LocalKubeConfigPath:           pki.GetLocalKubeConfig(clusterFilePath, configDir),
+		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
+	}
+	if len(c.ConfigPath) == 0 {
+		c.ConfigPath = pki.ClusterConfig
+	}
+	// Setting cluster Defaults
+	c.setClusterDefaults(ctx)
+	// extract cluster network configuration
+	c.setNetworkOptions()
+	// set hosts groups
+	if err := c.InvertIndexHosts(); err != nil {
+		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)
+	}
+	// validate cluster configuration
+	if err := c.ValidateCluster(); err != nil {
+		return nil, fmt.Errorf("Failed to validate cluster: %v", err)
+	}
+	return c, nil
+}
+
+func (c *Cluster) setNetworkOptions() error {
+	var err error
+	c.KubernetesServiceIP, err = pki.GetKubernetesServiceIP(c.Services.KubeAPI.ServiceClusterIPRange)
+	if err != nil {
+		return fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
+	}
+	c.ClusterDomain = c.Services.Kubelet.ClusterDomain
+	c.ClusterCIDR = c.Services.KubeController.ClusterCIDR
+	c.ClusterDNSServer = c.Services.Kubelet.ClusterDNSServer
+	return nil
+}
+
+func (c *Cluster) SetupDialers(ctx context.Context, dockerDialerFactory,
+	localConnDialerFactory hosts.DialerFactory,
+	k8sWrapTransport k8s.WrapTransport) error {
+
+	c.DockerDialerFactory = dockerDialerFactory
+	c.LocalConnDialerFactory = localConnDialerFactory
+	c.K8sWrapTransport = k8sWrapTransport
+	// Create k8s wrap transport for bastion host
+	if len(c.BastionHost.Address) > 0 {
+		var err error
+		c.K8sWrapTransport, err = hosts.BastionHostWrapTransport(c.BastionHost)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func ParseCluster(
 	ctx context.Context,
 	rkeConfig *v3.RancherKubernetesEngineConfig,
@@ -154,69 +210,12 @@ func ParseCluster(
 	k8sWrapTransport k8s.WrapTransport) (*Cluster, error) {
 	var err error
 	// get state filepath
-	stateFilePath := GetStateFilePath(clusterFilePath, configDir)
-	c := &Cluster{
-		RancherKubernetesEngineConfig: *rkeConfig,
-		ConfigPath:                    clusterFilePath,
-		StateFilePath:                 stateFilePath,
-		DockerDialerFactory:           dockerDialerFactory,
-		LocalConnDialerFactory:        localConnDialerFactory,
-		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
-		K8sWrapTransport:              k8sWrapTransport,
-	}
-	// Setting cluster Defaults
-	c.setClusterDefaults(ctx)
-
-	if err := c.InvertIndexHosts(); err != nil {
-		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)
-	}
-
-	if err := c.ValidateCluster(); err != nil {
-		return nil, fmt.Errorf("Failed to validate cluster: %v", err)
-	}
-
-	c.KubernetesServiceIP, err = pki.GetKubernetesServiceIP(c.Services.KubeAPI.ServiceClusterIPRange)
+	c, err := InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
+		return nil, err
 	}
-	c.ClusterDomain = c.Services.Kubelet.ClusterDomain
-	c.ClusterCIDR = c.Services.KubeController.ClusterCIDR
-	c.ClusterDNSServer = c.Services.Kubelet.ClusterDNSServer
-	if len(c.ConfigPath) == 0 {
-		c.ConfigPath = pki.ClusterConfig
-	}
-	c.LocalKubeConfigPath = pki.GetLocalKubeConfig(c.ConfigPath, configDir)
+	c.SetupDialers(ctx, dockerDialerFactory, localConnDialerFactory, k8sWrapTransport)
 
-	for _, pr := range c.PrivateRegistries {
-		if pr.URL == "" {
-			pr.URL = docker.DockerRegistryURL
-		}
-		c.PrivateRegistriesMap[pr.URL] = pr
-	}
-	// Get Cloud Provider
-	p, err := cloudprovider.InitCloudProvider(c.CloudProvider)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize cloud provider: %v", err)
-	}
-	if p != nil {
-		c.CloudConfigFile, err = p.GenerateCloudConfigFile()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to parse cloud config file: %v", err)
-		}
-		c.CloudProvider.Name = p.GetName()
-		if c.CloudProvider.Name == "" {
-			return nil, fmt.Errorf("Name of the cloud provider is not defined for custom provider")
-		}
-	}
-
-	// Create k8s wrap transport for bastion host
-	if len(c.BastionHost.Address) > 0 {
-		var err error
-		c.K8sWrapTransport, err = hosts.BastionHostWrapTransport(c.BastionHost)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return c, nil
 }
 

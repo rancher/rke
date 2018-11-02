@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/services"
@@ -113,6 +114,14 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) {
 	}
 	if len(c.Monitoring.Provider) == 0 {
 		c.Monitoring.Provider = DefaultMonitoringProvider
+	}
+
+	//set docker private registry URL
+	for _, pr := range c.PrivateRegistries {
+		if pr.URL == "" {
+			pr.URL = docker.DockerRegistryURL
+		}
+		c.PrivateRegistriesMap[pr.URL] = pr
 	}
 	c.setClusterImageDefaults()
 	c.setClusterServicesDefaults()
