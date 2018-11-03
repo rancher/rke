@@ -57,8 +57,11 @@ func SnapshotSaveEtcdHosts(
 	configDir, snapshotName string) error {
 
 	log.Infof(ctx, "Starting saving snapshot on etcd hosts")
-	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dockerDialerFactory, nil, nil)
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
 	if err != nil {
+		return err
+	}
+	if err := kubeCluster.SetupDialers(ctx, dockerDialerFactory, nil, nil); err != nil {
 		return err
 	}
 
@@ -84,8 +87,11 @@ func RestoreEtcdSnapshot(
 	configDir, snapshotName string) error {
 
 	log.Infof(ctx, "Starting restoring snapshot on etcd hosts")
-	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dockerDialerFactory, nil, nil)
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
 	if err != nil {
+		return err
+	}
+	if err := kubeCluster.SetupDialers(ctx, dockerDialerFactory, nil, nil); err != nil {
 		return err
 	}
 

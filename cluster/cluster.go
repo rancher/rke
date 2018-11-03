@@ -150,12 +150,15 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 		RancherKubernetesEngineConfig: *rkeConfig,
 		ConfigPath:                    clusterFilePath,
 		StateFilePath:                 GetStateFilePath(clusterFilePath, configDir),
-		LocalKubeConfigPath:           pki.GetLocalKubeConfig(clusterFilePath, configDir),
 		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
 	}
 	if len(c.ConfigPath) == 0 {
 		c.ConfigPath = pki.ClusterConfig
 	}
+	// set kube_config and state file
+	c.LocalKubeConfigPath = pki.GetLocalKubeConfig(c.ConfigPath, configDir)
+	c.StateFilePath = GetStateFilePath(c.ConfigPath, configDir)
+
 	// Setting cluster Defaults
 	c.setClusterDefaults(ctx)
 	// extract cluster network configuration
@@ -199,24 +202,6 @@ func (c *Cluster) SetupDialers(ctx context.Context, dockerDialerFactory,
 		}
 	}
 	return nil
-}
-
-func ParseCluster(
-	ctx context.Context,
-	rkeConfig *v3.RancherKubernetesEngineConfig,
-	clusterFilePath, configDir string,
-	dockerDialerFactory,
-	localConnDialerFactory hosts.DialerFactory,
-	k8sWrapTransport k8s.WrapTransport) (*Cluster, error) {
-	var err error
-	// get state filepath
-	c, err := InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
-	if err != nil {
-		return nil, err
-	}
-	c.SetupDialers(ctx, dockerDialerFactory, localConnDialerFactory, k8sWrapTransport)
-
-	return c, nil
 }
 
 func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
@@ -287,8 +272,11 @@ func getLocalAdminConfigWithNewAddress(localConfigPath, cpAddress string, cluste
 
 func ApplyAuthzResources(ctx context.Context, rkeConfig v3.RancherKubernetesEngineConfig, clusterFilePath, configDir string, k8sWrapTransport k8s.WrapTransport) error {
 	// dialer factories are not needed here since we are not uses docker only k8s jobs
-	kubeCluster, err := ParseCluster(ctx, &rkeConfig, clusterFilePath, configDir, nil, nil, k8sWrapTransport)
+	kubeCluster, err := InitClusterObject(ctx, &rkeConfig, clusterFilePath, configDir)
 	if err != nil {
+		return err
+	}
+	if err := kubeCluster.SetupDialers(ctx, nil, nil, k8sWrapTransport); err != nil {
 		return err
 	}
 	if len(kubeCluster.ControlPlaneHosts) == 0 {
@@ -447,8 +435,11 @@ func ConfigureCluster(
 	k8sWrapTransport k8s.WrapTransport,
 	useKubectl bool) error {
 	// dialer factories are not needed here since we are not uses docker only k8s jobs
-	kubeCluster, err := ParseCluster(ctx, &rkeConfig, clusterFilePath, configDir, nil, nil, k8sWrapTransport)
+	kubeCluster, err := InitClusterObject(ctx, &rkeConfig, clusterFilePath, configDir)
 	if err != nil {
+		return err
+	}
+	if err := kubeCluster.SetupDialers(ctx, nil, nil, k8sWrapTransport); err != nil {
 		return err
 	}
 	kubeCluster.UseKubectlDeploy = useKubectl

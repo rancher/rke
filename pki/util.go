@@ -12,6 +12,7 @@ import (
 	"net"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -379,4 +380,17 @@ func isFileNotFoundErr(e error) bool {
 		return true
 	}
 	return false
+}
+
+func deepEqualIPsAltNames(oldIPs, newIPs []net.IP) bool {
+	if len(oldIPs) != len(newIPs) {
+		return false
+	}
+	oldIPsStrings := make([]string, len(oldIPs))
+	newIPsStrings := make([]string, len(newIPs))
+	for i := range oldIPs {
+		oldIPsStrings = append(oldIPsStrings, oldIPs[i].String())
+		newIPsStrings = append(newIPsStrings, newIPs[i].String())
+	}
+	return reflect.DeepEqual(oldIPsStrings, newIPsStrings)
 }
