@@ -41,7 +41,7 @@ var admissionControlOptionNames = []string{"enable-admission-plugins", "admissio
 
 func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, hostsInfoMap map[string]types.Info) (v3.RKEPlan, error) {
 	clusterPlan := v3.RKEPlan{}
-	myCluster, err := ParseCluster(ctx, rkeConfig, "", "", nil, nil, nil)
+	myCluster, err := InitClusterObject(ctx, rkeConfig, "", "")
 	if err != nil {
 		return clusterPlan, err
 	}
@@ -236,16 +236,16 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 	}
 
 	CommandArgs := map[string]string{
-		"address":                          "0.0.0.0",
-		"cloud-provider":                   c.CloudProvider.Name,
-		"allow-untagged-cloud":             "true",
-		"configure-cloud-routes":           "false",
-		"leader-elect":                     "true",
-		"kubeconfig":                       pki.GetConfigPath(pki.KubeControllerCertName),
-		"enable-hostpath-provisioner":      "false",
-		"node-monitor-grace-period":        "40s",
-		"pod-eviction-timeout":             "5m0s",
-		"v":                                "2",
+		"address":                     "0.0.0.0",
+		"cloud-provider":              c.CloudProvider.Name,
+		"allow-untagged-cloud":        "true",
+		"configure-cloud-routes":      "false",
+		"leader-elect":                "true",
+		"kubeconfig":                  pki.GetConfigPath(pki.KubeControllerCertName),
+		"enable-hostpath-provisioner": "false",
+		"node-monitor-grace-period":   "40s",
+		"pod-eviction-timeout":        "5m0s",
+		"v": "2",
 		"allocate-node-cidrs":              "true",
 		"cluster-cidr":                     c.ClusterCIDR,
 		"service-cluster-ip-range":         c.Services.KubeController.ServiceClusterIPRange,
@@ -462,8 +462,8 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.
 	}
 
 	CommandArgs := map[string]string{
-		"cluster-cidr":         c.ClusterCIDR,
-		"v":                    "2",
+		"cluster-cidr": c.ClusterCIDR,
+		"v":            "2",
 		"healthz-bind-address": "0.0.0.0",
 		"hostname-override":    host.HostnameOverride,
 		"kubeconfig":           pki.GetConfigPath(pki.KubeProxyCertName),
@@ -507,17 +507,17 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Kubeproxy.Image, c.PrivateRegistriesMap)
 	return v3.Process{
-		Name:                    services.KubeproxyContainerName,
-		Command:                 Command,
-		VolumesFrom:             VolumesFrom,
-		Binds:                   getUniqStringList(Binds),
-		Env:                     c.Services.Kubeproxy.ExtraEnv,
-		NetworkMode:             "host",
-		RestartPolicy:           "always",
-		PidMode:                 "host",
-		Privileged:              true,
-		HealthCheck:             healthCheck,
-		Image:                   c.Services.Kubeproxy.Image,
+		Name:          services.KubeproxyContainerName,
+		Command:       Command,
+		VolumesFrom:   VolumesFrom,
+		Binds:         getUniqStringList(Binds),
+		Env:           c.Services.Kubeproxy.ExtraEnv,
+		NetworkMode:   "host",
+		RestartPolicy: "always",
+		PidMode:       "host",
+		Privileged:    true,
+		HealthCheck:   healthCheck,
+		Image:         c.Services.Kubeproxy.Image,
 		ImageRegistryAuthConfig: registryAuthConfig,
 		Labels: map[string]string{
 			ContainerNameLabel: services.KubeproxyContainerName,
@@ -540,12 +540,12 @@ func (c *Cluster) BuildProxyProcess() v3.Process {
 		Name: services.NginxProxyContainerName,
 		Env:  Env,
 		// we do this to force container update when CP hosts change.
-		Args:                    Env,
-		Command:                 []string{"nginx-proxy"},
-		NetworkMode:             "host",
-		RestartPolicy:           "always",
-		HealthCheck:             v3.HealthCheck{},
-		Image:                   c.SystemImages.NginxProxy,
+		Args:          Env,
+		Command:       []string{"nginx-proxy"},
+		NetworkMode:   "host",
+		RestartPolicy: "always",
+		HealthCheck:   v3.HealthCheck{},
+		Image:         c.SystemImages.NginxProxy,
 		ImageRegistryAuthConfig: registryAuthConfig,
 		Labels: map[string]string{
 			ContainerNameLabel: services.NginxProxyContainerName,

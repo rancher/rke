@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
+	"reflect"
 
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
@@ -13,8 +14,6 @@ import (
 
 func GenerateKubeAPICertificate(ctx context.Context, certs map[string]CertificatePKI, rkeConfig v3.RancherKubernetesEngineConfig, configPath, configDir string) error {
 	// generate API certificate and key
-	log.Infof(ctx, "[certificates] Generating Kubernetes API server certificates")
-	var privateAPIKey *rsa.PrivateKey
 	caCrt := certs[CACertName].Certificate
 	caKey := certs[CACertName].Key
 	kubernetesServiceIP, err := GetKubernetesServiceIP(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
@@ -24,15 +23,24 @@ func GenerateKubeAPICertificate(ctx context.Context, certs map[string]Certificat
 	clusterDomain := rkeConfig.Services.Kubelet.ClusterDomain
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
 	kubeAPIAltNames := GetAltNames(cpHosts, clusterDomain, kubernetesServiceIP, rkeConfig.Authentication.SANs)
-	// handle rotation on old clusters
-	if certs[ServiceAccountTokenKeyName].Key == nil {
-		privateAPIKey = certs[KubeAPICertName].Key
+	kubeAPICert := certs[KubeAPICertName].Certificate
+	if kubeAPICert != nil &&
+		reflect.DeepEqual(kubeAPIAltNames.DNSNames, kubeAPICert.DNSNames) &&
+		deepEqualIPsAltNames(kubeAPIAltNames.IPs, kubeAPICert.IPAddresses) {
+		return nil
 	}
-	kubeAPICrt, kubeAPIKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, KubeAPICertName, kubeAPIAltNames, privateAPIKey, nil)
+	log.Infof(ctx, "[certificates] Generating Kubernetes API server certificates")
+	kubeAPICrt, kubeAPIKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, KubeAPICertName, kubeAPIAltNames, certs[KubeAPICertName].Key, nil)
 	if err != nil {
 		return err
 	}
 	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", kubeAPICrt, kubeAPIKey)
+	// handle service account tokens in old clusters
+	apiCert := certs[KubeAPICertName]
+	if certs[ServiceAccountTokenKeyName].Key == nil {
+		log.Infof(ctx, "[certificates] Creating service account token key")
+		certs[ServiceAccountTokenKeyName] = ToCertObject(ServiceAccountTokenKeyName, ServiceAccountTokenKeyName, "", apiCert.Certificate, apiCert.Key)
+	}
 	return nil
 }
 
@@ -163,8 +171,11 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
 	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, kubernetesServiceIP, []string{})
 	for _, host := range etcdHosts {
-		log.Infof(ctx, "[certificates] Generating etcd-%s certificate and key", host.InternalAddress)
 		etcdName := GetEtcdCrtName(host.InternalAddress)
+		if _, ok := certs[etcdName]; ok {
+			continue
+		}
+		log.Infof(ctx, "[certificates] Generating etcd-%s certificate and key", host.InternalAddress)
 		etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, nil, nil)
 		if err != nil {
 			return err

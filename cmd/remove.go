@@ -58,8 +58,11 @@ func ClusterRemove(
 	local bool, configDir string) error {
 
 	log.Infof(ctx, "Tearing down Kubernetes cluster")
-	kubeCluster, err := cluster.ParseCluster(ctx, rkeConfig, clusterFilePath, configDir, dialerFactory, nil, k8sWrapTransport)
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
 	if err != nil {
+		return err
+	}
+	if err := kubeCluster.SetupDialers(ctx, dialerFactory, nil, k8sWrapTransport); err != nil {
 		return err
 	}
 

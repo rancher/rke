@@ -139,7 +139,7 @@ func (c *Cluster) SetUpHosts(ctx context.Context, rotateCerts bool) error {
 			return err
 		}
 
-		if err := pki.DeployAdminConfig(ctx, c.Certificates[pki.KubeAdminCertName].Config, c.LocalKubeConfigPath); err != nil {
+		if err := rebuildLocalAdminConfig(ctx, c); err != nil {
 			return err
 		}
 		log.Infof(ctx, "[certificates] Successfully deployed kubernetes certificates to Cluster nodes")
