@@ -18,18 +18,20 @@ import (
 )
 
 type CertificatePKI struct {
-	Certificate   *x509.Certificate
-	Key           *rsa.PrivateKey
-	Config        string
-	Name          string
-	CommonName    string
-	OUName        string
-	EnvName       string
-	Path          string
-	KeyEnvName    string
-	KeyPath       string
-	ConfigEnvName string
-	ConfigPath    string
+	Certificate    *x509.Certificate `json:"-"`
+	Key            *rsa.PrivateKey   `json:"-"`
+	CertificatePEM string            `json:"certificatePEM"`
+	KeyPEM         string            `json:"keyPEM"`
+	Config         string            `json:"config"`
+	Name           string            `json:"name"`
+	CommonName     string            `json:"commonName"`
+	OUName         string            `json:"ouName"`
+	EnvName        string            `json:"envName"`
+	Path           string            `json:"path"`
+	KeyEnvName     string            `json:"keyEnvName"`
+	KeyPath        string            `json:"keyPath"`
+	ConfigEnvName  string            `json:"configEnvName"`
+	ConfigPath     string            `json:"configPath"`
 }
 
 type GenFunc func(context.Context, map[string]CertificatePKI, v3.RancherKubernetesEngineConfig, string, string) error

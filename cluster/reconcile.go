@@ -20,9 +20,9 @@ const (
 	unschedulableControlTaint = "node-role.kubernetes.io/controlplane=true:NoSchedule"
 )
 
-func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster, updateOnly bool) error {
+func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster, flags ExternalFlags) error {
 	log.Infof(ctx, "[reconcile] Reconciling cluster state")
-	kubeCluster.UpdateWorkersOnly = updateOnly
+	kubeCluster.UpdateWorkersOnly = flags.UpdateOnly
 	if currentCluster == nil {
 		log.Infof(ctx, "[reconcile] This is newly generated cluster")
 		kubeCluster.UpdateWorkersOnly = false

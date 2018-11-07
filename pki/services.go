@@ -38,7 +38,7 @@ func GenerateKubeAPICertificate(ctx context.Context, certs map[string]Certificat
 	// handle service account tokens in old clusters
 	apiCert := certs[KubeAPICertName]
 	if certs[ServiceAccountTokenKeyName].Key == nil {
-		log.Infof(ctx, "[certificates] Creating service account token key")
+		log.Infof(ctx, "[certificates] Generating Service account token key")
 		certs[ServiceAccountTokenKeyName] = ToCertObject(ServiceAccountTokenKeyName, ServiceAccountTokenKeyName, "", apiCert.Certificate, apiCert.Key)
 	}
 	return nil

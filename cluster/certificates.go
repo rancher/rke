@@ -19,9 +19,9 @@ import (
 	"k8s.io/client-go/util/cert"
 )
 
-func SetUpAuthentication(ctx context.Context, kubeCluster, currentCluster *Cluster, fullState *RKEFullState) error {
+func SetUpAuthentication(ctx context.Context, kubeCluster, currentCluster *Cluster, fullState *FullState) error {
 	if kubeCluster.Authentication.Strategy == X509AuthenticationProvider {
-		kubeCluster.Certificates = TransformV3CertsToCerts(fullState.DesiredState.CertificatesBundle)
+		kubeCluster.Certificates = fullState.DesiredState.CertificatesBundle
 		return nil
 	}
 	return nil
@@ -41,10 +41,10 @@ func regenerateAPICertificate(c *Cluster, certificates map[string]pki.Certificat
 	return certificates, nil
 }
 
-func GetClusterCertsFromKubernetes(ctx context.Context, localConfigPath string, k8sWrapTransport k8s.WrapTransport, etcdHosts []*hosts.Host) (map[string]pki.CertificatePKI, error) {
+func GetClusterCertsFromKubernetes(ctx context.Context, kubeCluster *Cluster) (map[string]pki.CertificatePKI, error) {
 	log.Infof(ctx, "[certificates] Getting Cluster certificates from Kubernetes")
 
-	k8sClient, err := k8s.NewClient(localConfigPath, k8sWrapTransport)
+	k8sClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create Kubernetes Client: %v", err)
 	}
@@ -61,7 +61,7 @@ func GetClusterCertsFromKubernetes(ctx context.Context, localConfigPath string, 
 		pki.ServiceAccountTokenKeyName,
 	}
 
-	for _, etcdHost := range etcdHosts {
+	for _, etcdHost := range kubeCluster.EtcdHosts {
 		etcdName := pki.GetEtcdCrtName(etcdHost.InternalAddress)
 		certificatesNames = append(certificatesNames, etcdName)
 	}
@@ -97,16 +97,21 @@ func GetClusterCertsFromKubernetes(ctx context.Context, localConfigPath string, 
 		if len(secretCert) == 0 || secretKey == nil {
 			return nil, fmt.Errorf("certificate or key of %s is not found", certName)
 		}
+		certificatePEM := string(cert.EncodeCertPEM(secretCert[0]))
+		keyPEM := string(cert.EncodePrivateKeyPEM(secretKey.(*rsa.PrivateKey)))
+
 		certMap[certName] = pki.CertificatePKI{
-			Certificate:   secretCert[0],
-			Key:           secretKey.(*rsa.PrivateKey),
-			Config:        secretConfig,
-			EnvName:       string(secret.Data["EnvName"]),
-			ConfigEnvName: string(secret.Data["ConfigEnvName"]),
-			KeyEnvName:    string(secret.Data["KeyEnvName"]),
-			Path:          string(secret.Data["Path"]),
-			KeyPath:       string(secret.Data["KeyPath"]),
-			ConfigPath:    string(secret.Data["ConfigPath"]),
+			Certificate:    secretCert[0],
+			Key:            secretKey.(*rsa.PrivateKey),
+			CertificatePEM: certificatePEM,
+			KeyPEM:         keyPEM,
+			Config:         secretConfig,
+			EnvName:        string(secret.Data["EnvName"]),
+			ConfigEnvName:  string(secret.Data["ConfigEnvName"]),
+			KeyEnvName:     string(secret.Data["KeyEnvName"]),
+			Path:           string(secret.Data["Path"]),
+			KeyPath:        string(secret.Data["KeyPath"]),
+			ConfigPath:     string(secret.Data["ConfigPath"]),
 		}
 	}
 	// Handle service account token key issue
@@ -195,37 +200,6 @@ func deployBackupCertificates(ctx context.Context, backupHosts []*hosts.Host, ku
 	return errgrp.Wait()
 }
 
-func fetchBackupCertificates(ctx context.Context, backupHosts []*hosts.Host, kubeCluster *Cluster) (map[string]pki.CertificatePKI, error) {
-	var err error
-	certificates := map[string]pki.CertificatePKI{}
-	for _, host := range backupHosts {
-		certificates, err = pki.FetchCertificatesFromHost(ctx, kubeCluster.EtcdHosts, host, kubeCluster.SystemImages.Alpine, kubeCluster.LocalKubeConfigPath, kubeCluster.PrivateRegistriesMap)
-		if certificates != nil {
-			return certificates, nil
-		}
-	}
-	// reporting the last error only.
-	return nil, err
-}
-
-func fetchCertificatesFromEtcd(ctx context.Context, kubeCluster *Cluster) ([]byte, []byte, error) {
-	// Get kubernetes certificates from the etcd hosts
-	certificates := map[string]pki.CertificatePKI{}
-	var err error
-	for _, host := range kubeCluster.EtcdHosts {
-		certificates, err = pki.FetchCertificatesFromHost(ctx, kubeCluster.EtcdHosts, host, kubeCluster.SystemImages.Alpine, kubeCluster.LocalKubeConfigPath, kubeCluster.PrivateRegistriesMap)
-		if certificates != nil {
-			break
-		}
-	}
-	if err != nil || certificates == nil {
-		return nil, nil, fmt.Errorf("Failed to fetch certificates from etcd hosts: %v", err)
-	}
-	clientCert := cert.EncodeCertPEM(certificates[pki.KubeNodeCertName].Certificate)
-	clientkey := cert.EncodePrivateKeyPEM(certificates[pki.KubeNodeCertName].Key)
-	return clientCert, clientkey, nil
-}
-
 func (c *Cluster) SaveBackupCertificateBundle(ctx context.Context) error {
 	var errgrp errgroup.Group
 
@@ -300,7 +274,7 @@ func regenerateAPIAggregationCerts(c *Cluster, certificates map[string]pki.Certi
 	return certificates, nil
 }
 
-func RotateRKECertificates(ctx context.Context, c *Cluster, configPath, configDir string, components []string, rotateCACerts bool) error {
+func RotateRKECertificates(ctx context.Context, c *Cluster, flags ExternalFlags) error {
 	var (
 		serviceAccountTokenKey string
 	)
@@ -312,27 +286,27 @@ func RotateRKECertificates(ctx context.Context, c *Cluster, configPath, configDi
 		services.KubeletContainerName:        pki.GenerateKubeNodeCertificate,
 		services.EtcdContainerName:           pki.GenerateEtcdCertificates,
 	}
-	if rotateCACerts {
+	if flags.RotateCACerts {
 		// rotate CA cert and RequestHeader CA cert
-		if err := pki.GenerateRKECACerts(ctx, c.Certificates, configPath, configDir); err != nil {
+		if err := pki.GenerateRKECACerts(ctx, c.Certificates, flags.ClusterFilePath, flags.ConfigDir); err != nil {
 			return err
 		}
-		components = nil
+		flags.RotateComponents = nil
 	}
-	for _, k8sComponent := range components {
+	for _, k8sComponent := range flags.RotateComponents {
 		genFunc := componentsCertsFuncMap[k8sComponent]
 		if genFunc != nil {
-			if err := genFunc(ctx, c.Certificates, c.RancherKubernetesEngineConfig, configPath, configDir); err != nil {
+			if err := genFunc(ctx, c.Certificates, c.RancherKubernetesEngineConfig, flags.ClusterFilePath, flags.ConfigDir); err != nil {
 				return err
 			}
 		}
 	}
-	if len(components) == 0 {
+	if len(flags.RotateComponents) == 0 {
 		// do not rotate service account token
 		if c.Certificates[pki.ServiceAccountTokenKeyName].Key != nil {
 			serviceAccountTokenKey = string(cert.EncodePrivateKeyPEM(c.Certificates[pki.ServiceAccountTokenKeyName].Key))
 		}
-		if err := pki.GenerateRKEServicesCerts(ctx, c.Certificates, c.RancherKubernetesEngineConfig, configPath, configDir); err != nil {
+		if err := pki.GenerateRKEServicesCerts(ctx, c.Certificates, c.RancherKubernetesEngineConfig, flags.ClusterFilePath, flags.ConfigDir); err != nil {
 			return err
 		}
 		if serviceAccountTokenKey != "" {
