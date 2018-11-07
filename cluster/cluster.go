@@ -55,6 +55,7 @@ type Cluster struct {
 const (
 	X509AuthenticationProvider = "x509"
 	StateConfigMapName         = "cluster-state"
+	FullStateConfigMapName     = "full-cluster-state"
 	UpdateStateTimeout         = 30
 	GetStateTimeout            = 30
 	KubernetesClientTimeOut    = 30
@@ -202,6 +203,10 @@ func (c *Cluster) SetupDialers(ctx context.Context, dockerDialerFactory,
 		}
 	}
 	return nil
+}
+
+func RebuildKubeconfig(ctx context.Context, kubeCluster *Cluster) error {
+	return rebuildLocalAdminConfig(ctx, kubeCluster)
 }
 
 func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {

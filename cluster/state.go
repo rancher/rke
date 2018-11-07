@@ -161,6 +161,36 @@ func (c *Cluster) GetClusterState(ctx context.Context, fullState *RKEFullState, 
 
 	return currentCluster, nil
 }
+func SaveFullStateToKubernetes(ctx context.Context, localConfigPath string, k8sWrapTransport k8s.WrapTransport, fullState *RKEFullState) error {
+	k8sClient, err := k8s.NewClient(localConfigPath, k8sWrapTransport)
+	if err != nil {
+		return fmt.Errorf("Failed to create Kubernetes Client: %v", err)
+	}
+	log.Infof(ctx, "[state] Saving full cluster state to Kubernetes")
+	stateFile, err := json.Marshal(*fullState)
+	if err != nil {
+		return err
+	}
+	timeout := make(chan bool, 1)
+	go func() {
+		for {
+			_, err := k8s.UpdateConfigMap(k8sClient, stateFile, FullStateConfigMapName)
+			if err != nil {
+				time.Sleep(time.Second * 5)
+				continue
+			}
+			log.Infof(ctx, "[state] Successfully Saved full cluster state to Kubernetes ConfigMap: %s", StateConfigMapName)
+			timeout <- true
+			break
+		}
+	}()
+	select {
+	case <-timeout:
+		return nil
+	case <-time.After(time.Second * UpdateStateTimeout):
+		return fmt.Errorf("[state] Timeout waiting for kubernetes to be ready")
+	}
+}
 
 func saveStateToKubernetes(ctx context.Context, kubeClient *kubernetes.Clientset, kubeConfigPath string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
 	log.Infof(ctx, "[state] Saving cluster state to Kubernetes")
@@ -216,15 +246,18 @@ func saveStateToNodes(ctx context.Context, uniqueHosts []*hosts.Host, clusterSta
 	return nil
 }
 
-func getStateFromKubernetes(ctx context.Context, kubeClient *kubernetes.Clientset, kubeConfigPath string) (*Cluster, error) {
+func GetStateFromKubernetes(ctx context.Context, kubeConfigPath string, k8sWrapTransport k8s.WrapTransport) (*Cluster, error) {
 	log.Infof(ctx, "[state] Fetching cluster state from Kubernetes")
+	k8sClient, err := k8s.NewClient(kubeConfigPath, k8sWrapTransport)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create Kubernetes Client: %v", err)
+	}
 	var cfgMap *v1.ConfigMap
 	var currentCluster Cluster
-	var err error
 	timeout := make(chan bool, 1)
 	go func() {
 		for {
-			cfgMap, err = k8s.GetConfigMap(kubeClient, StateConfigMapName)
+			cfgMap, err = k8s.GetConfigMap(k8sClient, StateConfigMapName)
 			if err != nil {
 				time.Sleep(time.Second * 5)
 				continue
@@ -381,4 +414,12 @@ func RemoveStateFile(ctx context.Context, statePath string) {
 		return
 	}
 	log.Infof(ctx, "State file removed successfully")
+}
+
+func RemoveLegacyStateFromKubernets(ctx context.Context, kubeConfigPath string, k8sWrapTransport k8s.WrapTransport) error {
+	k8sClient, err := k8s.NewClient(kubeConfigPath, k8sWrapTransport)
+	if err != nil {
+		return fmt.Errorf("Failed to create Kubernetes Client: %v", err)
+	}
+	return k8s.DeleteConfigMap(k8sClient, StateConfigMapName)
 }
