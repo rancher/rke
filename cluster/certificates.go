@@ -41,8 +41,13 @@ func regenerateAPICertificate(c *Cluster, certificates map[string]pki.Certificat
 	return certificates, nil
 }
 
-func getClusterCerts(ctx context.Context, kubeClient *kubernetes.Clientset, etcdHosts []*hosts.Host) (map[string]pki.CertificatePKI, error) {
+func GetClusterCertsFromKubernetes(ctx context.Context, localConfigPath string, k8sWrapTransport k8s.WrapTransport, etcdHosts []*hosts.Host) (map[string]pki.CertificatePKI, error) {
 	log.Infof(ctx, "[certificates] Getting Cluster certificates from Kubernetes")
+
+	k8sClient, err := k8s.NewClient(localConfigPath, k8sWrapTransport)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create Kubernetes Client: %v", err)
+	}
 	certificatesNames := []string{
 		pki.CACertName,
 		pki.KubeAPICertName,
@@ -63,7 +68,7 @@ func getClusterCerts(ctx context.Context, kubeClient *kubernetes.Clientset, etcd
 
 	certMap := make(map[string]pki.CertificatePKI)
 	for _, certName := range certificatesNames {
-		secret, err := k8s.GetSecret(kubeClient, certName)
+		secret, err := k8s.GetSecret(k8sClient, certName)
 		if err != nil && !strings.HasPrefix(certName, "kube-etcd") &&
 			!strings.Contains(certName, pki.RequestHeaderCACertName) &&
 			!strings.Contains(certName, pki.APIProxyClientCertName) &&
@@ -103,6 +108,12 @@ func getClusterCerts(ctx context.Context, kubeClient *kubernetes.Clientset, etcd
 			KeyPath:       string(secret.Data["KeyPath"]),
 			ConfigPath:    string(secret.Data["ConfigPath"]),
 		}
+	}
+	// Handle service account token key issue
+	kubeAPICert := certMap[pki.KubeAPICertName]
+	if certMap[pki.ServiceAccountTokenKeyName].Key == nil {
+		log.Infof(ctx, "[certificates] Creating service account token key")
+		certMap[pki.ServiceAccountTokenKeyName] = pki.ToCertObject(pki.ServiceAccountTokenKeyName, pki.ServiceAccountTokenKeyName, "", kubeAPICert.Certificate, kubeAPICert.Key)
 	}
 	log.Infof(ctx, "[certificates] Successfully fetched Cluster certificates from Kubernetes")
 	return certMap, nil

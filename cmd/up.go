@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"k8s.io/client-go/util/cert"
 )
@@ -64,21 +66,66 @@ func UpCommand() cli.Command {
 		Flags:  upFlags,
 	}
 }
+func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, fullState *cluster.RKEFullState, k8sWrapTransport k8s.WrapTransport) error {
+	if _, err := os.Stat(kubeCluster.LocalKubeConfigPath); os.IsNotExist(err) {
+		// there is no kubeconfig. This is a new cluster
+		logrus.Debug("[state] local kubeconfig not found, this is a new cluster")
+		return nil
+	}
+	if fullState.CurrentState.RancherKubernetesEngineConfig != nil {
+		// this cluster has a previous state, I don't need to upgrade!
+		logrus.Debug("[state] previous state found, this is not a legacy cluster")
+		return nil
+	}
+	// We have a kubeconfig and no current state. This is a legacy cluster or a new cluster with old kubeconfig
+	// let's try to upgrade
+	log.Infof(ctx, "[state] Possible legacy cluster detected, trying to upgrade")
+	if err := cluster.RebuildKubeconfig(ctx, kubeCluster); err != nil {
+		return err
+	}
+	recoveredCluster, err := cluster.GetStateFromKubernetes(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
+	if err != nil {
+		return err
+	}
+	// if we found a recovered cluster, we will need override the current state
+	if recoveredCluster != nil {
+		recoveredCerts, err := cluster.GetClusterCertsFromKubernetes(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport, kubeCluster.EtcdHosts)
+		if err != nil {
+			return err
+		}
+		fullState.CurrentState.RancherKubernetesEngineConfig = recoveredCluster.RancherKubernetesEngineConfig.DeepCopy()
+		fullState.CurrentState.CertificatesBundle = cluster.TransformCertsToV3Certs(recoveredCerts)
 
-func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, configDir string) error {
+		// we don't want to regenerate certificates
+		fullState.DesiredState.CertificatesBundle = cluster.TransformCertsToV3Certs(recoveredCerts)
+		if err = fullState.WriteStateFile(ctx, kubeCluster.StateFilePath); err != nil {
+			return err
+		}
+		return cluster.RemoveLegacyStateFromKubernets(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
+	}
+
+	return nil
+}
+
+func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, configDir string, k8sWrapTransport k8s.WrapTransport) error {
 	log.Infof(ctx, "Initiating Kubernetes cluster")
 	stateFilePath := cluster.GetStateFilePath(clusterFilePath, configDir)
 	rkeFullState, _ := cluster.ReadStateFile(ctx, stateFilePath)
-
 	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
 	if err != nil {
 		return err
+	}
+
+	err = doUpgradeLegacyCluster(ctx, kubeCluster, rkeFullState, k8sWrapTransport)
+	if err != nil {
+		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes")
 	}
 
 	fullState, err := cluster.RebuildState(ctx, &kubeCluster.RancherKubernetesEngineConfig, rkeFullState, clusterFilePath, configDir)
 	if err != nil {
 		return err
 	}
+
 	rkeState := cluster.RKEFullState{
 		DesiredState: fullState.DesiredState,
 		CurrentState: fullState.CurrentState,
@@ -176,6 +223,11 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
+	err = cluster.SaveFullStateToKubernetes(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport, clusterState)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
 	err = kubeCluster.DeployWorkerPlane(ctx)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
@@ -241,9 +293,9 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	updateOnly := ctx.Bool("update-only")
 	disablePortCheck := ctx.Bool("disable-port-check")
 	if ctx.Bool("init") {
-		return ClusterInit(context.Background(), rkeConfig, "")
+		return ClusterInit(context.Background(), rkeConfig, "", nil)
 	}
-	if err := ClusterInit(context.Background(), rkeConfig, ""); err != nil {
+	if err := ClusterInit(context.Background(), rkeConfig, "", nil); err != nil {
 		return err
 	}
 	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, nil, false, "", updateOnly, disablePortCheck)
