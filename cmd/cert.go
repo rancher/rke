@@ -6,7 +6,6 @@ import (
 
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
@@ -58,7 +57,6 @@ func rotateRKECertificatesFromCli(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to resolve cluster file: %v", err)
 	}
-	clusterFilePath = filePath
 
 	rkeConfig, err := cluster.ParseConfig(clusterFile)
 	if err != nil {
@@ -68,40 +66,37 @@ func rotateRKECertificatesFromCli(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	// setting up the flags
+	flags := cluster.GetExternalFlags(false, rotateCACert, false, false, k8sComponent, "", filePath)
 
-	return RotateRKECertificates(context.Background(), rkeConfig, nil, nil, nil, false, "", k8sComponent, rotateCACert)
+	return RotateRKECertificates(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
 }
 
 func showRKECertificatesFromCli(ctx *cli.Context) error {
 	return nil
 }
 
-func RotateRKECertificates(
-	ctx context.Context,
-	rkeConfig *v3.RancherKubernetesEngineConfig,
-	dockerDialerFactory, localConnDialerFactory hosts.DialerFactory,
-	k8sWrapTransport k8s.WrapTransport,
-	local bool, configDir string, components []string, rotateCACerts bool) error {
+func RotateRKECertificates(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) error {
 
 	log.Infof(ctx, "Rotating Kubernetes cluster certificates")
-	clusterState, err := cluster.ReadStateFile(ctx, cluster.GetStateFilePath(clusterFilePath, configDir))
+	clusterState, err := cluster.ReadStateFile(ctx, cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir))
 	if err != nil {
 		return err
 	}
 
-	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
 	if err != nil {
 		return err
 	}
-	if err := kubeCluster.SetupDialers(ctx, dockerDialerFactory, localConnDialerFactory, k8sWrapTransport); err != nil {
+	if err := kubeCluster.SetupDialers(ctx, dialersOptions); err != nil {
 		return err
 	}
 
-	if err := kubeCluster.TunnelHosts(ctx, local); err != nil {
+	if err := kubeCluster.TunnelHosts(ctx, flags); err != nil {
 		return err
 	}
 
-	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState, configDir)
+	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState)
 	if err != nil {
 		return err
 	}
@@ -110,7 +105,7 @@ func RotateRKECertificates(
 		return err
 	}
 
-	if err := cluster.RotateRKECertificates(ctx, kubeCluster, clusterFilePath, configDir, components, rotateCACerts); err != nil {
+	if err := cluster.RotateRKECertificates(ctx, kubeCluster, flags); err != nil {
 		return err
 	}
 
@@ -119,11 +114,11 @@ func RotateRKECertificates(
 	}
 	// Restarting Kubernetes components
 	servicesMap := make(map[string]bool)
-	for _, component := range components {
+	for _, component := range flags.RotateComponents {
 		servicesMap[component] = true
 	}
 
-	if len(components) == 0 || rotateCACerts || servicesMap[services.EtcdContainerName] {
+	if len(flags.RotateComponents) == 0 || flags.RotateCACerts || servicesMap[services.EtcdContainerName] {
 		if err := services.RestartEtcdPlane(ctx, kubeCluster.EtcdHosts); err != nil {
 			return err
 		}
@@ -138,11 +133,7 @@ func RotateRKECertificates(
 		return err
 	}
 
-	if err := kubeCluster.SaveClusterState(ctx, &kubeCluster.RancherKubernetesEngineConfig); err != nil {
-		return err
-	}
-
-	if rotateCACerts {
+	if flags.RotateCACerts {
 		return cluster.RestartClusterPods(ctx, kubeCluster)
 	}
 	return nil

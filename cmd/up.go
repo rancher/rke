@@ -10,7 +10,6 @@ import (
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/dind"
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
@@ -18,8 +17,6 @@ import (
 	"github.com/urfave/cli"
 	"k8s.io/client-go/util/cert"
 )
-
-var clusterFilePath string
 
 const DINDWaitTime = 3
 
@@ -53,7 +50,7 @@ func UpCommand() cli.Command {
 		},
 		cli.BoolFlag{
 			Name:  "init",
-			Usage: "test init",
+			Usage: "Initiate RKE cluster",
 		},
 	}
 
@@ -66,13 +63,14 @@ func UpCommand() cli.Command {
 		Flags:  upFlags,
 	}
 }
-func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, fullState *cluster.RKEFullState, k8sWrapTransport k8s.WrapTransport) error {
+
+func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, fullState *cluster.FullState) error {
 	if _, err := os.Stat(kubeCluster.LocalKubeConfigPath); os.IsNotExist(err) {
 		// there is no kubeconfig. This is a new cluster
 		logrus.Debug("[state] local kubeconfig not found, this is a new cluster")
 		return nil
 	}
-	if fullState.CurrentState.RancherKubernetesEngineConfig != nil {
+	if _, err := os.Stat(kubeCluster.StateFilePath); err == nil {
 		// this cluster has a previous state, I don't need to upgrade!
 		logrus.Debug("[state] previous state found, this is not a legacy cluster")
 		return nil
@@ -83,95 +81,86 @@ func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, f
 	if err := cluster.RebuildKubeconfig(ctx, kubeCluster); err != nil {
 		return err
 	}
-	recoveredCluster, err := cluster.GetStateFromKubernetes(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
+	recoveredCluster, err := cluster.GetStateFromKubernetes(ctx, kubeCluster)
 	if err != nil {
 		return err
 	}
 	// if we found a recovered cluster, we will need override the current state
 	if recoveredCluster != nil {
-		recoveredCerts, err := cluster.GetClusterCertsFromKubernetes(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport, kubeCluster.EtcdHosts)
+		recoveredCerts, err := cluster.GetClusterCertsFromKubernetes(ctx, kubeCluster)
 		if err != nil {
 			return err
 		}
 		fullState.CurrentState.RancherKubernetesEngineConfig = recoveredCluster.RancherKubernetesEngineConfig.DeepCopy()
-		fullState.CurrentState.CertificatesBundle = cluster.TransformCertsToV3Certs(recoveredCerts)
+		fullState.CurrentState.CertificatesBundle = recoveredCerts
 
 		// we don't want to regenerate certificates
-		fullState.DesiredState.CertificatesBundle = cluster.TransformCertsToV3Certs(recoveredCerts)
-		if err = fullState.WriteStateFile(ctx, kubeCluster.StateFilePath); err != nil {
-			return err
-		}
-		return cluster.RemoveLegacyStateFromKubernets(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
+		fullState.DesiredState.CertificatesBundle = recoveredCerts
+		return fullState.WriteStateFile(ctx, kubeCluster.StateFilePath)
 	}
 
 	return nil
 }
 
-func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, configDir string, k8sWrapTransport k8s.WrapTransport) error {
+func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) error {
 	log.Infof(ctx, "Initiating Kubernetes cluster")
-	stateFilePath := cluster.GetStateFilePath(clusterFilePath, configDir)
+	stateFilePath := cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir)
 	rkeFullState, _ := cluster.ReadStateFile(ctx, stateFilePath)
-	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, clusterFilePath, configDir)
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
 	if err != nil {
 		return err
 	}
+	if err := kubeCluster.SetupDialers(ctx, dialersOptions); err != nil {
+		return err
+	}
 
-	err = doUpgradeLegacyCluster(ctx, kubeCluster, rkeFullState, k8sWrapTransport)
+	err = doUpgradeLegacyCluster(ctx, kubeCluster, rkeFullState)
 	if err != nil {
 		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes")
 	}
 
-	fullState, err := cluster.RebuildState(ctx, &kubeCluster.RancherKubernetesEngineConfig, rkeFullState, clusterFilePath, configDir)
+	fullState, err := cluster.RebuildState(ctx, &kubeCluster.RancherKubernetesEngineConfig, rkeFullState, flags)
 	if err != nil {
 		return err
 	}
 
-	rkeState := cluster.RKEFullState{
+	rkeState := cluster.FullState{
 		DesiredState: fullState.DesiredState,
 		CurrentState: fullState.CurrentState,
 	}
 	return rkeState.WriteStateFile(ctx, stateFilePath)
 }
 
-func ClusterUp(
-	ctx context.Context,
-	rkeConfig *v3.RancherKubernetesEngineConfig,
-	dockerDialerFactory, localConnDialerFactory hosts.DialerFactory,
-	k8sWrapTransport k8s.WrapTransport,
-	local bool, configDir string, updateOnly, disablePortCheck bool) (string, string, string, string, map[string]pki.CertificatePKI, error) {
-
+func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) (string, string, string, string, map[string]pki.CertificatePKI, error) {
 	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
 
-	// is tehre any chance we can store the cluster object here instead of the rke config ?
-	// I can change the function signiture, should be simpler
-	// No, I would stil have to parse the cluster
-	clusterState, err := cluster.ReadStateFile(ctx, cluster.GetStateFilePath(clusterFilePath, configDir))
+	clusterState, err := cluster.ReadStateFile(ctx, cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir))
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	kubeCluster, err := cluster.InitClusterObject(ctx, clusterState.DesiredState.RancherKubernetesEngineConfig.DeepCopy(), clusterFilePath, configDir)
+	kubeCluster, err := cluster.InitClusterObject(ctx, clusterState.DesiredState.RancherKubernetesEngineConfig.DeepCopy(), flags)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = kubeCluster.SetupDialers(ctx, dockerDialerFactory, localConnDialerFactory, k8sWrapTransport)
+	err = kubeCluster.SetupDialers(ctx, dialersOptions)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = kubeCluster.TunnelHosts(ctx, local)
+	err = kubeCluster.TunnelHosts(ctx, flags)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState, configDir)
+	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	if !disablePortCheck {
+	if !flags.DisablePortCheck {
 		if err = kubeCluster.CheckClusterPorts(ctx, currentCluster); err != nil {
 			return APIURL, caCrt, clientCert, clientKey, nil, err
 		}
@@ -194,7 +183,7 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = cluster.ReconcileCluster(ctx, kubeCluster, currentCluster, updateOnly)
+	err = cluster.ReconcileCluster(ctx, kubeCluster, currentCluster, flags)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
@@ -213,17 +202,17 @@ func ClusterUp(
 	}
 
 	// Apply Authz configuration after deploying controlplane
-	err = cluster.ApplyAuthzResources(ctx, kubeCluster.RancherKubernetesEngineConfig, clusterFilePath, configDir, k8sWrapTransport)
+	err = cluster.ApplyAuthzResources(ctx, kubeCluster.RancherKubernetesEngineConfig, flags, dialersOptions)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = kubeCluster.UpdateClusterState(ctx, clusterState)
+	err = kubeCluster.UpdateClusterCurrentState(ctx, clusterState)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = cluster.SaveFullStateToKubernetes(ctx, kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport, clusterState)
+	err = cluster.SaveFullStateToKubernetes(ctx, kubeCluster, clusterState)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
@@ -242,7 +231,7 @@ func ClusterUp(
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, clusterFilePath, configDir, k8sWrapTransport, false)
+	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, flags, dialersOptions, false)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
@@ -279,7 +268,6 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to resolve cluster file: %v", err)
 	}
-	clusterFilePath = filePath
 
 	rkeConfig, err := cluster.ParseConfig(clusterFile)
 	if err != nil {
@@ -292,13 +280,17 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	}
 	updateOnly := ctx.Bool("update-only")
 	disablePortCheck := ctx.Bool("disable-port-check")
+	// setting up the flags
+	flags := cluster.GetExternalFlags(false, false, updateOnly, disablePortCheck, nil, "", filePath)
+
 	if ctx.Bool("init") {
-		return ClusterInit(context.Background(), rkeConfig, "", nil)
+		return ClusterInit(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
 	}
-	if err := ClusterInit(context.Background(), rkeConfig, "", nil); err != nil {
+	if err := ClusterInit(context.Background(), rkeConfig, hosts.DialersOptions{}, flags); err != nil {
 		return err
 	}
-	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, nil, nil, false, "", updateOnly, disablePortCheck)
+
+	_, _, _, _, _, err = ClusterUp(context.Background(), hosts.DialersOptions{}, flags)
 	return err
 }
 
@@ -309,7 +301,6 @@ func clusterUpLocal(ctx *cli.Context) error {
 		log.Infof(context.Background(), "Failed to resolve cluster file, using default cluster instead")
 		rkeConfig = cluster.GetLocalRKEConfig()
 	} else {
-		clusterFilePath = filePath
 		rkeConfig, err = cluster.ParseConfig(clusterFile)
 		if err != nil {
 			return fmt.Errorf("Failed to parse cluster file: %v", err)
@@ -319,13 +310,24 @@ func clusterUpLocal(ctx *cli.Context) error {
 
 	rkeConfig.IgnoreDockerVersion = ctx.Bool("ignore-docker-version")
 
-	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, nil, hosts.LocalHealthcheckFactory, nil, true, "", false, false)
+	// setting up the dialers
+	dialers := hosts.GetDialerOptions(nil, hosts.LocalHealthcheckFactory, nil)
+	// setting up the flags
+	flags := cluster.GetExternalFlags(true, false, false, false, nil, "", filePath)
+
+	if ctx.Bool("init") {
+		return ClusterInit(context.Background(), rkeConfig, dialers, flags)
+	}
+	if err := ClusterInit(context.Background(), rkeConfig, dialers, flags); err != nil {
+		return err
+	}
+	_, _, _, _, _, err = ClusterUp(context.Background(), dialers, flags)
 	return err
 }
 
 func clusterUpDind(ctx *cli.Context) error {
 	// get dind config
-	rkeConfig, disablePortCheck, dindStorageDriver, err := getDindConfig(ctx)
+	rkeConfig, disablePortCheck, dindStorageDriver, filePath, err := getDindConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -333,29 +335,40 @@ func clusterUpDind(ctx *cli.Context) error {
 	if err = createDINDEnv(context.Background(), rkeConfig, dindStorageDriver); err != nil {
 		return err
 	}
+
+	// setting up the dialers
+	dialers := hosts.GetDialerOptions(hosts.DindConnFactory, hosts.DindHealthcheckConnFactory, nil)
+	// setting up flags
+	flags := cluster.GetExternalFlags(false, false, false, disablePortCheck, nil, "", filePath)
+
+	if ctx.Bool("init") {
+		return ClusterInit(context.Background(), rkeConfig, dialers, flags)
+	}
+	if err := ClusterInit(context.Background(), rkeConfig, dialers, flags); err != nil {
+		return err
+	}
 	// start cluster
-	_, _, _, _, _, err = ClusterUp(context.Background(), rkeConfig, hosts.DindConnFactory, hosts.DindHealthcheckConnFactory, nil, false, "", false, disablePortCheck)
+	_, _, _, _, _, err = ClusterUp(context.Background(), dialers, flags)
 	return err
 }
 
-func getDindConfig(ctx *cli.Context) (*v3.RancherKubernetesEngineConfig, bool, string, error) {
+func getDindConfig(ctx *cli.Context) (*v3.RancherKubernetesEngineConfig, bool, string, string, error) {
 	disablePortCheck := ctx.Bool("disable-port-check")
 	dindStorageDriver := ctx.String("dind-storage-driver")
 
 	clusterFile, filePath, err := resolveClusterFile(ctx)
 	if err != nil {
-		return nil, disablePortCheck, "", fmt.Errorf("Failed to resolve cluster file: %v", err)
+		return nil, disablePortCheck, "", "", fmt.Errorf("Failed to resolve cluster file: %v", err)
 	}
-	clusterFilePath = filePath
 
 	rkeConfig, err := cluster.ParseConfig(clusterFile)
 	if err != nil {
-		return nil, disablePortCheck, "", fmt.Errorf("Failed to parse cluster file: %v", err)
+		return nil, disablePortCheck, "", "", fmt.Errorf("Failed to parse cluster file: %v", err)
 	}
 
 	rkeConfig, err = setOptionsFromCLI(ctx, rkeConfig)
 	if err != nil {
-		return nil, disablePortCheck, "", err
+		return nil, disablePortCheck, "", "", err
 	}
 	// Setting conntrack max for kubeproxy to 0
 	if rkeConfig.Services.Kubeproxy.ExtraArgs == nil {
@@ -363,7 +376,7 @@ func getDindConfig(ctx *cli.Context) (*v3.RancherKubernetesEngineConfig, bool, s
 	}
 	rkeConfig.Services.Kubeproxy.ExtraArgs["conntrack-max-per-core"] = "0"
 
-	return rkeConfig, disablePortCheck, dindStorageDriver, nil
+	return rkeConfig, disablePortCheck, dindStorageDriver, filePath, nil
 }
 
 func createDINDEnv(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dindStorageDriver string) error {

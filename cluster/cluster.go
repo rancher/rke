@@ -28,28 +28,29 @@ import (
 )
 
 type Cluster struct {
-	v3.RancherKubernetesEngineConfig `yaml:",inline"`
 	ConfigPath                       string
-	LocalKubeConfigPath              string
-	StateFilePath                    string
-	EtcdHosts                        []*hosts.Host
-	WorkerHosts                      []*hosts.Host
+	ConfigDir                        string
+	CloudConfigFile                  string
 	ControlPlaneHosts                []*hosts.Host
-	InactiveHosts                    []*hosts.Host
-	EtcdReadyHosts                   []*hosts.Host
-	KubeClient                       *kubernetes.Clientset
-	KubernetesServiceIP              net.IP
 	Certificates                     map[string]pki.CertificatePKI
 	ClusterDomain                    string
 	ClusterCIDR                      string
 	ClusterDNSServer                 string
 	DockerDialerFactory              hosts.DialerFactory
+	EtcdHosts                        []*hosts.Host
+	EtcdReadyHosts                   []*hosts.Host
+	InactiveHosts                    []*hosts.Host
+	K8sWrapTransport                 k8s.WrapTransport
+	KubeClient                       *kubernetes.Clientset
+	KubernetesServiceIP              net.IP
+	LocalKubeConfigPath              string
 	LocalConnDialerFactory           hosts.DialerFactory
 	PrivateRegistriesMap             map[string]v3.PrivateRegistry
-	K8sWrapTransport                 k8s.WrapTransport
+	StateFilePath                    string
 	UseKubectlDeploy                 bool
 	UpdateWorkersOnly                bool
-	CloudConfigFile                  string
+	v3.RancherKubernetesEngineConfig `yaml:",inline"`
+	WorkerHosts                      []*hosts.Host
 }
 
 const (
@@ -145,25 +146,30 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	return &rkeConfig, nil
 }
 
-func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, clusterFilePath, configDir string) (*Cluster, error) {
+func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, flags ExternalFlags) (*Cluster, error) {
 	// basic cluster object from rkeConfig
 	c := &Cluster{
 		RancherKubernetesEngineConfig: *rkeConfig,
-		ConfigPath:                    clusterFilePath,
-		StateFilePath:                 GetStateFilePath(clusterFilePath, configDir),
+		ConfigPath:                    flags.ClusterFilePath,
+		ConfigDir:                     flags.ConfigDir,
+		StateFilePath:                 GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir),
 		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
 	}
 	if len(c.ConfigPath) == 0 {
 		c.ConfigPath = pki.ClusterConfig
 	}
 	// set kube_config and state file
-	c.LocalKubeConfigPath = pki.GetLocalKubeConfig(c.ConfigPath, configDir)
-	c.StateFilePath = GetStateFilePath(c.ConfigPath, configDir)
+	c.LocalKubeConfigPath = pki.GetLocalKubeConfig(c.ConfigPath, c.ConfigDir)
+	c.StateFilePath = GetStateFilePath(c.ConfigPath, c.ConfigDir)
 
 	// Setting cluster Defaults
 	c.setClusterDefaults(ctx)
 	// extract cluster network configuration
 	c.setNetworkOptions()
+	// Register cloud provider
+	if err := c.setCloudProvider(); err != nil {
+		return nil, fmt.Errorf("Failed to register cloud provider: %v", err)
+	}
 	// set hosts groups
 	if err := c.InvertIndexHosts(); err != nil {
 		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)
@@ -187,13 +193,10 @@ func (c *Cluster) setNetworkOptions() error {
 	return nil
 }
 
-func (c *Cluster) SetupDialers(ctx context.Context, dockerDialerFactory,
-	localConnDialerFactory hosts.DialerFactory,
-	k8sWrapTransport k8s.WrapTransport) error {
-
-	c.DockerDialerFactory = dockerDialerFactory
-	c.LocalConnDialerFactory = localConnDialerFactory
-	c.K8sWrapTransport = k8sWrapTransport
+func (c *Cluster) SetupDialers(ctx context.Context, dailersOptions hosts.DialersOptions) error {
+	c.DockerDialerFactory = dailersOptions.DockerDialerFactory
+	c.LocalConnDialerFactory = dailersOptions.LocalConnDialerFactory
+	c.K8sWrapTransport = dailersOptions.K8sWrapTransport
 	// Create k8s wrap transport for bastion host
 	if len(c.BastionHost.Address) > 0 {
 		var err error
@@ -275,13 +278,13 @@ func getLocalAdminConfigWithNewAddress(localConfigPath, cpAddress string, cluste
 		string(config.KeyData))
 }
 
-func ApplyAuthzResources(ctx context.Context, rkeConfig v3.RancherKubernetesEngineConfig, clusterFilePath, configDir string, k8sWrapTransport k8s.WrapTransport) error {
+func ApplyAuthzResources(ctx context.Context, rkeConfig v3.RancherKubernetesEngineConfig, flags ExternalFlags, dailersOptions hosts.DialersOptions) error {
 	// dialer factories are not needed here since we are not uses docker only k8s jobs
-	kubeCluster, err := InitClusterObject(ctx, &rkeConfig, clusterFilePath, configDir)
+	kubeCluster, err := InitClusterObject(ctx, &rkeConfig, flags)
 	if err != nil {
 		return err
 	}
-	if err := kubeCluster.SetupDialers(ctx, nil, nil, k8sWrapTransport); err != nil {
+	if err := kubeCluster.SetupDialers(ctx, dailersOptions); err != nil {
 		return err
 	}
 	if len(kubeCluster.ControlPlaneHosts) == 0 {
@@ -436,15 +439,15 @@ func ConfigureCluster(
 	ctx context.Context,
 	rkeConfig v3.RancherKubernetesEngineConfig,
 	crtBundle map[string]pki.CertificatePKI,
-	clusterFilePath, configDir string,
-	k8sWrapTransport k8s.WrapTransport,
+	flags ExternalFlags,
+	dailersOptions hosts.DialersOptions,
 	useKubectl bool) error {
 	// dialer factories are not needed here since we are not uses docker only k8s jobs
-	kubeCluster, err := InitClusterObject(ctx, &rkeConfig, clusterFilePath, configDir)
+	kubeCluster, err := InitClusterObject(ctx, &rkeConfig, flags)
 	if err != nil {
 		return err
 	}
-	if err := kubeCluster.SetupDialers(ctx, nil, nil, k8sWrapTransport); err != nil {
+	if err := kubeCluster.SetupDialers(ctx, dailersOptions); err != nil {
 		return err
 	}
 	kubeCluster.UseKubectlDeploy = useKubectl
