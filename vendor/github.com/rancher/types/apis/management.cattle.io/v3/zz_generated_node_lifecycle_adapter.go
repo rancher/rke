@@ -6,9 +6,9 @@ import (
 )
 
 type NodeLifecycle interface {
-	Create(obj *Node) (*Node, error)
-	Remove(obj *Node) (*Node, error)
-	Updated(obj *Node) (*Node, error)
+	Create(obj *Node) (runtime.Object, error)
+	Remove(obj *Node) (runtime.Object, error)
+	Updated(obj *Node) (runtime.Object, error)
 }
 
 type nodeLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *nodeLifecycleAdapter) Updated(obj runtime.Object) (runtime.Object, erro
 func NewNodeLifecycleAdapter(name string, clusterScoped bool, client NodeInterface, l NodeLifecycle) NodeHandlerFunc {
 	adapter := &nodeLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *Node) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *Node) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }

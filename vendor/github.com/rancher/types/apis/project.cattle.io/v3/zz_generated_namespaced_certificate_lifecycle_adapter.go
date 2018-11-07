@@ -6,9 +6,9 @@ import (
 )
 
 type NamespacedCertificateLifecycle interface {
-	Create(obj *NamespacedCertificate) (*NamespacedCertificate, error)
-	Remove(obj *NamespacedCertificate) (*NamespacedCertificate, error)
-	Updated(obj *NamespacedCertificate) (*NamespacedCertificate, error)
+	Create(obj *NamespacedCertificate) (runtime.Object, error)
+	Remove(obj *NamespacedCertificate) (runtime.Object, error)
+	Updated(obj *NamespacedCertificate) (runtime.Object, error)
 }
 
 type namespacedCertificateLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *namespacedCertificateLifecycleAdapter) Updated(obj runtime.Object) (run
 func NewNamespacedCertificateLifecycleAdapter(name string, clusterScoped bool, client NamespacedCertificateInterface, l NamespacedCertificateLifecycle) NamespacedCertificateHandlerFunc {
 	adapter := &namespacedCertificateLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *NamespacedCertificate) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *NamespacedCertificate) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }

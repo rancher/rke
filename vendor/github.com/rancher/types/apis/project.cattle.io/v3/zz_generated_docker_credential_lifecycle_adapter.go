@@ -6,9 +6,9 @@ import (
 )
 
 type DockerCredentialLifecycle interface {
-	Create(obj *DockerCredential) (*DockerCredential, error)
-	Remove(obj *DockerCredential) (*DockerCredential, error)
-	Updated(obj *DockerCredential) (*DockerCredential, error)
+	Create(obj *DockerCredential) (runtime.Object, error)
+	Remove(obj *DockerCredential) (runtime.Object, error)
+	Updated(obj *DockerCredential) (runtime.Object, error)
 }
 
 type dockerCredentialLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *dockerCredentialLifecycleAdapter) Updated(obj runtime.Object) (runtime.
 func NewDockerCredentialLifecycleAdapter(name string, clusterScoped bool, client DockerCredentialInterface, l DockerCredentialLifecycle) DockerCredentialHandlerFunc {
 	adapter := &dockerCredentialLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *DockerCredential) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *DockerCredential) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }
