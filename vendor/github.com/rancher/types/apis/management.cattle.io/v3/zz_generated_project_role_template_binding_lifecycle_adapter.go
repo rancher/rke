@@ -6,9 +6,9 @@ import (
 )
 
 type ProjectRoleTemplateBindingLifecycle interface {
-	Create(obj *ProjectRoleTemplateBinding) (*ProjectRoleTemplateBinding, error)
-	Remove(obj *ProjectRoleTemplateBinding) (*ProjectRoleTemplateBinding, error)
-	Updated(obj *ProjectRoleTemplateBinding) (*ProjectRoleTemplateBinding, error)
+	Create(obj *ProjectRoleTemplateBinding) (runtime.Object, error)
+	Remove(obj *ProjectRoleTemplateBinding) (runtime.Object, error)
+	Updated(obj *ProjectRoleTemplateBinding) (runtime.Object, error)
 }
 
 type projectRoleTemplateBindingLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *projectRoleTemplateBindingLifecycleAdapter) Updated(obj runtime.Object)
 func NewProjectRoleTemplateBindingLifecycleAdapter(name string, clusterScoped bool, client ProjectRoleTemplateBindingInterface, l ProjectRoleTemplateBindingLifecycle) ProjectRoleTemplateBindingHandlerFunc {
 	adapter := &projectRoleTemplateBindingLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *ProjectRoleTemplateBinding) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *ProjectRoleTemplateBinding) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }

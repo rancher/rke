@@ -11,6 +11,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+type contextKeyType struct{}
+
 type Interface interface {
 	RESTClient() rest.Interface
 	controller.Starter
@@ -28,7 +30,6 @@ type Interface interface {
 	ClusterRoleTemplateBindingsGetter
 	ProjectRoleTemplateBindingsGetter
 	ClustersGetter
-	ClusterEventsGetter
 	ClusterRegistrationTokensGetter
 	CatalogsGetter
 	TemplatesGetter
@@ -75,7 +76,6 @@ type Client struct {
 	clusterRoleTemplateBindingControllers              map[string]ClusterRoleTemplateBindingController
 	projectRoleTemplateBindingControllers              map[string]ProjectRoleTemplateBindingController
 	clusterControllers                                 map[string]ClusterController
-	clusterEventControllers                            map[string]ClusterEventController
 	clusterRegistrationTokenControllers                map[string]ClusterRegistrationTokenController
 	catalogControllers                                 map[string]CatalogController
 	templateControllers                                map[string]TemplateController
@@ -104,6 +104,19 @@ type Client struct {
 	clusterCatalogControllers                          map[string]ClusterCatalogController
 }
 
+func Factory(ctx context.Context, config rest.Config) (context.Context, controller.Starter, error) {
+	c, err := NewForConfig(config)
+	if err != nil {
+		return ctx, nil, err
+	}
+
+	return context.WithValue(ctx, contextKeyType{}, c), c, nil
+}
+
+func From(ctx context.Context) Interface {
+	return ctx.Value(contextKeyType{}).(Interface)
+}
+
 func NewForConfig(config rest.Config) (Interface, error) {
 	if config.NegotiatedSerializer == nil {
 		config.NegotiatedSerializer = dynamic.NegotiatedSerializer
@@ -130,7 +143,6 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		clusterRoleTemplateBindingControllers:              map[string]ClusterRoleTemplateBindingController{},
 		projectRoleTemplateBindingControllers:              map[string]ProjectRoleTemplateBindingController{},
 		clusterControllers:                                 map[string]ClusterController{},
-		clusterEventControllers:                            map[string]ClusterEventController{},
 		clusterRegistrationTokenControllers:                map[string]ClusterRegistrationTokenController{},
 		catalogControllers:                                 map[string]CatalogController{},
 		templateControllers:                                map[string]TemplateController{},
@@ -335,19 +347,6 @@ type ClustersGetter interface {
 func (c *Client) Clusters(namespace string) ClusterInterface {
 	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterResource, ClusterGroupVersionKind, clusterFactory{})
 	return &clusterClient{
-		ns:           namespace,
-		client:       c,
-		objectClient: objectClient,
-	}
-}
-
-type ClusterEventsGetter interface {
-	ClusterEvents(namespace string) ClusterEventInterface
-}
-
-func (c *Client) ClusterEvents(namespace string) ClusterEventInterface {
-	objectClient := objectclient.NewObjectClient(namespace, c.restClient, &ClusterEventResource, ClusterEventGroupVersionKind, clusterEventFactory{})
-	return &clusterEventClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,

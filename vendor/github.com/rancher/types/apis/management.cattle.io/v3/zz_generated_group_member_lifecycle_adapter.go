@@ -6,9 +6,9 @@ import (
 )
 
 type GroupMemberLifecycle interface {
-	Create(obj *GroupMember) (*GroupMember, error)
-	Remove(obj *GroupMember) (*GroupMember, error)
-	Updated(obj *GroupMember) (*GroupMember, error)
+	Create(obj *GroupMember) (runtime.Object, error)
+	Remove(obj *GroupMember) (runtime.Object, error)
+	Updated(obj *GroupMember) (runtime.Object, error)
 }
 
 type groupMemberLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *groupMemberLifecycleAdapter) Updated(obj runtime.Object) (runtime.Objec
 func NewGroupMemberLifecycleAdapter(name string, clusterScoped bool, client GroupMemberInterface, l GroupMemberLifecycle) GroupMemberHandlerFunc {
 	adapter := &groupMemberLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *GroupMember) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *GroupMember) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }

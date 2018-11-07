@@ -6,9 +6,9 @@ import (
 )
 
 type NodeDriverLifecycle interface {
-	Create(obj *NodeDriver) (*NodeDriver, error)
-	Remove(obj *NodeDriver) (*NodeDriver, error)
-	Updated(obj *NodeDriver) (*NodeDriver, error)
+	Create(obj *NodeDriver) (runtime.Object, error)
+	Remove(obj *NodeDriver) (runtime.Object, error)
+	Updated(obj *NodeDriver) (runtime.Object, error)
 }
 
 type nodeDriverLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *nodeDriverLifecycleAdapter) Updated(obj runtime.Object) (runtime.Object
 func NewNodeDriverLifecycleAdapter(name string, clusterScoped bool, client NodeDriverInterface, l NodeDriverLifecycle) NodeDriverHandlerFunc {
 	adapter := &nodeDriverLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *NodeDriver) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *NodeDriver) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }

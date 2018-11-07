@@ -6,9 +6,9 @@ import (
 )
 
 type PipelineExecutionLifecycle interface {
-	Create(obj *PipelineExecution) (*PipelineExecution, error)
-	Remove(obj *PipelineExecution) (*PipelineExecution, error)
-	Updated(obj *PipelineExecution) (*PipelineExecution, error)
+	Create(obj *PipelineExecution) (runtime.Object, error)
+	Remove(obj *PipelineExecution) (runtime.Object, error)
+	Updated(obj *PipelineExecution) (runtime.Object, error)
 }
 
 type pipelineExecutionLifecycleAdapter struct {
@@ -42,10 +42,11 @@ func (w *pipelineExecutionLifecycleAdapter) Updated(obj runtime.Object) (runtime
 func NewPipelineExecutionLifecycleAdapter(name string, clusterScoped bool, client PipelineExecutionInterface, l PipelineExecutionLifecycle) PipelineExecutionHandlerFunc {
 	adapter := &pipelineExecutionLifecycleAdapter{lifecycle: l}
 	syncFn := lifecycle.NewObjectLifecycleAdapter(name, clusterScoped, adapter, client.ObjectClient())
-	return func(key string, obj *PipelineExecution) error {
-		if obj == nil {
-			return syncFn(key, nil)
+	return func(key string, obj *PipelineExecution) (runtime.Object, error) {
+		newObj, err := syncFn(key, obj)
+		if o, ok := newObj.(runtime.Object); ok {
+			return o, err
 		}
-		return syncFn(key, obj)
+		return nil, err
 	}
 }
