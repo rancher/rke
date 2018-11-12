@@ -50,8 +50,6 @@ type ExternalFlags struct {
 	ClusterFilePath  string
 	DisablePortCheck bool
 	Local            bool
-	RotateCACerts    bool
-	RotateComponents []string
 	UpdateOnly       bool
 }
 
@@ -292,14 +290,12 @@ func (c *Cluster) setCloudProvider() error {
 	return nil
 }
 
-func GetExternalFlags(local, rotateca, updateOnly, disablePortCheck bool, RotateComponents []string, configDir, clusterFilePath string) ExternalFlags {
+func GetExternalFlags(local, updateOnly, disablePortCheck bool, configDir, clusterFilePath string) ExternalFlags {
 	return ExternalFlags{
 		Local:            local,
 		UpdateOnly:       updateOnly,
 		DisablePortCheck: disablePortCheck,
 		ConfigDir:        configDir,
 		ClusterFilePath:  clusterFilePath,
-		RotateCACerts:    rotateca,
-		RotateComponents: RotateComponents,
 	}
 }

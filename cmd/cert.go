@@ -67,18 +67,26 @@ func rotateRKECertificatesFromCli(ctx *cli.Context) error {
 		return err
 	}
 	// setting up the flags
-	flags := cluster.GetExternalFlags(false, rotateCACert, false, false, k8sComponent, "", filePath)
+	externalFlags := cluster.GetExternalFlags(false, false, false, "", filePath)
+	rotateFlags := cluster.GetRotateCertsFlags(rotateCACert, k8sComponent)
 
-	return RotateRKECertificates(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
+	if err := RotateRKECertificates(context.Background(), rkeConfig, hosts.DialersOptions{}, externalFlags, rotateFlags); err != nil {
+		return err
+	}
+	return RebuildClusterWithRotatedCertificates(context.Background(), rkeConfig, hosts.DialersOptions{}, externalFlags, rotateFlags)
 }
 
 func showRKECertificatesFromCli(ctx *cli.Context) error {
 	return nil
 }
 
-func RotateRKECertificates(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) error {
+func RebuildClusterWithRotatedCertificates(ctx context.Context,
+	rkeConfig *v3.RancherKubernetesEngineConfig,
+	dialersOptions hosts.DialersOptions,
+	flags cluster.ExternalFlags,
+	rotateFlags cluster.RotateCertificatesFlags) error {
 
-	log.Infof(ctx, "Rotating Kubernetes cluster certificates")
+	log.Infof(ctx, "Rebuilding Kubernetes cluster with rotated certificates")
 	clusterState, err := cluster.ReadStateFile(ctx, cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir))
 	if err != nil {
 		return err
@@ -96,29 +104,25 @@ func RotateRKECertificates(ctx context.Context, rkeConfig *v3.RancherKubernetesE
 		return err
 	}
 
-	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState)
-	if err != nil {
-		return err
-	}
-
-	if err := cluster.SetUpAuthentication(ctx, kubeCluster, currentCluster, clusterState); err != nil {
-		return err
-	}
-
-	if err := cluster.RotateRKECertificates(ctx, kubeCluster, flags); err != nil {
+	if err := cluster.SetUpAuthentication(ctx, kubeCluster, nil, clusterState); err != nil {
 		return err
 	}
 
 	if err := kubeCluster.SetUpHosts(ctx, true); err != nil {
 		return err
 	}
+	// Save new State
+	if err := kubeCluster.UpdateClusterCurrentState(ctx, clusterState); err != nil {
+		return err
+	}
+
 	// Restarting Kubernetes components
 	servicesMap := make(map[string]bool)
-	for _, component := range flags.RotateComponents {
+	for _, component := range rotateFlags.RotateComponents {
 		servicesMap[component] = true
 	}
 
-	if len(flags.RotateComponents) == 0 || flags.RotateCACerts || servicesMap[services.EtcdContainerName] {
+	if len(rotateFlags.RotateComponents) == 0 || rotateFlags.RotateCACerts || servicesMap[services.EtcdContainerName] {
 		if err := services.RestartEtcdPlane(ctx, kubeCluster.EtcdHosts); err != nil {
 			return err
 		}
@@ -133,8 +137,48 @@ func RotateRKECertificates(ctx context.Context, rkeConfig *v3.RancherKubernetesE
 		return err
 	}
 
-	if flags.RotateCACerts {
+	if rotateFlags.RotateCACerts {
 		return cluster.RestartClusterPods(ctx, kubeCluster)
 	}
 	return nil
+}
+
+func RotateRKECertificates(ctx context.Context,
+	rkeConfig *v3.RancherKubernetesEngineConfig,
+	dialersOptions hosts.DialersOptions,
+	flags cluster.ExternalFlags,
+	rotateFlags cluster.RotateCertificatesFlags) error {
+	log.Infof(ctx, "Rotating Kubernetes cluster certificates")
+	stateFilePath := cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir)
+	clusterState, _ := cluster.ReadStateFile(ctx, stateFilePath)
+
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
+	if err != nil {
+		return err
+	}
+
+	if err := kubeCluster.SetupDialers(ctx, dialersOptions); err != nil {
+		return err
+	}
+
+	err = doUpgradeLegacyCluster(ctx, kubeCluster, clusterState)
+	if err != nil {
+		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes")
+	}
+
+	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState)
+	if err != nil {
+		return err
+	}
+	if currentCluster == nil {
+		return fmt.Errorf("Failed to rotate certificates: can't find old certificates")
+	}
+	if err := cluster.RotateRKECertificates(ctx, currentCluster, flags, rotateFlags, clusterState); err != nil {
+		return err
+	}
+	rkeState := cluster.FullState{
+		DesiredState: clusterState.DesiredState,
+		CurrentState: clusterState.CurrentState,
+	}
+	return rkeState.WriteStateFile(ctx, stateFilePath)
 }

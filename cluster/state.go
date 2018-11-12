@@ -47,7 +47,7 @@ func (c *Cluster) GetClusterState(ctx context.Context, fullState *FullState) (*C
 	}
 
 	// resetup external flags
-	flags := GetExternalFlags(false, false, false, false, nil, c.ConfigDir, c.ConfigPath)
+	flags := GetExternalFlags(false, false, false, c.ConfigDir, c.ConfigPath)
 	currentCluster, err := InitClusterObject(ctx, fullState.CurrentState.RancherKubernetesEngineConfig, flags)
 	if err != nil {
 		return nil, err
@@ -161,15 +161,15 @@ func RebuildState(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConf
 	} else {
 		// Regenerating etcd certificates for any new etcd nodes
 		pkiCertBundle := oldState.DesiredState.CertificatesBundle
-		if err := pki.GenerateEtcdCertificates(ctx, pkiCertBundle, *rkeConfig, "", ""); err != nil {
+		if err := pki.GenerateEtcdCertificates(ctx, pkiCertBundle, *rkeConfig, "", "", false); err != nil {
 			return nil, err
 		}
 		// Regenerating kubeapi certificates for any new kubeapi nodes
-		if err := pki.GenerateKubeAPICertificate(ctx, pkiCertBundle, *rkeConfig, "", ""); err != nil {
+		if err := pki.GenerateKubeAPICertificate(ctx, pkiCertBundle, *rkeConfig, "", "", false); err != nil {
 			return nil, err
 		}
 		// Regenerating kubeadmin certificates/config
-		if err := pki.GenerateKubeAdminCertificate(ctx, pkiCertBundle, *rkeConfig, flags.ClusterFilePath, flags.ConfigDir); err != nil {
+		if err := pki.GenerateKubeAdminCertificate(ctx, pkiCertBundle, *rkeConfig, flags.ClusterFilePath, flags.ConfigDir, false); err != nil {
 			return nil, err
 		}
 		newState.DesiredState.CertificatesBundle = pkiCertBundle

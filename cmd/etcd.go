@@ -130,7 +130,7 @@ func SnapshotSaveEtcdHostsFromCli(ctx *cli.Context) error {
 		logrus.Warnf("Name of the snapshot is not specified using [%s]", etcdSnapshotName)
 	}
 	// setting up the flags
-	flags := cluster.GetExternalFlags(false, false, false, false, nil, "", filePath)
+	flags := cluster.GetExternalFlags(false, false, false, "", filePath)
 
 	return SnapshotSaveEtcdHosts(context.Background(), rkeConfig, hosts.DialersOptions{}, flags, etcdSnapshotName)
 }
@@ -155,7 +155,7 @@ func RestoreEtcdSnapshotFromCli(ctx *cli.Context) error {
 		return fmt.Errorf("You must specify the snapshot name to restore")
 	}
 	// setting up the flags
-	flags := cluster.GetExternalFlags(false, false, false, false, nil, "", filePath)
+	flags := cluster.GetExternalFlags(false, false, false, "", filePath)
 
 	return RestoreEtcdSnapshot(context.Background(), rkeConfig, hosts.DialersOptions{}, flags, etcdSnapshotName)
 
