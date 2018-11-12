@@ -34,7 +34,7 @@ type CertificatePKI struct {
 	ConfigPath     string            `json:"configPath"`
 }
 
-type GenFunc func(context.Context, map[string]CertificatePKI, v3.RancherKubernetesEngineConfig, string, string) error
+type GenFunc func(context.Context, map[string]CertificatePKI, v3.RancherKubernetesEngineConfig, string, string, bool) error
 
 const (
 	etcdRole            = "etcd"
@@ -50,7 +50,7 @@ func GenerateRKECerts(ctx context.Context, rkeConfig v3.RancherKubernetesEngineC
 		return certs, err
 	}
 	// Generating certificates for kubernetes components
-	if err := GenerateRKEServicesCerts(ctx, certs, rkeConfig, configPath, configDir); err != nil {
+	if err := GenerateRKEServicesCerts(ctx, certs, rkeConfig, configPath, configDir, false); err != nil {
 		return certs, err
 	}
 	return certs, nil
