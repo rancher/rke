@@ -22,10 +22,11 @@ import (
 )
 
 const (
-	EtcdSnapshotPath = "/opt/rke/etcd-snapshots/"
-	EtcdRestorePath  = "/opt/rke/etcd-snapshots-restore/"
-	EtcdDataDir      = "/var/lib/rancher/etcd/"
-	EtcdInitWaitTime = 10
+	EtcdSnapshotPath     = "/opt/rke/etcd-snapshots/"
+	EtcdRestorePath      = "/opt/rke/etcd-snapshots-restore/"
+	EtcdDataDir          = "/var/lib/rancher/etcd/"
+	EtcdInitWaitTime     = 10
+	EtcdSnapshotWaitTime = 5
 )
 
 type EtcdSnapshot struct {
@@ -308,6 +309,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	if err != nil {
 		return err
 	}
+	time.Sleep(EtcdSnapshotWaitTime * time.Second)
 	if snapshotCont.State.Status == "exited" || snapshotCont.State.Restarting {
 		log.Warnf(ctx, "Etcd rolling snapshot container failed to start correctly")
 		return docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotContainerName)
