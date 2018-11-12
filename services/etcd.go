@@ -20,10 +20,11 @@ import (
 )
 
 const (
-	EtcdSnapshotPath = "/opt/rke/etcd-snapshots/"
-	EtcdRestorePath  = "/opt/rke/etcd-snapshots-restore/"
-	EtcdDataDir      = "/var/lib/rancher/etcd/"
-	EtcdInitWaitTime = 5
+	EtcdSnapshotPath     = "/opt/rke/etcd-snapshots/"
+	EtcdRestorePath      = "/opt/rke/etcd-snapshots-restore/"
+	EtcdDataDir          = "/var/lib/rancher/etcd/"
+	EtcdInitWaitTime     = 5
+	EtcdSnapshotWaitTime = 5
 )
 
 type EtcdSnapshot struct {
@@ -281,6 +282,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdSnapshotContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return err
 	}
+	time.Sleep(EtcdSnapshotWaitTime * time.Second)
 	// check if the container exited with error
 	snapshotCont, err := docker.InspectContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotContainerName)
 	if err != nil {
