@@ -102,35 +102,6 @@ func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, f
 	return nil
 }
 
-func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) error {
-	log.Infof(ctx, "Initiating Kubernetes cluster")
-	stateFilePath := cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir)
-	rkeFullState, _ := cluster.ReadStateFile(ctx, stateFilePath)
-	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
-	if err != nil {
-		return err
-	}
-	if err := kubeCluster.SetupDialers(ctx, dialersOptions); err != nil {
-		return err
-	}
-
-	err = doUpgradeLegacyCluster(ctx, kubeCluster, rkeFullState)
-	if err != nil {
-		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes")
-	}
-
-	fullState, err := cluster.RebuildState(ctx, &kubeCluster.RancherKubernetesEngineConfig, rkeFullState, flags)
-	if err != nil {
-		return err
-	}
-
-	rkeState := cluster.FullState{
-		DesiredState: fullState.DesiredState,
-		CurrentState: fullState.CurrentState,
-	}
-	return rkeState.WriteStateFile(ctx, stateFilePath)
-}
-
 func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) (string, string, string, string, map[string]pki.CertificatePKI, error) {
 	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
