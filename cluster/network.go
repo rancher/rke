@@ -480,7 +480,7 @@ func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList 
 		return err
 	}
 
-	containerLog, logsErr := docker.GetContainerLogsStdoutStderr(ctx, host.DClient, PortCheckContainer, "all", true)
+	containerLog, _, logsErr := docker.GetContainerLogsStdoutStderr(ctx, host.DClient, PortCheckContainer, "all", true)
 	if logsErr != nil {
 		log.Warnf(ctx, "[network] Failed to get network port check logs: %v", logsErr)
 	}
