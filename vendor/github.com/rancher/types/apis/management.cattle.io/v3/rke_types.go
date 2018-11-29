@@ -109,7 +109,7 @@ type RKESystemImages struct {
 	//CanalFlannel image
 	CanalFlannel string `yaml:"canal_flannel" json:"canalFlannel,omitempty"`
 	// Weave Node image
-	WeaveNode string `yaml:"wave_node" json:"weaveNode,omitempty"`
+	WeaveNode string `yaml:"weave_node" json:"weaveNode,omitempty"`
 	// Weave CNI image
 	WeaveCNI string `yaml:"weave_cni" json:"weaveCni,omitempty"`
 	// Pod infra container image
@@ -180,7 +180,7 @@ type ETCDService struct {
 	// Etcd Recurring snapshot Service
 	Snapshot *bool `yaml:"snapshot" json:"snapshot,omitempty" norman:"default=true"`
 	// Etcd snapshot Retention period
-	Retention string `yaml:"retention" json:"retention,omitempty" norman:"default=3d"`
+	Retention string `yaml:"retention" json:"retention,omitempty" norman:"default=72h"`
 	// Etcd snapshot Creation period
 	Creation string `yaml:"creation" json:"creation,omitempty" norman:"default=12h"`
 }
@@ -250,6 +250,8 @@ type NetworkConfig struct {
 	CanalNetworkProvider *CanalNetworkProvider `yaml:",omitempty" json:"canalNetworkProvider,omitempty"`
 	// FlannelNetworkProvider
 	FlannelNetworkProvider *FlannelNetworkProvider `yaml:",omitempty" json:"flannelNetworkProvider,omitempty"`
+	// WeaveNetworkProvider
+	WeaveNetworkProvider *WeaveNetworkProvider `yaml:",omitempty" json:"weaveNetworkProvider,omitempty"`
 }
 
 type AuthnConfig struct {
@@ -373,6 +375,10 @@ type FlannelNetworkProvider struct {
 
 type CanalNetworkProvider struct {
 	FlannelNetworkProvider `yaml:",inline" json:",inline"`
+}
+
+type WeaveNetworkProvider struct {
+	Password string `yaml:"password,omitempty" json:"password,omitempty"`
 }
 
 type KubernetesServicesOptions struct {

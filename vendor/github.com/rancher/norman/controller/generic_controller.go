@@ -187,10 +187,8 @@ func (g *genericController) Start(ctx context.Context, threadiness int) error {
 	g.Lock()
 	defer g.Unlock()
 
-	if !g.synced {
-		if err := g.sync(ctx); err != nil {
-			return err
-		}
+	if err := g.sync(ctx); err != nil {
+		return err
 	}
 
 	if !g.running {
@@ -221,6 +219,11 @@ func (g *genericController) Start(ctx context.Context, threadiness int) error {
 }
 
 func (g *genericController) queueObject(obj interface{}) {
+	if _, ok := obj.(generationKey); ok {
+		g.queue.Add(obj)
+		return
+	}
+
 	key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
 	if err == nil {
 		g.queue.Add(key)
@@ -269,7 +272,11 @@ func (g *genericController) processNextWorkItem() bool {
 		logrus.Errorf("%v %v %v", g.name, key, err)
 	}
 
-	g.queue.AddRateLimited(key)
+	if gk, ok := key.(generationKey); ok {
+		g.queue.AddRateLimited(gk.key)
+	} else {
+		g.queue.AddRateLimited(key)
+	}
 
 	return true
 }
