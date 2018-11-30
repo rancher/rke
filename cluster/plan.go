@@ -1,12 +1,14 @@
 package cluster
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"fmt"
 	"path"
 	"strconv"
 	"strings"
+	"text/template"
 
 	b64 "encoding/base64"
 
@@ -420,7 +422,10 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
 		if _, ok := c.Services.Kubelet.ExtraArgs[arg]; ok {
-			CommandArgs[arg] = value
+			t, _ := template.New("gotpl").Parse(value)
+			buf := new(bytes.Buffer)
+			t.Execute(buf, host)
+			CommandArgs[arg] = buf.String()
 		}
 	}
 
