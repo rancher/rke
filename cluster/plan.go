@@ -56,6 +56,16 @@ func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConf
 	return clusterPlan, nil
 }
 
+func renderExtra(host *hosts.Host, s string) (string, error) {
+	t, _ := template.New("gotpl").Parse(s)
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, host)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
 func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts.Host, hostDockerInfo types.Info) v3.RKEConfigNodePlan {
 	prefixPath := hosts.GetPrefixPath(hostDockerInfo.OperatingSystem, myCluster.PrefixPath)
 	processes := map[string]v3.Process{}
@@ -379,6 +389,17 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 			c.Services.Kubelet.ExtraEnv,
 			fmt.Sprintf("%s=%s", KubeletDockerConfigFileEnv, path.Join(prefixPath, KubeletDockerConfigPath)))
 	}
+
+	for index, value := range c.Services.Kubelet.ExtraEnv {
+		valueRendered, err := renderExtra(host, value)
+		if err != nil {
+			logrus.Debugf("Error rendering extra env %s - %s", value, err)
+			c.Services.Kubelet.ExtraEnv[index] = value
+		} else {
+			c.Services.Kubelet.ExtraEnv[index] = valueRendered
+		}
+	}
+
 	// check if our version has specific options for this component
 	serviceOptions := c.GetKubernetesServicesOptions()
 	if serviceOptions.Kubelet != nil {
@@ -422,10 +443,13 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 
 	for arg, value := range c.Services.Kubelet.ExtraArgs {
 		if _, ok := c.Services.Kubelet.ExtraArgs[arg]; ok {
-			t, _ := template.New("gotpl").Parse(value)
-			buf := new(bytes.Buffer)
-			t.Execute(buf, host)
-			CommandArgs[arg] = buf.String()
+			valueRendered, err := renderExtra(host, value)
+			if err != nil {
+				logrus.Debugf("Error rendering extra arg --%s=%s - %s", arg, value, err)
+				CommandArgs[arg] = value
+			} else {
+				CommandArgs[arg] = valueRendered
+			}
 		}
 	}
 
@@ -435,6 +459,16 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 
 	Binds = append(Binds, c.Services.Kubelet.ExtraBinds...)
+
+	for index, value := range Binds {
+		valueRendered, err := renderExtra(host, value)
+		if err != nil {
+			logrus.Debugf("Error rendering extra bind %s - %s", value, err)
+			Binds[index] = value
+		} else {
+			Binds[index] = valueRendered
+		}
+	}
 
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(true, services.KubeletPort),
