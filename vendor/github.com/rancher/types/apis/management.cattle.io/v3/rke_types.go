@@ -41,6 +41,8 @@ type RancherKubernetesEngineConfig struct {
 	BastionHost BastionHost `yaml:"bastion_host" json:"bastionHost,omitempty"`
 	// Monitoring Config
 	Monitoring MonitoringConfig `yaml:"monitoring" json:"monitoring,omitempty"`
+	// RestoreCluster flag
+	Restore RestoreConfig `yaml:"restore" json:"restore,omitempty"`
 	// Rotating Certificates Option
 	RotateCertificates *RotateCertificates `yaml:"rotate_certificates,omitempty" json:"rotateCertificates,omitempty"`
 }
@@ -185,6 +187,8 @@ type ETCDService struct {
 	Retention string `yaml:"retention" json:"retention,omitempty" norman:"default=72h"`
 	// Etcd snapshot Creation period
 	Creation string `yaml:"creation" json:"creation,omitempty" norman:"default=12h"`
+	// Backup backend for etcd snapshots, used by rke only
+	BackupConfig *BackupConfig `yaml:"backup_target" json:"backupConfig,omitempty"`
 }
 
 type KubeAPIService struct {
@@ -583,6 +587,10 @@ type MonitoringConfig struct {
 	Options map[string]string `yaml:"options" json:"options,omitempty"`
 }
 
+type RestoreConfig struct {
+	Restore      bool   `yaml:"restore" json:"restore,omitempty"`
+	SnapshotName string `yaml:"snapshot_name" json:"snapshotName,omitempty"`
+}
 type RotateCertificates struct {
 	// Rotate CA Certificates
 	CACertificates bool `json:"caCertificates,omitempty"`
