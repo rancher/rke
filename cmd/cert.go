@@ -77,7 +77,7 @@ func rotateRKECertificatesFromCli(ctx *cli.Context) error {
 	if err := ClusterInit(context.Background(), rkeConfig, hosts.DialersOptions{}, externalFlags); err != nil {
 		return err
 	}
-	_, _, _, _, _, err = RebuildClusterWithRotatedCertificates(context.Background(), hosts.DialersOptions{}, externalFlags)
+	_, _, _, _, _, err = ClusterUp(context.Background(), hosts.DialersOptions{}, externalFlags)
 	return err
 }
 
@@ -85,7 +85,7 @@ func showRKECertificatesFromCli(ctx *cli.Context) error {
 	return nil
 }
 
-func RebuildClusterWithRotatedCertificates(ctx context.Context,
+func rebuildClusterWithRotatedCertificates(ctx context.Context,
 	dialersOptions hosts.DialersOptions,
 	flags cluster.ExternalFlags) (string, string, string, string, map[string]pki.CertificatePKI, error) {
 	var APIURL, caCrt, clientCert, clientKey string

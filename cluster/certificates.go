@@ -177,7 +177,8 @@ func RotateRKECertificates(ctx context.Context, c *Cluster, flags ExternalFlags,
 			}
 		}
 	}
-	if len(rotateFlags.Services) == 0 {
+	// to handle kontainer engine sending empty string for services
+	if len(rotateFlags.Services) == 0 || (len(rotateFlags.Services) == 1 && rotateFlags.Services[0] == "") {
 		// do not rotate service account token
 		if c.Certificates[pki.ServiceAccountTokenKeyName].Key != nil {
 			serviceAccountTokenKey = string(cert.EncodePrivateKeyPEM(c.Certificates[pki.ServiceAccountTokenKeyName].Key))
