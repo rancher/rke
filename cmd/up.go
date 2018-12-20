@@ -103,7 +103,6 @@ func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, f
 }
 
 func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) (string, string, string, string, map[string]pki.CertificatePKI, error) {
-	log.Infof(ctx, "Building Kubernetes cluster")
 	var APIURL, caCrt, clientCert, clientKey string
 
 	clusterState, err := cluster.ReadStateFile(ctx, cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir))
@@ -115,7 +114,12 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
+	// check if rotate certificates is triggered
+	if kubeCluster.RancherKubernetesEngineConfig.RotateCertificates != nil {
+		return rebuildClusterWithRotatedCertificates(ctx, dialersOptions, flags)
+	}
 
+	log.Infof(ctx, "Building Kubernetes cluster")
 	err = kubeCluster.SetupDialers(ctx, dialersOptions)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
