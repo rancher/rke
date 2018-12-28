@@ -62,7 +62,7 @@ type ProjectAlertSpec struct {
 type Recipient struct {
 	Recipient    string `json:"recipient,omitempty"`
 	NotifierName string `json:"notifierName,omitempty" norman:"required,type=reference[notifier]"`
-	NotifierType string `json:"notifierType,omitempty" norman:"required,options=slack|email|pagerduty|webhook"`
+	NotifierType string `json:"notifierType,omitempty" norman:"required,options=slack|email|pagerduty|webhook|wechat"`
 }
 
 type TargetNode struct {
@@ -200,12 +200,10 @@ type CommonRuleField struct {
 
 type MetricRule struct {
 	Expression     string  `json:"expression,omitempty" norman:"required"`
-	LegendFormat   string  `json:"legendFormat,omitempty"`
-	Step           int64   `json:"step,omitempty"`
 	Description    string  `json:"description,omitempty"`
-	Duration       string  `json:"duration,omitempty"`
+	Duration       string  `json:"duration,omitempty" norman:"required"`
 	Comparison     string  `json:"comparison,omitempty" norman:"type=enum,options=equal|not-equal|greater-than|less-than|greater-or-equal|less-or-equal,default=equal"`
-	ThresholdValue float64 `json:"thresholdValue,omitempty" norman:"type=float"`
+	ThresholdValue float64 `json:"thresholdValue,omitempty" norman:"required,type=float"`
 }
 
 type TimingField struct {
@@ -267,6 +265,7 @@ type NotifierSpec struct {
 	SlackConfig     *SlackConfig     `json:"slackConfig,omitempty"`
 	PagerdutyConfig *PagerdutyConfig `json:"pagerdutyConfig,omitempty"`
 	WebhookConfig   *WebhookConfig   `json:"webhookConfig,omitempty"`
+	WechatConfig    *WechatConfig    `json:"wechatConfig,omitempty"`
 }
 
 type Notification struct {
@@ -275,6 +274,7 @@ type Notification struct {
 	SlackConfig     *SlackConfig     `json:"slackConfig,omitempty"`
 	PagerdutyConfig *PagerdutyConfig `json:"pagerdutyConfig,omitempty"`
 	WebhookConfig   *WebhookConfig   `json:"webhookConfig,omitempty"`
+	WechatConfig    *WechatConfig    `json:"wechatConfig,omitempty"`
 }
 
 type SMTPConfig struct {
@@ -298,6 +298,14 @@ type PagerdutyConfig struct {
 
 type WebhookConfig struct {
 	URL string `json:"url,omitempty" norman:"required"`
+}
+
+type WechatConfig struct {
+	DefaultRecipient string `json:"defaultRecipient,omitempty" norman:"required"`
+	Secret           string `json:"secret,omitempty" norman:"type=password,required"`
+	Agent            string `json:"agent,omitempty" norman:"required"`
+	Corp             string `json:"corp,omitempty" norman:"required"`
+	RecipientType    string `json:"recipientType,omitempty" norman:"required,options=tag|party|user,default=party"`
 }
 
 type NotifierStatus struct {
