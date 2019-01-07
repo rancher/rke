@@ -1,0 +1,91 @@
+#!/bin/bash
+
+function cleanup {
+    echo ""
+    echo "---- Clean Up RKE ----"
+    for i in ./bin/cluster-*.yml; do
+        ./bin/rke remove --dind --force --config $i 2>&1 >/dev/null
+    done
+    rm -f ./bin/*.rkestate ./bin/*.yml
+}
+trap cleanup TERM EXIT
+
+pids=""
+tail_pids=""
+RESULT="0"
+declare -A versions_to_test
+declare -A pids_to_version
+declare -A pids_results
+
+echo "INFO - Running $0"
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+
+
+# Get latest version from rke
+all_versions=$(./bin/rke config --all --system-images 2>&1 | grep "Generating images list for version" | sed -E 's/.*\[(.*)\].*/\1/' | sort -V)
+
+# Get the latest of the major.minor versions.
+for ver in $all_versions; do
+    # clean up list. Remove blanks
+    ver=$(echo $ver | xargs echo -n)
+    if [ -z "$ver" ]; then
+        continue
+    fi
+
+    #split value on .
+    split=($(echo $ver | tr '.' '\n'))
+    major_ver="${split[0]}.${split[1]}"
+    versions_to_test["${major_ver}"]="${ver}"
+done
+
+for ver in "${!versions_to_test[@]}"; do
+    echo "testing ${versions_to_test["${ver}"]}"
+
+    # Create cluster yaml with random node names
+    node=$(cat /dev/urandom | tr -dc a-z | head -c${1:-8})
+    cat << EOF > "./bin/cluster-${versions_to_test["${ver}"]}.yml"
+kubernetes_version: ${versions_to_test["${ver}"]}
+nodes:
+- address: rke-node-${node}
+  role: [etcd, controlplane, worker]
+  user: ubuntu
+EOF
+
+    # Run rke - output to logs and track results.
+    ./bin/rke up --dind --config "./bin/cluster-${versions_to_test["${ver}"]}.yml" 2>&1 >"./bin/cluster-${versions_to_test["${ver}"]}.log" &
+    pids="$pids $!"
+    pid_to_version["$!"]="${versions_to_test["${ver}"]}"
+
+    # Tail logs.
+    sleep 1
+    tail -f "./bin/cluster-${versions_to_test["${ver}"]}.log" &
+    tail_pids="$tail_pids $!"
+done
+
+# Wait for rke to finish
+for pid in $pids; do
+    wait $pid
+    pid_results["${pid}"]="$?"
+done
+
+# Stop tailing the logs
+for pid in $tail_pids; do
+    kill $pid 2>&1 >/dev/null
+done
+
+echo ""
+echo "---- TEST RESULTS ----"
+for pid in "${!pid_results[@]}"; do
+    if [ "${pid_results["${pid}"]}" == "0" ]; then
+        echo "[PASS] ${pid_to_version["${pid}"]}"
+    else
+        echo "[FAIL] ${pid_to_version["${pid}"]}"
+        RESULT="1"
+    fi
+done
+
+if [ "$RESULT" == "1" ]; then
+    exit 1
+fi
