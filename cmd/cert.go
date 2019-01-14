@@ -154,7 +154,7 @@ func rebuildClusterWithRotatedCertificates(ctx context.Context,
 	clientKey = string(cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Key))
 	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
 
-	if err := kubeCluster.SetUpHosts(ctx, true); err != nil {
+	if err := kubeCluster.SetUpHosts(ctx, flags); err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 	// Save new State

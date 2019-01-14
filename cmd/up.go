@@ -161,7 +161,7 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
 
 	// moved deploying certs before reconcile to remove all unneeded certs generation from reconcile
-	err = kubeCluster.SetUpHosts(ctx, false)
+	err = kubeCluster.SetUpHosts(ctx, flags)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
