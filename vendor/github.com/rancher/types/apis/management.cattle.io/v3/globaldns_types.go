@@ -22,6 +22,7 @@ type GlobalDNSSpec struct {
 	ProjectNames        []string `json:"projectNames" norman:"type=array[reference[project]]"`
 	MultiClusterAppName string   `json:"multiClusterAppName,omitempty" norman:"type=reference[multiClusterApp]"`
 	ProviderName        string   `json:"providerName,omitempty" norman:"type=reference[globalDnsProvider]"`
+	Members             []Member `json:"members,omitempty"`
 }
 
 type GlobalDNSStatus struct {
@@ -40,6 +41,7 @@ type GlobalDNSProvider struct {
 
 type GlobalDNSProviderSpec struct {
 	Route53ProviderConfig *Route53ProviderConfig `json:"route53ProviderConfig,omitempty"`
+	Members               []Member               `json:"members,omitempty"`
 }
 
 type Route53ProviderConfig struct {
