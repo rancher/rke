@@ -403,16 +403,17 @@ func getAddonManifests(reader *bufio.Reader) ([]string, error) {
 
 func generateSystemImagesList(version string, all bool) error {
 	allVersions := []string{}
-
+	currentVersionImages := make(map[string]v3.RKESystemImages)
 	for version := range v3.AllK8sVersions {
 		err := util.ValidateVersion(version)
 		if err != nil {
 			continue
 		}
 		allVersions = append(allVersions, version)
+		currentVersionImages[version] = v3.AllK8sVersions[version]
 	}
 	if all {
-		for version, rkeSystemImages := range v3.AllK8sVersions {
+		for version, rkeSystemImages := range currentVersionImages {
 			err := util.ValidateVersion(version)
 			if err != nil {
 				continue
