@@ -9,18 +9,22 @@ import (
 )
 
 const (
-	DefaultK8s = "v1.12.4-rancher1-1"
+	DefaultK8s = "v1.13.1-rancher1-1"
 )
 
 var (
 	m = image.Mirror
 
-	// k8sVersionsCurrent are the latest versions available for installation
-	k8sVersionsCurrent = []string{
-		"v1.9.7-rancher2-2",
-		"v1.10.12-rancher1-1",
+	K8sBadVersions = map[string]bool{
+		"v1.9.7-rancher1":    true,
+		"v1.10.1-rancher1":   true,
+		"v1.8.11-rancher1":   true,
+		"v1.8.10-rancher1-1": true,
+	}
+
+	// K8sVersionsCurrent are the latest versions available for installation
+	K8sVersionsCurrent = []string{
 		"v1.11.6-rancher1-1",
-		"v1.12.4-rancher1-1",
 		"v1.12.5-rancher1-1",
 		"v1.13.1-rancher1-1",
 	}
@@ -668,6 +672,8 @@ var (
 			Ingress:                   m("rancher/nginx-ingress-controller:0.16.2-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
+			CoreDNS:                   m("coredns/coredns:1.2.2"),
+			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"),
 		},
 		"v1.12.1-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.2.24"),
@@ -694,6 +700,8 @@ var (
 			Ingress:                   m("rancher/nginx-ingress-controller:0.16.2-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
+			CoreDNS:                   m("coredns/coredns:1.2.2"),
+			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"),
 		},
 		"v1.12.3-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.2.24"),
@@ -720,6 +728,8 @@ var (
 			Ingress:                   m("rancher/nginx-ingress-controller:0.16.2-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
+			CoreDNS:                   m("coredns/coredns:1.2.2"),
+			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"),
 		},
 		"v1.12.4-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.2.24"),
@@ -746,6 +756,8 @@ var (
 			Ingress:                   m("rancher/nginx-ingress-controller:0.16.2-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
+			CoreDNS:                   m("coredns/coredns:1.2.2"),
+			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"),
 		},
 		"v1.12.5-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.2.24"),
@@ -772,6 +784,8 @@ var (
 			Ingress:                   m("rancher/nginx-ingress-controller:0.16.2-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
+			CoreDNS:                   m("coredns/coredns:1.2.2"),
+			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"),
 		},
 		"v1.13.1-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.2.24"),
@@ -798,18 +812,13 @@ var (
 			Ingress:                   m("rancher/nginx-ingress-controller:0.21.0-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
+			CoreDNS:                   m("coredns/coredns:1.2.6"),
+			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler-amd64:1.0.0"),
 		},
 	}
 )
 
 func init() {
-	badVersions := map[string]bool{
-		"v1.9.7-rancher1":    true,
-		"v1.10.1-rancher1":   true,
-		"v1.8.11-rancher1":   true,
-		"v1.8.10-rancher1-1": true,
-	}
-
 	if K8sVersionToRKESystemImages != nil {
 		panic("Do not initialize or add values to K8sVersionToRKESystemImages")
 	}
@@ -817,7 +826,7 @@ func init() {
 	K8sVersionToRKESystemImages = map[string]RKESystemImages{}
 
 	for version, images := range AllK8sVersions {
-		if badVersions[version] {
+		if K8sBadVersions[version] {
 			continue
 		}
 
@@ -827,7 +836,7 @@ func init() {
 		}
 	}
 
-	for _, latest := range k8sVersionsCurrent {
+	for _, latest := range K8sVersionsCurrent {
 		images, ok := AllK8sVersions[latest]
 		if !ok {
 			panic("K8s version " + " is not found in AllK8sVersions map")
