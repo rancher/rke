@@ -24,7 +24,8 @@ const (
 	DefaultClusterName           = "local"
 	DefaultClusterSSHKeyPath     = "~/.ssh/id_rsa"
 
-	DefaultK8sVersion = v3.DefaultK8s
+	DefaultK8sVersion      = v3.DefaultK8s
+	DefaultArm64K8sVersion = v3.DefaultArm64K8s
 
 	DefaultSSHPort        = "22"
 	DefaultDockerSockPath = "/var/run/docker.sock"
@@ -130,7 +131,11 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) error {
 		c.ClusterName = DefaultClusterName
 	}
 	if len(c.Version) == 0 {
-		c.Version = DefaultK8sVersion
+		if c.RancherKubernetesEngineConfig.Architecture == "arm64" {
+			c.Version = DefaultArm64K8sVersion
+		} else {
+			c.Version = DefaultK8sVersion
+		}
 	}
 	if c.AddonJobTimeout == 0 {
 		c.AddonJobTimeout = k8s.DefaultTimeout
@@ -216,12 +221,22 @@ func (c *Cluster) setClusterImageDefaults() error {
 	var privRegURL string
 
 	// Version Check
-	err := util.ValidateVersion(c.Version)
+	var err error
+	if c.RancherKubernetesEngineConfig.Architecture == "arm64" {
+		err = util.ValidateArm64Version(c.Version)
+	} else {
+		err = util.ValidateVersion(c.Version)
+	}
 	if err != nil {
 		return err
 	}
 
-	imageDefaults := v3.AllK8sVersions[c.Version]
+	var imageDefaults v3.RKESystemImages
+	if c.RancherKubernetesEngineConfig.Architecture == "arm64" {
+		imageDefaults = v3.AllArm64K8sVersions[c.Version]
+	} else {
+		imageDefaults = v3.AllK8sVersions[c.Version]
+	}
 
 	for _, privReg := range c.PrivateRegistries {
 		if privReg.IsDefault {

@@ -51,6 +51,10 @@ func ConfigCommand() cli.Command {
 				Name:  "all",
 				Usage: "Generate the default system images for all versions",
 			},
+			cli.BoolFlag{
+				Name:  "arm64",
+				Usage: "Generate the default arm64 architecture system images for all versions",
+			},
 			cli.StringFlag{
 				Name:  "version",
 				Usage: "Generate the default system images for specific k8s versions",
@@ -96,6 +100,9 @@ func writeConfig(cluster *v3.RancherKubernetesEngineConfig, configFile string, p
 
 func clusterConfig(ctx *cli.Context) error {
 	if ctx.Bool("system-images") {
+		if ctx.Bool("arm64") {
+			return generateArm64SystemImagesList(ctx.String("version"), ctx.Bool("all"))
+		}
 		return generateSystemImagesList(ctx.String("version"), ctx.Bool("all"))
 	}
 	configFile := ctx.String("name")
@@ -434,6 +441,53 @@ func generateSystemImagesList(version string, all bool) error {
 		version = v3.DefaultK8s
 	}
 	rkeSystemImages := v3.AllK8sVersions[version]
+	if rkeSystemImages == (v3.RKESystemImages{}) {
+		return fmt.Errorf("k8s version is not supported, supported versions are: %v", allVersions)
+	}
+	logrus.Infof("Generating images list for version [%s]:", version)
+	uniqueImages := getUniqueSystemImageList(rkeSystemImages)
+	for _, image := range uniqueImages {
+		if image == "" {
+			continue
+		}
+		fmt.Printf("%s\n", image)
+	}
+	return nil
+}
+
+func generateArm64SystemImagesList(version string, all bool) error {
+	allVersions := []string{}
+	currentVersionImages := make(map[string]v3.RKESystemImages)
+	for version := range v3.AllArm64K8sVersions {
+		err := util.ValidateArm64Version(version)
+		if err != nil {
+			continue
+		}
+		allVersions = append(allVersions, version)
+		currentVersionImages[version] = v3.AllArm64K8sVersions[version]
+	}
+	if all {
+		for version, rkeSystemImages := range currentVersionImages {
+			err := util.ValidateArm64Version(version)
+			if err != nil {
+				continue
+			}
+
+			logrus.Infof("Generating images list for version [%s]:", version)
+			uniqueImages := getUniqueSystemImageList(rkeSystemImages)
+			for _, image := range uniqueImages {
+				if image == "" {
+					continue
+				}
+				fmt.Printf("%s\n", image)
+			}
+		}
+		return nil
+	}
+	if len(version) == 0 {
+		version = v3.DefaultK8s
+	}
+	rkeSystemImages := v3.AllArm64K8sVersions[version]
 	if rkeSystemImages == (v3.RKESystemImages{}) {
 		return fmt.Errorf("k8s version is not supported, supported versions are: %v", allVersions)
 	}
