@@ -27,6 +27,8 @@ type RancherKubernetesEngineConfig struct {
 	IgnoreDockerVersion bool `yaml:"ignore_docker_version" json:"ignoreDockerVersion" norman:"default=true"`
 	// Kubernetes version to use (if kubernetes image is specifed, image version takes precedence)
 	Version string `yaml:"kubernetes_version" json:"kubernetesVersion,omitempty"`
+	// Kubernetes Architecture to use: now only support amd64 and arm64
+	Architecture string `yaml:"architecture" json:"architecture,omitempty" norman:"default=amd64"`
 	// List of private registries and their credentials
 	PrivateRegistries []PrivateRegistry `yaml:"private_registries" json:"privateRegistries,omitempty"`
 	// Ingress controller used in the cluster
