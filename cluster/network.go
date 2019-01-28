@@ -534,9 +534,10 @@ func checkPlanePortsFromHost(ctx context.Context, host *hosts.Host, portList []s
 	if tcp {
 		cmd = append(cmd, "for host in $HOSTS; do for port in $PORTS ; do echo \"Checking host ${host} on port ${port}\" >&1 & nc -w5 -z $host $port > /dev/null || echo \"${host}:${port}\" >&2 & done; wait; done")
 	} else {
-		// UDP port scans using the -uz combination of flags will always report success irrespective of the target machine's state,
-		// so instead we use -uzv to log verbose output if the checking port is not open or unreachable, and it will print nothing if it succeeds
-		cmd = append(cmd, "for host in $HOSTS; do for port in $PORTS ; do echo \"Checking host ${host} on port ${port}\" >&1 & nc -w5 -uzv $host $port > /dev/null & done; wait; done")
+		// TODO: add proper UDP port checks, and because UDP is not reliable so it has no acknowledgment, retransmission, or timeout.
+		//  Also the k8s layer 3 network like flannel will filtering the host port like 8472 once is installed, so commands like `nc -w5 -uzv $host $port` will always return the same message regardless of the udp port is opened or not.
+		//  More details on: https://github.com/rancher/rke/issues/1102
+		return nil
 	}
 
 	for _, host := range planeHosts {
