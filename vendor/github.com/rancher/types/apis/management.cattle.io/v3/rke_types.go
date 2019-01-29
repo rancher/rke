@@ -218,6 +218,8 @@ type KubeAPIService struct {
 	PodSecurityPolicy bool `yaml:"pod_security_policy" json:"podSecurityPolicy,omitempty"`
 	// Enable/Disable AlwaysPullImages admissions plugin
 	AlwaysPullImages bool `yaml:"always_pull_images" json:"always_pull_images,omitempty"`
+	// Configuration for secrets encryption provider. https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration
+	SecretsEncryptionConfig string `yaml:"secrets_encryption_config" json:"secretsEncryptionConfig,omitempty"`
 }
 
 type KubeControllerService struct {
