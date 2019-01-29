@@ -42,6 +42,7 @@ type Cluster struct {
 	DockerDialerFactory              hosts.DialerFactory
 	EtcdHosts                        []*hosts.Host
 	EtcdReadyHosts                   []*hosts.Host
+	Force                            bool
 	InactiveHosts                    []*hosts.Host
 	K8sWrapTransport                 k8s.WrapTransport
 	KubeClient                       *kubernetes.Clientset
@@ -154,6 +155,7 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 		ConfigDir:                     flags.ConfigDir,
 		DinD:                          flags.DinD,
 		CertificateDir:                flags.CertificateDir,
+		Force:                         flags.Force,
 		StateFilePath:                 GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir),
 		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
 	}

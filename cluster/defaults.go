@@ -60,6 +60,7 @@ type ExternalFlags struct {
 	ConfigDir        string
 	CustomCerts      bool
 	DisablePortCheck bool
+	Force            bool
 	GenerateCSR      bool
 	Local            bool
 	UpdateOnly       bool
@@ -145,7 +146,6 @@ func (c *Cluster) setClusterDefaults(ctx context.Context) error {
 		}
 		c.PrivateRegistriesMap[pr.URL] = pr
 	}
-
 	err := c.setClusterImageDefaults()
 	if err != nil {
 		return err

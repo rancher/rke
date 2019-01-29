@@ -65,6 +65,10 @@ func UpCommand() cli.Command {
 			Name:  "custom-certs",
 			Usage: "Use custom certificates from a cert dir",
 		},
+		cli.BoolFlag{
+			Name:  "force",
+			Usage: "Assume yes to all warning prompts",
+		},
 	}
 
 	upFlags = append(upFlags, commonFlags...)
@@ -148,6 +152,11 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
+	err = kubeCluster.SetSecretsEncryptionConfig(currentCluster)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
 	if !flags.DisablePortCheck {
 		if err = kubeCluster.CheckClusterPorts(ctx, currentCluster); err != nil {
 			return APIURL, caCrt, clientCert, clientKey, nil, err
@@ -158,6 +167,12 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
+
+	err = kubeCluster.DeploySecretsEncryptionConfig(ctx, currentCluster)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
 	if len(kubeCluster.ControlPlaneHosts) > 0 {
 		APIURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].Address + ":6443")
 	}
@@ -206,6 +221,11 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	}
 
 	err = kubeCluster.DeployWorkerPlane(ctx)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
+	err = kubeCluster.ReconcileSecretsEncryptionConfig(ctx, currentCluster)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
@@ -270,6 +290,7 @@ func clusterUpFromCli(ctx *cli.Context) error {
 	disablePortCheck := ctx.Bool("disable-port-check")
 	// setting up the flags
 	flags := cluster.GetExternalFlags(false, updateOnly, disablePortCheck, "", filePath)
+	flags.Force = ctx.Bool("force")
 	// Custom certificates and certificate dir flags
 	flags.CertificateDir = ctx.String("cert-dir")
 	flags.CustomCerts = ctx.Bool("custom-certs")
@@ -304,6 +325,7 @@ func clusterUpLocal(ctx *cli.Context) error {
 	dialers := hosts.GetDialerOptions(nil, hosts.LocalHealthcheckFactory, nil)
 	// setting up the flags
 	flags := cluster.GetExternalFlags(true, false, false, "", filePath)
+	flags.Force = ctx.Bool("force")
 
 	if ctx.Bool("init") {
 		return ClusterInit(context.Background(), rkeConfig, dialers, flags)
@@ -331,6 +353,7 @@ func clusterUpDind(ctx *cli.Context) error {
 	// setting up flags
 	flags := cluster.GetExternalFlags(false, false, disablePortCheck, "", filePath)
 	flags.DinD = true
+	flags.Force = ctx.Bool("force")
 
 	if ctx.Bool("init") {
 		return ClusterInit(context.Background(), rkeConfig, dialers, flags)
