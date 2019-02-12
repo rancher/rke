@@ -221,7 +221,7 @@ type Capabilities struct {
 }
 
 type LoadBalancerCapabilities struct {
-	Enabled              bool     `json:"enabled,omitempty"`
+	Enabled              *bool    `json:"enabled,omitempty"`
 	Provider             string   `json:"provider,omitempty"`
 	ProtocolsSupported   []string `json:"protocolsSupported,omitempty"`
 	HealthCheckSupported bool     `json:"healthCheckSupported,omitempty"`
@@ -243,6 +243,10 @@ type RestoreFromEtcdBackupInput struct {
 type RotateCertificateInput struct {
 	CACertificates bool     `json:"caCertificates,omitempty"`
 	Services       []string `json:"services,omitempty" norman:"type=enum,options=etcd|kubelet|kube-apiserver|kube-proxy|kube-scheduler|kube-controller-manager"`
+}
+
+type RotateCertificateOutput struct {
+	Message string `json:"message,omitempty"`
 }
 
 type LocalClusterAuthEndpoint struct {
