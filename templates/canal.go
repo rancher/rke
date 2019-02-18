@@ -161,6 +161,19 @@ data:
   # the pod network.
   masquerade: "true"
 
+{{ if ne .FlannelBackend.Type ""}} 
+  canal_flannel_type: "{{.FlannelBackend.Type}}"
+  {{ if eq .FlannelBackend.Type "ipsec" }}
+  "canal_flannel_ipsec_psk": "{{.FlannelBackend.IPSec_PSK}}"
+    {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+  "canal_flannel_ipsec_udpencap": "{{.FlannelBackend.IPSec_UDPEncap}}"
+    {{ end }}
+    {{ if ne .FlannelBackend.IPSec_ESPProposal "" }}
+  "canal_flannel_ipsec_espproposal": "{{.FlannelBackend.IPSec_ESPProposal}}"
+    {{ end }}
+  {{ end }}
+{{ end }}
+
   # The CNI network configuration to install on each node.
   cni_network_config: |-
     {
@@ -199,6 +212,15 @@ data:
       "Network": "{{.ClusterCIDR}}",
       "Backend": {
         "Type": "{{.FlannelBackend.Type}}"
+{{ if eq .FlannelBackend.Type "ipsec" }}
+        ,"PSK": "{{.FlannelBackend.IPSec_PSK}}"
+  {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+        ,"UDPEncap": "{{.FlannelBackend.IPSec_UDPEncap}}"
+  {{ end }}
+  {{ if ne .FlannelBackend.IPSec_ESPProposal ""}}
+        ,"ESPProposal": "{{.FlannelBackend.IPSec_ESPProposal}}"
+  {{ end }}
+{{ end }}
       }
     }
 
@@ -383,6 +405,34 @@ spec:
                 configMapKeyRef:
                   name: canal-config
                   key: masquerade
+{{ if ne .FlannelBackend.Type "" }}
+            - name: FLANNELD_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_type
+    {{ if eq .FlannelBackend.Type "ipsec" }}
+            - name: FLANNELD_IPSEC_PSK
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_ipsec_psk
+    {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+            - name: FLANNELD_IPSEC_UDPENCAP
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_ipsec_udpencap
+    {{ end }}
+    {{ if ne .FlannelBackend.IPSec_ESPProposal ""}}
+            - name FLANNELD_IPSEC_ESPPROPOSAL
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_ipsec_espproposal
+    {{ end }}
+  {{ end }}
+{{ end }}
           volumeMounts:
           - name: run
             mountPath: /run
@@ -753,6 +803,19 @@ data:
   # the pod network.
   masquerade: "true"
 
+{{ if ne .FlannelBackend.Type ""}}
+  canal_flannel_type: "{{.FlannelBackend.Type}}"
+  {{ if eq .FlannelBackend.Type "ipsec" }}
+  "canal_flannel_ipsec_psk": "{{.FlannelBackend.IPSec_PSK}}"
+    {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+  "canal_flannel_ipsec_udpencap": "{{.FlannelBackend.IPSec_UDPEncap}}"
+    {{ end }}
+    {{ if ne .FlannelBackend.IPSec_ESPProposal "" }}
+  "canal_flannel_ipsec_espproposal": "{{.FlannelBackend.IPSec_ESPProposal}}"
+    {{ end }}
+  {{ end }}
+{{ end }}
+
   # The CNI network configuration to install on each node.  The special
   # values in this config will be automatically populated.
   cni_network_config: |-
@@ -790,8 +853,18 @@ data:
       "Network": "{{.ClusterCIDR}}",
       "Backend": {
         "Type": "{{.FlannelBackend.Type}}"
+{{ if eq .FlannelBackend.Type "ipsec" }}
+        ,"PSK": "{{.FlannelBackend.IPSec_PSK}}"
+  {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+        ,"UDPEncap": "{{.FlannelBackend.IPSec_UDPEncap}}"
+  {{ end }}
+  {{ if ne .FlannelBackend.IPSec_ESPProposal ""}}
+        ,"ESPProposal": "{{.FlannelBackend.IPSec_ESPProposal}}"
+  {{ end }}
+{{ end }}
       }
     }
+
 ---
 
 # This manifest installs the calico/node container, as well
@@ -982,6 +1055,34 @@ spec:
                 configMapKeyRef:
                   name: canal-config
                   key: masquerade
+{{ if ne .FlannelBackend.Type "" }}
+            - name: FLANNELD_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_type
+    {{ if eq .FlannelBackend.Type "ipsec" }}
+            - name: FLANNELD_IPSEC_PSK
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_ipsec_psk
+    {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+            - name: FLANNELD_IPSEC_UDPENCAP
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_ipsec_udpencap
+    {{ end }}
+    {{ if ne .FlannelBackend.IPSec_ESPProposal ""}}
+            - name FLANNELD_IPSEC_ESPPROPOSAL
+              valueFrom:
+                configMapKeyRef:
+                  name: canal-config
+                  key: canal_flannel_ipsec_espproposal
+    {{ end }}
+  {{ end }}
+{{ end }}
           volumeMounts:
           - mountPath: /run/xtables.lock
             name: xtables-lock

@@ -41,16 +41,22 @@ const (
 
 	NoNetworkPlugin = "none"
 
-	FlannelNetworkPlugin = "flannel"
-	FlannelIface         = "flannel_iface"
-	FlannelBackendType   = "flannel_backend_type"
+	FlannelNetworkPlugin    = "flannel"
+	FlannelIface            = "flannel_iface"
+	FlannelBackendType      = "flannel_backend_type"
+	FlannelIPSecPSK         = "flannel_ipsec_psk"
+	FlannelIPSecUDPEncap    = "flannel_ipsec_udpencap"
+	FlannelIPSecESPProposal = "flannel_ipsec_espproposal"
 
 	CalicoNetworkPlugin = "calico"
 	CalicoCloudProvider = "calico_cloud_provider"
 
-	CanalNetworkPlugin      = "canal"
-	CanalIface              = "canal_iface"
-	CanalFlannelBackendType = "canal_flannel_backend_type"
+	CanalNetworkPlugin           = "canal"
+	CanalIface                   = "canal_iface"
+	CanalFlannelBackendType      = "canal_flannel_backend_type"
+	CanalFlannelIPSecPSK         = "canal_flannel_ipsec_psk"
+	CanalFlannelIPSecUDPEncap    = "canal_flannel_ipsec_udpencap"
+	CanalFlannelIPSecESPProposal = "canal_flannel_ipsec_espproposal"
 
 	WeaveNetworkPlugin = "weave"
 	WeavePasswordKey   = "weave_password"
@@ -139,7 +145,10 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context) error {
 		CNIImage:         c.SystemImages.FlannelCNI,
 		FlannelInterface: c.Network.Options[FlannelIface],
 		FlannelBackend: map[string]interface{}{
-			"Type": c.Network.Options[FlannelBackendType],
+			"Type":              c.Network.Options[FlannelBackendType],
+			"IPSec_PSK":         c.Network.Options[CanalFlannelIPSecPSK],
+			"IPSec_UDPEncap":    c.Network.Options[CanalFlannelIPSecUDPEncap],
+			"IPSec_ESPProposal": c.Network.Options[CanalFlannelIPSecESPProposal],
 		},
 		RBACConfig:     c.Authorization.Mode,
 		ClusterVersion: getTagMajorVersion(c.Version),
@@ -184,13 +193,18 @@ func (c *Cluster) doCanalDeploy(ctx context.Context) error {
 		RBACConfig:      c.Authorization.Mode,
 		CanalInterface:  c.Network.Options[CanalIface],
 		FlannelBackend: map[string]interface{}{
-			"Type": c.Network.Options[CanalFlannelBackendType],
+			"Type":              c.Network.Options[CanalFlannelBackendType],
+			"IPSec_PSK":         c.Network.Options[CanalFlannelIPSecPSK],
+			"IPSec_UDPEncap":    c.Network.Options[CanalFlannelIPSecUDPEncap],
+			"IPSec_ESPProposal": c.Network.Options[CanalFlannelIPSecESPProposal],
 		},
 	}
+
 	pluginYaml, err := c.getNetworkPluginManifest(canalConfig)
 	if err != nil {
 		return err
 	}
+
 	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName, true)
 }
 
