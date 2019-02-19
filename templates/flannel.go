@@ -76,15 +76,15 @@ data:
       "Network": "{{.ClusterCIDR}}",
       "Backend": {
         "Type": "{{.FlannelBackend.Type}}"
-{{ if eq .FlannelBackend.Type "ipsec" }}
+        {{ if eq .FlannelBackend.Type "ipsec" }}
         ,"PSK": "{{.FlannelBackend.IPSec_PSK}}"
-  {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
+        {{ if ne .FlannelBackend.IPSec_UDPEncap "" }}
         ,"UDPEncap": "{{.FlannelBackend.IPSec_UDPEncap}}"
-  {{ end }}
-  {{ if ne .FlannelBackend.IPSec_ESPProposal ""}}
+        {{ end }}
+        {{ if ne .FlannelBackend.IPSec_ESPProposal ""}}
         ,"ESPProposal": "{{.FlannelBackend.IPSec_ESPProposal}}"
-  {{ end }}
-{{ end }}
+        {{ end }}
+        {{ end }}
       }
     }
 ---
