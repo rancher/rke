@@ -157,6 +157,14 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 			log.Infof(ctx, "[addons] Adding addon from url %s", addon)
 			logrus.Debugf("URL Yaml: %s", addonYAML)
 
+			// make sure we properly separated manifests
+			addonYAMLStr := string(addonYAML)
+			if !strings.HasPrefix(addonYAMLStr, "---") {
+				addonYAML = []byte(fmt.Sprintf("%s\n%s\n", "---", addonYAMLStr))
+			} else {
+				addonYAML = []byte(fmt.Sprintf("%s\n", addonYAMLStr))
+			}
+
 			if err := validateUserAddonYAML(addonYAML); err != nil {
 				return err
 			}
@@ -172,8 +180,11 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 			// make sure we properly separated manifests
 			addonYAMLStr := string(addonYAML)
 			if !strings.HasPrefix(addonYAMLStr, "---") {
-				addonYAML = []byte(fmt.Sprintf("%s\n%s", "---", addonYAMLStr))
+				addonYAML = []byte(fmt.Sprintf("%s\n%s\n", "---", addonYAMLStr))
+			} else {
+				addonYAML = []byte(fmt.Sprintf("%s\n", addonYAMLStr))
 			}
+
 			if err := validateUserAddonYAML(addonYAML); err != nil {
 				return err
 			}
