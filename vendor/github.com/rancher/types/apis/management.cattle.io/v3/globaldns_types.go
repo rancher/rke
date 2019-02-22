@@ -19,6 +19,7 @@ type GlobalDNS struct {
 
 type GlobalDNSSpec struct {
 	FQDN                string   `json:"fqdn,omitempty" norman:"required"`
+	TTL                 int64    `json:"ttl,omitempty"`
 	ProjectNames        []string `json:"projectNames" norman:"type=array[reference[project]],noupdate"`
 	MultiClusterAppName string   `json:"multiClusterAppName,omitempty" norman:"type=reference[multiClusterApp]"`
 	ProviderName        string   `json:"providerName,omitempty" norman:"type=reference[globalDnsProvider],required"`
@@ -31,6 +32,8 @@ type GlobalDNSStatus struct {
 }
 
 type GlobalDNSProvider struct {
+	types.Namespaced
+
 	metav1.TypeMeta `json:",inline"`
 	// Standard object’s metadata. More info:
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#metadata
@@ -43,6 +46,7 @@ type GlobalDNSProvider struct {
 type GlobalDNSProviderSpec struct {
 	Route53ProviderConfig    *Route53ProviderConfig    `json:"route53ProviderConfig,omitempty"`
 	CloudflareProviderConfig *CloudflareProviderConfig `json:"cloudflareProviderConfig,omitempty"`
+	AlidnsProviderConfig     *AlidnsProviderConfig     `json:"alidnsProviderConfig,omitempty"`
 	Members                  []Member                  `json:"members,omitempty"`
 }
 
@@ -60,4 +64,14 @@ type CloudflareProviderConfig struct {
 
 type UpdateGlobalDNSTargetsInput struct {
 	ProjectNames []string `json:"projectNames" norman:"type=array[reference[project]]"`
+}
+
+type AlidnsProviderConfig struct {
+	RootDomain string `json:"rootDomain" norman:"required"`
+	AccessKey  string `json:"accessKey" norman:"notnullable,required,minLength=1"`
+	SecretKey  string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
+}
+
+type GlobalDNSSystemImages struct {
+	ExternalDNS string `yaml:"ExternalDns" json:"ExternalDns,omitempty"`
 }
