@@ -19,7 +19,7 @@ type GlobalDNS struct {
 
 type GlobalDNSSpec struct {
 	FQDN                string   `json:"fqdn,omitempty" norman:"required"`
-	TTL                 int64    `json:"ttl,omitempty"`
+	TTL                 int64    `json:"ttl,omitempty" norman:"default=300"`
 	ProjectNames        []string `json:"projectNames" norman:"type=array[reference[project]],noupdate"`
 	MultiClusterAppName string   `json:"multiClusterAppName,omitempty" norman:"type=reference[multiClusterApp]"`
 	ProviderName        string   `json:"providerName,omitempty" norman:"type=reference[globalDnsProvider],required"`
@@ -48,30 +48,25 @@ type GlobalDNSProviderSpec struct {
 	CloudflareProviderConfig *CloudflareProviderConfig `json:"cloudflareProviderConfig,omitempty"`
 	AlidnsProviderConfig     *AlidnsProviderConfig     `json:"alidnsProviderConfig,omitempty"`
 	Members                  []Member                  `json:"members,omitempty"`
+	RootDomain               string                    `json:"rootDomain"`
 }
 
 type Route53ProviderConfig struct {
-	RootDomain string `json:"rootDomain" norman:"required"`
-	AccessKey  string `json:"accessKey" norman:"notnullable,required,minLength=1"`
-	SecretKey  string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
+	AccessKey string `json:"accessKey" norman:"notnullable,required,minLength=1"`
+	SecretKey string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
 }
 
 type CloudflareProviderConfig struct {
-	RootDomain string `json:"rootDomain" norman:"required"`
-	APIKey     string `json:"apiKey" norman:"notnullable,required,minLength=1,type=password"`
-	APIEmail   string `json:"apiEmail" norman:"notnullable,required,minLength=1"`
+	APIKey   string `json:"apiKey" norman:"notnullable,required,minLength=1,type=password"`
+	APIEmail string `json:"apiEmail" norman:"notnullable,required,minLength=1"`
 }
 
 type UpdateGlobalDNSTargetsInput struct {
-	ProjectNames []string `json:"projectNames" norman:"type=array[reference[project]]"`
+	MultiClusterAppName string   `json:"multiClusterAppName" norman:"type=reference[multiClusterApp]"`
+	ProjectNames        []string `json:"projectNames" norman:"type=array[reference[project]]"`
 }
 
 type AlidnsProviderConfig struct {
-	RootDomain string `json:"rootDomain" norman:"required"`
-	AccessKey  string `json:"accessKey" norman:"notnullable,required,minLength=1"`
-	SecretKey  string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
-}
-
-type GlobalDNSSystemImages struct {
-	ExternalDNS string `yaml:"ExternalDns" json:"ExternalDns,omitempty"`
+	AccessKey string `json:"accessKey" norman:"notnullable,required,minLength=1"`
+	SecretKey string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
 }
