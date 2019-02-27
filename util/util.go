@@ -12,7 +12,7 @@ import (
 
 const (
 	WorkerThreads = 50
-	// this should be kept at the latest version of rke released with
+	// SupportedSyncToolsVersion this should be kept at the latest version of rke released with
 	// rancher 2.2.0.
 	SupportedSyncToolsVersion = "0.1.25"
 )
@@ -116,7 +116,7 @@ func GetDefaultRKETools() string {
 	return v3.AllK8sVersions[v3.DefaultK8s].Alpine
 }
 
-// with rancher 2.2.0 and rke 0.2.0, etcdbackup was completely refactored
+// IsRancherBackupSupported  with rancher 2.2.0 and rke 0.2.0, etcdbackup was completely refactored
 // and the interface for the rke-tools backup command changed significantly.
 // This function is used to check the the release rke-tools version to choose
 // between the new backup or the legacy backup code paths.
