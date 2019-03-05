@@ -3,7 +3,7 @@ package v3
 import (
 	"github.com/rancher/norman/condition"
 	"github.com/rancher/norman/types"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -38,6 +38,7 @@ const (
 	ClusterConditionAgentDeployed            condition.Cond = "AgentDeployed"
 	ClusterConditionGlobalAdminsSynced       condition.Cond = "GlobalAdminsSynced"
 	ClusterConditionInitialRolesPopulated    condition.Cond = "InitialRolesPopulated"
+	ClusterConditionServiceAccountMigrated   condition.Cond = "ServiceAccountMigrated"
 
 	ClusterDriverImported = "imported"
 	ClusterDriverLocal    = "local"
@@ -147,13 +148,13 @@ type GoogleKubernetesEngineConfig struct {
 	// Enable alpha feature
 	EnableAlphaFeature bool `json:"enableAlphaFeature,omitempty"`
 	// Configuration for the HTTP (L7) load balancing controller addon
-	DisableHTTPLoadBalancing bool `json:"disableHttpLoadBalancing,omitempty"`
+	EnableHTTPLoadBalancing *bool `json:"enableHttpLoadBalancing,omitempty" norman:"default=true"`
 	// Configuration for the horizontal pod autoscaling feature, which increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods
-	DisableHorizontalPodAutoscaling bool `json:"disableHorizontalPodAutoscaling,omitempty"`
+	EnableHorizontalPodAutoscaling *bool `json:"enableHorizontalPodAutoscaling,omitempty" norman:"default=true"`
 	// Configuration for the Kubernetes Dashboard
 	EnableKubernetesDashboard bool `json:"enableKubernetesDashboard,omitempty"`
 	// Configuration for NetworkPolicy
-	DisableNetworkPolicyConfig bool `json:"disableNetworkPolicyConfig,omitempty"`
+	EnableNetworkPolicyConfig *bool `json:"enableNetworkPolicyConfig,omitempty" norman:"default=true"`
 	// The list of Google Compute Engine locations in which the cluster's nodes should be located
 	Locations []string `json:"locations,omitempty"`
 	// Image Type
@@ -163,11 +164,10 @@ type GoogleKubernetesEngineConfig struct {
 	// Sub Network
 	SubNetwork string `json:"subNetwork,omitempty"`
 	// Configuration for LegacyAbac
-	EnableLegacyAbac        bool   `json:"enableLegacyAbac,omitempty"`
-	NoStackdriverLogging    bool   `json:"noStackdriverLogging"`
-	NoStackdriverMonitoring bool   `json:"noStackdriverMonitoring"`
-	NoNetworkPolicy         bool   `json:"noNetworkPolicy"`
-	MaintenanceWindow       string `json:"maintenanceWindow"`
+	EnableLegacyAbac            bool   `json:"enableLegacyAbac,omitempty"`
+	EnableStackdriverLogging    *bool  `json:"enableStackdriverLogging,omitempty" norman:"default=true"`
+	EnableStackdriverMonitoring *bool  `json:"enableStackdriverMonitoring,omitempty" norman:"default=true"`
+	MaintenanceWindow           string `json:"maintenanceWindow"`
 }
 
 type AzureKubernetesServiceConfig struct {
