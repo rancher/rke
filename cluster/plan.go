@@ -702,7 +702,7 @@ func (c *Cluster) BuildSidecarProcess() v3.Process {
 func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, prefixPath string) v3.Process {
 	nodeName := pki.GetEtcdCrtName(host.InternalAddress)
 	initCluster := ""
-	architecture := ""
+	architecture := "amd64"
 	if len(etcdHosts) == 0 {
 		initCluster = services.GetEtcdInitialCluster(c.EtcdHosts)
 		if len(c.EtcdHosts) > 0 {
@@ -775,10 +775,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	Env = append(Env, fmt.Sprintf("ETCDCTL_CACERT=%s", pki.GetCertPath(pki.CACertName)))
 	Env = append(Env, fmt.Sprintf("ETCDCTL_CERT=%s", pki.GetCertPath(nodeName)))
 	Env = append(Env, fmt.Sprintf("ETCDCTL_KEY=%s", pki.GetKeyPath(nodeName)))
-
-	if architecture == "aarch64" || architecture == "arm64" {
-		Env = append(Env, "ETCD_UNSUPPORTED_ARCH=arm64")
-	}
+	Env = append(Env, fmt.Sprintf("ETCD_UNSUPPORTED_ARCH=%s", architecture))
 
 	Env = append(Env, c.Services.Etcd.ExtraEnv...)
 
