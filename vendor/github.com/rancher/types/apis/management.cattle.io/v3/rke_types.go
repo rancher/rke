@@ -48,7 +48,7 @@ type RancherKubernetesEngineConfig struct {
 	// Rotating Certificates Option
 	RotateCertificates *RotateCertificates `yaml:"rotate_certificates,omitempty" json:"rotateCertificates,omitempty"`
 	// DNS Config
-	DNS DNSConfig `yaml:"dns" json:"dns,omitempty"`
+	DNS *DNSConfig `yaml:"dns" json:"dns,omitempty"`
 }
 
 type BastionHost struct {
@@ -409,7 +409,7 @@ type CanalNetworkProvider struct {
 }
 
 type WeaveNetworkProvider struct {
-	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+	Password string `yaml:"password,omitempty" json:"password,omitempty" norman:"type=password"`
 }
 
 type KubernetesServicesOptions struct {
