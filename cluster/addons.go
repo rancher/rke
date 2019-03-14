@@ -32,6 +32,9 @@ const (
 	KubeDNSAddonAppName            = "kube-dns"
 	KubeDNSAutoscalerAppName       = "kube-dns-autoscaler"
 	CoreDNSAutoscalerAppName       = "coredns-autoscaler"
+	KubeAPIAuthAppName             = "kube-api-auth"
+	CattleClusterAgentAppName      = "cattle-cluster-agent"
+	CattleAgentAppName             = "cattle-agent"
 
 	CoreDNSProvider = "coredns"
 	KubeDNSProvider = "kube-dns"
