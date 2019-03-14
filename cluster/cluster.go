@@ -494,9 +494,6 @@ func RestartClusterPods(ctx context.Context, kubeCluster *Cluster) error {
 		fmt.Sprintf("%s=%s", KubeAppLabel, KubeDNSAddonAppName),
 		fmt.Sprintf("%s=%s", KubeAppLabel, KubeDNSAutoscalerAppName),
 		fmt.Sprintf("%s=%s", KubeAppLabel, CoreDNSAutoscalerAppName),
-		fmt.Sprintf("%s=%s", AppLabel, KubeAPIAuthAppName),
-		fmt.Sprintf("%s=%s", AppLabel, CattleClusterAgentAppName),
-		fmt.Sprintf("%s=%s", AppLabel, CattleAgentAppName),
 	}
 	var errgrp errgroup.Group
 	labelQueue := util.GetObjectQueue(labelsList)
