@@ -270,6 +270,7 @@ func IsEtcdMember(ctx context.Context, etcdHost *hosts.Host, etcdHosts []*hosts.
 func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, once bool, es v3.ETCDService) error {
 	log.Infof(ctx, "[etcd] Saving snapshot [%s] on host [%s]", name, etcdHost.Address)
 	backupCmd := "etcd-backup"
+	restartPolicy := "always"
 	if !util.IsRancherBackupSupported(etcdSnapshotImage) {
 		backupCmd = "rolling-backup"
 	}
@@ -288,6 +289,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	}
 	if once {
 		imageCfg.Cmd = append(imageCfg.Cmd, "--once")
+		restartPolicy = "no"
 	} else if es.BackupConfig == nil {
 		imageCfg.Cmd = append(imageCfg.Cmd, "--retention="+es.Retention)
 		imageCfg.Cmd = append(imageCfg.Cmd, "--creation="+es.Creation)
@@ -301,7 +303,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
 			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
-		RestartPolicy: container.RestartPolicy{Name: "always"},
+		RestartPolicy: container.RestartPolicy{Name: restartPolicy},
 	}
 
 	if once {
