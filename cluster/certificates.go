@@ -212,6 +212,12 @@ func GetClusterCertsFromNodes(ctx context.Context, kubeCluster *Cluster) (map[st
 	for _, host := range backupHosts {
 		certificates, err = pki.FetchCertificatesFromHost(ctx, kubeCluster.EtcdHosts, host, kubeCluster.SystemImages.Alpine, kubeCluster.LocalKubeConfigPath, kubeCluster.PrivateRegistriesMap)
 		if certificates != nil {
+			// Handle service account token key issue
+			kubeAPICert := certificates[pki.KubeAPICertName]
+			if certificates[pki.ServiceAccountTokenKeyName].Key == nil {
+				log.Infof(ctx, "[certificates] Creating service account token key")
+				certificates[pki.ServiceAccountTokenKeyName] = pki.ToCertObject(pki.ServiceAccountTokenKeyName, pki.ServiceAccountTokenKeyName, "", kubeAPICert.Certificate, kubeAPICert.Key, nil)
+			}
 			return certificates, nil
 		}
 	}
