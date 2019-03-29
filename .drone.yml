@@ -65,8 +65,9 @@ steps:
     event:
     - tag
     ref:
-    - "refs/tags/*rc*"
-    - "refs/tags/*alpha*"
+      include:
+      - "refs/tags/*rc*"
+      - "refs/tags/*alpha*"
 
 - name: github_binary_release
   pull: default
