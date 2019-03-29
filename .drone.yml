@@ -33,8 +33,7 @@ steps:
     - tag
     ref:
       include:
-      - "refs/heads/master"
-      - "refs/heads/release/*"
+      - "refs/tags/*"
 
 - name: stage-binaries
   pull: default
@@ -46,8 +45,7 @@ steps:
     - tag
     ref:
       include:
-      - "refs/heads/master"
-      - "refs/heads/release/*"
+      - "refs/tags/*"
 
 - name: github_binary_prerelease
   pull: default
