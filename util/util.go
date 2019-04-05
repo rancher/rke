@@ -14,7 +14,7 @@ const (
 	WorkerThreads = 50
 	// SupportedSyncToolsVersion this should be kept at the latest version of rke released with
 	// rancher 2.2.0.
-	SupportedSyncToolsVersion = "0.1.28"
+	SupportedSyncToolsVersion = "0.1.25"
 )
 
 func StrToSemVer(version string) (*semver.Version, error) {
