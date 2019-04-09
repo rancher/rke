@@ -486,7 +486,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	Binds = append(Binds, c.Services.Kubelet.ExtraBinds...)
 
 	healthCheck := v3.HealthCheck{
-		URL: services.GetHealthCheckURL(true, services.KubeletPort),
+		URL: services.GetHealthCheckURL(false, services.KubeletHealthPort),
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Kubelet.Image, c.PrivateRegistriesMap)
 

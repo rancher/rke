@@ -43,6 +43,7 @@ const (
 	KubeAPIPort        = 6443
 	SchedulerPort      = 10251
 	KubeControllerPort = 10252
+	KubeletHealthPort  = 10248
 	KubeletPort        = 10250
 	KubeproxyPort      = 10256
 
