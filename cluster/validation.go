@@ -350,3 +350,11 @@ func validateIngressImages(c *Cluster) error {
 	}
 	return nil
 }
+
+// validateChangedFlags function will check for invalid modification of cluster flags
+func validateChangedFlags(currentCluster, kubeCluster *Cluster) error {
+	if kubeCluster.PrefixPath != currentCluster.PrefixPath {
+		return fmt.Errorf("Can't change prefix path in a currently working cluster")
+	}
+	return nil
+}

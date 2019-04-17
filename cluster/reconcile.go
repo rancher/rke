@@ -56,7 +56,9 @@ func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster,
 			return err
 		}
 	}
-
+	if err := validateChangedFlags(currentCluster, kubeCluster); err != nil {
+		return err
+	}
 	log.Infof(ctx, "[reconcile] Reconciled cluster state successfully")
 	return nil
 }
