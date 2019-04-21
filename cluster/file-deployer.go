@@ -49,7 +49,7 @@ func doDeployFile(ctx context.Context, host *hosts.Host, fileName, fileContents,
 			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 	}
-	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, ContainerName, host.Address, ServiceName, prsMap); err != nil {
+	if err := docker.DoRunOnetimeContainer(ctx, host.DClient, imageCfg, hostCfg, ContainerName, host.Address, ServiceName, prsMap); err != nil {
 		return err
 	}
 	if err := docker.DoRemoveContainer(ctx, host.DClient, ContainerName, host.Address); err != nil {
