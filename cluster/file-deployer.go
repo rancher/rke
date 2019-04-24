@@ -21,9 +21,9 @@ const (
 
 func deployFile(ctx context.Context, uniqueHosts []*hosts.Host, alpineImage string, prsMap map[string]v3.PrivateRegistry, fileName, fileContents string) error {
 	for _, host := range uniqueHosts {
-		log.Infof(ctx, "[%s] Deploying file '%s' to node [%s]", ServiceName, fileName, host.Address)
+		log.Infof(ctx, "[%s] Deploying file [%s] to node [%s]", ServiceName, fileName, host.Address)
 		if err := doDeployFile(ctx, host, fileName, fileContents, alpineImage, prsMap); err != nil {
-			return fmt.Errorf("Failed to deploy file '%s' on node [%s]: %v", host.Address, fileName, err)
+			return fmt.Errorf("[%s] Failed to deploy file [%s] on node [%s]: %v", ServiceName, fileName, host.Address, err)
 		}
 	}
 	return nil
@@ -55,6 +55,6 @@ func doDeployFile(ctx context.Context, host *hosts.Host, fileName, fileContents,
 	if err := docker.DoRemoveContainer(ctx, host.DClient, ContainerName, host.Address); err != nil {
 		return err
 	}
-	logrus.Debugf("[%s] Successfully deployed file '%s' on node [%s]", ServiceName, fileName, host.Address)
+	logrus.Debugf("[%s] Successfully deployed file [%s] on node [%s]", ServiceName, fileName, host.Address)
 	return nil
 }
