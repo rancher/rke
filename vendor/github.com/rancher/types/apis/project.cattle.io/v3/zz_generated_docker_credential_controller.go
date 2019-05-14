@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: DockerCredentialGroupVersionKind.Kind,
 	}
+
+	DockerCredentialGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "dockercredentials",
+	}
 )
+
+func init() {
+	resource.Put(DockerCredentialGroupVersionResource)
+}
 
 func NewDockerCredential(namespace, name string, obj DockerCredential) *DockerCredential {
 	obj.APIVersion, obj.Kind = DockerCredentialGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewDockerCredential(namespace, name string, obj DockerCredential) *DockerCr
 type DockerCredentialList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []DockerCredential
+	Items           []DockerCredential `json:"items"`
 }
 
 type DockerCredentialHandlerFunc func(key string, obj *DockerCredential) (runtime.Object, error)

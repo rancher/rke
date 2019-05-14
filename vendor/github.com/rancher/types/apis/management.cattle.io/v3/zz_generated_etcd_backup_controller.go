@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: EtcdBackupGroupVersionKind.Kind,
 	}
+
+	EtcdBackupGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "etcdbackups",
+	}
 )
+
+func init() {
+	resource.Put(EtcdBackupGroupVersionResource)
+}
 
 func NewEtcdBackup(namespace, name string, obj EtcdBackup) *EtcdBackup {
 	obj.APIVersion, obj.Kind = EtcdBackupGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewEtcdBackup(namespace, name string, obj EtcdBackup) *EtcdBackup {
 type EtcdBackupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []EtcdBackup
+	Items           []EtcdBackup `json:"items"`
 }
 
 type EtcdBackupHandlerFunc func(key string, obj *EtcdBackup) (runtime.Object, error)

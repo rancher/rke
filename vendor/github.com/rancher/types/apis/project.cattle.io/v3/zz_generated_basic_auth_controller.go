@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: BasicAuthGroupVersionKind.Kind,
 	}
+
+	BasicAuthGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "basicauths",
+	}
 )
+
+func init() {
+	resource.Put(BasicAuthGroupVersionResource)
+}
 
 func NewBasicAuth(namespace, name string, obj BasicAuth) *BasicAuth {
 	obj.APIVersion, obj.Kind = BasicAuthGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewBasicAuth(namespace, name string, obj BasicAuth) *BasicAuth {
 type BasicAuthList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []BasicAuth
+	Items           []BasicAuth `json:"items"`
 }
 
 type BasicAuthHandlerFunc func(key string, obj *BasicAuth) (runtime.Object, error)

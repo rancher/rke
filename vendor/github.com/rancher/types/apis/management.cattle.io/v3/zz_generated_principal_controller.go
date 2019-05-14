@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         PrincipalGroupVersionKind.Kind,
 	}
+
+	PrincipalGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "principals",
+	}
 )
+
+func init() {
+	resource.Put(PrincipalGroupVersionResource)
+}
 
 func NewPrincipal(namespace, name string, obj Principal) *Principal {
 	obj.APIVersion, obj.Kind = PrincipalGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewPrincipal(namespace, name string, obj Principal) *Principal {
 type PrincipalList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Principal
+	Items           []Principal `json:"items"`
 }
 
 type PrincipalHandlerFunc func(key string, obj *Principal) (runtime.Object, error)

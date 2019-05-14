@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: SourceCodeProviderConfigGroupVersionKind.Kind,
 	}
+
+	SourceCodeProviderConfigGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "sourcecodeproviderconfigs",
+	}
 )
+
+func init() {
+	resource.Put(SourceCodeProviderConfigGroupVersionResource)
+}
 
 func NewSourceCodeProviderConfig(namespace, name string, obj SourceCodeProviderConfig) *SourceCodeProviderConfig {
 	obj.APIVersion, obj.Kind = SourceCodeProviderConfigGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewSourceCodeProviderConfig(namespace, name string, obj SourceCodeProviderC
 type SourceCodeProviderConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SourceCodeProviderConfig
+	Items           []SourceCodeProviderConfig `json:"items"`
 }
 
 type SourceCodeProviderConfigHandlerFunc func(key string, obj *SourceCodeProviderConfig) (runtime.Object, error)

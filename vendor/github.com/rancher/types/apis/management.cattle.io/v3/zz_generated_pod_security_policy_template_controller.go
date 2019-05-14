@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         PodSecurityPolicyTemplateGroupVersionKind.Kind,
 	}
+
+	PodSecurityPolicyTemplateGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "podsecuritypolicytemplates",
+	}
 )
+
+func init() {
+	resource.Put(PodSecurityPolicyTemplateGroupVersionResource)
+}
 
 func NewPodSecurityPolicyTemplate(namespace, name string, obj PodSecurityPolicyTemplate) *PodSecurityPolicyTemplate {
 	obj.APIVersion, obj.Kind = PodSecurityPolicyTemplateGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewPodSecurityPolicyTemplate(namespace, name string, obj PodSecurityPolicyT
 type PodSecurityPolicyTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PodSecurityPolicyTemplate
+	Items           []PodSecurityPolicyTemplate `json:"items"`
 }
 
 type PodSecurityPolicyTemplateHandlerFunc func(key string, obj *PodSecurityPolicyTemplate) (runtime.Object, error)

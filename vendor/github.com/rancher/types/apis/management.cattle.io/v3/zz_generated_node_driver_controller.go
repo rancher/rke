@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         NodeDriverGroupVersionKind.Kind,
 	}
+
+	NodeDriverGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "nodedrivers",
+	}
 )
+
+func init() {
+	resource.Put(NodeDriverGroupVersionResource)
+}
 
 func NewNodeDriver(namespace, name string, obj NodeDriver) *NodeDriver {
 	obj.APIVersion, obj.Kind = NodeDriverGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewNodeDriver(namespace, name string, obj NodeDriver) *NodeDriver {
 type NodeDriverList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []NodeDriver
+	Items           []NodeDriver `json:"items"`
 }
 
 type NodeDriverHandlerFunc func(key string, obj *NodeDriver) (runtime.Object, error)

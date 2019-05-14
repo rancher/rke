@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: NodePoolGroupVersionKind.Kind,
 	}
+
+	NodePoolGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "nodepools",
+	}
 )
+
+func init() {
+	resource.Put(NodePoolGroupVersionResource)
+}
 
 func NewNodePool(namespace, name string, obj NodePool) *NodePool {
 	obj.APIVersion, obj.Kind = NodePoolGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewNodePool(namespace, name string, obj NodePool) *NodePool {
 type NodePoolList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []NodePool
+	Items           []NodePool `json:"items"`
 }
 
 type NodePoolHandlerFunc func(key string, obj *NodePool) (runtime.Object, error)

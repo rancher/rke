@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         TemplateGroupVersionKind.Kind,
 	}
+
+	TemplateGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "templates",
+	}
 )
+
+func init() {
+	resource.Put(TemplateGroupVersionResource)
+}
 
 func NewTemplate(namespace, name string, obj Template) *Template {
 	obj.APIVersion, obj.Kind = TemplateGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewTemplate(namespace, name string, obj Template) *Template {
 type TemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Template
+	Items           []Template `json:"items"`
 }
 
 type TemplateHandlerFunc func(key string, obj *Template) (runtime.Object, error)

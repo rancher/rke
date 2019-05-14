@@ -18,7 +18,7 @@ type GlobalDNS struct {
 }
 
 type GlobalDNSSpec struct {
-	FQDN                string   `json:"fqdn,omitempty" norman:"required"`
+	FQDN                string   `json:"fqdn,omitempty" norman:"type=hostname,required"`
 	TTL                 int64    `json:"ttl,omitempty" norman:"default=300"`
 	ProjectNames        []string `json:"projectNames" norman:"type=array[reference[project]],noupdate"`
 	MultiClusterAppName string   `json:"multiClusterAppName,omitempty" norman:"type=reference[multiClusterApp]"`
@@ -52,13 +52,18 @@ type GlobalDNSProviderSpec struct {
 }
 
 type Route53ProviderConfig struct {
-	AccessKey string `json:"accessKey" norman:"notnullable,required,minLength=1"`
-	SecretKey string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
+	AccessKey       string `json:"accessKey" norman:"notnullable,required,minLength=1"`
+	SecretKey       string `json:"secretKey" norman:"notnullable,required,minLength=1,type=password"`
+	CredentialsPath string `json:"credentialsPath" norman:"default=/.aws"`
+	RoleArn         string `json:"roleArn,omitempty"`
+	Region          string `json:"region" norman:"default=us-east-1"`
+	ZoneType        string `json:"zoneType" norman:"default=public"`
 }
 
 type CloudflareProviderConfig struct {
-	APIKey   string `json:"apiKey" norman:"notnullable,required,minLength=1,type=password"`
-	APIEmail string `json:"apiEmail" norman:"notnullable,required,minLength=1"`
+	APIKey       string `json:"apiKey" norman:"notnullable,required,minLength=1,type=password"`
+	APIEmail     string `json:"apiEmail" norman:"notnullable,required,minLength=1"`
+	ProxySetting *bool  `json:"proxySetting" norman:"default=true"`
 }
 
 type UpdateGlobalDNSTargetsInput struct {

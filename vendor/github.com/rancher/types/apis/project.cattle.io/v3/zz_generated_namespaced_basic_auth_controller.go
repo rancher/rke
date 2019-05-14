@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: NamespacedBasicAuthGroupVersionKind.Kind,
 	}
+
+	NamespacedBasicAuthGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "namespacedbasicauths",
+	}
 )
+
+func init() {
+	resource.Put(NamespacedBasicAuthGroupVersionResource)
+}
 
 func NewNamespacedBasicAuth(namespace, name string, obj NamespacedBasicAuth) *NamespacedBasicAuth {
 	obj.APIVersion, obj.Kind = NamespacedBasicAuthGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewNamespacedBasicAuth(namespace, name string, obj NamespacedBasicAuth) *Na
 type NamespacedBasicAuthList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []NamespacedBasicAuth
+	Items           []NamespacedBasicAuth `json:"items"`
 }
 
 type NamespacedBasicAuthHandlerFunc func(key string, obj *NamespacedBasicAuth) (runtime.Object, error)

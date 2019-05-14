@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         GroupGroupVersionKind.Kind,
 	}
+
+	GroupGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "groups",
+	}
 )
+
+func init() {
+	resource.Put(GroupGroupVersionResource)
+}
 
 func NewGroup(namespace, name string, obj Group) *Group {
 	obj.APIVersion, obj.Kind = GroupGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewGroup(namespace, name string, obj Group) *Group {
 type GroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Group
+	Items           []Group `json:"items"`
 }
 
 type GroupHandlerFunc func(key string, obj *Group) (runtime.Object, error)

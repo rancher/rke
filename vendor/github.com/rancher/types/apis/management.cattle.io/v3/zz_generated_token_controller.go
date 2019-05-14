@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         TokenGroupVersionKind.Kind,
 	}
+
+	TokenGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "tokens",
+	}
 )
+
+func init() {
+	resource.Put(TokenGroupVersionResource)
+}
 
 func NewToken(namespace, name string, obj Token) *Token {
 	obj.APIVersion, obj.Kind = TokenGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewToken(namespace, name string, obj Token) *Token {
 type TokenList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Token
+	Items           []Token `json:"items"`
 }
 
 type TokenHandlerFunc func(key string, obj *Token) (runtime.Object, error)

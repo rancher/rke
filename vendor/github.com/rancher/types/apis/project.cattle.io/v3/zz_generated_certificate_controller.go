@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: CertificateGroupVersionKind.Kind,
 	}
+
+	CertificateGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "certificates",
+	}
 )
+
+func init() {
+	resource.Put(CertificateGroupVersionResource)
+}
 
 func NewCertificate(namespace, name string, obj Certificate) *Certificate {
 	obj.APIVersion, obj.Kind = CertificateGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewCertificate(namespace, name string, obj Certificate) *Certificate {
 type CertificateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Certificate
+	Items           []Certificate `json:"items"`
 }
 
 type CertificateHandlerFunc func(key string, obj *Certificate) (runtime.Object, error)

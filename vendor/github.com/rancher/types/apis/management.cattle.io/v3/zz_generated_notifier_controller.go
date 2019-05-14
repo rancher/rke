@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: NotifierGroupVersionKind.Kind,
 	}
+
+	NotifierGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "notifiers",
+	}
 )
+
+func init() {
+	resource.Put(NotifierGroupVersionResource)
+}
 
 func NewNotifier(namespace, name string, obj Notifier) *Notifier {
 	obj.APIVersion, obj.Kind = NotifierGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewNotifier(namespace, name string, obj Notifier) *Notifier {
 type NotifierList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Notifier
+	Items           []Notifier `json:"items"`
 }
 
 type NotifierHandlerFunc func(key string, obj *Notifier) (runtime.Object, error)
