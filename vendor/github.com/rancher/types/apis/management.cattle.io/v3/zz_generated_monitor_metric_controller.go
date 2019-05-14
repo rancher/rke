@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: MonitorMetricGroupVersionKind.Kind,
 	}
+
+	MonitorMetricGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "monitormetrics",
+	}
 )
+
+func init() {
+	resource.Put(MonitorMetricGroupVersionResource)
+}
 
 func NewMonitorMetric(namespace, name string, obj MonitorMetric) *MonitorMetric {
 	obj.APIVersion, obj.Kind = MonitorMetricGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewMonitorMetric(namespace, name string, obj MonitorMetric) *MonitorMetric 
 type MonitorMetricList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []MonitorMetric
+	Items           []MonitorMetric `json:"items"`
 }
 
 type MonitorMetricHandlerFunc func(key string, obj *MonitorMetric) (runtime.Object, error)

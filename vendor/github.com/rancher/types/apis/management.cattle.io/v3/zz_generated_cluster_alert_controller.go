@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: ClusterAlertGroupVersionKind.Kind,
 	}
+
+	ClusterAlertGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "clusteralerts",
+	}
 )
+
+func init() {
+	resource.Put(ClusterAlertGroupVersionResource)
+}
 
 func NewClusterAlert(namespace, name string, obj ClusterAlert) *ClusterAlert {
 	obj.APIVersion, obj.Kind = ClusterAlertGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewClusterAlert(namespace, name string, obj ClusterAlert) *ClusterAlert {
 type ClusterAlertList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ClusterAlert
+	Items           []ClusterAlert `json:"items"`
 }
 
 type ClusterAlertHandlerFunc func(key string, obj *ClusterAlert) (runtime.Object, error)

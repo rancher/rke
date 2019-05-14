@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: ProjectNetworkPolicyGroupVersionKind.Kind,
 	}
+
+	ProjectNetworkPolicyGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "projectnetworkpolicies",
+	}
 )
+
+func init() {
+	resource.Put(ProjectNetworkPolicyGroupVersionResource)
+}
 
 func NewProjectNetworkPolicy(namespace, name string, obj ProjectNetworkPolicy) *ProjectNetworkPolicy {
 	obj.APIVersion, obj.Kind = ProjectNetworkPolicyGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewProjectNetworkPolicy(namespace, name string, obj ProjectNetworkPolicy) *
 type ProjectNetworkPolicyList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ProjectNetworkPolicy
+	Items           []ProjectNetworkPolicy `json:"items"`
 }
 
 type ProjectNetworkPolicyHandlerFunc func(key string, obj *ProjectNetworkPolicy) (runtime.Object, error)

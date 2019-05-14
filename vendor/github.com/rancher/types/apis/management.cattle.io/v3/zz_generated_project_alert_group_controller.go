@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: ProjectAlertGroupGroupVersionKind.Kind,
 	}
+
+	ProjectAlertGroupGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "projectalertgroups",
+	}
 )
+
+func init() {
+	resource.Put(ProjectAlertGroupGroupVersionResource)
+}
 
 func NewProjectAlertGroup(namespace, name string, obj ProjectAlertGroup) *ProjectAlertGroup {
 	obj.APIVersion, obj.Kind = ProjectAlertGroupGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewProjectAlertGroup(namespace, name string, obj ProjectAlertGroup) *Projec
 type ProjectAlertGroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ProjectAlertGroup
+	Items           []ProjectAlertGroup `json:"items"`
 }
 
 type ProjectAlertGroupHandlerFunc func(key string, obj *ProjectAlertGroup) (runtime.Object, error)

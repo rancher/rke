@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         CatalogGroupVersionKind.Kind,
 	}
+
+	CatalogGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "catalogs",
+	}
 )
+
+func init() {
+	resource.Put(CatalogGroupVersionResource)
+}
 
 func NewCatalog(namespace, name string, obj Catalog) *Catalog {
 	obj.APIVersion, obj.Kind = CatalogGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewCatalog(namespace, name string, obj Catalog) *Catalog {
 type CatalogList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Catalog
+	Items           []Catalog `json:"items"`
 }
 
 type CatalogHandlerFunc func(key string, obj *Catalog) (runtime.Object, error)

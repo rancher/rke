@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: NamespacedServiceAccountTokenGroupVersionKind.Kind,
 	}
+
+	NamespacedServiceAccountTokenGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "namespacedserviceaccounttokens",
+	}
 )
+
+func init() {
+	resource.Put(NamespacedServiceAccountTokenGroupVersionResource)
+}
 
 func NewNamespacedServiceAccountToken(namespace, name string, obj NamespacedServiceAccountToken) *NamespacedServiceAccountToken {
 	obj.APIVersion, obj.Kind = NamespacedServiceAccountTokenGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewNamespacedServiceAccountToken(namespace, name string, obj NamespacedServ
 type NamespacedServiceAccountTokenList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []NamespacedServiceAccountToken
+	Items           []NamespacedServiceAccountToken `json:"items"`
 }
 
 type NamespacedServiceAccountTokenHandlerFunc func(key string, obj *NamespacedServiceAccountToken) (runtime.Object, error)

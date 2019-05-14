@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: GlobalDNSProviderGroupVersionKind.Kind,
 	}
+
+	GlobalDNSProviderGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "globaldnsproviders",
+	}
 )
+
+func init() {
+	resource.Put(GlobalDNSProviderGroupVersionResource)
+}
 
 func NewGlobalDNSProvider(namespace, name string, obj GlobalDNSProvider) *GlobalDNSProvider {
 	obj.APIVersion, obj.Kind = GlobalDNSProviderGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewGlobalDNSProvider(namespace, name string, obj GlobalDNSProvider) *Global
 type GlobalDNSProviderList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []GlobalDNSProvider
+	Items           []GlobalDNSProvider `json:"items"`
 }
 
 type GlobalDNSProviderHandlerFunc func(key string, obj *GlobalDNSProvider) (runtime.Object, error)

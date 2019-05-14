@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: PipelineExecutionGroupVersionKind.Kind,
 	}
+
+	PipelineExecutionGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "pipelineexecutions",
+	}
 )
+
+func init() {
+	resource.Put(PipelineExecutionGroupVersionResource)
+}
 
 func NewPipelineExecution(namespace, name string, obj PipelineExecution) *PipelineExecution {
 	obj.APIVersion, obj.Kind = PipelineExecutionGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewPipelineExecution(namespace, name string, obj PipelineExecution) *Pipeli
 type PipelineExecutionList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PipelineExecution
+	Items           []PipelineExecution `json:"items"`
 }
 
 type PipelineExecutionHandlerFunc func(key string, obj *PipelineExecution) (runtime.Object, error)

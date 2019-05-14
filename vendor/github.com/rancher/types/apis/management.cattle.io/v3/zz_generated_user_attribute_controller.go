@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +28,17 @@ var (
 		Namespaced:   false,
 		Kind:         UserAttributeGroupVersionKind.Kind,
 	}
+
+	UserAttributeGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "userattributes",
+	}
 )
+
+func init() {
+	resource.Put(UserAttributeGroupVersionResource)
+}
 
 func NewUserAttribute(namespace, name string, obj UserAttribute) *UserAttribute {
 	obj.APIVersion, obj.Kind = UserAttributeGroupVersionKind.ToAPIVersionAndKind()
@@ -39,7 +50,7 @@ func NewUserAttribute(namespace, name string, obj UserAttribute) *UserAttribute 
 type UserAttributeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []UserAttribute
+	Items           []UserAttribute `json:"items"`
 }
 
 type UserAttributeHandlerFunc func(key string, obj *UserAttribute) (runtime.Object, error)

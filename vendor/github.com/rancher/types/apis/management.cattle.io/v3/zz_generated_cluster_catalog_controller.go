@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/objectclient"
+	"github.com/rancher/norman/resource"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,7 +29,17 @@ var (
 
 		Kind: ClusterCatalogGroupVersionKind.Kind,
 	}
+
+	ClusterCatalogGroupVersionResource = schema.GroupVersionResource{
+		Group:    GroupName,
+		Version:  Version,
+		Resource: "clustercatalogs",
+	}
 )
+
+func init() {
+	resource.Put(ClusterCatalogGroupVersionResource)
+}
 
 func NewClusterCatalog(namespace, name string, obj ClusterCatalog) *ClusterCatalog {
 	obj.APIVersion, obj.Kind = ClusterCatalogGroupVersionKind.ToAPIVersionAndKind()
@@ -40,7 +51,7 @@ func NewClusterCatalog(namespace, name string, obj ClusterCatalog) *ClusterCatal
 type ClusterCatalogList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ClusterCatalog
+	Items           []ClusterCatalog `json:"items"`
 }
 
 type ClusterCatalogHandlerFunc func(key string, obj *ClusterCatalog) (runtime.Object, error)
