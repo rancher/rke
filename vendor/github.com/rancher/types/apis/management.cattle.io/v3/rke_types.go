@@ -16,9 +16,9 @@ type RancherKubernetesEngineConfig struct {
 	// List of images used internally for proxy, cert downlaod and kubedns
 	SystemImages RKESystemImages `yaml:"system_images" json:"systemImages,omitempty"`
 	// SSH Private Key Path
-	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
+	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty" norman:"nocreate,noupdate"`
 	// SSH Certificate Path
-	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty"`
+	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty" norman:"nocreate,noupdate"`
 	// SSH Agent Auth enable
 	SSHAgentAuth bool `yaml:"ssh_agent_auth" json:"sshAgentAuth"`
 	// Authorization mode configuration used in the cluster
@@ -436,7 +436,7 @@ type VsphereCloudProvider struct {
 
 type GlobalVsphereOpts struct {
 	User              string `json:"user,omitempty" yaml:"user,omitempty" ini:"user,omitempty"`
-	Password          string `json:"password,omitempty" yaml:"password,omitempty" ini:"password,omitempty"`
+	Password          string `json:"password,omitempty" yaml:"password,omitempty" ini:"password,omitempty" norman:"type=password"`
 	VCenterIP         string `json:"server,omitempty" yaml:"server,omitempty" ini:"server,omitempty"`
 	VCenterPort       string `json:"port,omitempty" yaml:"port,omitempty" ini:"port,omitempty"`
 	InsecureFlag      bool   `json:"insecure-flag,omitempty" yaml:"insecure-flag,omitempty" ini:"insecure-flag,omitempty"`
@@ -451,7 +451,7 @@ type GlobalVsphereOpts struct {
 
 type VirtualCenterConfig struct {
 	User              string `json:"user,omitempty" yaml:"user,omitempty" ini:"user,omitempty"`
-	Password          string `json:"password,omitempty" yaml:"password,omitempty" ini:"password,omitempty"`
+	Password          string `json:"password,omitempty" yaml:"password,omitempty" ini:"password,omitempty" norman:"type=password"`
 	VCenterPort       string `json:"port,omitempty" yaml:"port,omitempty" ini:"port,omitempty"`
 	Datacenters       string `json:"datacenters,omitempty" yaml:"datacenters,omitempty" ini:"datacenters,omitempty"`
 	RoundTripperCount int    `json:"soap-roundtrip-count,omitempty" yaml:"soap-roundtrip-count,omitempty" ini:"soap-roundtrip-count,omitempty"`
@@ -486,7 +486,7 @@ type GlobalOpenstackOpts struct {
 	AuthURL    string `json:"auth-url" yaml:"auth-url" ini:"auth-url,omitempty"`
 	Username   string `json:"username" yaml:"username" ini:"username,omitempty"`
 	UserID     string `json:"user-id" yaml:"user-id" ini:"user-id,omitempty"`
-	Password   string `json:"password" yaml:"password" ini:"password,omitempty"`
+	Password   string `json:"password" yaml:"password" ini:"password,omitempty" norman:"type=password"`
 	TenantID   string `json:"tenant-id" yaml:"tenant-id" ini:"tenant-id,omitempty"`
 	TenantName string `json:"tenant-name" yaml:"tenant-name" ini:"tenant-name,omitempty"`
 	TrustID    string `json:"trust-id" yaml:"trust-id" ini:"trust-id,omitempty"`
@@ -565,11 +565,11 @@ type AzureCloudProvider struct {
 	// The ClientID for an AAD application with RBAC access to talk to Azure RM APIs
 	AADClientID string `json:"aadClientId" yaml:"aadClientId"`
 	// The ClientSecret for an AAD application with RBAC access to talk to Azure RM APIs
-	AADClientSecret string `json:"aadClientSecret" yaml:"aadClientSecret"`
+	AADClientSecret string `json:"aadClientSecret" yaml:"aadClientSecret" norman:"type=password"`
 	// The path of a client certificate for an AAD application with RBAC access to talk to Azure RM APIs
 	AADClientCertPath string `json:"aadClientCertPath" yaml:"aadClientCertPath"`
 	// The password of the client certificate for an AAD application with RBAC access to talk to Azure RM APIs
-	AADClientCertPassword string `json:"aadClientCertPassword" yaml:"aadClientCertPassword"`
+	AADClientCertPassword string `json:"aadClientCertPassword" yaml:"aadClientCertPassword" norman:"type=password"`
 	// Enable exponential backoff to manage resource request retries
 	CloudProviderBackoff bool `json:"cloudProviderBackoff" yaml:"cloudProviderBackoff"`
 	// Backoff retry limit
