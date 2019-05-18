@@ -81,6 +81,9 @@ func (c *Cluster) InvertIndexHosts() error {
 		for k, v := range host.Labels {
 			newHost.ToAddLabels[k] = v
 		}
+		for _, v := range host.Taints {
+			newHost.ToAddTaints = append(newHost.ToAddTaints, v)
+		}
 		newHost.IgnoreDockerVersion = c.IgnoreDockerVersion
 		if c.BastionHost.Address != "" {
 			// Add the bastion host information to each host object
