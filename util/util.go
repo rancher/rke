@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/rancher/rke/metadata"
+	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 
 	"github.com/coreos/go-semver/semver"
 	ref "github.com/docker/distribution/reference"
@@ -16,6 +17,8 @@ import (
 
 const (
 	WorkerThreads = 50
+
+	externalHostname = "external-hostname"
 )
 
 func StrToSemVer(version string) (*semver.Version, error) {
@@ -138,4 +141,8 @@ func GetEnvVar(key string) (string, string, bool) {
 		return strings.ToLower(key), value, true
 	}
 	return "", "", false
+}
+
+func GetKubeAPIExternalHostname(rkeConfig *v3.RancherKubernetesEngineConfig) string {
+	return rkeConfig.Services.KubeAPI.ExtraArgs[externalHostname]
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki/cert"
+	"github.com/rancher/rke/util"
 	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 )
 
@@ -242,6 +243,10 @@ func GenerateKubeAdminCertificate(ctx context.Context, certs map[string]Certific
 		return fmt.Errorf("CA Certificate or Key is empty")
 	}
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
+	externalHostname := util.GetKubeAPIExternalHostname(&rkeConfig)
+	if externalHostname == "" && len(cpHosts) > 0 {
+		externalHostname = fmt.Sprintf("%s:%s", cpHosts[0].Address, "6443")
+	}
 	if len(configPath) == 0 {
 		configPath = ClusterConfig
 	}
@@ -255,9 +260,9 @@ func GenerateKubeAdminCertificate(ctx context.Context, certs map[string]Certific
 		return err
 	}
 	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, kubeAdminCrt, kubeAdminKey, nil)
-	if len(cpHosts) > 0 {
+	if externalHostname != "" {
 		kubeAdminConfig := GetKubeConfigX509WithData(
-			"https://"+cpHosts[0].Address+":6443",
+			"https://"+externalHostname,
 			rkeConfig.ClusterName,
 			KubeAdminCertName,
 			string(cert.EncodeCertPEM(caCrt)),

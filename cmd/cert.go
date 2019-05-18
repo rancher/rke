@@ -12,6 +12,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/pki/cert"
 	"github.com/rancher/rke/services"
+	"github.com/rancher/rke/util"
 	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/urfave/cli"
 )
@@ -155,7 +156,13 @@ func rebuildClusterWithRotatedCertificates(ctx context.Context,
 	if err := cluster.SetUpAuthentication(ctx, kubeCluster, nil, clusterState); err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
-	APIURL = fmt.Sprintf("https://" + kubeCluster.ControlPlaneHosts[0].Address + ":6443")
+	externalHostname := util.GetKubeAPIExternalHostname(&kubeCluster.RancherKubernetesEngineConfig)
+	if externalHostname == "" && len(kubeCluster.ControlPlaneHosts) > 0 {
+		externalHostname = fmt.Sprintf("%s:%s", kubeCluster.ControlPlaneHosts[0].Address, "6443")
+	}
+	if externalHostname != "" {
+		APIURL = "https://" + externalHostname
+	}
 	clientCert = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Certificate))
 	clientKey = string(cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Key))
 	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))

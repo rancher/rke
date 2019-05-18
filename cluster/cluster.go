@@ -244,12 +244,13 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 	var workingConfig, newConfig string
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCertName]
 	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
-	for _, cpHost := range kubeCluster.ControlPlaneHosts {
+	externalHostname := util.GetKubeAPIExternalHostname(&kubeCluster.RancherKubernetesEngineConfig)
+	if externalHostname != "" {
 		if (currentKubeConfig == pki.CertificatePKI{}) {
 			kubeCluster.Certificates = make(map[string]pki.CertificatePKI)
-			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHost.Address, kubeCluster.ClusterName)
+			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, externalHostname, kubeCluster.ClusterName)
 		} else {
-			kubeURL := fmt.Sprintf("https://%s:6443", cpHost.Address)
+			kubeURL := "https://" + externalHostname
 			caData := string(cert.EncodeCertPEM(caCrt))
 			crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
 			keyData := string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key))
@@ -259,9 +260,27 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 			return fmt.Errorf("Failed to redeploy local admin config with new host: %v", err)
 		}
 		workingConfig = newConfig
-		if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport); err == nil {
-			log.Infof(ctx, "[reconcile] host [%s] is active master on the cluster", cpHost.Address)
-			break
+	} else {
+		for _, cpHost := range kubeCluster.ControlPlaneHosts {
+			externalHostname = fmt.Sprintf("%s:%s", cpHost.Address, KubeAPIPort)
+			if (currentKubeConfig == pki.CertificatePKI{}) {
+				kubeCluster.Certificates = make(map[string]pki.CertificatePKI)
+				newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, externalHostname, kubeCluster.ClusterName)
+			} else {
+				kubeURL := "https://" + externalHostname
+				caData := string(cert.EncodeCertPEM(caCrt))
+				crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
+				keyData := string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key))
+				newConfig = pki.GetKubeConfigX509WithData(kubeURL, kubeCluster.ClusterName, pki.KubeAdminCertName, caData, crtData, keyData)
+			}
+			if err := pki.DeployAdminConfig(ctx, newConfig, kubeCluster.LocalKubeConfigPath); err != nil {
+				return fmt.Errorf("Failed to redeploy local admin config with new host")
+			}
+			workingConfig = newConfig
+			if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport); err == nil {
+				log.Infof(ctx, "[reconcile] host [%s] is active master on the cluster", cpHost.Address)
+				break
+			}
 		}
 	}
 	currentKubeConfig.Config = workingConfig
@@ -292,9 +311,9 @@ func getLocalAdminConfigWithNewAddress(localConfigPath, cpAddress string, cluste
 	if config == nil || config.BearerToken != "" {
 		return ""
 	}
-	config.Host = fmt.Sprintf("https://%s:6443", cpAddress)
+	config.Host = fmt.Sprintf("https://%s", cpAddress)
 	return pki.GetKubeConfigX509WithData(
-		"https://"+cpAddress+":6443",
+		config.Host,
 		clusterName,
 		pki.KubeAdminCertName,
 		string(config.CAData),

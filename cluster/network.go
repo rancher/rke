@@ -15,7 +15,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/templates"
 	"github.com/rancher/rke/util"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
@@ -303,14 +303,32 @@ func (c *Cluster) CheckClusterPorts(ctx context.Context, currentCluster *Cluster
 
 func (c *Cluster) checkKubeAPIPort(ctx context.Context) error {
 	log.Infof(ctx, "[network] Checking KubeAPI port Control Plane hosts")
-	for _, host := range c.ControlPlaneHosts {
-		logrus.Debugf("[network] Checking KubeAPI port [%s] on host: %s", KubeAPIPort, host.Address)
-		address := fmt.Sprintf("%s:%s", host.Address, KubeAPIPort)
-		conn, err := net.Dial("tcp", address)
+	var host, port string
+	var err error
+	externalHostname := util.GetKubeAPIExternalHostname(&c.RancherKubernetesEngineConfig)
+	if externalHostname != "" {
+		host, port, err = net.SplitHostPort(externalHostname)
 		if err != nil {
-			return fmt.Errorf("[network] Can't access KubeAPI port [%s] on Control Plane host: %s", KubeAPIPort, host.Address)
+			host = externalHostname
+			port = "443"
+		}
+
+		logrus.Debugf("[network] Checking KubeAPI port [%s] on host: %s", port, host)
+		conn, err := net.Dial("tcp", net.JoinHostPort(host, port))
+		if err != nil {
+			return fmt.Errorf("[network] Can't access KubeAPI port [%s] on Control Plane host: %s", port, host)
 		}
 		conn.Close()
+	} else {
+		for _, cpHost := range c.ControlPlaneHosts {
+			logrus.Debugf("[network] Checking KubeAPI port [%s] on host: %s", KubeAPIPort, cpHost.Address)
+			address := fmt.Sprintf("%s:%s", cpHost.Address, KubeAPIPort)
+			conn, err := net.Dial("tcp", address)
+			if err != nil {
+				return fmt.Errorf("[network] Can't access KubeAPI port [%s] on Control Plane host: %s", KubeAPIPort, cpHost.Address)
+			}
+			conn.Close()
+		}
 	}
 	return nil
 }

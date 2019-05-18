@@ -22,6 +22,7 @@ import (
 
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki/cert"
+	"github.com/rancher/rke/util"
 	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
@@ -717,11 +718,15 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 	}
 	// Configure kubeconfig
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
+	externalHostname := util.GetKubeAPIExternalHostname(rkeConfig)
+	if externalHostname == "" && len(cpHosts) > 0 {
+		externalHostname = fmt.Sprintf("%s:%s", cpHosts[0].Address, "6443")
+	}
 	localKubeConfigPath := GetLocalKubeConfig(configPath, configDir)
-	if len(cpHosts) > 0 {
+	if externalHostname != "" {
 		kubeAdminCertObj := certBundle[KubeAdminCertName]
 		kubeAdminConfig := GetKubeConfigX509WithData(
-			"https://"+cpHosts[0].Address+":6443",
+			"https://"+externalHostname,
 			rkeConfig.ClusterName,
 			KubeAdminCertName,
 			string(cert.EncodeCertPEM(certBundle[CACertName].Certificate)),
