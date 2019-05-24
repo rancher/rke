@@ -16,9 +16,9 @@ type RancherKubernetesEngineConfig struct {
 	// List of images used internally for proxy, cert downlaod and kubedns
 	SystemImages RKESystemImages `yaml:"system_images" json:"systemImages,omitempty"`
 	// SSH Private Key Path
-	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty"`
+	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty" norman:"nocreate,noupdate"`
 	// SSH Certificate Path
-	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty"`
+	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty" norman:"nocreate,noupdate"`
 	// SSH Agent Auth enable
 	SSHAgentAuth bool `yaml:"ssh_agent_auth" json:"sshAgentAuth"`
 	// Authorization mode configuration used in the cluster
@@ -504,8 +504,8 @@ type LoadBalancerOpenstackOpts struct {
 	LBMethod             string `json:"lb-method" yaml:"lb-method" ini:"lb-method,omitempty"`                               // default to ROUND_ROBIN.
 	LBProvider           string `json:"lb-provider" yaml:"lb-provider" ini:"lb-provider,omitempty"`
 	CreateMonitor        bool   `json:"create-monitor" yaml:"create-monitor" ini:"create-monitor,omitempty"`
-	MonitorDelay         int    `json:"monitor-delay" yaml:"monitor-delay" ini:"monitor-delay,omitempty"`
-	MonitorTimeout       int    `json:"monitor-timeout" yaml:"monitor-timeout" ini:"monitor-timeout,omitempty"`
+	MonitorDelay         string `json:"monitor-delay" yaml:"monitor-delay" ini:"monitor-delay,omitempty"`
+	MonitorTimeout       string `json:"monitor-timeout" yaml:"monitor-timeout" ini:"monitor-timeout,omitempty"`
 	MonitorMaxRetries    int    `json:"monitor-max-retries" yaml:"monitor-max-retries" ini:"monitor-max-retries,omitempty"`
 	ManageSecurityGroups bool   `json:"manage-security-groups" yaml:"manage-security-groups" ini:"manage-security-groups,omitempty"`
 }
