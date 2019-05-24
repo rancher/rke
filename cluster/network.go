@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -292,20 +291,13 @@ func (c *Cluster) CheckClusterPorts(ctx context.Context, currentCluster *Cluster
 func (c *Cluster) checkKubeAPIPort(ctx context.Context) error {
 	log.Infof(ctx, "[network] Checking KubeAPI port Control Plane hosts")
 	for _, host := range c.ControlPlaneHosts {
-		logrus.Debugf("[network] TCP dialing KubeAPI port [%s] on host: %s", KubeAPIPort, host.Address)
+		logrus.Debugf("[network] Checking KubeAPI port [%s] on host: %s", KubeAPIPort, host.Address)
 		address := fmt.Sprintf("%s:%s", host.Address, KubeAPIPort)
-		tcpConn, err := net.Dial("tcp", address)
-		if err == nil {
-			tcpConn.Close()
-		} else {
-			// Try to connect using HTTP
-			logrus.Debugf("[network] Failed to TCP dial [%s:%s], re-trying with an HTTP client...", host.Address, KubeAPIPort)
-			resp, err := http.Get("http://" + address)
-			if err != nil {
-				return fmt.Errorf("[network] Can't access KubeAPI port [%s] on Control Plane host: %s", KubeAPIPort, host.Address)
-			}
-			defer resp.Body.Close()
+		conn, err := net.Dial("tcp", address)
+		if err != nil {
+			return fmt.Errorf("[network] Can't access KubeAPI port [%s] on Control Plane host: %s", KubeAPIPort, host.Address)
 		}
+		conn.Close()
 	}
 	return nil
 }
@@ -353,9 +345,12 @@ func (c *Cluster) deployListener(ctx context.Context, host *hosts.Host, portList
 	imageCfg := &container.Config{
 		Image: c.SystemImages.Alpine,
 		Cmd: []string{
-			"bash",
-			"-c",
-			"while true; do { echo -e \"HTTP/1.1 200 OK\" |  nc -kl -p 1337; } done",
+			"nc",
+			"-kl",
+			"-p",
+			"1337",
+			"-e",
+			"echo",
 		},
 		ExposedPorts: nat.PortSet{
 			"1337/tcp": {},
