@@ -245,13 +245,13 @@ func (c *Cluster) doWeaveDeploy(ctx context.Context) error {
 func (c *Cluster) getNetworkPluginManifest(pluginConfig map[string]interface{}) (string, error) {
 	switch c.Network.Plugin {
 	case FlannelNetworkPlugin:
-		return templates.CompileTemplateFromMap(templates.FlannelTemplate, pluginConfig)
+		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(FlannelNetworkPlugin, c.Version), pluginConfig)
 	case CalicoNetworkPlugin:
 		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CalicoNetworkPlugin, c.Version), pluginConfig)
 	case CanalNetworkPlugin:
 		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CanalNetworkPlugin, c.Version), pluginConfig)
 	case WeaveNetworkPlugin:
-		return templates.CompileTemplateFromMap(templates.WeaveTemplate, pluginConfig)
+		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(WeaveNetworkPlugin, c.Version), pluginConfig)
 	default:
 		return "", fmt.Errorf("[network] Unsupported network plugin: %s", c.Network.Plugin)
 	}

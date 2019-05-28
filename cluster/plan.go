@@ -15,6 +15,7 @@ import (
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
+	"github.com/rancher/rke/metadata"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/util"
@@ -854,7 +855,7 @@ func (c *Cluster) GetKubernetesServicesOptions() v3.KubernetesServicesOptions {
 		clusterMajorVersion = k8sImageMajorVersion
 	}
 
-	serviceOptions, ok := v3.K8sVersionServiceOptions[clusterMajorVersion]
+	serviceOptions, ok := metadata.K8sVersionToServiceOptions[clusterMajorVersion]
 	if ok {
 		return serviceOptions
 	}

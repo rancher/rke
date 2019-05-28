@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/rancher/rke/metadata"
 	"strings"
 	"time"
 
@@ -82,7 +83,9 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
-
+	if err := metadata.InitMetadata(ctx); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
 	kubeCluster, err := cluster.InitClusterObject(ctx, clusterState.DesiredState.RancherKubernetesEngineConfig.DeepCopy(), flags)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err

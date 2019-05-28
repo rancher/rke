@@ -2,13 +2,13 @@ package util
 
 import (
 	"fmt"
+	"github.com/rancher/rke/metadata"
 	"os"
 	"reflect"
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
 	ref "github.com/docker/distribution/reference"
-	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -71,7 +71,7 @@ func IsSymlink(file string) (bool, error) {
 }
 
 func GetDefaultRKETools() string {
-	return v3.AllK8sVersions[v3.DefaultK8s].Alpine
+	return metadata.K8sVersionToRKESystemImages[metadata.DefaultK8sVersion].Alpine
 }
 
 // IsRancherBackupSupported  with rancher 2.2.0 and rke 0.2.0, etcdbackup was completely refactored

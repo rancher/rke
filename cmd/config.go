@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"fmt"
+	"github.com/rancher/rke/metadata"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -95,6 +97,10 @@ func writeConfig(cluster *v3.RancherKubernetesEngineConfig, configFile string, p
 
 func clusterConfig(ctx *cli.Context) error {
 	if ctx.Bool("system-images") {
+		if metadata.K8sVersionToRKESystemImages == nil {
+			metadata.InitMetadata(context.Background())
+			logrus.Infof("init")
+		}
 		return generateSystemImagesList(ctx.String("version"), ctx.Bool("all"))
 	}
 	configFile := ctx.String("name")
@@ -270,14 +276,14 @@ func getHostConfig(reader *bufio.Reader, index int, clusterSSHKeyPath string) (*
 }
 
 func getSystemImagesConfig(reader *bufio.Reader) (*v3.RKESystemImages, error) {
-	imageDefaults := v3.K8sVersionToRKESystemImages[cluster.DefaultK8sVersion]
+	imageDefaults := metadata.K8sVersionToRKESystemImages[metadata.DefaultK8sVersion]
 
 	kubeImage, err := getConfig(reader, "Kubernetes Docker image", imageDefaults.Kubernetes)
 	if err != nil {
 		return nil, err
 	}
 
-	systemImages, ok := v3.K8sVersionToRKESystemImages[kubeImage]
+	systemImages, ok := metadata.K8sVersionToRKESystemImages[kubeImage]
 	if ok {
 		return &systemImages, nil
 	}
@@ -403,12 +409,14 @@ func getAddonManifests(reader *bufio.Reader) ([]string, error) {
 func generateSystemImagesList(version string, all bool) error {
 	allVersions := []string{}
 	currentVersionImages := make(map[string]v3.RKESystemImages)
-	for _, version := range v3.K8sVersionsCurrent {
-		if _, ok := v3.K8sBadVersions[version]; !ok {
+	logrus.Infof("metadata.K8sVersionsCurrent %v", metadata.K8sVersionsCurrent)
+	for _, version := range metadata.K8sVersionsCurrent {
+		if _, ok := metadata.K8sBadVersions[version]; !ok {
 			allVersions = append(allVersions, version)
-			currentVersionImages[version] = v3.AllK8sVersions[version]
+			currentVersionImages[version] = metadata.K8sVersionToRKESystemImages[version]
 		}
 	}
+	logrus.Infof("currentVersionImages %v", currentVersionImages)
 	if all {
 		for version, rkeSystemImages := range currentVersionImages {
 			logrus.Infof("Generating images list for version [%s]:", version)
@@ -423,10 +431,10 @@ func generateSystemImagesList(version string, all bool) error {
 		return nil
 	}
 	if len(version) == 0 {
-		version = v3.DefaultK8s
+		version = metadata.DefaultK8sVersion
 	}
-	rkeSystemImages := v3.AllK8sVersions[version]
-	if _, ok := v3.K8sBadVersions[version]; ok {
+	rkeSystemImages := metadata.K8sVersionToRKESystemImages[version]
+	if _, ok := metadata.K8sBadVersions[version]; ok {
 		return fmt.Errorf("k8s version is not recommended, supported versions are: %v", allVersions)
 	}
 	if rkeSystemImages == (v3.RKESystemImages{}) {

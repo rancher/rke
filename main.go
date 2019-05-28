@@ -6,6 +6,7 @@ import (
 
 	"github.com/mattn/go-colorable"
 	"github.com/rancher/rke/cmd"
+	"github.com/rancher/rke/metadata"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -31,6 +32,7 @@ func mainErr() error {
 			logrus.SetLevel(logrus.DebugLevel)
 		}
 		logrus.Debugf("RKE version %s", app.Version)
+		metadata.RKEVersion = app.Version
 		if released.MatchString(app.Version) {
 			return nil
 		}
