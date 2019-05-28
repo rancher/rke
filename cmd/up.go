@@ -11,7 +11,7 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
-	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/urfave/cli"
 	"k8s.io/client-go/util/cert"
 )
@@ -82,7 +82,6 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
-
 	kubeCluster, err := cluster.InitClusterObject(ctx, clusterState.DesiredState.RancherKubernetesEngineConfig.DeepCopy(), flags)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err

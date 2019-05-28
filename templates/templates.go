@@ -4,27 +4,10 @@ import (
 	"bytes"
 	"text/template"
 
+	"github.com/rancher/rke/metadata"
+
 	"github.com/rancher/rke/util"
 )
-
-var VersionedTemplate = map[string]map[string]string{
-	"calico": map[string]string{
-		"v1.15":   CalicoTemplateV115,
-		"v1.14":   CalicoTemplateV113,
-		"v1.13":   CalicoTemplateV113,
-		"default": CalicoTemplateV112,
-	},
-	"canal": map[string]string{
-		"v1.15":   CanalTemplateV115,
-		"v1.14":   CanalTemplateV113,
-		"v1.13":   CanalTemplateV113,
-		"default": CanalTemplateV112,
-	},
-	"flannel": map[string]string{
-		"v1.15":   FlannelTemplateV115,
-		"default": FlannelTemplate,
-	},
-}
 
 func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error) {
 	out := new(bytes.Buffer)
@@ -37,9 +20,13 @@ func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error)
 
 func GetVersionedTemplates(templateName string, k8sVersion string) string {
 
-	versionedTemplate := VersionedTemplate[templateName]
+	versionedTemplate := metadata.K8sVersionToTemplates[templateName]
 	if t, ok := versionedTemplate[util.GetTagMajorVersion(k8sVersion)]; ok {
 		return t
 	}
 	return versionedTemplate["default"]
+}
+
+func GetDefaultVersionedTemplate(templateName string) string {
+	return metadata.K8sVersionToTemplates[templateName]["default"]
 }
