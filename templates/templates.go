@@ -8,7 +8,6 @@ import (
 	"github.com/rancher/rke/util"
 )
 
-
 func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error) {
 	out := new(bytes.Buffer)
 	t := template.Must(template.New("compiled_template").Parse(tmplt))

@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	RKEVersion string
-	DefaultK8sVersion string
-	K8sVersionToTemplates map[string]map[string]string
+	RKEVersion                  string
+	DefaultK8sVersion           string
+	K8sVersionToTemplates       map[string]map[string]string
 	K8sVersionToRKESystemImages map[string]v3.RKESystemImages
-	K8sVersionToServiceOptions map[string]v3.KubernetesServicesOptions
-	K8sVersionsCurrent []string
-	K8sBadVersions = map[string]bool{}
+	K8sVersionToServiceOptions  map[string]v3.KubernetesServicesOptions
+	K8sVersionsCurrent          []string
+	K8sBadVersions              = map[string]bool{}
 )
 
 func InitMetadata(ctx context.Context) error {
@@ -39,10 +39,10 @@ func initK8sRKESystemImages() {
 		DefaultK8sVersion = defaultK8s
 	}
 	maxVersionForMajorK8sVersion := map[string]string{}
-	for k8sVersion, systemImages := range rkeDriverMetadata.K8sVersionToRKESystemImages{
+	for k8sVersion, systemImages := range rkeDriverMetadata.K8sVersionToRKESystemImages {
 		if rkeVersionInfo, ok := rkeDriverMetadata.K8sVersionToRKEVersions[k8sVersion]; ok {
 			greaterThanMax := rkeVersionInfo.MaxRKEVersion != "" && RKEVersion > rkeVersionInfo.MaxRKEVersion
-			lowerThanMin := rkeVersionInfo.MinRKEVersion != "" &&  RKEVersion < rkeVersionInfo.MinRKEVersion
+			lowerThanMin := rkeVersionInfo.MinRKEVersion != "" && RKEVersion < rkeVersionInfo.MinRKEVersion
 			if greaterThanMax || lowerThanMin {
 				K8sBadVersions[k8sVersion] = true
 				continue
