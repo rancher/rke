@@ -24,11 +24,12 @@ import (
 )
 
 const (
-	EtcdSnapshotPath     = "/opt/rke/etcd-snapshots/"
-	EtcdRestorePath      = "/opt/rke/etcd-snapshots-restore/"
-	EtcdDataDir          = "/var/lib/rancher/etcd/"
-	EtcdInitWaitTime     = 10
-	EtcdSnapshotWaitTime = 5
+	EtcdSnapshotPath                = "/opt/rke/etcd-snapshots/"
+	EtcdRestorePath                 = "/opt/rke/etcd-snapshots-restore/"
+	EtcdDataDir                     = "/var/lib/rancher/etcd/"
+	EtcdInitWaitTime                = 10
+	EtcdSnapshotWaitTime            = 5
+	EtcdSnapshotCompressedExtension = "gz"
 )
 
 func RunEtcdPlane(
@@ -457,7 +458,7 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 
 func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, once bool, es v3.ETCDService) error {
 	log.Infof(ctx, "[etcd] Removing snapshot [%s] from host [%s]", name, etcdHost.Address)
-	fullPath := fmt.Sprintf("/backup/%s", name)
+	fullPath := fmt.Sprintf("/backup/%s{,.gz}", name)
 	// Make sure we have a safe path to remove
 	safePath, err := filepath.Match("/backup/*", fullPath)
 	if err != nil {
@@ -469,9 +470,7 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 
 	imageCfg := &container.Config{
 		Cmd: []string{
-			"rm",
-			"-f",
-			fullPath,
+			"sh", "-c", fmt.Sprintf("rm -f %s", fullPath),
 		},
 		Image: etcdSnapshotImage,
 	}
@@ -505,13 +504,14 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, alpineImage, snapshotName string) (string, error) {
 	var checksum string
 	var err error
+	var stderr string
 
+	// compressedSnapshotPath := fmt.Sprintf("%s%s.%s", EtcdSnapshotPath, snapshotName, EtcdSnapshotCompressedExtension)
 	snapshotPath := fmt.Sprintf("%s%s", EtcdSnapshotPath, snapshotName)
 	imageCfg := &container.Config{
 		Cmd: []string{
 			"sh", "-c", strings.Join([]string{
-				"md5sum", snapshotPath,
-				"|", "cut", "-f1", "-d' '", "|", "tr", "-d", "'\n'"}, " "),
+				"if [ -f ", snapshotPath, " ]; then md5sum ", snapshotPath, " | cut -f1 -d' ' | tr -d '\n'; else echo 'snapshot file does not exist' >&2; fi"}, ""),
 		},
 		Image: alpineImage,
 	}
@@ -526,9 +526,13 @@ func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap m
 	if _, err := docker.WaitForContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdChecksumContainerName); err != nil {
 		return checksum, err
 	}
-	_, checksum, err = docker.GetContainerLogsStdoutStderr(ctx, etcdHost.DClient, EtcdChecksumContainerName, "1", false)
+	stderr, checksum, err = docker.GetContainerLogsStdoutStderr(ctx, etcdHost.DClient, EtcdChecksumContainerName, "1", false)
 	if err != nil {
 		return checksum, err
+	}
+	if stderr != "" {
+		return checksum, fmt.Errorf("Error output not nil from snapshot checksum container [%s]: %s", EtcdChecksumContainerName, stderr)
+
 	}
 	if err := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdChecksumContainerName); err != nil {
 		return checksum, err
