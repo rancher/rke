@@ -1,8 +1,10 @@
 package addons
 
-import "github.com/rancher/rke/templates"
+import (
+	rkeData "github.com/rancher/kontainer-driver-metadata/rke/templates"
+	"github.com/rancher/rke/templates"
+)
 
 func GetNginxIngressManifest(IngressConfig interface{}) (string, error) {
-
-	return templates.CompileTemplateFromMap(templates.NginxIngressTemplate, IngressConfig)
+	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.NginxIngress), IngressConfig)
 }

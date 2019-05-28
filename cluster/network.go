@@ -251,7 +251,7 @@ func (c *Cluster) getNetworkPluginManifest(pluginConfig map[string]interface{}) 
 	case CanalNetworkPlugin:
 		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CanalNetworkPlugin, c.Version), pluginConfig)
 	case WeaveNetworkPlugin:
-		return templates.CompileTemplateFromMap(templates.WeaveTemplate, pluginConfig)
+		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(WeaveNetworkPlugin, c.Version), pluginConfig)
 	default:
 		return "", fmt.Errorf("[network] Unsupported network plugin: %s", c.Network.Plugin)
 	}

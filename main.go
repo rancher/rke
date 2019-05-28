@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rancher/rke/metadata"
 	"os"
 	"regexp"
 
@@ -30,8 +31,8 @@ func mainErr() error {
 		if ctx.GlobalBool("debug") {
 			logrus.SetLevel(logrus.DebugLevel)
 		}
-		logrus.Debugf("RKE version %s", app.Version)
 		if released.MatchString(app.Version) {
+			metadata.RKEVersion = app.Version
 			return nil
 		}
 		logrus.Warnf("This is not an officially supported version (%s) of RKE. Please download the latest official release at https://github.com/rancher/rke/releases/latest", app.Version)

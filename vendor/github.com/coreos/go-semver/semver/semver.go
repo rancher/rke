@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +75,7 @@ func (v *Version) Set(version string) error {
 	dotParts := strings.SplitN(version, ".", 3)
 
 	if len(dotParts) != 3 {
+		logrus.Infof("version version version %s", version)
 		return fmt.Errorf("%s is not in dotted-tri format", version)
 	}
 
