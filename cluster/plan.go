@@ -702,15 +702,11 @@ func (c *Cluster) BuildSidecarProcess() v3.Process {
 func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, prefixPath string) v3.Process {
 	nodeName := pki.GetEtcdCrtName(host.InternalAddress)
 	initCluster := ""
-	architecture := "amd64"
+	architecture := host.DockerInfo.Architecture
 	if len(etcdHosts) == 0 {
 		initCluster = services.GetEtcdInitialCluster(c.EtcdHosts)
-		if len(c.EtcdHosts) > 0 {
-			architecture = c.EtcdHosts[0].DockerInfo.Architecture
-		}
 	} else {
 		initCluster = services.GetEtcdInitialCluster(etcdHosts)
-		architecture = etcdHosts[0].DockerInfo.Architecture
 	}
 
 	clusterState := "new"
