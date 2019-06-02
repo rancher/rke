@@ -11,6 +11,7 @@ import (
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	"github.com/rancher/rke/util"
 	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -38,7 +39,7 @@ func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster,
 		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
 	}
 	// sync node labels to define the toDelete labels
-	syncLabels(ctx, currentCluster, kubeCluster)
+	syncLabelsAndTaints(ctx, currentCluster, kubeCluster)
 
 	if err := reconcileEtcd(ctx, currentCluster, kubeCluster, kubeClient); err != nil {
 		return fmt.Errorf("Failed to reconcile etcd plane: %v", err)
@@ -224,7 +225,7 @@ func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, ku
 	return nil
 }
 
-func syncLabels(ctx context.Context, currentCluster, kubeCluster *Cluster) {
+func syncLabelsAndTaints(ctx context.Context, currentCluster, kubeCluster *Cluster) {
 	currentHosts := hosts.GetUniqueHostList(currentCluster.EtcdHosts, currentCluster.ControlPlaneHosts, currentCluster.WorkerHosts)
 	configHosts := hosts.GetUniqueHostList(kubeCluster.EtcdHosts, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
 	for _, host := range configHosts {
@@ -233,6 +234,11 @@ func syncLabels(ctx context.Context, currentCluster, kubeCluster *Cluster) {
 				for k, v := range currentHost.Labels {
 					if _, ok := host.Labels[k]; !ok {
 						host.ToDelLabels[k] = v
+					}
+				}
+				for _, taint := range currentHost.Taints {
+					if util.StringInSlice(taint, host.Taints) {
+						host.ToDelTaints = append(host.ToDelTaints, taint)
 					}
 				}
 				break

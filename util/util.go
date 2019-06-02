@@ -59,6 +59,15 @@ func UniqueStringSlice(elements []string) []string {
 	return result
 }
 
+func StringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func IsSymlink(file string) (bool, error) {
 	f, err := os.Lstat(file)
 	if err != nil {
