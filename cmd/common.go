@@ -89,7 +89,7 @@ func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfi
 		if strings.Contains(err.Error(), "aborting upgrade") {
 			return err
 		}
-		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes")
+		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes: %v", err)
 	}
 	// check if certificate rotate or normal init
 	if kubeCluster.RancherKubernetesEngineConfig.RotateCertificates != nil {
