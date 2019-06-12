@@ -29,7 +29,7 @@ const (
 	EtcdDataDir                     = "/var/lib/rancher/etcd/"
 	EtcdInitWaitTime                = 10
 	EtcdSnapshotWaitTime            = 5
-	EtcdSnapshotCompressedExtension = "gz"
+	EtcdSnapshotCompressedExtension = "zip"
 )
 
 func RunEtcdPlane(
@@ -455,7 +455,7 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 
 func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, once bool, es v3.ETCDService) error {
 	log.Infof(ctx, "[etcd] Removing snapshot [%s] from host [%s]", name, etcdHost.Address)
-	fullPath := fmt.Sprintf("/backup/%s{,.gz}", name)
+	fullPath := fmt.Sprintf("/backup/%s{,.%s}", name, EtcdSnapshotCompressedExtension)
 	// Make sure we have a safe path to remove
 	safePath, err := filepath.Match("/backup/*", fullPath)
 	if err != nil {
