@@ -3,7 +3,7 @@ package v3
 import (
 	"github.com/rancher/norman/condition"
 	"github.com/rancher/norman/types"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -144,6 +144,8 @@ type TemplateVersionSpec struct {
 	KubeVersion         string            `json:"kubeVersion,omitempty"`
 	UpgradeVersionLinks map[string]string `json:"upgradeVersionLinks,omitempty"`
 	Digest              string            `json:"digest,omitempty"`
+	RancherMinVersion   string            `json:"rancherMinVersion,omitempty"`
+	RancherMaxVersion   string            `json:"rancherMaxVersion,omitempty"`
 
 	// Deprecated: Do not use
 	Files map[string]string `json:"files,omitempty" norman:"nocreate,noupdate"`
