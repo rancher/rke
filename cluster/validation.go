@@ -183,7 +183,7 @@ func validateDuplicateNodes(c *Cluster) error {
 			if i == j {
 				continue
 			}
-			if c.Nodes[i].Address == c.Nodes[j].Address {
+			if c.Nodes[i].Address == c.Nodes[j].Address && c.Nodes[i].Port == c.Nodes[j].Port {
 				return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].Address)
 			}
 			if c.Nodes[i].HostnameOverride == c.Nodes[j].HostnameOverride {
