@@ -247,9 +247,9 @@ func (c *Cluster) getNetworkPluginManifest(pluginConfig map[string]interface{}) 
 	case FlannelNetworkPlugin:
 		return templates.CompileTemplateFromMap(templates.FlannelTemplate, pluginConfig)
 	case CalicoNetworkPlugin:
-		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CalicoNetworkPlugin, c.Version), pluginConfig)
+		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CalicoNetworkPlugin, util.GetTagMajorVersion(c.Version)), pluginConfig)
 	case CanalNetworkPlugin:
-		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CanalNetworkPlugin, c.Version), pluginConfig)
+		return templates.CompileTemplateFromMap(templates.GetVersionedTemplates(CanalNetworkPlugin, util.GetTagMajorVersion(c.Version)), pluginConfig)
 	case WeaveNetworkPlugin:
 		return templates.CompileTemplateFromMap(templates.WeaveTemplate, pluginConfig)
 	default:
