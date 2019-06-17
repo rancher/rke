@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"text/template"
 
+	"github.com/rancher/norman/types/convert"
 	"github.com/rancher/rke/metadata"
 
 	"github.com/rancher/rke/util"
@@ -18,8 +19,10 @@ func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error)
 	return out.String(), nil
 }
 
-func GetVersionedTemplates(templateName string, k8sVersion string) string {
-
+func GetVersionedTemplates(templateName string, data map[string]interface{}, k8sVersion string) string {
+	if template, ok := data[templateName]; ok {
+		return convert.ToString(template)
+	}
 	versionedTemplate := metadata.K8sVersionToTemplates[templateName]
 	if t, ok := versionedTemplate[util.GetTagMajorVersion(k8sVersion)]; ok {
 		return t
@@ -27,6 +30,9 @@ func GetVersionedTemplates(templateName string, k8sVersion string) string {
 	return versionedTemplate["default"]
 }
 
-func GetDefaultVersionedTemplate(templateName string) string {
+func GetDefaultVersionedTemplate(templateName string, data map[string]interface{}) string {
+	if template, ok := data[templateName]; ok {
+		return convert.ToString(template)
+	}
 	return metadata.K8sVersionToTemplates[templateName]["default"]
 }

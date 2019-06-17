@@ -5,6 +5,6 @@ import (
 	"github.com/rancher/rke/templates"
 )
 
-func GetCoreDNSManifest(CoreDNSConfig interface{}) (string, error) {
-	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.CoreDNS), CoreDNSConfig)
+func GetCoreDNSManifest(CoreDNSConfig interface{}, data map[string]interface{}) (string, error) {
+	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.CoreDNS, data), CoreDNSConfig)
 }

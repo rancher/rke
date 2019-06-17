@@ -5,6 +5,6 @@ import (
 	"github.com/rancher/rke/templates"
 )
 
-func GetNginxIngressManifest(IngressConfig interface{}) (string, error) {
-	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.NginxIngress), IngressConfig)
+func GetNginxIngressManifest(IngressConfig interface{}, data map[string]interface{}) (string, error) {
+	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.NginxIngress, data), IngressConfig)
 }
