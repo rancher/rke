@@ -5,7 +5,7 @@ import (
 	"github.com/rancher/rke/templates"
 )
 
-func GetKubeDNSManifest(KubeDNSConfig interface{}) (string, error) {
+func GetKubeDNSManifest(KubeDNSConfig interface{}, data map[string]interface{}) (string, error) {
 
-	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.KubeDNS), KubeDNSConfig)
+	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.KubeDNS, data), KubeDNSConfig)
 }

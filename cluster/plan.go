@@ -19,7 +19,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/util"
-	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
+	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -53,19 +53,19 @@ func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConf
 	uniqHosts := hosts.GetUniqueHostList(myCluster.EtcdHosts, myCluster.ControlPlaneHosts, myCluster.WorkerHosts)
 	for _, host := range uniqHosts {
 		host.DockerInfo = hostsInfoMap[host.Address]
-		clusterPlan.Nodes = append(clusterPlan.Nodes, BuildRKEConfigNodePlan(ctx, myCluster, host, hostsInfoMap[host.Address]))
+		clusterPlan.Nodes = append(clusterPlan.Nodes, BuildRKEConfigNodePlan(ctx, myCluster, host, hostsInfoMap[host.Address], nil))
 	}
 	return clusterPlan, nil
 }
 
-func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts.Host, hostDockerInfo types.Info) v3.RKEConfigNodePlan {
+func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts.Host, hostDockerInfo types.Info, svcOptions *v3.KubernetesServicesOptions) v3.RKEConfigNodePlan {
 	prefixPath := hosts.GetPrefixPath(hostDockerInfo.OperatingSystem, myCluster.PrefixPath)
 	processes := map[string]v3.Process{}
 	portChecks := []v3.PortCheck{}
 	// Everybody gets a sidecar and a kubelet..
 	processes[services.SidekickContainerName] = myCluster.BuildSidecarProcess()
-	processes[services.KubeletContainerName] = myCluster.BuildKubeletProcess(host, prefixPath)
-	processes[services.KubeproxyContainerName] = myCluster.BuildKubeProxyProcess(host, prefixPath)
+	processes[services.KubeletContainerName] = myCluster.BuildKubeletProcess(host, prefixPath, svcOptions)
+	processes[services.KubeproxyContainerName] = myCluster.BuildKubeProxyProcess(host, prefixPath, svcOptions)
 
 	portChecks = append(portChecks, BuildPortChecksFromPortList(host, WorkerPortList, ProtocolTCP)...)
 	// Do we need an nginxProxy for this one ?
@@ -73,9 +73,9 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 		processes[services.NginxProxyContainerName] = myCluster.BuildProxyProcess()
 	}
 	if host.IsControl {
-		processes[services.KubeAPIContainerName] = myCluster.BuildKubeAPIProcess(host, prefixPath)
-		processes[services.KubeControllerContainerName] = myCluster.BuildKubeControllerProcess(prefixPath)
-		processes[services.SchedulerContainerName] = myCluster.BuildSchedulerProcess(prefixPath)
+		processes[services.KubeAPIContainerName] = myCluster.BuildKubeAPIProcess(host, prefixPath, svcOptions)
+		processes[services.KubeControllerContainerName] = myCluster.BuildKubeControllerProcess(prefixPath, svcOptions)
+		processes[services.SchedulerContainerName] = myCluster.BuildSchedulerProcess(prefixPath, svcOptions)
 
 		portChecks = append(portChecks, BuildPortChecksFromPortList(host, ControlPlanePortList, ProtocolTCP)...)
 	}
@@ -101,7 +101,7 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 	}
 }
 
-func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, prefixPath string) v3.Process {
+func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, prefixPath string, svcOptions *v3.KubernetesServicesOptions) v3.Process {
 	// check if external etcd is used
 	etcdConnectionString := services.GetEtcdConnString(c.EtcdHosts, host.InternalAddress)
 	etcdPathPrefix := EtcdPathPrefix
@@ -154,8 +154,13 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, prefixPath string) v3.Pr
 			c.Services.KubeAPI.ExtraEnv,
 			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
 	}
-	// check if our version has specific options for this component
-	serviceOptions := c.GetKubernetesServicesOptions()
+	var serviceOptions v3.KubernetesServicesOptions
+	if svcOptions == nil {
+		// check if our version has specific options for this component
+		serviceOptions = c.GetKubernetesServicesOptions()
+	} else {
+		serviceOptions = *svcOptions
+	}
 	if serviceOptions.KubeAPI != nil {
 		for k, v := range serviceOptions.KubeAPI {
 			// if the value is empty, we remove that option
@@ -236,7 +241,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 }
 
-func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
+func (c *Cluster) BuildKubeControllerProcess(prefixPath string, svcOptions *v3.KubernetesServicesOptions) v3.Process {
 	Command := []string{
 		c.getRKEToolsEntryPoint(),
 		"kube-controller-manager",
@@ -262,8 +267,13 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 			c.Services.KubeController.ExtraEnv,
 			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
 	}
-	// check if our version has specific options for this component
-	serviceOptions := c.GetKubernetesServicesOptions()
+	var serviceOptions v3.KubernetesServicesOptions
+	if svcOptions == nil {
+		// check if our version has specific options for this component
+		serviceOptions = c.GetKubernetesServicesOptions()
+	} else {
+		serviceOptions = *svcOptions
+	}
 	if serviceOptions.KubeController != nil {
 		for k, v := range serviceOptions.KubeController {
 			// if the value is empty, we remove that option
@@ -322,7 +332,7 @@ func (c *Cluster) BuildKubeControllerProcess(prefixPath string) v3.Process {
 	}
 }
 
-func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Process {
+func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string, svcOptions *v3.KubernetesServicesOptions) v3.Process {
 
 	Command := []string{
 		c.getRKEToolsEntryPoint(),
@@ -365,13 +375,13 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 			c.Services.Kubelet.ExtraEnv,
 			fmt.Sprintf("%s=%s", KubeletDockerConfigFileEnv, path.Join(prefixPath, KubeletDockerConfigPath)))
 	}
-	// allow-privileged is removed in k8s 1.15
-	if c.Version < MaxK8s115Version {
-		CommandArgs["allow-privileged"] = "true"
+	var serviceOptions v3.KubernetesServicesOptions
+	if svcOptions == nil {
+		// check if our version has specific options for this component
+		serviceOptions = c.GetKubernetesServicesOptions()
+	} else {
+		serviceOptions = *svcOptions
 	}
-
-	// check if our version has specific options for this component
-	serviceOptions := c.GetKubernetesServicesOptions()
 	if serviceOptions.Kubelet != nil {
 		for k, v := range serviceOptions.Kubelet {
 			// if the value is empty, we remove that option
@@ -448,7 +458,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string) v3.Pr
 	}
 }
 
-func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.Process {
+func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string, svcOptions *v3.KubernetesServicesOptions) v3.Process {
 	Command := []string{
 		c.getRKEToolsEntryPoint(),
 		"kube-proxy",
@@ -460,8 +470,13 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string) v3.
 		"kubeconfig":        pki.GetConfigPath(pki.KubeProxyCertName),
 	}
 
-	// check if our version has specific options for this component
-	serviceOptions := c.GetKubernetesServicesOptions()
+	var serviceOptions v3.KubernetesServicesOptions
+	if svcOptions == nil {
+		// check if our version has specific options for this component
+		serviceOptions = c.GetKubernetesServicesOptions()
+	} else {
+		serviceOptions = *svcOptions
+	}
 	if serviceOptions.Kubeproxy != nil {
 		for k, v := range serviceOptions.Kubeproxy {
 			// if the value is empty, we remove that option
@@ -550,7 +565,7 @@ func (c *Cluster) BuildProxyProcess() v3.Process {
 	}
 }
 
-func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
+func (c *Cluster) BuildSchedulerProcess(prefixPath string, svcOptions *v3.KubernetesServicesOptions) v3.Process {
 	Command := []string{
 		c.getRKEToolsEntryPoint(),
 		"kube-scheduler",
@@ -564,9 +579,13 @@ func (c *Cluster) BuildSchedulerProcess(prefixPath string) v3.Process {
 	if c.DinD {
 		CommandArgs["address"] = "0.0.0.0"
 	}
-
-	// check if our version has specific options for this component
-	serviceOptions := c.GetKubernetesServicesOptions()
+	var serviceOptions v3.KubernetesServicesOptions
+	if svcOptions == nil {
+		// check if our version has specific options for this component
+		serviceOptions = c.GetKubernetesServicesOptions()
+	} else {
+		serviceOptions = *svcOptions
+	}
 	if serviceOptions.Scheduler != nil {
 		for k, v := range serviceOptions.Scheduler {
 			// if the value is empty, we remove that option
