@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -15,6 +16,7 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
+	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 )
@@ -371,4 +373,55 @@ func GetHostListIntersect(a []*Host, b []*Host) []*Host {
 		}
 	}
 	return s
+}
+
+func GetIntersetTaintsDiff(a []*Host, b []*Host) map[int]int {
+	indexMap := map[int]int{}
+	hash := map[string]int{}
+	taints := map[string]map[string]struct{}{}
+	for i, h := range a {
+		hash[h.Address] = i
+		taints[h.Address] = GetTaintSetFromHost(h)
+	}
+	for bi, h := range b {
+		ai, ok := hash[h.Address]
+		if !ok {
+			continue
+		}
+		taintSetA := taints[h.Address]
+		taintSetB := GetTaintSetFromHost(h)
+		if !reflect.DeepEqual(taintSetA, taintSetB) {
+			indexMap[ai] = bi
+		}
+	}
+	return indexMap
+}
+
+func GetTaintString(taint v1.Taint) string {
+	return fmt.Sprintf("%s=%s:%s", taint.Key, taint.Value, taint.Effect)
+}
+
+func GetTaintSetFromHost(host *Host) map[string]struct{} {
+	taintSet := map[string]struct{}{}
+	for _, taint := range host.Taints {
+		taintSet[GetTaintString(taint)] = struct{}{}
+	}
+	return taintSet
+}
+
+func GetHostDiffTaints(currentHost, specHost *Host) (toAdd, toDel []string) {
+	toAdd, toDel = []string{}, []string{}
+	currTaints := GetTaintSetFromHost(currentHost)
+	specTaints := GetTaintSetFromHost(specHost)
+	for taint := range specTaints {
+		if _, ok := currTaints[taint]; !ok {
+			toAdd = append(toAdd, taint)
+		}
+	}
+	for taint := range currTaints {
+		if _, ok := specTaints[taint]; !ok {
+			toDel = append(toDel, taint)
+		}
+	}
+	return toAdd, toDel
 }

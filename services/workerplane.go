@@ -8,6 +8,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/util"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -56,6 +57,13 @@ func doDeployWorkerPlaneHost(ctx context.Context, host *hosts.Host, localConnDia
 		if host.IsControl {
 			// Add unschedulable taint
 			host.ToAddTaints = append(host.ToAddTaints, unschedulableControlTaint)
+		}
+		if len(host.RKEConfigNode.Taints) != 0 {
+			logrus.Warnf("non-worker host %s has taints, going to ignore them", host.Address)
+		}
+	} else {
+		for _, taint := range host.RKEConfigNode.Taints {
+			host.ToAddTaints = append(host.ToAddTaints, hosts.GetTaintString(taint))
 		}
 	}
 	return doDeployWorkerPlane(ctx, host, localConnDialerFactory, prsMap, processMap, certMap, alpineImage)

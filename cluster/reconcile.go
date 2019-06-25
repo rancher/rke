@@ -67,6 +67,9 @@ func reconcileWorker(ctx context.Context, currentCluster, kubeCluster *Cluster, 
 	wpToDelete := hosts.GetToDeleteHosts(currentCluster.WorkerHosts, kubeCluster.WorkerHosts, kubeCluster.InactiveHosts, false)
 	for _, toDeleteHost := range wpToDelete {
 		toDeleteHost.IsWorker = false
+		for _, taint := range toDeleteHost.RKEConfigNode.Taints {
+			toDeleteHost.ToDelTaints = append(toDeleteHost.ToDelTaints, hosts.GetTaintString(taint))
+		}
 		if err := hosts.DeleteNode(ctx, toDeleteHost, kubeClient, toDeleteHost.IsControl || toDeleteHost.IsEtcd, kubeCluster.CloudProvider.Name); err != nil {
 			return fmt.Errorf("Failed to delete worker node [%s] from cluster: %v", toDeleteHost.Address, err)
 		}
@@ -86,7 +89,24 @@ func reconcileWorker(ctx context.Context, currentCluster, kubeCluster *Cluster, 
 		if host.IsControl {
 			host.ToDelTaints = append(host.ToDelTaints, unschedulableControlTaint)
 		}
+		for _, taint := range host.RKEConfigNode.Taints {
+			host.ToAddTaints = append(host.ToAddTaints, hosts.GetTaintString(taint))
+		}
 	}
+
+	DiffHostIndexes := hosts.GetIntersetTaintsDiff(currentCluster.WorkerHosts, kubeCluster.WorkerHosts)
+	for currIndex, specIndex := range DiffHostIndexes {
+		currHost := currentCluster.WorkerHosts[currIndex]
+		specHost := kubeCluster.WorkerHosts[specIndex]
+		toAdd, toDel := hosts.GetHostDiffTaints(currHost, specHost)
+		if len(toAdd) == 0 && len(toDel) == 0 {
+			continue
+		}
+		specHost.UpdateWorker = true
+		specHost.ToAddTaints = append(specHost.ToAddTaints, toAdd...)
+		specHost.ToDelTaints = append(specHost.ToDelTaints, toDel...)
+	}
+
 	return nil
 }
 
@@ -120,6 +140,11 @@ func reconcileControl(ctx context.Context, currentCluster, kubeCluster *Cluster,
 	// rebuilding local admin config to enable saving cluster state
 	if err := rebuildLocalAdminConfig(ctx, kubeCluster); err != nil {
 		return err
+	}
+	for _, controlPlaneHost := range kubeCluster.ControlPlaneHosts {
+		if !controlPlaneHost.IsWorker && len(controlPlaneHost.RKEConfigNode.Taints) != 0 {
+			logrus.Warnf("ETCD host %s has taints, going to ignore them", controlPlaneHost.Address)
+		}
 	}
 	return nil
 }
@@ -219,6 +244,11 @@ func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, ku
 		// https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/runtime-configuration.md#add-a-new-member
 		if err := services.ReloadEtcdCluster(ctx, kubeCluster.EtcdReadyHosts, etcdHost, currentCluster.LocalConnDialerFactory, clientCert, clientkey, currentCluster.PrivateRegistriesMap, etcdNodePlanMap, kubeCluster.SystemImages.Alpine); err != nil {
 			return err
+		}
+	}
+	for _, etcdHost := range kubeCluster.EtcdHosts {
+		if !etcdHost.IsWorker && len(etcdHost.RKEConfigNode.Taints) != 0 {
+			logrus.Warnf("ETCD host %s has taints, going to ignore them", etcdHost.Address)
 		}
 	}
 	return nil
