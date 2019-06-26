@@ -152,6 +152,8 @@ type NodePoolSpec struct {
 
 	DisplayName string `json:"displayName"`
 	ClusterName string `json:"clusterName,omitempty" norman:"type=reference[cluster],noupdate,required"`
+
+	Taints []v1.Taint `yaml:"taints" json:"taints,omitempty"`
 }
 
 type NodePoolStatus struct {
@@ -172,6 +174,7 @@ type CustomConfig struct {
 	// SSH Certificate
 	SSHCert string            `yaml:"ssh_cert" json:"sshCert,omitempty"`
 	Label   map[string]string `yaml:"label" json:"label,omitempty"`
+	Taints  []string          `yaml:"taints" json:"taints,omitempty"`
 }
 
 type NodeSpec struct {

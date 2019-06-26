@@ -1,5 +1,7 @@
 package v3
 
+import v1 "k8s.io/api/core/v1"
+
 type RancherKubernetesEngineConfig struct {
 	// Kubernetes nodes
 	Nodes []RKEConfigNode `yaml:"nodes" json:"nodes,omitempty"`
@@ -167,6 +169,8 @@ type RKEConfigNode struct {
 	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty"`
 	// Node Labels
 	Labels map[string]string `yaml:"labels" json:"labels,omitempty"`
+	// Node Taints
+	Taints []v1.Taint `yaml:"taints" json:"taints,omitempty"`
 }
 
 type RKEConfigServices struct {

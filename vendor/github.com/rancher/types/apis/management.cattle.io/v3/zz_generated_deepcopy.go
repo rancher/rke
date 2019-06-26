@@ -2519,6 +2519,11 @@ func (in *CustomConfig) DeepCopyInto(out *CustomConfig) {
 			(*out)[key] = val
 		}
 	}
+	if in.Taints != nil {
+		in, out := &in.Taints, &out.Taints
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
@@ -5434,6 +5439,13 @@ func (in *NodePoolSpec) DeepCopyInto(out *NodePoolSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.Taints != nil {
+		in, out := &in.Taints, &out.Taints
+		*out = make([]v1.Taint, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -7517,6 +7529,13 @@ func (in *RKEConfigNode) DeepCopyInto(out *RKEConfigNode) {
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
+		}
+	}
+	if in.Taints != nil {
+		in, out := &in.Taints, &out.Taints
+		*out = make([]v1.Taint, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	return
