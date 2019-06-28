@@ -74,7 +74,7 @@ data:
   net-conf.json: |
     {
       "Network": "{{.ClusterCIDR}}",
-      "SubnetLen": {{ .FlannelBackend.SubnetLen }},
+      "SubnetLen": {{.FlannelBackend.SubnetLen}},
       "Backend": {
         "Type": "{{.FlannelBackend.Type}}",
         "VNI": {{.FlannelBackend.VNI}},
@@ -331,6 +331,7 @@ data:
   net-conf.json: |
     {
       "Network": "{{.ClusterCIDR}}",
+      "SubnetLen": {{.FlannelBackend.SubnetLen}},
       "Backend": {
         "Type": "{{.FlannelBackend.Type}}",
         "VNI": {{.FlannelBackend.VNI}},

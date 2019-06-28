@@ -65,6 +65,7 @@ const (
 	CanalFlannelBackendPort = "canal_flannel_backend_port"
 	// CanalFlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using Flannel VxLan mode in the cluster with Windows nodes
 	CanalFlannelBackendVxLanNetworkIdentify = "canal_flannel_backend_vni"
+	CanalFlannelBackendSubnetLen            = "canal_flannel_backend_subnetlen"
 
 	WeaveNetworkPlugin  = "weave"
 	WeaveNetowrkAppName = "weave-net"
@@ -207,7 +208,7 @@ func (c *Cluster) doCanalDeploy(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	subnetLen, err := atoiWithDefault(c.Network.Options[FlannelBackendSubnetLen], FlannelSubnetLen)
+	subnetLen, err := atoiWithDefault(c.Network.Options[CanalFlannelBackendSubnetLen], FlannelSubnetLen)
 	if err != nil {
 		return err
 	}
