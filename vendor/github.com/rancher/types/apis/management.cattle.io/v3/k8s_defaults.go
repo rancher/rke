@@ -27,9 +27,9 @@ var (
 		// When add a new k8s version to 2.2, make sure to add support for it to the 2.1.x branch.
 		// Account for the fact that rke-tools image is different cross branches, and it requires using
 		// different k8s version tag
-		"v1.12.9-rancher1-1",
-		"v1.13.7-rancher1-1",
-		"v1.14.3-rancher1-1",
+		//"v1.12.9-rancher1-1",
+		//"v1.13.7-rancher1-1",
+		//"v1.14.3-rancher1-1",
 		"v1.15.0-rancher1-1",
 	}
 
