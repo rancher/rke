@@ -182,6 +182,7 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 	if err := c.setCloudProvider(); err != nil {
 		return nil, fmt.Errorf("Failed to register cloud provider: %v", err)
 	}
+	logrus.Infof("reacheD?")
 	// set hosts groups
 	if err := c.InvertIndexHosts(); err != nil {
 		return nil, fmt.Errorf("Failed to classify hosts from config file: %v", err)

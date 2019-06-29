@@ -375,6 +375,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string, svcOp
 			c.Services.Kubelet.ExtraEnv,
 			fmt.Sprintf("%s=%s", KubeletDockerConfigFileEnv, path.Join(prefixPath, KubeletDockerConfigPath)))
 	}
+
 	var serviceOptions v3.KubernetesServicesOptions
 	if svcOptions == nil {
 		// check if our version has specific options for this component
@@ -382,6 +383,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string, svcOp
 	} else {
 		serviceOptions = *svcOptions
 	}
+
 	if serviceOptions.Kubelet != nil {
 		for k, v := range serviceOptions.Kubelet {
 			// if the value is empty, we remove that option

@@ -1712,7 +1712,7 @@ spec:
             - name: FELIX_HEALTHENABLED
               value: "true"
           securityContext:
-            privileged: true
+            privileged: false
           resources:
             requests:
               cpu: 250m

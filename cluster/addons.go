@@ -362,6 +362,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}
+	logrus.Infof("addonsExecuteJob? resourceName %s node.Name %s kubeAPI %s", resourceName, node.Name, c.Services.KubeAPI.Image)
 	addonJob, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
 
 	if err != nil {

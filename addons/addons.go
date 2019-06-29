@@ -2,6 +2,7 @@ package addons
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"strconv"
 
 	"github.com/rancher/rke/k8s"
@@ -10,6 +11,7 @@ import (
 )
 
 func GetAddonsExecuteJob(addonName, nodeName, image string) (string, error) {
+	logrus.Info("entered?")
 	return getAddonJob(addonName, nodeName, image, false)
 }
 

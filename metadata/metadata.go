@@ -44,10 +44,9 @@ func initK8sRKESystemImages() {
 	if RKEVersion == "" {
 		RKEVersion = RKEVersionDev
 	}
-	logrus.Infof("RKEVersion %v", RKEVersion)
 	DefaultK8sVersion = rkeData.RKEDefaultK8sVersions["default"]
-	if defaultK8s, ok := rkeData.RKEDefaultK8sVersions[RKEVersion]; ok {
-		DefaultK8sVersion = defaultK8s
+	if defaultK8sVersion, ok := rkeData.RKEDefaultK8sVersions[RKEVersion]; ok {
+		DefaultK8sVersion = defaultK8sVersion
 	}
 	maxVersionForMajorK8sVersion := map[string]string{}
 	for k8sVersion, systemImages := range rkeData.K8sVersionRKESystemImages {
