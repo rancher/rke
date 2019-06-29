@@ -2,6 +2,7 @@ package templates
 
 import (
 	"bytes"
+	"github.com/sirupsen/logrus"
 	"text/template"
 
 	"github.com/rancher/rke/util"
@@ -39,6 +40,7 @@ func GetVersionedTemplates(templateName string, k8sVersion string) string {
 
 	versionedTemplate := VersionedTemplate[templateName]
 	if t, ok := versionedTemplate[util.GetTagMajorVersion(k8sVersion)]; ok {
+		logrus.Infof("templateName %s major version %s", templateName, util.GetTagMajorVersion(k8sVersion))
 		return t
 	}
 	return versionedTemplate["default"]

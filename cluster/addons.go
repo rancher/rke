@@ -347,7 +347,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 			return &addonError{fmt.Sprintf("%v", err), isCritical}
 		}
 	}
-
+	logrus.Infof("inside addon deploy")
 	addonUpdated, err := c.StoreAddonConfigMap(ctx, addonYaml, resourceName)
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to save addon ConfigMap: %v", err), isCritical}
@@ -362,6 +362,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}
+	logrus.Infof("addonsExecutejob reso %s no %s image %s", resourceName, node.Name, c.Services.KubeAPI.Image)
 	addonJob, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
 
 	if err != nil {

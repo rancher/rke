@@ -2,6 +2,7 @@ package addons
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"strconv"
 
 	"github.com/rancher/rke/k8s"
@@ -24,6 +25,7 @@ func getAddonJob(addonName, nodeName, image string, isDelete bool) (string, erro
 		"Image":     image,
 		"DeleteJob": strconv.FormatBool(isDelete),
 	}
+	logrus.Info("compile again")
 	return templates.CompileTemplateFromMap(templates.AddonJobTemplate, jobConfig)
 }
 
