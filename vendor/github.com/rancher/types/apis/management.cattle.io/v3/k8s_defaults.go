@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DefaultK8s = "v1.14.3-rancher1-1"
+	DefaultK8s = "v1.15.0-rancher1-1"
 )
 
 var (
