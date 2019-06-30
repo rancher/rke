@@ -121,7 +121,7 @@ spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
       {{ range $k, $v := .NodeSelector }}
-        {{ $k }}: {{ $v }}
+        {{ $k }}: "{{ $v }}"
       {{ end }}
       containers:
       - name: coredns
