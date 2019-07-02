@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"text/template"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/rancher/rke/util"
 )
 
@@ -36,7 +38,7 @@ func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error)
 }
 
 func GetVersionedTemplates(templateName string, k8sVersion string) string {
-
+	logrus.Info("test pr")
 	versionedTemplate := VersionedTemplate[templateName]
 	if t, ok := versionedTemplate[util.GetTagMajorVersion(k8sVersion)]; ok {
 		return t
