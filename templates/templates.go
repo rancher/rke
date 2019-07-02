@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"text/template"
 
+	"github.com/rancher/norman/types/convert"
 	"github.com/rancher/rke/metadata"
 
 	"github.com/rancher/rke/util"
