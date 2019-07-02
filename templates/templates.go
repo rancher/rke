@@ -3,6 +3,7 @@ package templates
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"text/template"
 
 	"github.com/rancher/rke/util"
@@ -37,7 +38,7 @@ func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error)
 }
 
 func GetVersionedTemplates(templateName string, k8sVersion string) string {
-
+	logrus.Info("test pr")
 	versionedTemplate := VersionedTemplate[templateName]
 	if t, ok := versionedTemplate[util.GetTagMajorVersion(k8sVersion)]; ok {
 		return t
