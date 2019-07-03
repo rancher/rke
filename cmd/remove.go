@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/rancher/rke/metadata"
 	"os"
 	"strings"
 
@@ -56,6 +57,10 @@ func ClusterRemove(
 	flags cluster.ExternalFlags) error {
 
 	log.Infof(ctx, "Tearing down Kubernetes cluster")
+
+	if metadata.K8sVersionToRKESystemImages == nil {
+		metadata.InitMetadata(ctx)
+	}
 	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
 	if err != nil {
 		return err
