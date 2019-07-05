@@ -124,13 +124,17 @@ type RKESystemImages struct {
 	CalicoControllers string `yaml:"calico_controllers" json:"calicoControllers,omitempty"`
 	// Calicoctl image
 	CalicoCtl string `yaml:"calico_ctl" json:"calicoCtl,omitempty"`
+	//CalicoFlexVol image
+	CalicoFlexVol string `yaml:"calico_flexvol" json:"calicoFlexVol,omitempty"`
 	// Canal Node Image
 	CanalNode string `yaml:"canal_node" json:"canalNode,omitempty"`
 	// Canal CNI image
 	CanalCNI string `yaml:"canal_cni" json:"canalCni,omitempty"`
 	//CanalFlannel image
 	CanalFlannel string `yaml:"canal_flannel" json:"canalFlannel,omitempty"`
-	// Weave Node image
+	//CanalFlexVol image
+	CanalFlexVol string `yaml:"canal_flexvol" json:"canalFlexVol,omitempty"`
+	//Weave Node image
 	WeaveNode string `yaml:"weave_node" json:"weaveNode,omitempty"`
 	// Weave CNI image
 	WeaveCNI string `yaml:"weave_cni" json:"weaveCni,omitempty"`
@@ -142,6 +146,8 @@ type RKESystemImages struct {
 	IngressBackend string `yaml:"ingress_backend" json:"ingressBackend,omitempty"`
 	// Metrics Server image
 	MetricsServer string `yaml:"metrics_server" json:"metricsServer,omitempty"`
+	// Pod infra container image for Windows
+	WindowsPodInfraContainer string `yaml:"windows_pod_infra_container" json:"podInfraWindowsContainer,omitempty"`
 }
 
 type RKEConfigNode struct {
@@ -199,14 +205,6 @@ type RKEAddon struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Template string `yaml:"template" json:"template,omitempty"`
-}
-
-type RKEK8sWindowsSystemImage struct {
-	types.Namespaced
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	SystemImages WindowsSystemImages `yaml:"windows_system_images" json:"windowsSystemImages,omitempty"`
 }
 
 type K8sVersionInfo struct {

@@ -2,17 +2,13 @@ module github.com/rancher/rke
 
 go 1.12
 
+replace github.com/go-resty/resty => gopkg.in/resty.v1 v1.9.0
+
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.0.0-20180501170546-ab35fc04b636 // indirect
-	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/blang/semver v0.0.0-20190414102917-ba2c2ddd8906
-	github.com/containerd/cgroups v0.0.0-20190717030353-c4b9ac5c7601 // indirect
 	github.com/containerd/containerd v1.3.0-beta.0.0.20190808172034-23faecfb66ab // indirect
-	github.com/containerd/continuity v0.0.0-20190815185530-f2a389ac0a02 // indirect
-	github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c // indirect
-	github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44 // indirect
-	github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987 // indirect
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v0.0.0-20180109221743-52f73c5a6cb0
 	github.com/coreos/go-semver v0.3.0
@@ -22,11 +18,8 @@ require (
 	github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 	github.com/docker/docker v0.7.3-0.20190808172531-150530564a14
 	github.com/docker/go-connections v0.3.0
-	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/docker/go-units v0.3.2 // indirect
 	github.com/go-ini/ini v1.37.0
-	github.com/godbus/dbus v4.1.0+incompatible // indirect
-	github.com/gogo/googleapis v1.2.0 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/gorilla/websocket v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
@@ -38,16 +31,13 @@ require (
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v0.0.0-20170929214853-7c889fafd04a // indirect
-	github.com/opencontainers/runc v0.1.1 // indirect
-	github.com/opencontainers/runtime-spec v0.1.2-0.20190207185410-29686dbc5559 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20190820205038-bc5bddb6f8f3
-	github.com/rancher/norman v0.0.0-20190819172543-9c5479f6e5ca
-	github.com/rancher/types v0.0.0-20190819173748-96e6d6f30265
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20190822033834-53da6c8441ed
+	github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0
+	github.com/rancher/types v0.0.0-20190822030441-376c6f64c718
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
-	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/ugorji/go v0.0.0-20171231121548-ccfe18359b55 // indirect
 	github.com/urfave/cli v1.18.0
@@ -64,5 +54,3 @@ require (
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
 )
-
-replace github.com/go-resty/resty => gopkg.in/resty.v1 v1.9.0
