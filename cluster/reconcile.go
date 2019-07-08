@@ -44,6 +44,7 @@ func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster,
 	}
 	// sync node labels to define the toDelete labels
 	syncLabels(ctx, currentCluster, kubeCluster)
+	syncNodeRoles(ctx, currentCluster, kubeCluster)
 
 	if err := reconcileEtcd(ctx, currentCluster, kubeCluster, kubeClient, svcOptions); err != nil {
 		return fmt.Errorf("Failed to reconcile etcd plane: %v", err)
@@ -56,6 +57,7 @@ func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster,
 	if err := reconcileControl(ctx, currentCluster, kubeCluster, kubeClient); err != nil {
 		return err
 	}
+
 	if kubeCluster.ForceDeployCerts {
 		if err := restartComponentsWhenCertChanges(ctx, currentCluster, kubeCluster); err != nil {
 			return err
@@ -241,6 +243,21 @@ func syncLabels(ctx context.Context, currentCluster, kubeCluster *Cluster) {
 						host.ToDelLabels[k] = v
 					}
 				}
+				break
+			}
+		}
+	}
+}
+
+func syncNodeRoles(ctx context.Context, currentCluster, kubeCluster *Cluster) {
+	currentHosts := hosts.GetUniqueHostList(currentCluster.EtcdHosts, currentCluster.ControlPlaneHosts, currentCluster.WorkerHosts)
+	configHosts := hosts.GetUniqueHostList(kubeCluster.EtcdHosts, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
+	for _, host := range configHosts {
+		for _, currentHost := range currentHosts {
+			if host.Address == currentHost.Address {
+				currentHost.IsWorker = host.IsWorker
+				currentHost.IsEtcd = host.IsEtcd
+				currentHost.IsControl = host.IsControl
 				break
 			}
 		}
