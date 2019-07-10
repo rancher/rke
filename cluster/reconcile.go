@@ -25,12 +25,17 @@ const (
 )
 
 func ReconcileCluster(ctx context.Context, kubeCluster, currentCluster *Cluster, flags ExternalFlags, svcOptions *v3.KubernetesServicesOptions) error {
+	logrus.Debugf("[reconcile] currentCluster: %+v\n", currentCluster)
 	log.Infof(ctx, "[reconcile] Reconciling cluster state")
 	kubeCluster.UpdateWorkersOnly = flags.UpdateOnly
 	if currentCluster == nil {
 		log.Infof(ctx, "[reconcile] This is newly generated cluster")
 		kubeCluster.UpdateWorkersOnly = false
 		return nil
+	}
+	// If certificates are not present, this is broken state and should error out
+	if len(currentCluster.Certificates) == 0 {
+		return fmt.Errorf("Certificates are not present in cluster state, recover rkestate file or certificate information in cluster state")
 	}
 
 	kubeClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
