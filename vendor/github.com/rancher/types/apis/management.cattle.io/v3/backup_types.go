@@ -28,7 +28,7 @@ type S3BackupConfig struct {
 	// Access key ID
 	AccessKey string `yaml:"access_key" json:"accessKey,omitempty"`
 	// Secret access key
-	SecretKey string `yaml:"secret_key" json:"secretKey,omitempty" norman:"required,type=password" `
+	SecretKey string `yaml:"secret_key" json:"secretKey,omitempty" norman:"type=password" `
 	// name of the bucket to use for backup
 	BucketName string `yaml:"bucket_name" json:"bucketName,omitempty"`
 	// AWS Region, AWS spcific
@@ -37,6 +37,8 @@ type S3BackupConfig struct {
 	Endpoint string `yaml:"endpoint" json:"endpoint"`
 	// CustomCA is used to connect to custom s3 endpoints
 	CustomCA string `yaml:"custom_ca" json:"customCa,omitempty"`
+	// Folder to place the files
+	Folder string `yaml:"folder" json:"folder,omitempty"`
 }
 type EtcdBackup struct {
 	types.Namespaced
