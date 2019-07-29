@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rancher/rke/metadata"
-
 	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/docker"
