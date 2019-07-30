@@ -2,6 +2,7 @@ package v3
 
 import (
 	"github.com/rancher/norman/types"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -172,6 +173,8 @@ type RKEConfigNode struct {
 	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty"`
 	// Node Labels
 	Labels map[string]string `yaml:"labels" json:"labels,omitempty"`
+	// Node Taints
+	Taints []v1.Taint `yaml:"taints" json:"taints,omitempty"`
 }
 
 type RKEK8sSystemImage struct {
@@ -244,6 +247,11 @@ type ETCDService struct {
 	Key string `yaml:"key" json:"key,omitempty"`
 	// External etcd prefix
 	Path string `yaml:"path" json:"path,omitempty"`
+	// UID to run etcd container as
+	UID int `yaml:"uid" json:"uid,omitempty"`
+	// GID to run etcd container as
+	GID int `yaml:"gid" json:"gid,omitempty"`
+
 	// Etcd Recurring snapshot Service, used by rke only
 	Snapshot *bool `yaml:"snapshot" json:"snapshot,omitempty" norman:"default=false"`
 	// Etcd snapshot Retention period
@@ -377,6 +385,8 @@ type RKEConfigNodePlan struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Node Labels
 	Labels map[string]string `json:"labels,omitempty"`
+	// Node Taints
+	Taints []v1.Taint `json:"taints,omitempty"`
 }
 
 type Process struct {
@@ -410,6 +420,8 @@ type Process struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Process docker publish container's port to host
 	Publish []string `json:"publish,omitempty"`
+	// docker will run the container with this user
+	User string `json:"user,omitempty"`
 }
 
 type HealthCheck struct {
