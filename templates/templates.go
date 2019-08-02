@@ -3,12 +3,13 @@ package templates
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/blang/semver"
+	"github.com/rancher/kontainer-driver-metadata/rke/templates"
+	"github.com/sirupsen/logrus"
 	"text/template"
 
 	"github.com/rancher/norman/types/convert"
 	"github.com/rancher/rke/metadata"
-
-	"github.com/rancher/rke/util"
 )
 
 func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error) {
@@ -24,11 +25,7 @@ func GetVersionedTemplates(templateName string, data map[string]interface{}, k8s
 	if template, ok := data[templateName]; ok {
 		return convert.ToString(template)
 	}
-	versionedTemplate := metadata.K8sVersionToTemplates[templateName]
-	if t, ok := versionedTemplate[util.GetTagMajorVersion(k8sVersion)]; ok {
-		return t
-	}
-	return versionedTemplate["default"]
+	return getTemplate(templateName, k8sVersion)
 }
 
 func GetKubednsStubDomains(stubDomains map[string][]string) string {
@@ -40,5 +37,29 @@ func GetDefaultVersionedTemplate(templateName string, data map[string]interface{
 	if template, ok := data[templateName]; ok {
 		return convert.ToString(template)
 	}
-	return metadata.K8sVersionToTemplates[templateName]["default"]
+	versionData := metadata.K8sVersionToTemplates[templateName]
+	return metadata.K8sVersionToTemplates[templates.TemplateKeys][versionData["default"]]
+}
+
+func getTemplate(templateName, k8sVersion string) string {
+	versionData := metadata.K8sVersionToTemplates[templateName]
+	toMatch, err := semver.Make(k8sVersion[1:])
+	if err != nil {
+		logrus.Errorf("k8sVersion not sem-ver %s %v", k8sVersion, err)
+		return metadata.K8sVersionToTemplates[templates.TemplateKeys][versionData["default"]]
+	}
+	for k := range versionData {
+		if k == "default" {
+			continue
+		}
+		testRange, err := semver.ParseRange(k)
+		if err != nil {
+			logrus.Errorf("range for %s not sem-ver %v %v", templateName, testRange, err)
+			continue
+		}
+		if testRange(toMatch) {
+			return metadata.K8sVersionToTemplates[templates.TemplateKeys][versionData[k]]
+		}
+	}
+	return metadata.K8sVersionToTemplates[templates.TemplateKeys][versionData["default"]]
 }

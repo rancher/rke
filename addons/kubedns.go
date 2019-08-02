@@ -6,6 +6,5 @@ import (
 )
 
 func GetKubeDNSManifest(KubeDNSConfig interface{}, data map[string]interface{}) (string, error) {
-
 	return templates.CompileTemplateFromMap(templates.GetDefaultVersionedTemplate(rkeData.KubeDNS, data), KubeDNSConfig)
 }
