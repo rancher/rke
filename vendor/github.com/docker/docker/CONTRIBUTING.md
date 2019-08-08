@@ -8,7 +8,7 @@ process](docs/contributing/).
 
 This page contains information about reporting issues as well as some tips and
 guidelines useful to experienced open source contributors. Finally, make sure
-you read our [community guidelines](#docker-community-guidelines) before you
+you read our [community guidelines](#moby-community-guidelines) before you
 start participating.
 
 ## Topics
@@ -17,7 +17,7 @@ start participating.
 * [Design and Cleanup Proposals](#design-and-cleanup-proposals)
 * [Reporting Issues](#reporting-other-issues)
 * [Quick Contribution Tips and Guidelines](#quick-contribution-tips-and-guidelines)
-* [Community Guidelines](#docker-community-guidelines)
+* [Community Guidelines](#moby-community-guidelines)
 
 ## Reporting security issues
 
@@ -27,10 +27,10 @@ issue, please bring it to their attention right away!
 Please **DO NOT** file a public issue, instead send your report privately to
 [security@docker.com](mailto:security@docker.com).
 
-Security reports are greatly appreciated and we will publicly thank you for it.
-We also like to send gifts&mdash;if you're into schwag, make sure to let
-us know. We currently do not offer a paid security bounty program, but are not
-ruling it out in the future.
+Security reports are greatly appreciated and we will publicly thank you for it,
+although we keep your name confidential if you request it. We also like to send
+gifts&mdash;if you're into schwag, make sure to let us know. We currently do not
+offer a paid security bounty program, but are not ruling it out in the future.
 
 
 ## Reporting other issues
