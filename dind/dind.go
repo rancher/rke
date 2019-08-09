@@ -21,7 +21,7 @@ const (
 )
 
 func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindStorageDriver, dindDNS string) (string, error) {
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return "", err
 	}
