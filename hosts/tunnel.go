@@ -3,12 +3,10 @@ package hosts
 import (
 	"context"
 	"fmt"
+	"github.com/rancher/rke/metadata"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
-
-	"github.com/rancher/rke/metadata"
 
 	"net"
 
@@ -36,11 +34,7 @@ func (h *Host) TunnelUp(ctx context.Context, dialerFactory DialerFactory, cluste
 	}
 	// set Docker client
 	logrus.Debugf("Connecting to Docker API for host [%s]", h.Address)
-	h.DClient, err = client.NewClientWithOpts(
-		client.WithHost("unix:///var/run/docker.sock"),
-		client.WithVersion(DockerAPIVersion),
-		client.WithHTTPClient(httpClient),
-		client.WithTimeout(10*time.Second))
+	h.DClient, err = client.NewClient("unix:///var/run/docker.sock", DockerAPIVersion, httpClient, nil)
 	if err != nil {
 		return fmt.Errorf("Can't initiate NewClient: %v", err)
 	}
