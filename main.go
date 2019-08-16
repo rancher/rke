@@ -5,11 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/mattn/go-colorable"
 	"github.com/rancher/rke/cmd"
-	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -17,7 +15,6 @@ import (
 // VERSION gets overridden at build time using -X main.VERSION=$VERSION
 var VERSION = "dev"
 var released = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
-var proxyEnvVars = [3]string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}
 
 func main() {
 	logrus.SetOutput(colorable.NewColorableStdout())
@@ -44,23 +41,6 @@ func mainErr() error {
 			return nil
 		}
 		logrus.Warnf("This is not an officially supported version (%s) of RKE. Please download the latest official release at https://github.com/rancher/rke/releases/latest", app.Version)
-		// Print proxy related environment variables
-		for _, proxyEnvVar := range proxyEnvVars {
-			var err error
-			// Lookup environment variable
-			if key, value, ok := util.GetEnvVar(proxyEnvVar); ok {
-				// If it can contain a password, strip it (HTTP_PROXY or HTTPS_PROXY)
-				if strings.HasPrefix(strings.ToUpper(proxyEnvVar), "HTTP") {
-					value, err = util.StripPasswordFromURL(value)
-					if err != nil {
-						// Don't error out of provisioning when parsing of environment variable fails
-						logrus.Warnf("Error parsing proxy environment variable %s", key)
-						continue
-					}
-				}
-				logrus.Infof("Using proxy environment variable %s with value [%s]", key, value)
-			}
-		}
 		return nil
 	}
 	app.Author = "Rancher Labs, Inc."
