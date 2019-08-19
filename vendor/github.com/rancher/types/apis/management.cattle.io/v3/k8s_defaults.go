@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DefaultK8s = "v1.13.9-rancher1-3"
+	DefaultK8s = "v1.13.10-rancher1-1"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 	k8sVersionsCurrent = []string{
 		"v1.11.9-rancher1-1",
 		"v1.12.7-rancher1-1",
-		"v1.13.9-rancher1-3",
+		"v1.13.10-rancher1-1",
 	}
 
 	// K8sVersionToRKESystemImages is dynamically populated on init() with the latest versions
@@ -985,9 +985,11 @@ var (
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.4"),
 			MetricsServer:             m("gcr.io/google_containers/metrics-server-amd64:v0.3.1"),
 		},
-		"v1.13.9-rancher1-3": {
+		// Added in Rancher v2.1.13
+		// Made available in v2.2.8 and v2.3.0 due to older rke-tools version
+		"v1.13.10-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.2.24"),
-			Kubernetes:                m("rancher/hyperkube:v1.13.9-rancher1"),
+			Kubernetes:                m("rancher/hyperkube:v1.13.10-rancher1"),
 			Alpine:                    m("rancher/rke-tools:v0.1.16-1"),
 			NginxProxy:                m("rancher/rke-tools:v0.1.16-1"),
 			CertDownloader:            m("rancher/rke-tools:v0.1.16-1"),
