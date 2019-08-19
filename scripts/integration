@@ -54,6 +54,7 @@ nodes:
 EOF
 
     # Run rke - output to logs and track results.
+    export DOCKER_API_VERSION=1.24
     ./bin/rke up --dind --config "./bin/cluster-${versions_to_test["${ver}"]}.yml" 2>&1 >"./bin/cluster-${versions_to_test["${ver}"]}.log" &
     pids="$pids $!"
     pid_to_version["$!"]="${versions_to_test["${ver}"]}"
