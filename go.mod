@@ -6,6 +6,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.0.0-20180501170546-ab35fc04b636 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
+	github.com/blang/semver v0.0.0-20190414102917-ba2c2ddd8906
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v0.0.0-20180109221743-52f73c5a6cb0
 	github.com/coreos/go-semver v0.3.0
@@ -29,7 +30,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v0.0.0-20170929214853-7c889fafd04a // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20190819174335-6eb94126a98c
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20190820205038-bc5bddb6f8f3
 	github.com/rancher/norman v0.0.0-20190819172543-9c5479f6e5ca
 	github.com/rancher/types v0.0.0-20190819173748-96e6d6f30265
 	github.com/sirupsen/logrus v1.4.2
