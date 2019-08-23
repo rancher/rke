@@ -105,7 +105,7 @@ github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 # github.com/prometheus/procfs v0.0.3
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
-# github.com/rancher/kontainer-driver-metadata v0.0.0-20190822033834-53da6c8441ed
+# github.com/rancher/kontainer-driver-metadata v0.0.0-20190823014104-22ae7cf76a62
 github.com/rancher/kontainer-driver-metadata/rke/templates
 github.com/rancher/kontainer-driver-metadata/rke
 # github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0
@@ -123,7 +123,7 @@ github.com/rancher/norman/types/slice
 github.com/rancher/norman/httperror
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20190822030441-376c6f64c718
+# github.com/rancher/types v0.0.0-20190822170951-b99efa820bc3
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/image
