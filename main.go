@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/rancher/rke/metadata"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -34,6 +35,9 @@ func mainErr() error {
 	app.Before = func(ctx *cli.Context) error {
 		if ctx.GlobalBool("debug") {
 			logrus.SetLevel(logrus.DebugLevel)
+		}
+		if ctx.GlobalBool("quiet") {
+			logrus.SetOutput(ioutil.Discard)
 		}
 		if released.MatchString(app.Version) {
 			metadata.RKEVersion = app.Version
@@ -73,6 +77,10 @@ func mainErr() error {
 		cli.BoolFlag{
 			Name:  "debug,d",
 			Usage: "Debug logging",
+		},
+		cli.BoolFlag{
+			Name:  "quiet,q",
+			Usage: "Quiet mode, disables logging and only critical output will be printed",
 		},
 	}
 	return app.Run(os.Args)
