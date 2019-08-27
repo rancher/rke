@@ -183,6 +183,8 @@ github.com/prometheus/procfs v0.0.3 h1:CTwfnzjQ+8dS6MhHHu4YswVAD99sL2wjPqP+VkURm
 github.com/prometheus/procfs v0.0.3/go.mod h1:4A/X28fw3Fc593LaREMrKMqOKvUAntwMDaekg4FpcdQ=
 github.com/rancher/kontainer-driver-metadata v0.0.0-20190823210613-624182a785ce h1:4onzkfpjfusENeAFn7NhUSCdmBkFez3dRAaqDQGV8ng=
 github.com/rancher/kontainer-driver-metadata v0.0.0-20190823210613-624182a785ce/go.mod h1:dHvhyuoiwrjqQCFD586g0cZ9NJJXEKeAtQi8RX96U8E=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20190826223322-3e1df77e6153 h1:MzkL/BHjjoCYmTyP5GfJW0Bn1bsGKOF70//wDoNwPiI=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20190826223322-3e1df77e6153/go.mod h1:dHvhyuoiwrjqQCFD586g0cZ9NJJXEKeAtQi8RX96U8E=
 github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0 h1:bNG4b0CTTBE8yEamIz8RYcfz+7kfK9N8YTvyiykRCS8=
 github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0/go.mod h1:KwP6RD4rVMdK8XK0wqZaptrhTn/TO4kXU3doh4iatQU=
 github.com/rancher/types v0.0.0-20190822170951-b99efa820bc3 h1:4mz/J0iEtW/VDtjN3zI9B4g49MKeoLHkHZKJGqRN7xg=
