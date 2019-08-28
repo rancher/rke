@@ -209,7 +209,7 @@ func Merge(dst, src interface{}, opts ...func(*Config)) error {
 	return merge(dst, src, opts...)
 }
 
-// MergeWithOverwrite will do the same as Merge except that non-empty dst attributes will be overriden by
+// MergeWithOverwrite will do the same as Merge except that non-empty dst attributes will be overridden by
 // non-empty src attribute values.
 // Deprecated: use Merge(…) with WithOverride
 func MergeWithOverwrite(dst, src interface{}, opts ...func(*Config)) error {
