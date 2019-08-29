@@ -580,6 +580,11 @@ func (in *Capabilities) DeepCopyInto(out *Capabilities) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.TaintSupport != nil {
+		in, out := &in.TaintSupport, &out.TaintSupport
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
@@ -4867,6 +4872,13 @@ func (in *MonitoringConfig) DeepCopyInto(out *MonitoringConfig) {
 			(*out)[key] = val
 		}
 	}
+	if in.NodeSelector != nil {
+		in, out := &in.NodeSelector, &out.NodeSelector
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -5198,6 +5210,13 @@ func (in *NetworkConfig) DeepCopyInto(out *NetworkConfig) {
 		in, out := &in.WeaveNetworkProvider, &out.WeaveNetworkProvider
 		*out = new(WeaveNetworkProvider)
 		**out = **in
+	}
+	if in.NodeSelector != nil {
+		in, out := &in.NodeSelector, &out.NodeSelector
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	return
 }
