@@ -14,7 +14,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-// VERSION gets overriden at build time using -X main.VERSION=$VERSION
+// VERSION gets overridden at build time using -X main.VERSION=$VERSION
 var VERSION = "dev"
 var released = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
 var proxyEnvVars = [3]string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}
