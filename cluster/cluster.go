@@ -124,12 +124,16 @@ func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptions *v3.Kuberne
 	return nil
 }
 
-func (c *Cluster) DeployWorkerPlane(ctx context.Context, svcOptions *v3.KubernetesServicesOptions) error {
+func (c *Cluster) DeployWorkerPlane(ctx context.Context, linuxSvcOptions *v3.KubernetesServicesOptions, windowsSvcOptions *v3.KubernetesServicesOptions) error {
 	// Deploy Worker plane
 	workerNodePlanMap := make(map[string]v3.RKEConfigNodePlan)
 	// Build cp node plan map
 	allHosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 	for _, workerHost := range allHosts {
+		svcOptions := linuxSvcOptions
+		if workerHost.DockerInfo.OSType == "windows" { // compatible with Windows
+			svcOptions = windowsSvcOptions
+		}
 		workerNodePlanMap[workerHost.Address] = BuildRKEConfigNodePlan(ctx, c, workerHost, workerHost.DockerInfo, svcOptions)
 	}
 	if err := services.RunWorkerPlane(ctx, allHosts,
