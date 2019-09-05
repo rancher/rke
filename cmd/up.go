@@ -166,7 +166,8 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = kubeCluster.DeployWorkerPlane(ctx, svcOptions)
+	windowsSvcOptions, _ := data["k8s-windows-service-options"].(*v3.KubernetesServicesOptions)
+	err = kubeCluster.DeployWorkerPlane(ctx, svcOptions, windowsSvcOptions)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
