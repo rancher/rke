@@ -567,6 +567,11 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string, svcOp
 		}
 	}
 
+	// If nodelocal DNS is configured, set cluster-dns to local IP
+	if c.DNS.Nodelocal != nil && c.DNS.Nodelocal.IPAddress != "" {
+		CommandArgs["cluster-dns"] = c.DNS.Nodelocal.IPAddress
+	}
+
 	for arg, value := range CommandArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)

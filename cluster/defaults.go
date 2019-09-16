@@ -400,6 +400,7 @@ func (c *Cluster) setClusterImageDefaults() error {
 		&c.SystemImages.Ingress:                   d(imageDefaults.Ingress, privRegURL),
 		&c.SystemImages.IngressBackend:            d(imageDefaults.IngressBackend, privRegURL),
 		&c.SystemImages.MetricsServer:             d(imageDefaults.MetricsServer, privRegURL),
+		&c.SystemImages.Nodelocal:                 d(imageDefaults.Nodelocal, privRegURL),
 		// this's a stopgap, we could drop this after https://github.com/kubernetes/kubernetes/pull/75618 merged
 		&c.SystemImages.WindowsPodInfraContainer: d(imageDefaults.WindowsPodInfraContainer, privRegURL),
 	}
@@ -430,6 +431,11 @@ func (c *Cluster) setClusterDNSDefaults() error {
 	if clusterSemVer.LessThan(*K8sVersionCoreDNSSemVer) {
 		logrus.Debugf("Cluster version [%s] is less than version [%s], using DNS provider [%s]", clusterSemVer, K8sVersionCoreDNSSemVer, DefaultDNSProvider)
 		ClusterDNSProvider = DefaultDNSProvider
+	}
+	if c.DNS != nil {
+		c.DNS.Provider = ClusterDNSProvider
+		logrus.Debugf("DNS provider set to [%s]", ClusterDNSProvider)
+		return nil
 	}
 	c.DNS = &v3.DNSConfig{}
 	c.DNS.Provider = ClusterDNSProvider
