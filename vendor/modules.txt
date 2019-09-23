@@ -123,7 +123,7 @@ github.com/rancher/norman/types/slice
 github.com/rancher/norman/httperror
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20190827214052-704648244586
+# github.com/rancher/types v0.0.0-20190923165440-59fbe5e3a97f
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/image
@@ -197,11 +197,10 @@ k8s.io/api/core/v1
 k8s.io/api/batch/v1
 k8s.io/api/policy/v1beta1
 k8s.io/api/rbac/v1
-k8s.io/api/extensions/v1beta1
-k8s.io/api/apps/v1beta1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
 k8s.io/api/autoscaling/v1
+k8s.io/api/apps/v1beta1
 k8s.io/api/apps/v1beta2
 k8s.io/api/auditregistration/v1alpha1
 k8s.io/api/authentication/v1
@@ -216,6 +215,7 @@ k8s.io/api/certificates/v1beta1
 k8s.io/api/coordination/v1
 k8s.io/api/coordination/v1beta1
 k8s.io/api/events/v1beta1
+k8s.io/api/extensions/v1beta1
 k8s.io/api/networking/v1
 k8s.io/api/networking/v1beta1
 k8s.io/api/node/v1alpha1
