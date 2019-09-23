@@ -53,5 +53,4 @@ require (
 	k8s.io/api v0.0.0-20190805182251-6c9aa3caf3d6
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
-	knative.dev/pkg v0.0.0-20190923165914-f31c478cbc24 // indirect
 )

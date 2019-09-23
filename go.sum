@@ -187,8 +187,6 @@ github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0 h1:bNG4b0CTTBE8yEam
 github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0/go.mod h1:KwP6RD4rVMdK8XK0wqZaptrhTn/TO4kXU3doh4iatQU=
 github.com/rancher/types v0.0.0-20190822170951-b99efa820bc3 h1:4mz/J0iEtW/VDtjN3zI9B4g49MKeoLHkHZKJGqRN7xg=
 github.com/rancher/types v0.0.0-20190822170951-b99efa820bc3/go.mod h1:9L7VLTwNVt7vJYwP/7xrQ4tWghDQ+zl9//RTqRjGxes=
-github.com/rancher/types v0.0.0-20190827214052-704648244586 h1:4GEIdOsBFhWjlURz2xfyv1+lZ+19TGwflJmw27Ry5no=
-github.com/rancher/types v0.0.0-20190827214052-704648244586/go.mod h1:9L7VLTwNVt7vJYwP/7xrQ4tWghDQ+zl9//RTqRjGxes=
 github.com/rancher/types v0.0.0-20190923165440-59fbe5e3a97f h1:gexo9dZm1KYTO1cgp5w9VT46UqvtgfkPtx1mayyfblo=
 github.com/rancher/types v0.0.0-20190923165440-59fbe5e3a97f/go.mod h1:9L7VLTwNVt7vJYwP/7xrQ4tWghDQ+zl9//RTqRjGxes=
 github.com/rancher/wrangler v0.1.5 h1:HiXOeP6Kci2DK+e04D1g6INT77xAYpAr54zmTTe0Spk=
@@ -316,8 +314,6 @@ k8s.io/kube-openapi v0.0.0-20190502190224-411b2483e503 h1:IrnrEIp9du1SngrzGC1fdY
 k8s.io/kube-openapi v0.0.0-20190502190224-411b2483e503/go.mod h1:iU+ZGYsNlvU9XKUSso6SQfKTCCw7lFduMZy26Mgr2Fw=
 k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5 h1:VBM/0P5TWxwk+Nw6Z+lAw3DKgO76g90ETOiA6rfLV1Y=
 k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
-knative.dev/pkg v0.0.0-20190923165914-f31c478cbc24 h1:xtcWWwgoeNiFrvEJPx0OHB0GPIb9g4FjZw8hVe0i9+c=
-knative.dev/pkg v0.0.0-20190923165914-f31c478cbc24/go.mod h1:pgODObA1dTyhNoFxPZTTjNWfx6F0aKsKzn+vaT9XO/Q=
 sigs.k8s.io/structured-merge-diff v0.0.0-20190426204423-ea680f03cc65/go.mod h1:wWxsB5ozmmv/SG7nM11ayaAW51xMvak/t1r0CSlcokI=
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
