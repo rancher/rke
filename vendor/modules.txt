@@ -105,7 +105,7 @@ github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 # github.com/prometheus/procfs v0.0.3
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
-# github.com/rancher/kontainer-driver-metadata v0.0.0-20190918213354-34c3e9b259b3
+# github.com/rancher/kontainer-driver-metadata v0.0.0-20190923200325-2253b7228ad2
 github.com/rancher/kontainer-driver-metadata/rke/templates
 github.com/rancher/kontainer-driver-metadata/rke
 # github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0
