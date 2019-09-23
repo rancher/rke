@@ -34,7 +34,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20190918213354-34c3e9b259b3
 	github.com/rancher/norman v0.0.0-20190821234528-20a936b685b0
-	github.com/rancher/types v0.0.0-20190827214052-704648244586
+	github.com/rancher/types v0.0.0-20190923165440-59fbe5e3a97f
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
@@ -53,4 +53,5 @@ require (
 	k8s.io/api v0.0.0-20190805182251-6c9aa3caf3d6
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 	k8s.io/client-go v11.0.1-0.20190805182715-88a2adca7e76+incompatible
+	knative.dev/pkg v0.0.0-20190923165914-f31c478cbc24 // indirect
 )
