@@ -7,6 +7,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/rancher/kontainer-driver-metadata/rke/templates"
 	"github.com/sirupsen/logrus"
+	"reflect"
 	"text/template"
 
 	"github.com/rancher/norman/types/convert"
@@ -15,7 +16,11 @@ import (
 
 func CompileTemplateFromMap(tmplt string, configMap interface{}) (string, error) {
 	out := new(bytes.Buffer)
-	t := template.Must(template.New("compiled_template").Funcs(template.FuncMap{"GetKubednsStubDomains": GetKubednsStubDomains}).Parse(tmplt))
+	funcMap := template.FuncMap{
+		"GetKubednsStubDomains": GetKubednsStubDomains,
+		"avail":                 avail,
+	}
+	t := template.Must(template.New("compiled_template").Funcs(funcMap).Parse(tmplt))
 	if err := t.Execute(out, configMap); err != nil {
 		return "", err
 	}
@@ -51,4 +56,15 @@ func getTemplate(templateName, k8sVersion string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("no %s template found for k8sVersion %s", templateName, k8sVersion)
+}
+
+func avail(name string, data interface{}) bool {
+	v := reflect.ValueOf(data)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	return v.FieldByName(name).IsValid()
 }

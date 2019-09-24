@@ -1,15 +1,15 @@
 package openstack
 
 import (
-	"bytes"
 	"fmt"
 
-	"github.com/go-ini/ini"
+	"github.com/rancher/rke/templates"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
 )
 
 const (
 	OpenstackCloudProviderName = "openstack"
+	OpenstackConfig            = "OpenstackConfig"
 )
 
 type CloudProvider struct {
@@ -38,14 +38,9 @@ func (p *CloudProvider) GetName() string {
 }
 
 func (p *CloudProvider) GenerateCloudConfigFile() (string, error) {
-	// Generate INI style configuration
-	buf := new(bytes.Buffer)
-	cloudConfig, _ := ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, []byte(""))
-	if err := ini.ReflectFrom(cloudConfig, p.Config); err != nil {
-		return "", fmt.Errorf("Failed to parse Openstack cloud config")
+	// Generate INI style configuration from template https://github.com/go-ini/ini/issues/84
+	OpenstackConfig := map[string]v3.OpenstackCloudProvider{
+		OpenstackConfig: *p.Config,
 	}
-	if _, err := cloudConfig.WriteTo(buf); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+	return templates.CompileTemplateFromMap(templates.OpenStackCloudProviderTemplate, OpenstackConfig)
 }
