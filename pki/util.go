@@ -136,10 +136,11 @@ func GenerateCACertAndKey(commonName string, privateKey *rsa.PrivateKey) (*x509.
 	return kubeCACert, rootKey, nil
 }
 
-func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP net.IP, SANs []string) *cert.AltNames {
+// GetAltNames creates a set of X509 SANs for the hosts, services, and alternates given
+func GetAltNames(rkeHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP net.IP, SANs []string) *cert.AltNames {
 	ips := []net.IP{}
 	dnsNames := []string{}
-	for _, host := range cpHosts {
+	for _, host := range rkeHosts {
 		// Check if node address is a valid IP
 		if nodeIP := net.ParseIP(host.Address); nodeIP != nil {
 			ips = append(ips, nodeIP)
