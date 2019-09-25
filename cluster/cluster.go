@@ -242,12 +242,12 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 	var workingConfig, newConfig string
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCertName]
 	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
-	for _, cpHost := range kubeCluster.ControlPlaneHosts {
+	for _, cpHostAddress := range kubeCluster.ControlPlaneAddresses() {
 		if (currentKubeConfig == pki.CertificatePKI{}) {
 			kubeCluster.Certificates = make(map[string]pki.CertificatePKI)
-			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHost.Address, kubeCluster.ClusterName)
+			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHostAddress, kubeCluster.ClusterName)
 		} else {
-			kubeURL := fmt.Sprintf("https://%s:6443", cpHost.Address)
+			kubeURL := fmt.Sprintf("https://%s:6443", cpHostAddress)
 			caData := string(cert.EncodeCertPEM(caCrt))
 			crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
 			keyData := string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key))
@@ -258,7 +258,7 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 		}
 		workingConfig = newConfig
 		if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport); err == nil {
-			log.Infof(ctx, "[reconcile] host [%s] is active master on the cluster", cpHost.Address)
+			log.Infof(ctx, "[reconcile] host [%s] is active master on the cluster", cpHostAddress)
 			break
 		}
 	}
