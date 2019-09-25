@@ -36,6 +36,7 @@ type Cluster struct {
 	ConfigDir                        string
 	CloudConfigFile                  string
 	ControlPlaneHosts                []*hosts.Host
+	ControlPlaneLoadBalancerAddress  string
 	Certificates                     map[string]pki.CertificatePKI
 	CertificateDir                   string
 	ClusterDomain                    string
@@ -156,14 +157,15 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, flags ExternalFlags) (*Cluster, error) {
 	// basic cluster object from rkeConfig
 	c := &Cluster{
-		AuthnStrategies:               make(map[string]bool),
-		RancherKubernetesEngineConfig: *rkeConfig,
-		ConfigPath:                    flags.ClusterFilePath,
-		ConfigDir:                     flags.ConfigDir,
-		DinD:                          flags.DinD,
-		CertificateDir:                flags.CertificateDir,
-		StateFilePath:                 GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir),
-		PrivateRegistriesMap:          make(map[string]v3.PrivateRegistry),
+		AuthnStrategies:                 make(map[string]bool),
+		RancherKubernetesEngineConfig:   *rkeConfig,
+		ConfigPath:                      flags.ClusterFilePath,
+		ConfigDir:                       flags.ConfigDir,
+		DinD:                            flags.DinD,
+		CertificateDir:                  flags.CertificateDir,
+		StateFilePath:                   GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir),
+		PrivateRegistriesMap:            make(map[string]v3.PrivateRegistry),
+		ControlPlaneLoadBalancerAddress: rkeConfig.ControlPlaneLoadBalancer,
 	}
 	if metadata.K8sVersionToRKESystemImages == nil {
 		metadata.InitMetadata(ctx)
