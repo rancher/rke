@@ -569,3 +569,16 @@ func IsLegacyKubeAPI(ctx context.Context, kubeCluster *Cluster) (bool, error) {
 	}
 	return false, nil
 }
+
+// ControlPlaneAddresses returns the set of addresses which should be used to contact the kube-apiserver
+// If a control-plane loadbalancer is configured, it returns that address only.
+func (c *Cluster) ControlPlaneAddresses() []string {
+	if len(c.ControlPlaneLoadBalancerAddress) > 0 {
+		return []string{c.ControlPlaneLoadBalancerAddress}
+	}
+	cpAddresses := []string{}
+	for _, cpHost := range c.ControlPlaneHosts {
+		cpAddresses = append(cpAddresses, cpHost.Address)
+	}
+	return cpAddresses
+}
