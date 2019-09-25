@@ -720,9 +720,13 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
 	localKubeConfigPath := GetLocalKubeConfig(configPath, configDir)
 	if len(cpHosts) > 0 {
+		cpHostAddress := cpHosts[0].Address
+		if len(rkeConfig.ControlPlaneLoadBalancer) > 0 {
+			cpHostAddress = rkeConfig.ControlPlaneLoadBalancer
+		}
 		kubeAdminCertObj := certBundle[KubeAdminCertName]
 		kubeAdminConfig := GetKubeConfigX509WithData(
-			"https://"+cpHosts[0].Address+":6443",
+			"https://"+cpHostAddress+":6443",
 			rkeConfig.ClusterName,
 			KubeAdminCertName,
 			string(cert.EncodeCertPEM(certBundle[CACertName].Certificate)),
