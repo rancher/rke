@@ -26,7 +26,11 @@ func SetUpAuthentication(ctx context.Context, kubeCluster, currentCluster *Clust
 
 func regenerateAPICertificate(c *Cluster, certificates map[string]pki.CertificatePKI) (map[string]pki.CertificatePKI, error) {
 	logrus.Debugf("[certificates] Regenerating kubeAPI certificate")
-	kubeAPIAltNames := pki.GetAltNames(c.ControlPlaneHosts, c.ClusterDomain, c.KubernetesServiceIP, c.Authentication.SANs)
+	SANs := c.Authentication.SANs
+	if len(c.ControlPlaneLoadBalancerAddress) > 0 {
+		SANs = append(SANs, c.ControlPlaneLoadBalancerAddress)
+	}
+	kubeAPIAltNames := pki.GetAltNames(c.ControlPlaneHosts, c.ControlPlaneLoadBalancerAddress, c.ClusterDomain, c.KubernetesServiceIP, SANs)
 	caCrt := certificates[pki.CACertName].Certificate
 	caKey := certificates[pki.CACertName].Key
 	kubeAPIKey := certificates[pki.KubeAPICertName].Key
