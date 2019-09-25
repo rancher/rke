@@ -488,7 +488,7 @@ func (c *Cluster) runServicePortChecks(ctx context.Context) error {
 		errgrp.Go(func() error {
 			var errList []error
 			for host := range hostsQueue {
-				err := checkPlaneTCPPortsFromHost(ctx, host.(*hosts.Host), ControlPlanePortList, c.ControlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap)
+				err := checkPlaneTCPPortsFromHost(ctx, host.(*hosts.Host), ControlPlanePortList, c.ControlPlaneHosts, c.ControlPlaneLoadBalancerAddress, c.SystemImages.Alpine, c.PrivateRegistriesMap)
 				if err != nil {
 					errList = append(errList, err)
 				}
@@ -499,11 +499,16 @@ func (c *Cluster) runServicePortChecks(ctx context.Context) error {
 	return errgrp.Wait()
 }
 
-func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList []string, planeHosts []*hosts.Host, image string, prsMap map[string]v3.PrivateRegistry) error {
+func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList []string, planeHosts []*hosts.Host, planeLoadBalancerAddress string, image string, prsMap map[string]v3.PrivateRegistry) error {
 	var hosts []string
 
-	for _, host := range planeHosts {
-		hosts = append(hosts, host.InternalAddress)
+	if len(planeLoadBalancerAddress) > 0 {
+		logrus.Infof("[network] checking control plane ports via configured load balancer: %v", planeLoadBalancerAddress)
+		hosts = []string{planeLoadBalancerAddress}
+	} else {
+		for _, host := range planeHosts {
+			hosts = append(hosts, host.InternalAddress)
+		}
 	}
 	imageCfg := &container.Config{
 		Image: image,
