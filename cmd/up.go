@@ -120,7 +120,7 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 	if len(kubeCluster.ControlPlaneHosts) > 0 {
-		APIURL = fmt.Sprintf("https://%s:6443", kubeCluster.ControlPlaneHosts[0].Address)
+		APIURL = fmt.Sprintf("https://%s:6443", kubeCluster.ControlPlaneAddresses()[0])
 	}
 	clientCert = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Certificate))
 	clientKey = string(cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Key))
@@ -138,7 +138,7 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	}
 	// update APIURL after reconcile
 	if len(kubeCluster.ControlPlaneHosts) > 0 {
-		APIURL = fmt.Sprintf("https://%s:6443", kubeCluster.ControlPlaneHosts[0].Address)
+		APIURL = fmt.Sprintf("https://%s:6443", kubeCluster.ControlPlaneAddresses()[0])
 	}
 
 	if err := kubeCluster.PrePullK8sImages(ctx); err != nil {
