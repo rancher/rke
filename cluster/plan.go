@@ -677,10 +677,14 @@ func (c *Cluster) BuildProxyProcess(host *hosts.Host, prefixPath string) v3.Proc
 	}
 
 	nginxProxyEnv := ""
-	for i, host := range c.ControlPlaneHosts {
-		nginxProxyEnv += fmt.Sprintf("%s", host.InternalAddress)
-		if i < (len(c.ControlPlaneHosts) - 1) {
-			nginxProxyEnv += ","
+	if len(c.ControlPlaneLoadBalancer) > 0 {
+		nginxProxyEnv = c.ControlPlaneLoadBalancer
+	} else {
+		for i, host := range c.ControlPlaneHosts {
+			nginxProxyEnv += fmt.Sprintf("%s", host.InternalAddress)
+			if i < (len(c.ControlPlaneHosts) - 1) {
+				nginxProxyEnv += ","
+			}
 		}
 	}
 	Env := []string{fmt.Sprintf("%s=%s", services.NginxProxyEnvName, nginxProxyEnv)}
