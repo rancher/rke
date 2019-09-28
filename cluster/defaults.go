@@ -86,6 +86,7 @@ type ExternalFlags struct {
 	ConfigDir        string
 	CustomCerts      bool
 	DisablePortCheck bool
+	DisableTimeCheck bool
 	GenerateCSR      bool
 	Local            bool
 	UpdateOnly       bool
@@ -530,11 +531,12 @@ func (c *Cluster) setCloudProvider() error {
 	return nil
 }
 
-func GetExternalFlags(local, updateOnly, disablePortCheck bool, configDir, clusterFilePath string) ExternalFlags {
+func GetExternalFlags(local, updateOnly, disablePortCheck bool, disableTimeCheck bool, configDir, clusterFilePath string) ExternalFlags {
 	return ExternalFlags{
 		Local:            local,
 		UpdateOnly:       updateOnly,
 		DisablePortCheck: disablePortCheck,
+		DisableTimeCheck: disableTimeCheck,
 		ConfigDir:        configDir,
 		ClusterFilePath:  clusterFilePath,
 	}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/rancher/rke/metadata"
 
@@ -160,4 +161,8 @@ func PrintProxyEnvVars() {
 			logrus.Infof("Using proxy environment variable %s with value [%s]", key, value)
 		}
 	}
+}
+
+func GetEpochTime() int64 {
+	return time.Now().Unix()
 }
