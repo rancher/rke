@@ -4,6 +4,7 @@ go 1.12
 
 replace (
 	github.com/go-resty/resty => gopkg.in/resty.v1 v1.9.0
+	github.com/rancher/kontainer-driver-metadata => github.com/rancher/kontainer-driver-metadata v0.0.0-20191002204032-d44b9574831a
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90
 )
 
