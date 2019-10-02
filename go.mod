@@ -28,8 +28,8 @@ require (
 	github.com/opencontainers/image-spec v0.0.0-20170929214853-7c889fafd04a // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20191002165411-ba368718a427
-	github.com/rancher/norman v0.0.0-20190930164704-e09204b63081
-	github.com/rancher/types v0.0.0-20190930165650-6bbedae77a35
+	github.com/rancher/norman v0.0.0-20191002173122-b1eb20740eab
+	github.com/rancher/types v0.0.0-20191002181205-bbd00336fe89
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
