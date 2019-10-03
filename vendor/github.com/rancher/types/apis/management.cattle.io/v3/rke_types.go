@@ -271,6 +271,8 @@ type KubeAPIService struct {
 	PodSecurityPolicy bool `yaml:"pod_security_policy" json:"podSecurityPolicy,omitempty"`
 	// Enable/Disable AlwaysPullImages admissions plugin
 	AlwaysPullImages bool `yaml:"always_pull_images" json:"alwaysPullImages,omitempty"`
+	// Secrets encryption provider config
+	SecretsEncryptionConfig *SecretsEncryptionConfig `yaml:"secrets_encryption_config" json:"secretsEncryptionConfig,omitempty"`
 }
 
 type KubeControllerService struct {
@@ -770,4 +772,16 @@ type RKETaint struct {
 	Value     string         `json:"value,omitempty" yaml:"value"`
 	Effect    v1.TaintEffect `json:"effect,omitempty" yaml:"effect"`
 	TimeAdded *metav1.Time   `json:"timeAdded,omitempty" yaml:"timeAdded,omitempty"`
+}
+
+type SecretsEncryptionConfig struct {
+	// Enable/disable secrets encryption provider config
+	Enabled bool `yaml:"enabled" json:"enabled,omitempty"`
+	// Custom Encryption Provider configuration object
+	CustomConfig *CustomEncryptionConfiguration `yaml:"custom_config" json:"customConfig,omitempty"`
+}
+
+type CustomEncryptionConfiguration struct {
+	// resources is a list containing resources, and their corresponding encryption providers.
+	Resources []ResourceConfiguration `json:"resources"`
 }

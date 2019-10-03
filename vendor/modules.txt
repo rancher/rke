@@ -125,11 +125,9 @@ github.com/rancher/norman/objectclient
 github.com/rancher/norman/objectclient/dynamic
 github.com/rancher/norman/resource
 github.com/rancher/norman/restwatch
-github.com/rancher/norman/types
-github.com/rancher/norman/metrics
-github.com/rancher/norman/types/slice
 github.com/rancher/norman/httperror
 github.com/rancher/norman/types/definition
+github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
 # github.com/rancher/types v0.0.0-20191003184925-ab3403a2c8ca
 github.com/rancher/types/apis/management.cattle.io/v3
@@ -239,9 +237,9 @@ k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
 # k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
 k8s.io/apimachinery/pkg/apis/meta/v1
+k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/util/sets
-k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/runtime/schema
 k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/api/resource
@@ -256,6 +254,7 @@ k8s.io/apimachinery/pkg/util/runtime
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/version
+k8s.io/apimachinery/pkg/util/rand
 k8s.io/apimachinery/pkg/util/validation/field
 k8s.io/apimachinery/pkg/util/errors
 k8s.io/apimachinery/third_party/forked/golang/reflect
@@ -267,7 +266,6 @@ k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
 k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/streaming
-k8s.io/apimachinery/pkg/util/rand
 k8s.io/apimachinery/pkg/util/cache
 k8s.io/apimachinery/pkg/util/clock
 k8s.io/apimachinery/pkg/util/diff
@@ -278,6 +276,9 @@ k8s.io/apimachinery/pkg/util/framer
 k8s.io/apimachinery/pkg/apis/meta/internalversion
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/apis/meta/v1beta1
+# k8s.io/apiserver v0.0.0-20190918223255-26459790ef01
+k8s.io/apiserver/pkg/apis/config/v1
+k8s.io/apiserver/pkg/apis/config
 # k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible => k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90
 k8s.io/client-go/transport
 k8s.io/client-go/kubernetes
