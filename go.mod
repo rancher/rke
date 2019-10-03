@@ -27,9 +27,9 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v0.0.0-20170929214853-7c889fafd04a // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20191002224336-80a609cf01ab
-	github.com/rancher/norman v0.0.0-20191002173122-b1eb20740eab
-	github.com/rancher/types v0.0.0-20191002181205-bbd00336fe89
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20191003190312-bd4630881fb2
+	github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36
+	github.com/rancher/types v0.0.0-20191003184925-ab3403a2c8ca
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
