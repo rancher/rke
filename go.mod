@@ -18,6 +18,7 @@ require (
 	github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
 	github.com/docker/docker v0.7.3-0.20190808172531-150530564a14
 	github.com/docker/go-connections v0.3.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.37.0
 	github.com/google/btree v1.0.0 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
