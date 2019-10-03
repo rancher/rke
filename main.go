@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/rancher/rke/metadata"
 	"io/ioutil"
 	"os"
 	"regexp"
+
+	"github.com/rancher/rke/metadata"
 
 	"github.com/mattn/go-colorable"
 	"github.com/rancher/rke/cmd"
@@ -52,6 +53,7 @@ func mainErr() error {
 		cmd.ConfigCommand(),
 		cmd.EtcdCommand(),
 		cmd.CertificateCommand(),
+		cmd.EncryptionCommand(),
 	}
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
