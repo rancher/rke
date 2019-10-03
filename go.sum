@@ -440,8 +440,8 @@ github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1/go.mod h1:c3At6R
 github.com/prometheus/prometheus v2.9.2+incompatible/go.mod h1:vdLuLLM0uqhLSofrQ7Nev2b/rQUyZ+pkT3zF7LB/i1g=
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/prometheus/tsdb v0.8.0/go.mod h1:fSI0j+IUQrDd7+ZtR9WKIGtoYAYAJUKcKhYLG25tN4g=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191002204032-d44b9574831a h1:hQOJOPqIDmd8hWYzkiMXCkGR1sbh7i3FGtsHSx+Gkz4=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191002204032-d44b9574831a/go.mod h1:n9MKsJByqAqhVG61d9G5pbJuKcHUMXUw97YF8+98ar0=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20191002224336-80a609cf01ab h1:wTy02yIoJJwAlxNpIdUQ8SvcGEoA4cUEf4WXX8H3kwk=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20191002224336-80a609cf01ab/go.mod h1:n9MKsJByqAqhVG61d9G5pbJuKcHUMXUw97YF8+98ar0=
 github.com/rancher/norman v0.0.0-20190930164704-e09204b63081 h1:t0Yq2Rm0PdPkhY5AfHjtoyKEbt0bhYk4Jya27EfJk5Q=
 github.com/rancher/norman v0.0.0-20190930164704-e09204b63081/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
 github.com/rancher/norman v0.0.0-20191002173122-b1eb20740eab h1:HtVMv6yfnH3t0ImfFAcb7LuIG7IQe+GTgzefLI9vYWA=
