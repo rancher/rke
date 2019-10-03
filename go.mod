@@ -4,7 +4,6 @@ go 1.12
 
 replace (
 	github.com/go-resty/resty => gopkg.in/resty.v1 v1.9.0
-	github.com/rancher/kontainer-driver-metadata => github.com/rancher/kontainer-driver-metadata v0.0.0-20191002204032-d44b9574831a
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90
 )
 
@@ -28,7 +27,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v0.0.0-20170929214853-7c889fafd04a // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20191002165411-ba368718a427
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20191002224336-80a609cf01ab
 	github.com/rancher/norman v0.0.0-20191002173122-b1eb20740eab
 	github.com/rancher/types v0.0.0-20191002181205-bbd00336fe89
 	github.com/sirupsen/logrus v1.4.2
