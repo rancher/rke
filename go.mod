@@ -39,7 +39,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	gopkg.in/ini.v1 v1.46.0 // indirect
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.4
 	k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
