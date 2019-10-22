@@ -27,7 +27,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v0.0.0-20170929214853-7c889fafd04a // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20191003190312-bd4630881fb2
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20191021164950-6514452b9732
 	github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36
 	github.com/rancher/types v0.0.0-20191003184925-ab3403a2c8ca
 	github.com/sirupsen/logrus v1.4.2
