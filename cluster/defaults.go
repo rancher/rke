@@ -478,6 +478,9 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	if c.Network.WeaveNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[WeavePassword] = c.Network.WeaveNetworkProvider.Password
 	}
+	if c.Network.AciNetworkProvider != nil {
+		networkPluginConfigDefaultsMap[AciConfig] = c.Network.AciNetworkProvider.AciCNIConfig
+	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
 	}

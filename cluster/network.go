@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"strconv"
 	"strings"
@@ -67,6 +68,9 @@ const (
 
 	WeaveNetworkPlugin  = "weave"
 	WeaveNetworkAppName = "weave-net"
+
+	AciNetworkPlugin = "aci"
+
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -108,6 +112,7 @@ const (
 	RBACConfig       = "RBACConfig"
 	ClusterVersion   = "ClusterVersion"
 
+	AciConfig    = "AciConfig"
 	NodeSelector = "NodeSelector"
 )
 
@@ -141,6 +146,8 @@ func (c *Cluster) deployNetworkPlugin(ctx context.Context, data map[string]inter
 		return c.doCanalDeploy(ctx, data)
 	case WeaveNetworkPlugin:
 		return c.doWeaveDeploy(ctx, data)
+	case AciNetworkPlugin:
+		return c.doAciDeploy(ctx, data)
 	case NoNetworkPlugin:
 		log.Infof(ctx, "[network] Not deploying a cluster network, expecting custom CNI")
 		return nil
@@ -255,6 +262,15 @@ func (c *Cluster) doWeaveDeploy(ctx context.Context, data map[string]interface{}
 		return err
 	}
 	return c.doAddonDeploy(ctx, pluginYaml, NetworkPluginResourceName, true)
+}
+
+func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) error {
+	aciYmlLoc := c.Network.Options[AciConfig]
+	aciYml, err := ioutil.ReadFile(aciYmlLoc)
+	if err != nil {
+		return err
+	}
+	return c.doAddonDeploy(ctx, string(aciYml), NetworkPluginResourceName, true)
 }
 
 func (c *Cluster) getNetworkPluginManifest(pluginConfig, data map[string]interface{}) (string, error) {
