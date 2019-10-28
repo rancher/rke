@@ -19,7 +19,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/util"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -617,9 +617,11 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string, svc
 	VolumesFrom := []string{
 		services.SidekickContainerName,
 	}
+	//TODO: we should reevaluate if any of the bind mounts here should be using read-only mode
 	Binds := []string{
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(prefixPath, "/etc/kubernetes")),
 		"/run:/run",
+		fmt.Sprintf("%s:/lib/modules:z,ro", path.Join(prefixPath, "/lib/modules")),
 	}
 	if host.DockerInfo.OSType == "windows" { // compatible with Windows
 		Binds = []string{
@@ -627,6 +629,7 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, prefixPath string, svc
 			fmt.Sprintf("%s:c:/host/etc/kubernetes", path.Join(prefixPath, "/etc/kubernetes")),
 			// exchange resources with other components
 			fmt.Sprintf("%s:c:/host/run", path.Join(prefixPath, "/run")),
+			fmt.Sprintf("%s:c:/host/lib/modules", path.Join(prefixPath, "/lib/modules")),
 		}
 	}
 
