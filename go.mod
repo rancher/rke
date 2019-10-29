@@ -30,7 +30,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20191021164950-6514452b9732
 	github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36
-	github.com/rancher/types v0.0.0-20191003184925-ab3403a2c8ca
+	github.com/rancher/types v0.0.0-20191029204550-fb419769977e
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
@@ -43,5 +43,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.4
 	k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
+	k8s.io/apiserver v0.0.0-20190918160949-bfa5e2e684ad
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	sigs.k8s.io/yaml v1.1.0
 )
