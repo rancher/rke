@@ -50,6 +50,7 @@ type ingressOptions struct {
 	Options        map[string]string
 	NodeSelector   map[string]string
 	ExtraArgs      map[string]string
+	ExtraEnv       map[string]string
 	DNSPolicy      string
 	AlpineImage    string
 	IngressImage   string
@@ -483,12 +484,21 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 		return nil
 	}
 	log.Infof(ctx, "[ingress] Setting up %s ingress controller", c.Ingress.Provider)
+	ingressExtraEnv := make(map[string]string)
+	for _, extraEnv := range c.Ingress.ExtraEnv {
+		split := strings.SplitN(extraEnv, "=", 2)
+		if len(split) != 2 {
+			continue
+		}
+		ingressExtraEnv[split[0]] = split[1]
+	}
 	ingressConfig := ingressOptions{
 		RBACConfig:     c.Authorization.Mode,
 		Options:        c.Ingress.Options,
 		NodeSelector:   c.Ingress.NodeSelector,
 		ExtraArgs:      c.Ingress.ExtraArgs,
 		DNSPolicy:      c.Ingress.DNSPolicy,
+		ExtraEnv:       ingressExtraEnv,
 		IngressImage:   c.SystemImages.Ingress,
 		IngressBackend: c.SystemImages.IngressBackend,
 	}
