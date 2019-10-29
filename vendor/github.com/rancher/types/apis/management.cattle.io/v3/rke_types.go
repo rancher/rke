@@ -370,6 +370,8 @@ type IngressConfig struct {
 	ExtraArgs map[string]string `yaml:"extra_args" json:"extraArgs,omitempty"`
 	// DNS Policy
 	DNSPolicy string `yaml:"dns_policy" json:"dnsPolicy,omitempty"`
+	// extra env vars
+	ExtraEnv []string `yaml:"extra_env" json:"extraEnv,omitempty"`
 }
 
 type RKEPlan struct {

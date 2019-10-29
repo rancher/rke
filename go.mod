@@ -4,6 +4,7 @@ go 1.12
 
 replace (
 	github.com/go-resty/resty => gopkg.in/resty.v1 v1.9.0
+	github.com/rancher/types v0.0.0-20191029204550-fb419769977e => /Users/rajashree/go-work/src/github.com/rancher/types
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90
 )
 
