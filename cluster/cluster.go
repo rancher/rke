@@ -163,16 +163,30 @@ func parseAuditLogConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngi
 		return nil
 	}
 	logrus.Debugf("audit log policy found in cluster.yml")
-	var err error
 	var r map[string]interface{}
-	err = ghodssyaml.Unmarshal([]byte(clusterFile), &r)
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &r)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling: %v", err)
 	}
+	if r["services"] == nil {
+		return nil
+	}
 	services := r["services"].(map[string]interface{})
+	if services["kube-api"] == nil {
+		return nil
+	}
 	kubeapi := services["kube-api"].(map[string]interface{})
+	if kubeapi["audit_log"] == nil {
+		return nil
+	}
 	auditlog := kubeapi["audit_log"].(map[string]interface{})
+	if auditlog["configuration"] == nil {
+		return nil
+	}
 	alc := auditlog["configuration"].(map[string]interface{})
+	if alc["policy"] == nil {
+		return nil
+	}
 	policyBytes, err := json.Marshal(alc["policy"])
 	if err != nil {
 		return fmt.Errorf("error marshalling audit policy: %v", err)
@@ -197,14 +211,22 @@ func parseAdmissionConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEng
 		return nil
 	}
 	logrus.Debugf("admission configuration found in cluster.yml")
-	var err error
 	var r map[string]interface{}
-	err = ghodssyaml.Unmarshal([]byte(clusterFile), &r)
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &r)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling: %v", err)
 	}
+	if r["services"] == nil {
+		return nil
+	}
 	services := r["services"].(map[string]interface{})
+	if services["kube-api"] == nil {
+		return nil
+	}
 	kubeapi := services["kube-api"].(map[string]interface{})
+	if kubeapi["admission_configuration"] == nil {
+		return nil
+	}
 	data, err := json.Marshal(kubeapi["admission_configuration"])
 	if err != nil {
 		return fmt.Errorf("error marshalling admission configuration: %v", err)
