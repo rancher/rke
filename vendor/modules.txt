@@ -131,7 +131,7 @@ github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
 github.com/rancher/norman/metrics
-# github.com/rancher/types v0.0.0-20191029204550-4a33ba02
+# github.com/rancher/types v0.0.0-20191030200339-4ba6690e1914
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/image
