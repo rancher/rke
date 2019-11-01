@@ -224,10 +224,6 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, prefixPath string, svcOp
 		CommandArgs["experimental-encryption-provider-config"] = EncryptionProviderFilePath
 	}
 
-	if c.IsKubeletGenerateServingCertificateEnabled() {
-		CommandArgs["kubelet-certificate-authority"] = pki.GetCertPath(pki.CACertName)
-	}
-
 	serviceOptions := c.GetKubernetesServicesOptions(host.DockerInfo.OSType, svcOptionData)
 	if serviceOptions.KubeAPI != nil {
 		for k, v := range serviceOptions.KubeAPI {
@@ -457,11 +453,6 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, prefixPath string, svcOp
 			CommandArgs["cloud-config"] = path.Join(prefixPath, cloudConfigFileName)
 		}
 	}
-	if c.IsKubeletGenerateServingCertificateEnabled() {
-		CommandArgs["tls-cert-file"] = pki.GetCertPath(pki.GetCrtNameForHost(host, pki.KubeletCertName))
-		CommandArgs["tls-private-key-file"] = pki.GetCertPath(fmt.Sprintf("%s-key", pki.GetCrtNameForHost(host, pki.KubeletCertName)))
-	}
-
 	if len(c.CloudProvider.Name) > 0 {
 		c.Services.Kubelet.ExtraEnv = append(
 			c.Services.Kubelet.ExtraEnv,
@@ -902,7 +893,7 @@ func (c *Cluster) BuildSidecarProcess(host *hosts.Host, prefixPath string) v3.Pr
 }
 
 func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, prefixPath string) v3.Process {
-	nodeName := pki.GetCrtNameForHost(host, pki.EtcdCertName)
+	nodeName := pki.GetEtcdCrtName(host.InternalAddress)
 	initCluster := ""
 	architecture := "amd64"
 	if len(etcdHosts) == 0 {

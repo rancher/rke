@@ -26,16 +26,6 @@ const (
 func DeployCertificatesOnPlaneHost(ctx context.Context, host *hosts.Host, rkeConfig v3.RancherKubernetesEngineConfig, crtMap map[string]CertificatePKI, certDownloaderImage string, prsMap map[string]v3.PrivateRegistry, forceDeploy bool) error {
 	crtBundle := GenerateRKENodeCerts(ctx, rkeConfig, host.Address, crtMap)
 	env := []string{}
-
-	// Strip CA key as its sensitive and unneeded on nodes without controlplane role
-	if !host.IsControl {
-		caCert := crtBundle[CACertName]
-		caCert.Key = nil
-		caCert.KeyEnvName = ""
-		caCert.KeyPath = ""
-		crtBundle[CACertName] = caCert
-	}
-
 	for _, crt := range crtBundle {
 		env = append(env, crt.ToEnv()...)
 	}
@@ -202,7 +192,7 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 
 	for _, etcdHost := range extraHosts {
 		// Fetch etcd certificates
-		crtList[GetCrtNameForHost(etcdHost, EtcdCertName)] = false
+		crtList[GetEtcdCrtName(etcdHost.InternalAddress)] = false
 	}
 
 	for certName, config := range crtList {

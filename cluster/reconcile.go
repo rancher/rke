@@ -351,7 +351,7 @@ func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeC
 	}
 
 	for _, host := range kubeCluster.EtcdHosts {
-		etcdCertName := pki.GetCrtNameForHost(host, pki.EtcdCertName)
+		etcdCertName := pki.GetEtcdCrtName(host.Address)
 		certMap := map[string]bool{
 			etcdCertName: false,
 		}

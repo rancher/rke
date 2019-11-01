@@ -59,7 +59,7 @@ func GetClusterCertsFromKubernetes(ctx context.Context, kubeCluster *Cluster) (m
 	}
 
 	for _, etcdHost := range kubeCluster.EtcdHosts {
-		etcdName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
+		etcdName := pki.GetEtcdCrtName(etcdHost.InternalAddress)
 		certificatesNames = append(certificatesNames, etcdName)
 	}
 
@@ -154,16 +154,13 @@ func RotateRKECertificates(ctx context.Context, c *Cluster, flags ExternalFlags,
 	var (
 		serviceAccountTokenKey string
 	)
-	componentsCertsFuncMap := map[string][]pki.GenFunc{
-		services.KubeAPIContainerName:        []pki.GenFunc{pki.GenerateKubeAPICertificate},
-		services.KubeControllerContainerName: []pki.GenFunc{pki.GenerateKubeControllerCertificate},
-		services.SchedulerContainerName:      []pki.GenFunc{pki.GenerateKubeSchedulerCertificate},
-		services.KubeproxyContainerName:      []pki.GenFunc{pki.GenerateKubeProxyCertificate},
-		services.KubeletContainerName:        []pki.GenFunc{pki.GenerateKubeNodeCertificate},
-		services.EtcdContainerName:           []pki.GenFunc{pki.GenerateEtcdCertificates},
-	}
-	if c.IsKubeletGenerateServingCertificateEnabled() {
-		componentsCertsFuncMap[services.KubeletContainerName] = append(componentsCertsFuncMap[services.KubeletContainerName], pki.GenerateKubeletCertificate)
+	componentsCertsFuncMap := map[string]pki.GenFunc{
+		services.KubeAPIContainerName:        pki.GenerateKubeAPICertificate,
+		services.KubeControllerContainerName: pki.GenerateKubeControllerCertificate,
+		services.SchedulerContainerName:      pki.GenerateKubeSchedulerCertificate,
+		services.KubeproxyContainerName:      pki.GenerateKubeProxyCertificate,
+		services.KubeletContainerName:        pki.GenerateKubeNodeCertificate,
+		services.EtcdContainerName:           pki.GenerateEtcdCertificates,
 	}
 	rotateFlags := c.RancherKubernetesEngineConfig.RotateCertificates
 	if rotateFlags.CACertificates {
@@ -174,12 +171,10 @@ func RotateRKECertificates(ctx context.Context, c *Cluster, flags ExternalFlags,
 		rotateFlags.Services = nil
 	}
 	for _, k8sComponent := range rotateFlags.Services {
-		genFunctions := componentsCertsFuncMap[k8sComponent]
-		if genFunctions != nil {
-			for _, genFunc := range genFunctions {
-				if err := genFunc(ctx, c.Certificates, c.RancherKubernetesEngineConfig, flags.ClusterFilePath, flags.ConfigDir, true); err != nil {
-					return err
-				}
+		genFunc := componentsCertsFuncMap[k8sComponent]
+		if genFunc != nil {
+			if err := genFunc(ctx, c.Certificates, c.RancherKubernetesEngineConfig, flags.ClusterFilePath, flags.ConfigDir, true); err != nil {
+				return err
 			}
 		}
 	}
@@ -253,14 +248,4 @@ func compareCerts(ctx context.Context, kubeCluster, currentCluster *Cluster) {
 			}
 		}
 	}
-}
-
-func (c *Cluster) IsKubeletGenerateServingCertificateEnabled() bool {
-	if c == nil {
-		return false
-	}
-	if c.Services.Kubelet.GenerateServingCertificate {
-		return true
-	}
-	return false
 }
