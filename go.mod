@@ -47,7 +47,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20191029184535-deb9b9936256
 	github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36
-	github.com/rancher/types v0.0.0-20191029222543-fe8093bf8b
+	github.com/rancher/types v0.0.0-20191101191051-9d37fcf2e9b2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
