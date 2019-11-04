@@ -3,15 +3,21 @@ package cmd
 import (
 	"bufio"
 	"context"
+	"encoding/json"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/rancher/rke/metadata"
 
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
@@ -24,6 +30,7 @@ import (
 const (
 	comments = `# If you intened to deploy Kubernetes in an air-gapped environment,
 # please consult the documentation on how to configure custom RKE images.`
+	DockerAPIVersion = "1.24"
 )
 
 func ConfigCommand() cli.Command {
@@ -60,6 +67,22 @@ func ConfigCommand() cli.Command {
 			cli.StringFlag{
 				Name:  "version",
 				Usage: "Generate the default system images for specific k8s versions",
+			},
+			cli.BoolFlag{
+				Name:  "pull",
+				Usage: "Used with -s, pulls images to local images",
+			},
+			cli.StringFlag{
+				Name:  "registry",
+				Usage: "Used with -pull and -s, registry to which images are pushed to",
+			},
+			cli.StringFlag{
+				Name:  "auth",
+				Usage: "Used with --registry, credentials for the remote registry in the format user:pass",
+			},
+			cli.BoolFlag{
+				Name:  "parallel",
+				Usage: "Used with --pull and --registry, pulls and push images in parallel",
 			},
 		},
 	}
@@ -109,7 +132,7 @@ func clusterConfig(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("system-images") {
-		return generateSystemImagesList(ctx.String("version"), ctx.Bool("all"))
+		return generateSystemImagesList(ctx.String("version"), ctx.Bool("all"), ctx.Bool("pull"), ctx.String("registry"), ctx.String("auth"), ctx.Bool("parallel"))
 	}
 
 	if ctx.Bool("list-version") {
@@ -439,9 +462,209 @@ func generateK8sVersionList(all bool) error {
 	return nil
 }
 
-func generateSystemImagesList(version string, all bool) error {
+type PullEvent struct {
+        Status         string `json:"status"`
+        Error          string `json:"error"`
+        Progress       string `json:"progress"`
+        ProgressDetail struct {
+            Current int `json:"current"`
+            Total   int `json:"total"`
+        } `json:"progressDetail"`
+}
+
+func prettyPrintProgress(out io.ReadCloser) {
+	d := json.NewDecoder(out)
+	var event *PullEvent
+	statusString := ""
+	for {
+		if err := d.Decode(&event); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				fmt.Println(err)
+				continue
+			}
+		}
+		//Fill line with spaces to remove previous line chars
+		fmt.Print(strings.Repeat(" ", len(statusString) + 1))
+		//Generate status line with \r to re-write on the same line
+		if event.ProgressDetail.Total != 0 {
+			progress := (float64(event.ProgressDetail.Current) /
+				float64(event.ProgressDetail.Total)) * 100
+			statusString = fmt.Sprintf("\r%s: %.1f%%", event.Status, progress)
+		} else {
+			statusString = fmt.Sprintf("\r%s", event.Status)
+		}
+		fmt.Print(statusString)
+	}
+	fmt.Println()
+	out.Close()
+}
+
+func waitForCompletion(out io.ReadCloser) error {
+	d := json.NewDecoder(out)
+	var event *PullEvent
+	completeStrings := []string{"Downloaded newer image for", "Image is up to date for",
+		"digest: "}
+	for {
+		if err := d.Decode(&event); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				logrus.Warnf("Could not decode docker client output: %s", err)
+			}
+		}
+		for _, str := range(completeStrings) {
+			if strings.Contains(event.Status, str) {
+				out.Close()
+				return nil
+			}
+		}
+	}
+	out.Close()
+	return fmt.Errorf("%v", event)
+}
+
+func getNewImageTag(baseImage string, registry string) string {
+	if strings.ContainsAny(baseImage, "/") {
+		img := strings.Split(baseImage, "/")[1]
+		return fmt.Sprintf("%s/%s", registry, img)
+	} else {
+		return fmt.Sprintf("%s/%s", registry, baseImage)
+	}
+}
+
+func getLoginOpts(auth string) types.ImagePushOptions {
+	opts :=  types.ImagePushOptions{All: true}
+	if len(auth) > 0 {
+		if !strings.Contains(auth, ":") {
+			logrus.Errorf("Auth is not in user:pass format")
+			opts.RegistryAuth = "123"
+		} else {
+			auth := types.AuthConfig{
+				Username: strings.Split(auth, ":")[0],
+				Password: strings.Split(auth, ":")[1],
+			}
+			authBytes, _ := json.Marshal(auth)
+			authBase64 := base64.URLEncoding.EncodeToString(authBytes)
+			opts.RegistryAuth = authBase64
+		}
+	} else {
+		opts.RegistryAuth = "123"
+	}
+	return opts
+}
+
+func pullOneImage(image string, ctx context.Context, client *client.Client) error {
+	fmt.Printf("Pulling image %s\n", image)
+	out, err := client.ImagePull(ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+	prettyPrintProgress(out)
+	return nil
+}
+
+func pushOneImage(image string, ctx context.Context, client *client.Client, registry string, auth string) error {
+	newImage := getNewImageTag(image, registry)
+	fmt.Printf("Pushing image %s as %s\n", image, newImage)
+	if err := client.ImageTag(ctx, image, newImage); err != nil {
+		return err
+	}
+	out, err := client.ImagePush(ctx, newImage, getLoginOpts(auth))
+	if err != nil {
+		return err
+	}
+	prettyPrintProgress(out)
+	return nil
+}
+
+func pullImageSync(image string, ctx context.Context, client *client.Client, wg *sync.WaitGroup) {
+	logrus.Infof("Starting pulling image %s\n", image)
+	out, err := client.ImagePull(ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		logrus.Warnf("Could not pull image %s: %v", image, err)
+		wg.Done()
+		return
+	}
+	if err := waitForCompletion(out); err != nil {
+		logrus.Warnf("Could not push image: %s", err)
+	} else {
+		logrus.Infof("Finished pulling %s", image)
+	}
+	wg.Done()
+}
+
+func pushImageSync(image string, ctx context.Context, client *client.Client, registry string, auth string, wg *sync.WaitGroup) {
+	newImage := getNewImageTag(image, registry)
+	logrus.Infof("Starting to push image %s as %s\n", image, newImage)
+	if err := client.ImageTag(ctx, image, newImage); err != nil {
+		logrus.Warnf("Could not tag image %s: %v", newImage, err)
+		wg.Done()
+		return
+	}
+	out, err := client.ImagePush(ctx, newImage, getLoginOpts(auth))
+	if err != nil {
+		logrus.Warnf("Could not push image %s: %v", newImage, err)
+		wg.Done()
+		return
+	}
+	if err := waitForCompletion(out); err != nil {
+		logrus.Warnf("Could not push image: %s", err)
+	} else {
+		logrus.Infof("Finished pushing %s", newImage)
+	}
+	wg.Done()
+}
+
+func pullImages(images []string, registry string, auth string, parallel bool) error {
+	var ctx context.Context
+	var dockerClient *client.Client
+	var wg sync.WaitGroup
+	var err error
+	if dockerClient, err = client.NewClientWithOpts(client.WithVersion(DockerAPIVersion)); err != nil {
+		return err
+	}
+	ctx = context.Background()
+	for _, image := range images {
+		if image == "" {
+			continue
+		}
+		if parallel {
+			wg.Add(1)
+			go pullImageSync(image, ctx, dockerClient, &wg)
+		} else {
+			if err := pullOneImage(image, ctx, dockerClient); err != nil {
+				return err
+			}
+		}
+		if len(registry) > 0 && !parallel {
+			if err := pushOneImage(image, ctx, dockerClient, registry, auth); err != nil {
+				return err
+			}
+		}
+	}
+	if parallel {
+		wg.Wait()
+		if len(registry) > 0 {
+			for _, image := range(images) {
+				if image == "" {
+					continue
+				}
+				wg.Add(1)
+				go pushImageSync(image, ctx, dockerClient, registry, auth, &wg)
+			}
+			wg.Wait()
+			logrus.Info("Finished pushing images")
+		}
+	}
+	return nil
+}
+
+func generateSystemImagesList(version string, all bool, pulls bool, registry string, auth string, parallel bool) error {
 	allVersions := []string{}
 	currentVersionImages := make(map[string]v3.RKESystemImages)
+	images := make([]string, 25)
 	for _, version := range metadata.K8sVersionsCurrent {
 		if _, ok := metadata.K8sBadVersions[version]; !ok {
 			allVersions = append(allVersions, version)
@@ -452,11 +675,11 @@ func generateSystemImagesList(version string, all bool) error {
 		for version, rkeSystemImages := range currentVersionImages {
 			logrus.Infof("Generating images list for version [%s]:", version)
 			uniqueImages := getUniqueSystemImageList(rkeSystemImages)
-			for _, image := range uniqueImages {
-				if image == "" {
-					continue
-				}
-				fmt.Printf("%s\n", image)
+			images = append(images, uniqueImages...)
+		}
+		if pulls {
+			if err := pullImages(images, registry, auth, parallel); err != nil {
+				return err
 			}
 		}
 		return nil
@@ -473,11 +696,11 @@ func generateSystemImagesList(version string, all bool) error {
 	}
 	logrus.Infof("Generating images list for version [%s]:", version)
 	uniqueImages := getUniqueSystemImageList(rkeSystemImages)
-	for _, image := range uniqueImages {
-		if image == "" {
-			continue
+	images = append(images, uniqueImages...)
+	if pulls {
+		if err := pullImages(images, registry, auth, parallel); err != nil {
+			return err
 		}
-		fmt.Printf("%s\n", image)
 	}
 	return nil
 }
