@@ -41,7 +41,6 @@ type keyList struct {
 }
 
 func ReconcileEncryptionProviderConfig(ctx context.Context, kubeCluster, currentCluster *Cluster) error {
-	log.Infof(ctx, "[%s] Reconciling cluster's encryption provider configuration..", services.ControlRole)
 	if len(kubeCluster.ControlPlaneHosts) == 0 {
 		return nil
 	}
@@ -49,16 +48,31 @@ func ReconcileEncryptionProviderConfig(ctx context.Context, kubeCluster, current
 	if (currentCluster == nil || !currentCluster.IsEncryptionEnabled()) &&
 		kubeCluster.IsEncryptionEnabled() {
 		kubeCluster.EncryptionConfig.RewriteSecrets = true
+		logrus.Debugf("Encryption is enabled in the new spec; have to rewrite secrets")
 		return nil
 	}
 	// encryption is disabled
 	if !kubeCluster.IsEncryptionEnabled() && !currentCluster.IsEncryptionEnabled() {
+		logrus.Debugf("Encryption is disabled in both current and new spec; no action is required")
 		return nil
 	}
+
 	// disable encryption
 	if !kubeCluster.IsEncryptionEnabled() && currentCluster.IsEncryptionEnabled() {
+		logrus.Debugf("Encryption is enabled in the current spec and disabled in the new spec")
 		return kubeCluster.DisableSecretsEncryption(ctx, currentCluster, currentCluster.IsEncryptionCustomConfig())
 	}
+
+	// encryption configuration updated
+	if kubeCluster.IsEncryptionEnabled() && currentCluster.IsEncryptionEnabled() &&
+		kubeCluster.EncryptionConfig.EncryptionProviderFile != currentCluster.EncryptionConfig.EncryptionProviderFile {
+		kubeCluster.EncryptionConfig.RewriteSecrets = true
+		log.Infof(ctx, "[%s] Encryption provider config has changed;"+
+			" reconciling cluster's encryption provider configuration", services.ControlRole)
+		return services.RestartKubeAPIWithHealthcheck(ctx, kubeCluster.ControlPlaneHosts,
+			kubeCluster.LocalConnDialerFactory, kubeCluster.Certificates)
+	}
+
 	return nil
 }
 
@@ -95,7 +109,7 @@ func (c *Cluster) DisableSecretsEncryption(ctx context.Context, currentCluster *
 	if err := c.DeployEncryptionProviderFile(ctx); err != nil {
 		return err
 	}
-	log.Infof(ctx, "[%s] Secrets Encryption disabled successfully", services.ControlRole)
+	log.Infof(ctx, "[%s] Secrets Encryption is disabled successfully", services.ControlRole)
 	return nil
 }
 
