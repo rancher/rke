@@ -65,6 +65,10 @@ func UpCommand() cli.Command {
 			Name:  "custom-certs",
 			Usage: "Use custom certificates from a cert dir",
 		},
+		cli.StringSliceFlag{
+			Name:  "exclude-nodes",
+			Usage: "Exclude nodes from rke up commands",
+		},
 	}
 
 	upFlags = append(upFlags, commonFlags...)

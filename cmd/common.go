@@ -13,7 +13,7 @@ import (
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/util"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -63,6 +63,21 @@ func setOptionsFromCLI(c *cli.Context, rkeConfig *v3.RancherKubernetesEngineConf
 			rkeConfig.Services.Etcd.BackupConfig = &v3.BackupConfig{}
 		}
 		rkeConfig.Services.Etcd.BackupConfig.S3BackupConfig = setS3OptionsFromCLI(c)
+	}
+	if c.StringSlice("exclude-nodes") != nil {
+		nodesToExclude := map[string]struct{}{}
+		for _, host := range c.StringSlice("exclude-nodes") {
+			nodesToExclude[host] = struct{}{}
+		}
+
+		rkeNodes := make([]v3.RKEConfigNode, 0, len(rkeConfig.Nodes))
+		for _, node := range rkeConfig.Nodes {
+			if _, ok := nodesToExclude[node.NodeName]; ok {
+				continue
+			}
+			rkeNodes = append(rkeNodes, node)
+		}
+		rkeConfig.Nodes = rkeNodes
 	}
 	return rkeConfig, nil
 }
