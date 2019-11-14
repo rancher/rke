@@ -519,12 +519,12 @@ github.com/prometheus/tsdb v0.8.0/go.mod h1:fSI0j+IUQrDd7+ZtR9WKIGtoYAYAJUKcKhYL
 github.com/quobyte/api v0.1.2/go.mod h1:jL7lIHrmqQ7yh05OJ+eEEdHr0u/kmT1Ff9iHd+4H6VI=
 github.com/rancher/client-go v1.16.0-rancher.3 h1:bOA0zwtJi8wUeldqfrCGyDRuN6oW+zJ092i/OhWP2nU=
 github.com/rancher/client-go v1.16.0-rancher.3/go.mod h1:J69/JveO6XESwVgG53q3Uz5OSfgsv4uxpScmmyYOOlk=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191021164950-6514452b9732 h1:6InjIL/kY99O1kdLLmiYVaUkMRhVEZjjlz7WRxRJraQ=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191021164950-6514452b9732/go.mod h1:n9MKsJByqAqhVG61d9G5pbJuKcHUMXUw97YF8+98ar0=
-github.com/rancher/norman v0.0.0-20190930164704-e09204b63081/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20191113181829-54094fc6ca6f h1:uFLu6lP2QOMw1+zHNukpa+FC1SCm9mFgbFJSU0Xl1bg=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20191113181829-54094fc6ca6f/go.mod h1:psQ6U4P3qj+ZBbniVuhDQ0tuXc5M7+MReBdPlyTQZLI=
+github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
 github.com/rancher/norman v0.0.0-20191111202053-1fcac7eb4fea h1:XMBnoi65IA7PO17j6JBnPAbJIDLf8wXho9WgDb/TXVo=
 github.com/rancher/norman v0.0.0-20191111202053-1fcac7eb4fea/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
-github.com/rancher/types v0.0.0-20190930165650-6bbedae77a35/go.mod h1:I0hSpsw/ZvWuOOvhiExji5IIkeQtmn4IvFcn7nbjhrk=
+github.com/rancher/types v0.0.0-20191108235045-716d86fa44c9/go.mod h1:K5zlxVpe7bY2QgOs1YUcU8dVXtzKncxpGEcvxGMgr0k=
 github.com/rancher/types v0.0.0-20191113224327-a0d18782c0f1 h1:DOyUBD2nMF0JSG6+3PzN9I4XMZCoOpGc3BVo778PgJ4=
 github.com/rancher/types v0.0.0-20191113224327-a0d18782c0f1/go.mod h1:BTwoSAQPH4x/QEUtGF/ZDZyapdUSZiBYm3zNuDLLQD4=
 github.com/rancher/wrangler v0.1.5 h1:HiXOeP6Kci2DK+e04D1g6INT77xAYpAr54zmTTe0Spk=
@@ -734,7 +734,6 @@ golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135/go.mod h1:RgjU9mgBXZiqYHBn
 golang.org/x/tools v0.0.0-20190606124116-d0a3d012864b/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 golang.org/x/tools v0.0.0-20190621195816-6e04913cbbac/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
-golang.org/x/tools v0.0.0-20190926165942-a8d5d34286bd/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20191029041327-9cc4af7d6b2c h1:IGkKhmfzcztjm6gYkykvu/NiS8kaqbCWAEWWAyf8J5U=
 golang.org/x/tools v0.0.0-20191029041327-9cc4af7d6b2c/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
