@@ -534,8 +534,12 @@ github.com/rancher/kontainer-driver-metadata v0.0.0-20191118205911-28f79fefc067 
 github.com/rancher/kontainer-driver-metadata v0.0.0-20191118205911-28f79fefc067/go.mod h1:+FCrVV/rB6Bq6w988Qxw2kaaj+1FZq3ySsD23DFnQrw=
 github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36 h1:N0ZUBJRq/ydy2ULiuqKhmiKShmEtpDOWXxKzVZxTzHk=
 github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
+github.com/rancher/norman v0.0.0-20191119190041-530c6591c6fe h1:/kDZz8znCHJUzOVGv2+A5hbK0eSb5BXSQsKW1Xa2nH0=
+github.com/rancher/norman v0.0.0-20191119190041-530c6591c6fe/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
 github.com/rancher/types v0.0.0-20191115181915-fa1ec441252a h1:D62aRiQXHIJwWPKakqqD67B2oWv00iuQo5+Z4FTXlbI=
 github.com/rancher/types v0.0.0-20191115181915-fa1ec441252a/go.mod h1:K5zlxVpe7bY2QgOs1YUcU8dVXtzKncxpGEcvxGMgr0k=
+github.com/rancher/types v0.0.0-20191119192236-78a49bd0efd4 h1:qwVYhV+Uk32G/x/0OORKD+ypMKwy+9G/bjz48jS4V8Q=
+github.com/rancher/types v0.0.0-20191119192236-78a49bd0efd4/go.mod h1:aG6YEODC00GFDav2O/cBGacEHAXY4JdMoKz2Lh+n048=
 github.com/rancher/wrangler v0.1.5 h1:HiXOeP6Kci2DK+e04D1g6INT77xAYpAr54zmTTe0Spk=
 github.com/rancher/wrangler v0.1.5/go.mod h1:EYP7cqpg42YqElaCm+U9ieSrGQKAXxUH5xsr+XGpWyE=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
