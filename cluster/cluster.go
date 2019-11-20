@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	ghodssyaml "github.com/ghodss/yaml"
 	"github.com/rancher/norman/types/convert"
+	"github.com/rancher/norman/types/values"
 	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
@@ -26,6 +27,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -97,6 +99,12 @@ const (
 	serviceAccountTokenFileParam = "service-account-key-file"
 
 	SystemNamespace = "kube-system"
+	daemonsetType   = "DaemonSet"
+	deploymentType  = "Deployment"
+	ingressAddon    = "ingress"
+	monitoringAddon = "monitoring"
+	dnsAddon        = "dns"
+	networkAddon    = "network"
 )
 
 func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptionData map[string]*v3.KubernetesServicesOptions, reconcileCluster bool) error {
@@ -294,6 +302,51 @@ func parseAdmissionConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEng
 	return nil
 }
 
+func parseAddonConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
+	var r map[string]interface{}
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &r)
+	if err != nil {
+		return fmt.Errorf("[parseAddonConfig] error unmarshalling RKE config: %v", err)
+	}
+	addonsResourceType := map[string]string{
+		ingressAddon:    daemonsetType,
+		networkAddon:    daemonsetType,
+		monitoringAddon: deploymentType,
+		dnsAddon:        deploymentType,
+	}
+	for addonName, addonType := range addonsResourceType {
+		updateStrategyField := values.GetValueN(r, addonName, "update_strategy")
+		if updateStrategyField == nil {
+			continue
+		}
+		switch addonType {
+		case daemonsetType:
+			updateStrategy, err := parseDaemonSetUpdateStrategy(updateStrategyField)
+			if err != nil {
+				return err
+			}
+			switch addonName {
+			case ingressAddon:
+				rkeConfig.Ingress.UpdateStrategy = updateStrategy
+			case networkAddon:
+				rkeConfig.Network.UpdateStrategy = updateStrategy
+			}
+		case deploymentType:
+			updateStrategy, err := parseDeploymentUpdateStrategy(updateStrategyField)
+			if err != nil {
+				return err
+			}
+			switch addonName {
+			case dnsAddon:
+				rkeConfig.DNS.UpdateStrategy = updateStrategy
+			case monitoringAddon:
+				rkeConfig.Monitoring.UpdateStrategy = updateStrategy
+			}
+		}
+	}
+	return nil
+}
+
 func parseIngressConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
 	if &rkeConfig.Ingress == nil {
 		return nil
@@ -314,6 +367,32 @@ func parseIngressConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngin
 		return err
 	}
 	return nil
+}
+
+func parseDaemonSetUpdateStrategy(updateStrategyField interface{}) (*appsv1.DaemonSetUpdateStrategy, error) {
+	updateStrategyBytes, err := json.Marshal(updateStrategyField)
+	if err != nil {
+		return nil, fmt.Errorf("[parseDaemonSetUpdateStrategy] error marshalling updateStrategy: %v", err)
+	}
+	var updateStrategy *appsv1.DaemonSetUpdateStrategy
+	err = json.Unmarshal(updateStrategyBytes, &updateStrategy)
+	if err != nil {
+		return nil, fmt.Errorf("[parseIngressUpdateStrategy] error unmarshaling updateStrategy: %v", err)
+	}
+	return updateStrategy, nil
+}
+
+func parseDeploymentUpdateStrategy(updateStrategyField interface{}) (*appsv1.DeploymentStrategy, error) {
+	updateStrategyBytes, err := json.Marshal(updateStrategyField)
+	if err != nil {
+		return nil, fmt.Errorf("[parseDeploymentUpdateStrategy] error marshalling updateStrategy: %v", err)
+	}
+	var updateStrategy *appsv1.DeploymentStrategy
+	err = json.Unmarshal(updateStrategyBytes, &updateStrategy)
+	if err != nil {
+		return nil, fmt.Errorf("[parseDeploymentUpdateStrategy] error unmarshaling updateStrategy: %v", err)
+	}
+	return updateStrategy, nil
 }
 
 func parseIngressExtraEnv(ingressMap map[string]interface{}, rkeConfig *v3.RancherKubernetesEngineConfig) error {
@@ -448,12 +527,14 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	if err := parseAuditLogConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing audit log config: %v", err)
 	}
-
 	if err := parseIngressConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing ingress config: %v", err)
 	}
 	if err := parseNodeDrainInput(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing upgrade strategy and node drain input: %v", err)
+	}
+	if err := parseAddonConfig(clusterFile, &rkeConfig); err != nil {
+		return &rkeConfig, fmt.Errorf("error parsing addon config: %v", err)
 	}
 	return &rkeConfig, nil
 }
