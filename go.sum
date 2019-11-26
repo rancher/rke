@@ -522,11 +522,11 @@ github.com/rancher/client-go v1.16.0-rancher.3/go.mod h1:J69/JveO6XESwVgG53q3Uz5
 github.com/rancher/kontainer-driver-metadata v0.0.0-20191113181829-54094fc6ca6f h1:uFLu6lP2QOMw1+zHNukpa+FC1SCm9mFgbFJSU0Xl1bg=
 github.com/rancher/kontainer-driver-metadata v0.0.0-20191113181829-54094fc6ca6f/go.mod h1:psQ6U4P3qj+ZBbniVuhDQ0tuXc5M7+MReBdPlyTQZLI=
 github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
-github.com/rancher/norman v0.0.0-20191111202053-1fcac7eb4fea h1:XMBnoi65IA7PO17j6JBnPAbJIDLf8wXho9WgDb/TXVo=
-github.com/rancher/norman v0.0.0-20191111202053-1fcac7eb4fea/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
+github.com/rancher/norman v0.0.0-20191126010027-3afadb987c81 h1:40IyRSjbSj/jNHpJFOHGOlUvOCIQKUMF6p8Tcc/w1vs=
+github.com/rancher/norman v0.0.0-20191126010027-3afadb987c81/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
 github.com/rancher/types v0.0.0-20191108235045-716d86fa44c9/go.mod h1:K5zlxVpe7bY2QgOs1YUcU8dVXtzKncxpGEcvxGMgr0k=
-github.com/rancher/types v0.0.0-20191113224327-a0d18782c0f1 h1:DOyUBD2nMF0JSG6+3PzN9I4XMZCoOpGc3BVo778PgJ4=
-github.com/rancher/types v0.0.0-20191113224327-a0d18782c0f1/go.mod h1:BTwoSAQPH4x/QEUtGF/ZDZyapdUSZiBYm3zNuDLLQD4=
+github.com/rancher/types v0.0.0-20191126014355-31d195f931ec h1:o3win9Oh6gRzA41dEtdpBFPW06PMZAzN9l4WDoguaMc=
+github.com/rancher/types v0.0.0-20191126014355-31d195f931ec/go.mod h1:bNhE/LSlF1urIf8XDdHyTe43J2YsHvuUeqWmKmrs8wg=
 github.com/rancher/wrangler v0.1.5 h1:HiXOeP6Kci2DK+e04D1g6INT77xAYpAr54zmTTe0Spk=
 github.com/rancher/wrangler v0.1.5/go.mod h1:EYP7cqpg42YqElaCm+U9ieSrGQKAXxUH5xsr+XGpWyE=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=

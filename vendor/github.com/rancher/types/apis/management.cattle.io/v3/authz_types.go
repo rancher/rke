@@ -63,18 +63,20 @@ type GlobalRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	DisplayName    string              `json:"displayName,omitempty" norman:"required,noupdate"`
-	Description    string              `json:"description" norman:"noupdate"`
-	Rules          []rbacv1.PolicyRule `json:"rules,omitempty" norman:"noupdate"`
+	DisplayName    string              `json:"displayName,omitempty" norman:"required"`
+	Description    string              `json:"description"`
+	Rules          []rbacv1.PolicyRule `json:"rules,omitempty"`
 	NewUserDefault bool                `json:"newUserDefault,omitempty" norman:"required"`
+	Builtin        bool                `json:"builtin" norman:"nocreate,noupdate"`
 }
 
 type GlobalRoleBinding struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	UserName       string `json:"userName,omitempty" norman:"required,type=reference[user]"`
-	GlobalRoleName string `json:"globalRoleName,omitempty" norman:"required,type=reference[globalRole]"`
+	UserName           string `json:"userName,omitempty" norman:"noupdate,type=reference[user]"`
+	GroupPrincipalName string `json:"groupPrincipalName,omitempty" norman:"noupdate,type=reference[principal]"`
+	GlobalRoleName     string `json:"globalRoleName,omitempty" norman:"required,noupdate,type=reference[globalRole]"`
 }
 
 type RoleTemplate struct {
