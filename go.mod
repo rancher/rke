@@ -47,8 +47,8 @@ require (
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20191125162457-09a06565759f
-	github.com/rancher/norman v0.0.0-20191119190041-530c6591c6fe
-	github.com/rancher/types v0.0.0-20191119192236-78a49bd0efd4
+	github.com/rancher/norman v0.0.0-20191126011629-6269ccdbeace
+	github.com/rancher/types v0.0.0-20191126013101-de3dc217d60f
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
