@@ -46,7 +46,7 @@ require (
 	github.com/mattn/go-colorable v0.1.0
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20191113181829-54094fc6ca6f
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20191204185326-d4739d92b293
 	github.com/rancher/norman v0.0.0-20191126010027-3afadb987c81
 	github.com/rancher/types v0.0.0-20191126014355-31d195f931ec
 	github.com/sirupsen/logrus v1.4.2
