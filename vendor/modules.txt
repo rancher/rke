@@ -129,7 +129,7 @@ github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/util
 github.com/prometheus/procfs/nfs
 github.com/prometheus/procfs/xfs
-# github.com/rancher/kontainer-driver-metadata v0.0.0-20191204185326-d4739d92b293
+# github.com/rancher/kontainer-driver-metadata v0.0.0-20191210185103-dc45b432da60
 github.com/rancher/kontainer-driver-metadata/rke
 github.com/rancher/kontainer-driver-metadata/rke/templates
 # github.com/rancher/norman v0.0.0-20191126010027-3afadb987c81
@@ -147,7 +147,7 @@ github.com/rancher/norman/types/convert
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20191126014355-31d195f931ec
+# github.com/rancher/types v0.0.0-20191209180830-cd2fb5538623
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/image
