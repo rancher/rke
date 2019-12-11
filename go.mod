@@ -4,6 +4,7 @@ go 1.12
 
 replace (
 	github.com/go-resty/resty => gopkg.in/resty.v1 v1.9.0
+	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
 	k8s.io/api => k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190918161926-8f644eb6e783
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
@@ -46,9 +47,9 @@ require (
 	github.com/mattn/go-colorable v0.1.0
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20191204185326-d4739d92b293
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20191210185103-dc45b432da60
 	github.com/rancher/norman v0.0.0-20191126010027-3afadb987c81
-	github.com/rancher/types v0.0.0-20191126014355-31d195f931ec
+	github.com/rancher/types v0.0.0-20191209180830-cd2fb5538623
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
