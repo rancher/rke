@@ -373,8 +373,6 @@ github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvW
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
-github.com/knative/pkg v0.0.0-20190817231834-12ee58e32cc8 h1:cYUW0Hf44iFo34VdB9UYXlqLTnUvw2jwocJZkvLlhg0=
-github.com/knative/pkg v0.0.0-20190817231834-12ee58e32cc8/go.mod h1:7Ijfhw7rfB+H9VtosIsDYvZQ+qYTz7auK3fHW/5z4ww=
 github.com/knz/strtime v0.0.0-20181018220328-af2256ee352c/go.mod h1:4ZxfWkxwtc7dBeifERVVWRy9F9rTU9p0yCDgeCtlius=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
@@ -530,10 +528,8 @@ github.com/prometheus/tsdb v0.8.0/go.mod h1:fSI0j+IUQrDd7+ZtR9WKIGtoYAYAJUKcKhYL
 github.com/quobyte/api v0.1.2/go.mod h1:jL7lIHrmqQ7yh05OJ+eEEdHr0u/kmT1Ff9iHd+4H6VI=
 github.com/rancher/client-go v1.16.0-rancher.3 h1:bOA0zwtJi8wUeldqfrCGyDRuN6oW+zJ092i/OhWP2nU=
 github.com/rancher/client-go v1.16.0-rancher.3/go.mod h1:J69/JveO6XESwVgG53q3Uz5OSfgsv4uxpScmmyYOOlk=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191125162457-09a06565759f h1:p1dg6+cCf+RqJ2eu8VJqPhTeNnG9CrRfggUOfjSMuwo=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191125162457-09a06565759f/go.mod h1:+FCrVV/rB6Bq6w988Qxw2kaaj+1FZq3ySsD23DFnQrw=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191210185103-dc45b432da60 h1:bOTLX8Zx6cXqB8lbdZz+IpYm7IQ9pf0T/twMDUfWKwE=
-github.com/rancher/kontainer-driver-metadata v0.0.0-20191210185103-dc45b432da60/go.mod h1:+FCrVV/rB6Bq6w988Qxw2kaaj+1FZq3ySsD23DFnQrw=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20191212212042-9c56689469dc h1:EpGKHTankcTyA6ZRpxH2fWQWFpxOQXAfj20EuV5VeFs=
+github.com/rancher/kontainer-driver-metadata v0.0.0-20191212212042-9c56689469dc/go.mod h1:VBeI/67gB2g/zn1R3Tu7VvCCKTiYCX0HfsFVvnm7v2I=
 github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36 h1:N0ZUBJRq/ydy2ULiuqKhmiKShmEtpDOWXxKzVZxTzHk=
 github.com/rancher/norman v0.0.0-20191003174345-0ac7dd6ccb36/go.mod h1:kVWc1OyHK9decIY90IYExSHedI5a5qze7IfLiEOTmXQ=
 github.com/rancher/norman v0.0.0-20191126011629-6269ccdbeace h1:ImgHu8QrexwyknSOLFsXjb+WtMd9MC/hk1U2JqdXEQo=
@@ -542,8 +538,6 @@ github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e h1:j6+HqCET/NLPBtew2m5
 github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e/go.mod h1:XbYHTPaXuw8ZY9bylhYKQh/nJxDaTKk3YhAxPl4Qy/k=
 github.com/rancher/types v0.0.0-20191115181915-fa1ec441252a h1:D62aRiQXHIJwWPKakqqD67B2oWv00iuQo5+Z4FTXlbI=
 github.com/rancher/types v0.0.0-20191115181915-fa1ec441252a/go.mod h1:K5zlxVpe7bY2QgOs1YUcU8dVXtzKncxpGEcvxGMgr0k=
-github.com/rancher/types v0.0.0-20191126013101-de3dc217d60f h1:Zt90hloFDzE9sK/eiNCDuJOinGUraZqZXMj+y/l7pOM=
-github.com/rancher/types v0.0.0-20191126013101-de3dc217d60f/go.mod h1:yYtjxRexsviS9aPO0qp1gqnMSLRRoe0JW6Mqu1EbJZM=
 github.com/rancher/types v0.0.0-20191212174249-7f4ca1e45ee0 h1:L/lkhui+jMBxuCV5d8LqRS2iDf42R/60eHyDD4mPKlo=
 github.com/rancher/types v0.0.0-20191212174249-7f4ca1e45ee0/go.mod h1:yYtjxRexsviS9aPO0qp1gqnMSLRRoe0JW6Mqu1EbJZM=
 github.com/rancher/wrangler v0.1.5 h1:HiXOeP6Kci2DK+e04D1g6INT77xAYpAr54zmTTe0Spk=
@@ -879,7 +873,6 @@ k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5 h1:VBM/0P5TWxwk+Nw6Z+lAw3DKgO76g
 k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1 h1:+ySTxfHnfzZb9ys375PXNlLhkJPLKgHajBU0N62BDvE=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
-knative.dev/pkg v0.0.0-20191211150249-bebd5557feae h1:aoXwtJERQEgjDWUAkDda4eurLs6IiWB3baWodGJkMW0=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=

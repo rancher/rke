@@ -1783,9 +1783,9 @@ func loadK8sRKESystemImages() map[string]v3.RKESystemImages {
 			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler:1.7.1"),
 			WindowsPodInfraContainer:  m("rancher/kubelet-pause:v0.1.3"),
 		},
-		"v1.17.0-beta.2-rancher1-1": {
+		"v1.17.0-rancher1-1": {
 			Etcd:                      m("quay.io/coreos/etcd:v3.4.3-rancher1"),
-			Kubernetes:                m("rancher/hyperkube:v1.17.0-beta.2-rancher1"),
+			Kubernetes:                m("rancher/hyperkube:v1.17.0-rancher1"),
 			Alpine:                    m("rancher/rke-tools:v0.1.51"),
 			NginxProxy:                m("rancher/rke-tools:v0.1.51"),
 			CertDownloader:            m("rancher/rke-tools:v0.1.51"),
@@ -1809,8 +1809,8 @@ func loadK8sRKESystemImages() map[string]v3.RKESystemImages {
 			PodInfraContainer:         m("gcr.io/google_containers/pause:3.1"),
 			Ingress:                   m("rancher/nginx-ingress-controller:nginx-0.25.1-rancher1"),
 			IngressBackend:            m("k8s.gcr.io/defaultbackend:1.5-rancher1"),
-			MetricsServer:             m("gcr.io/google_containers/metrics-server:v0.3.4"),
-			CoreDNS:                   m("coredns/coredns:1.6.2"),
+			MetricsServer:             m("gcr.io/google_containers/metrics-server:v0.3.6"),
+			CoreDNS:                   m("coredns/coredns:1.6.5"),
 			CoreDNSAutoscaler:         m("gcr.io/google_containers/cluster-proportional-autoscaler:1.7.1"),
 			WindowsPodInfraContainer:  m("rancher/kubelet-pause:v0.1.3"),
 		},
