@@ -49,7 +49,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20191219221041-278e61bd811a
 	github.com/rancher/norman v0.0.0-20191126011629-6269ccdbeace
-	github.com/rancher/types v0.0.0-20191212174249-7f4ca1e45ee0
+	github.com/rancher/types v0.0.0-20191220141556-ad31d6815bbd
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
