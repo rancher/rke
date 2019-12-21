@@ -13,16 +13,8 @@ const (
 
 func loadK8sVersionServiceOptions() map[string]v3.KubernetesServicesOptions {
 	return map[string]v3.KubernetesServicesOptions{
-		"v1.17.0-rancher1-2": {
-			Etcd:           getETCDOptions(),
-			KubeAPI:        getKubeAPIOptions116(),
-			Kubelet:        getKubeletOptions116(),
-			KubeController: getKubeControllerOptions(),
-			Kubeproxy:      getKubeProxyOptions(),
-			Scheduler:      getSchedulerOptions(),
-		},
-		"v1.17.0-rancher1-1": {
-			Etcd:           getETCDOptions(),
+		"v1.17": {
+			Etcd:           getETCDOptions117(),
 			KubeAPI:        getKubeAPIOptions116(),
 			Kubelet:        getKubeletOptions116(),
 			KubeController: getKubeControllerOptions(),
@@ -237,5 +229,13 @@ func getETCDOptions() map[string]string {
 	return map[string]string{
 		"client-cert-auth":      "true",
 		"peer-client-cert-auth": "true",
+	}
+}
+
+func getETCDOptions117() map[string]string {
+	return map[string]string{
+		"client-cert-auth":      "true",
+		"peer-client-cert-auth": "true",
+		"enable-v2":             "true",
 	}
 }
