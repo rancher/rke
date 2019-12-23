@@ -47,9 +47,9 @@ require (
 	github.com/mattn/go-colorable v0.1.0
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20191221002039-8e3994417ca3
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20191223200943-7b4e4888b0c8
 	github.com/rancher/norman v0.0.0-20191209163739-5b9227fe3222
-	github.com/rancher/types v0.0.0-20191217214229-b0c77ca09648
+	github.com/rancher/types v0.0.0-20191220141525-65ed56d888c6
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
