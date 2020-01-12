@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -31,6 +32,46 @@ func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProvider string)
 	}
 	return k8sClient.CoreV1().Nodes().Delete(nodeName, &metav1.DeleteOptions{})
 }
+
+
+
+func generateDeleteOptions() *metav1.DeleteOptions {
+	generatedOptions := &metav1.DeleteOptions{}
+	return generatedOptions
+}
+
+
+func DrainNode(k8sClient *kubernetes.Clientset, nodeName string) error{
+
+	pods, err := k8sClient.CoreV1().Pods("").List(metav1.ListOptions{
+		FieldSelector: "spec.nodeName=" + nodeName,
+	})
+	if err != nil {
+		return err
+
+	}else{
+
+		for _, pod := range pods.Items {
+			deleteOption := generateDeleteOptions();
+			eviction := &policyv1beta1.Eviction{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "",
+					Kind:       "Eviction",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      pod.Name,
+					Namespace: pod.Namespace,
+				},
+				DeleteOptions: deleteOption,
+			}
+
+			k8sClient.CoreV1().Pods(pod.Namespace).Evict(eviction) ;
+		}
+	}
+	return nil
+}
+
+
 
 func GetNodeList(k8sClient *kubernetes.Clientset) (*v1.NodeList, error) {
 	return k8sClient.CoreV1().Nodes().List(metav1.ListOptions{})

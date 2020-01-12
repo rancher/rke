@@ -161,9 +161,18 @@ func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.
 		return err
 
 	}
+
+
 	if err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, true); err != nil {
 		return err
 	}
+
+	if err := k8s.DrainNode(kubeClient, toDeleteHost.HostnameOverride); err != nil {
+		return err
+	}
+	log.Infof(ctx, "Node draining ... : [%s] from the cluster", toDeleteHost.Address)
+
+
 	log.Infof(ctx, "[hosts] Deleting host [%s] from the cluster", toDeleteHost.Address)
 	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride, cloudProvider); err != nil {
 		return err
