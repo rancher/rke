@@ -49,8 +49,7 @@ func DrainNode(k8sClient *kubernetes.Clientset, nodeName string) error{
 	if err != nil {
 		return err
 
-	}else{
-
+	}
 		for _, pod := range pods.Items {
 			deleteOption := generateDeleteOptions();
 			eviction := &policyv1beta1.Eviction{
@@ -67,7 +66,7 @@ func DrainNode(k8sClient *kubernetes.Clientset, nodeName string) error{
 
 			k8sClient.CoreV1().Pods(pod.Namespace).Evict(eviction) ;
 		}
-	}
+
 	return nil
 }
 
