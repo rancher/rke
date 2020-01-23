@@ -209,7 +209,7 @@ func WaitForNamedCacheSync(controllerName string, stopCh <-chan struct{}, cacheS
 // if the controller should shutdown
 // callers should prefer WaitForNamedCacheSync()
 func WaitForCacheSync(stopCh <-chan struct{}, cacheSyncs ...InformerSynced) bool {
-	err := wait.PollUntil(syncedPollPeriod,
+	err := wait.PollImmediateUntil(syncedPollPeriod,
 		func() (bool, error) {
 			for _, syncFunc := range cacheSyncs {
 				if !syncFunc() {
@@ -364,8 +364,7 @@ func (s *sharedIndexInformer) AddIndexers(indexers Indexers) error {
 	defer s.startedLock.Unlock()
 
 	if s.started {
-		s.blockDeltas.Lock()
-		defer s.blockDeltas.Unlock()
+		return fmt.Errorf("informer has already started")
 	}
 
 	return s.indexer.AddIndexers(indexers)
