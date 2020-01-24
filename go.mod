@@ -4,6 +4,8 @@ go 1.12
 
 replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
+
+	github.com/rancher/types => github.com/kinarashah/types v0.0.0-20200124055619-7161ecf8162a
 	k8s.io/client-go => k8s.io/client-go v0.17.2
 )
 

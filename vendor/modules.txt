@@ -145,7 +145,7 @@ github.com/rancher/norman/types/convert
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20200123224322-9adcafc483ee
+# github.com/rancher/types v0.0.0-20200123224322-9adcafc483ee => github.com/kinarashah/types v0.0.0-20200124055619-7161ecf8162a
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/condition
