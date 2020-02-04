@@ -25,12 +25,11 @@ require (
 	github.com/mattn/go-colorable v0.1.0
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
-	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-driver-metadata v0.0.0-20200123225253-a5b9f3e0b2df
 	github.com/rancher/norman v0.0.0-20200123223841-6d86f4e37a69
-	github.com/rancher/types v0.0.0-20200123224322-9adcafc483ee
+	github.com/rancher/types v0.0.0-20200128160249-56c60bfefb76
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
@@ -44,5 +43,6 @@ require (
 	k8s.io/apimachinery v0.17.2
 	k8s.io/apiserver v0.17.2
 	k8s.io/client-go v2.0.0-alpha.0.0.20181121191925-a47917edff34+incompatible
+	k8s.io/kubectl v0.17.2
 	sigs.k8s.io/yaml v1.1.0
 )
