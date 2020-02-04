@@ -8,3 +8,5 @@
 kube_config*
 /rke
 .vscode
+cluster.rkestate
+cluster.yml
