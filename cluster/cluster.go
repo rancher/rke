@@ -65,6 +65,7 @@ type Cluster struct {
 	v3.RancherKubernetesEngineConfig `yaml:",inline"`
 	WorkerHosts                      []*hosts.Host
 	EncryptionConfig                 encryptionConfig
+	NewHosts                         map[string]bool
 }
 
 type encryptionConfig struct {
@@ -98,7 +99,12 @@ const (
 	SystemNamespace = "kube-system"
 )
 
-func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptionData map[string]*v3.KubernetesServicesOptions) error {
+func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptionData map[string]*v3.KubernetesServicesOptions, reconcileCluster bool) error {
+	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+	if err != nil {
+		return fmt.Errorf("failed to initialize new kubernetes client: %v", err)
+	}
+
 	// Deploy Etcd Plane
 	etcdNodePlanMap := make(map[string]v3.RKEConfigNodePlan)
 	// Build etcd node plan map
@@ -120,37 +126,73 @@ func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptionData map[stri
 	for _, cpHost := range c.ControlPlaneHosts {
 		cpNodePlanMap[cpHost.Address] = BuildRKEConfigNodePlan(ctx, c, cpHost, cpHost.DockerInfo, svcOptionData)
 	}
-	if err := services.RunControlPlane(ctx, c.ControlPlaneHosts,
+
+	if !reconcileCluster {
+		if err := services.RunControlPlane(ctx, c.ControlPlaneHosts,
+			c.LocalConnDialerFactory,
+			c.PrivateRegistriesMap,
+			cpNodePlanMap,
+			c.UpdateWorkersOnly,
+			c.SystemImages.Alpine,
+			c.Certificates); err != nil {
+			return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
+		}
+		return nil
+	}
+	if err := services.UpgradeControlPlane(ctx, kubeClient, c.ControlPlaneHosts,
 		c.LocalConnDialerFactory,
 		c.PrivateRegistriesMap,
 		cpNodePlanMap,
 		c.UpdateWorkersOnly,
 		c.SystemImages.Alpine,
-		c.Certificates); err != nil {
-		return fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
+		c.Certificates, c.UpgradeStrategy, c.NewHosts); err != nil {
+		return fmt.Errorf("[controlPlane] Failed to upgrade Control Plane: %v", err)
 	}
-
 	return nil
 }
 
-func (c *Cluster) DeployWorkerPlane(ctx context.Context, svcOptionData map[string]*v3.KubernetesServicesOptions) error {
+func (c *Cluster) DeployWorkerPlane(ctx context.Context, svcOptionData map[string]*v3.KubernetesServicesOptions, reconcileCluster bool) (string, error) {
+	var workerOnlyHosts, multipleRolesHosts []*hosts.Host
+	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize new kubernetes client: %v", err)
+	}
 	// Deploy Worker plane
 	workerNodePlanMap := make(map[string]v3.RKEConfigNodePlan)
 	// Build cp node plan map
 	allHosts := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 	for _, workerHost := range allHosts {
 		workerNodePlanMap[workerHost.Address] = BuildRKEConfigNodePlan(ctx, c, workerHost, workerHost.DockerInfo, svcOptionData)
+		if !workerHost.IsControl && !workerHost.IsEtcd {
+			workerOnlyHosts = append(workerOnlyHosts, workerHost)
+		} else {
+			multipleRolesHosts = append(multipleRolesHosts, workerHost)
+		}
 	}
-	if err := services.RunWorkerPlane(ctx, allHosts,
+
+	if !reconcileCluster {
+		if err := services.RunWorkerPlane(ctx, allHosts,
+			c.LocalConnDialerFactory,
+			c.PrivateRegistriesMap,
+			workerNodePlanMap,
+			c.Certificates,
+			c.UpdateWorkersOnly,
+			c.SystemImages.Alpine); err != nil {
+			return "", fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
+		}
+		return "", nil
+	}
+	errMsgMaxUnavailableNotFailed, err := services.UpgradeWorkerPlane(ctx, kubeClient, multipleRolesHosts, workerOnlyHosts, c.InactiveHosts,
 		c.LocalConnDialerFactory,
 		c.PrivateRegistriesMap,
 		workerNodePlanMap,
 		c.Certificates,
 		c.UpdateWorkersOnly,
-		c.SystemImages.Alpine); err != nil {
-		return fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
+		c.SystemImages.Alpine, c.UpgradeStrategy, c.NewHosts)
+	if err != nil {
+		return "", fmt.Errorf("[workerPlane] Failed to upgrade Worker Plane: %v", err)
 	}
-	return nil
+	return errMsgMaxUnavailableNotFailed, nil
 }
 
 func parseAuditLogConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
@@ -328,6 +370,60 @@ func parseIngressExtraVolumeMounts(ingressMap map[string]interface{}, rkeConfig 
 	return nil
 }
 
+func parseNodeDrainInput(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
+	// setting some defaults here because for these fields there's no way of differentiating between user provided null value vs golang setting it to null during unmarshal
+	if rkeConfig.UpgradeStrategy == nil || rkeConfig.UpgradeStrategy.DrainInput == nil {
+		return nil
+	}
+	var config map[string]interface{}
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &config)
+	if err != nil {
+		return fmt.Errorf("[parseNodeDrainInput] error unmarshalling: %v", err)
+	}
+	upgradeStrategy, err := convert.EncodeToMap(config["upgrade_strategy"])
+	if err != nil {
+		return err
+	}
+	nodeDrainInputMap, err := convert.EncodeToMap(upgradeStrategy["node_drain_input"])
+	if err != nil {
+		return err
+	}
+	nodeDrainInputBytes, err := ghodssyaml.Marshal(nodeDrainInputMap)
+	if err != nil {
+		return err
+	}
+	// this will only have fields that user set and none of the default empty values
+	var nodeDrainInput v3.NodeDrainInput
+	if err := ghodssyaml.Unmarshal(nodeDrainInputBytes, &nodeDrainInput); err != nil {
+		return err
+	}
+	var update bool
+	if _, ok := nodeDrainInputMap["ignore_daemonsets"]; !ok {
+		// user hasn't provided any input, default to true
+		nodeDrainInput.IgnoreDaemonSets = DefaultNodeDrainIgnoreDaemonsets
+		update = true
+	}
+	if _, ok := nodeDrainInputMap["timeout"]; !ok {
+		// user hasn't provided any input, default to 120
+		nodeDrainInput.Timeout = DefaultNodeDrainTimeout
+		update = true
+	}
+	if providedGracePeriod, ok := nodeDrainInputMap["grace_period"].(float64); !ok {
+		// user hasn't provided any input, default to -1
+		nodeDrainInput.GracePeriod = DefaultNodeDrainGracePeriod
+		update = true
+	} else {
+		// TODO: ghodssyaml.Marshal is losing the user provided value for GracePeriod, investigate why, till then assign the provided value explicitly
+		nodeDrainInput.GracePeriod = int(providedGracePeriod)
+	}
+
+	if update {
+		rkeConfig.UpgradeStrategy.DrainInput = &nodeDrainInput
+	}
+
+	return nil
+}
+
 func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) {
 	logrus.Debugf("Parsing cluster file [%v]", clusterFile)
 	var rkeConfig v3.RancherKubernetesEngineConfig
@@ -355,6 +451,9 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 
 	if err := parseIngressConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing ingress config: %v", err)
+	}
+	if err := parseNodeDrainInput(clusterFile, &rkeConfig); err != nil {
+		return &rkeConfig, fmt.Errorf("error parsing upgrade strategy and node drain input: %v", err)
 	}
 	return &rkeConfig, nil
 }

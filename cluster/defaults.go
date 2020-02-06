@@ -76,6 +76,11 @@ const (
 	KubeAPIArgAuditPolicyFile             = "audit-policy-file"
 	DefaultKubeAPIArgAuditLogPathValue    = "/var/log/kube-audit/audit-log.json"
 	DefaultKubeAPIArgAuditPolicyFileValue = "/etc/kubernetes/audit-policy.yaml"
+
+	DefaultMaxUnavailable            = "10%"
+	DefaultNodeDrainTimeout          = 120
+	DefaultNodeDrainGracePeriod      = -1
+	DefaultNodeDrainIgnoreDaemonsets = true
 )
 
 type ExternalFlags struct {
@@ -188,8 +193,33 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 	c.setClusterServicesDefaults()
 	c.setClusterNetworkDefaults()
 	c.setClusterAuthnDefaults()
+	c.setNodeUpgradeStrategy()
 
 	return nil
+}
+
+func (c *Cluster) setNodeUpgradeStrategy() {
+	if c.UpgradeStrategy == nil {
+		logrus.Info("No input provided for maxUnavailable, setting it to default value of 10%")
+		c.UpgradeStrategy = &v3.NodeUpgradeStrategy{
+			MaxUnavailable: DefaultMaxUnavailable,
+		}
+		return
+	}
+	setDefaultIfEmpty(&c.UpgradeStrategy.MaxUnavailable, DefaultMaxUnavailable)
+	if !c.UpgradeStrategy.Drain {
+		return
+	}
+	if c.UpgradeStrategy.DrainInput == nil {
+		c.UpgradeStrategy.DrainInput = &v3.NodeDrainInput{
+			IgnoreDaemonSets: DefaultNodeDrainIgnoreDaemonsets,
+			// default to 120 seems to work better for controlplane nodes
+			Timeout: DefaultNodeDrainTimeout,
+			//Period of time in seconds given to each pod to terminate gracefully.
+			// If negative, the default value specified in the pod will be used
+			GracePeriod: DefaultNodeDrainGracePeriod,
+		}
+	}
 }
 
 func (c *Cluster) setClusterServicesDefaults() {
