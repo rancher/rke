@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	rkeData "github.com/rancher/kontainer-driver-metadata/rke/templates"
 	"github.com/rancher/rke/addons"
 	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/k8s"
@@ -20,7 +19,8 @@ import (
 	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/templates"
 	"github.com/rancher/rke/util"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
+	"github.com/rancher/types/kdm"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -285,7 +285,7 @@ func (c *Cluster) deployKubeDNS(ctx context.Context, data map[string]interface{}
 		return err
 	}
 	KubeDNSConfig.LinearAutoscalerParams = string(linearModeBytes)
-	tmplt, err := templates.GetVersionedTemplates(rkeData.KubeDNS, data, c.Version)
+	tmplt, err := templates.GetVersionedTemplates(kdm.KubeDNS, data, c.Version)
 	if err != nil {
 		return err
 	}
@@ -318,7 +318,7 @@ func (c *Cluster) deployCoreDNS(ctx context.Context, data map[string]interface{}
 		return err
 	}
 	CoreDNSConfig.LinearAutoscalerParams = string(linearModeBytes)
-	tmplt, err := templates.GetVersionedTemplates(rkeData.CoreDNS, data, c.Version)
+	tmplt, err := templates.GetVersionedTemplates(kdm.CoreDNS, data, c.Version)
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func (c *Cluster) deployMetricServer(ctx context.Context, data map[string]interf
 		UpdateStrategy:     c.Monitoring.UpdateStrategy,
 		Replicas:           c.Monitoring.Replicas,
 	}
-	tmplt, err := templates.GetVersionedTemplates(rkeData.MetricsServer, data, c.Version)
+	tmplt, err := templates.GetVersionedTemplates(kdm.MetricsServer, data, c.Version)
 	if err != nil {
 		return err
 	}
@@ -531,7 +531,7 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 			ingressConfig.AlpineImage = c.SystemImages.Alpine
 		}
 	}
-	tmplt, err := templates.GetVersionedTemplates(rkeData.NginxIngress, data, c.Version)
+	tmplt, err := templates.GetVersionedTemplates(kdm.NginxIngress, data, c.Version)
 	if err != nil {
 		return err
 	}
