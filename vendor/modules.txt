@@ -56,6 +56,9 @@ github.com/docker/go-connections/tlsconfig
 github.com/docker/go-units
 # github.com/ghodss/yaml v1.0.0
 github.com/ghodss/yaml
+# github.com/go-bindata/go-bindata v3.1.2+incompatible
+github.com/go-bindata/go-bindata
+github.com/go-bindata/go-bindata/go-bindata
 # github.com/go-ini/ini v1.37.0
 github.com/go-ini/ini
 # github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
@@ -130,9 +133,6 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/rancher/kontainer-driver-metadata v0.0.0-20200218183853-2f58a2f30054
-github.com/rancher/kontainer-driver-metadata/rke
-github.com/rancher/kontainer-driver-metadata/rke/templates
 # github.com/rancher/norman v0.0.0-20200211155126-fc45a55d4dfd
 github.com/rancher/norman/condition
 github.com/rancher/norman/controller
@@ -153,6 +153,7 @@ github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/condition
 github.com/rancher/types/image
+github.com/rancher/types/kdm
 # github.com/rancher/wrangler v0.4.2-0.20200214231136-099089b8a398
 github.com/rancher/wrangler/pkg/name
 github.com/rancher/wrangler/pkg/ratelimit

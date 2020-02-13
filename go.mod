@@ -20,6 +20,7 @@ require (
 	github.com/docker/docker v0.7.3-0.20190808172531-150530564a14
 	github.com/docker/go-connections v0.3.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-bindata/go-bindata v3.1.2+incompatible
 	github.com/go-ini/ini v1.37.0
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/mattn/go-colorable v0.1.0
@@ -27,7 +28,6 @@ require (
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20200218183853-2f58a2f30054
 	github.com/rancher/norman v0.0.0-20200211155126-fc45a55d4dfd
 	github.com/rancher/types v0.0.0-20200218191331-dc762fc27c91
 	github.com/sirupsen/logrus v1.4.2
