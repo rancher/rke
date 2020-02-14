@@ -113,11 +113,6 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
-
-	err = kubeCluster.ValidateHostCountForUpgrade()
-	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, nil, err
-	}
 	currentCluster, err := kubeCluster.GetClusterState(ctx, clusterState)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
@@ -140,6 +135,14 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		}
 		kubeCluster.NewHosts = newNodes
 		reconcileCluster = true
+
+		kubeCluster.RemoveHostsLabeledToIgnoreUpgrade(ctx)
+		maxUnavailable, err := kubeCluster.ValidateHostCountForUpgradeAndCalculateMaxUnavailable()
+		if err != nil {
+			return APIURL, caCrt, clientCert, clientKey, nil, err
+		}
+		logrus.Infof("Setting maxUnavailable for worker nodes to: %v", maxUnavailable)
+		kubeCluster.MaxUnavailableForWorkerNodes = maxUnavailable
 	}
 
 	if !flags.DisablePortCheck {
@@ -244,10 +247,16 @@ func checkAllIncluded(cluster *cluster.Cluster) error {
 
 	var names []string
 	for _, host := range cluster.InactiveHosts {
+		if cluster.HostsLabeledToIgnoreUpgrade[host.Address] {
+			continue
+		}
 		names = append(names, host.Address)
 	}
 
-	return fmt.Errorf("Provisioning incomplete, host(s) [%s] skipped because they could not be contacted", strings.Join(names, ","))
+	if len(names) > 0 {
+		return fmt.Errorf("Provisioning incomplete, host(s) [%s] skipped because they could not be contacted", strings.Join(names, ","))
+	}
+	return nil
 }
 
 func clusterUpFromCli(ctx *cli.Context) error {

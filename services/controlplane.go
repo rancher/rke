@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -47,13 +48,15 @@ func RunControlPlane(ctx context.Context, controlHosts []*hosts.Host, localConnD
 	return nil
 }
 
-func UpgradeControlPlane(ctx context.Context, kubeClient *kubernetes.Clientset, controlHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, cpNodePlanMap map[string]v3.RKEConfigNodePlan, updateWorkersOnly bool, alpineImage string, certMap map[string]pki.CertificatePKI, upgradeStrategy *v3.NodeUpgradeStrategy, newHosts map[string]bool) error {
+func UpgradeControlPlaneNodes(ctx context.Context, kubeClient *kubernetes.Clientset, controlHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory,
+	prsMap map[string]v3.PrivateRegistry, cpNodePlanMap map[string]v3.RKEConfigNodePlan, updateWorkersOnly bool, alpineImage string, certMap map[string]pki.CertificatePKI,
+	upgradeStrategy *v3.NodeUpgradeStrategy, newHosts, inactiveHosts map[string]bool) error {
 	if updateWorkersOnly {
 		return nil
 	}
 	var drainHelper drain.Helper
 
-	log.Infof(ctx, "[%s] Processing control plane components for upgrade one at a time", ControlRole)
+	log.Infof(ctx, "[%s] Processing controlplane hosts for upgrade one at a time", ControlRole)
 	if len(newHosts) > 0 {
 		var nodes []string
 		for _, host := range controlHosts {
@@ -67,6 +70,12 @@ func UpgradeControlPlane(ctx context.Context, kubeClient *kubernetes.Clientset, 
 	}
 	if upgradeStrategy.Drain {
 		drainHelper = getDrainHelper(kubeClient, *upgradeStrategy)
+		log.Infof(ctx, "[%s] Parameters provided to drain command: %#v", ControlRole, fmt.Sprintf("Force: %v, IgnoreAllDaemonSets: %v, DeleteLocalData: %v, Timeout: %v, GracePeriodSeconds: %v", drainHelper.Force, drainHelper.IgnoreAllDaemonSets, drainHelper.DeleteLocalData, drainHelper.Timeout, drainHelper.GracePeriodSeconds))
+	}
+
+	currentHostsPool := make(map[string]bool)
+	for _, host := range controlHosts {
+		currentHostsPool[host.HostnameOverride] = true
 	}
 	// upgrade control plane hosts one at a time for zero downtime upgrades
 	for _, host := range controlHosts {
@@ -75,16 +84,19 @@ func UpgradeControlPlane(ctx context.Context, kubeClient *kubernetes.Clientset, 
 			if err := doDeployControlHost(ctx, host, localConnDialerFactory, prsMap, cpNodePlanMap[host.Address].Processes, alpineImage, certMap); err != nil {
 				return err
 			}
+			if err := doDeployWorkerPlaneHost(ctx, host, localConnDialerFactory, prsMap, cpNodePlanMap[host.Address].Processes, certMap, updateWorkersOnly, alpineImage); err != nil {
+				return err
+			}
 			continue
 		}
-		nodes, err := getNodeListForUpgrade(kubeClient, &sync.Map{}, newHosts, false)
+		nodes, err := getNodeListForUpgrade(kubeClient, &sync.Map{}, newHosts, inactiveHosts)
 		if err != nil {
 			return err
 		}
 		var maxUnavailableHit bool
 		for _, node := range nodes {
 			// in case any previously added nodes or till now unprocessed nodes become unreachable during upgrade
-			if !k8s.IsNodeReady(node) {
+			if !k8s.IsNodeReady(node) && currentHostsPool[node.Labels[k8s.HostnameLabel]] {
 				maxUnavailableHit = true
 				break
 			}
@@ -93,31 +105,54 @@ func UpgradeControlPlane(ctx context.Context, kubeClient *kubernetes.Clientset, 
 			return err
 		}
 
-		upgradable, err := isControlPlaneHostUpgradable(ctx, host, cpNodePlanMap[host.Address].Processes)
+		controlPlaneUpgradable, err := isControlPlaneHostUpgradable(ctx, host, cpNodePlanMap[host.Address].Processes)
 		if err != nil {
 			return err
 		}
-		if !upgradable {
-			log.Infof(ctx, "Upgrade not required for controlplane components of host %v", host.HostnameOverride)
+		workerPlaneUpgradable, err := isWorkerHostUpgradable(ctx, host, cpNodePlanMap[host.Address].Processes)
+		if err != nil {
+			return err
+		}
+		if !controlPlaneUpgradable && !workerPlaneUpgradable {
+			log.Infof(ctx, "Upgrade not required for controlplane and worker components of host %v", host.HostnameOverride)
 			continue
 		}
-		if err := checkNodeReady(kubeClient, host, ControlRole); err != nil {
-			return err
-		}
-		if err := cordonAndDrainNode(kubeClient, host, upgradeStrategy.Drain, drainHelper, ControlRole); err != nil {
-			return err
-		}
-		if err := doDeployControlHost(ctx, host, localConnDialerFactory, prsMap, cpNodePlanMap[host.Address].Processes, alpineImage, certMap); err != nil {
-			return err
-		}
-		if err := checkNodeReady(kubeClient, host, ControlRole); err != nil {
-			return err
-		}
-		if err := k8s.CordonUncordon(kubeClient, host.HostnameOverride, false); err != nil {
+		if err := upgradeControlHost(ctx, kubeClient, host, upgradeStrategy.Drain, drainHelper, localConnDialerFactory, prsMap, cpNodePlanMap, updateWorkersOnly, alpineImage, certMap, controlPlaneUpgradable, workerPlaneUpgradable); err != nil {
 			return err
 		}
 	}
 	log.Infof(ctx, "[%s] Successfully upgraded Controller Plane..", ControlRole)
+	return nil
+}
+
+func upgradeControlHost(ctx context.Context, kubeClient *kubernetes.Clientset, host *hosts.Host, drain bool, drainHelper drain.Helper,
+	localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, cpNodePlanMap map[string]v3.RKEConfigNodePlan, updateWorkersOnly bool,
+	alpineImage string, certMap map[string]pki.CertificatePKI, controlPlaneUpgradable, workerPlaneUpgradable bool) error {
+	if err := checkNodeReady(kubeClient, host, ControlRole); err != nil {
+		return err
+	}
+	if err := cordonAndDrainNode(kubeClient, host, drain, drainHelper, ControlRole); err != nil {
+		return err
+	}
+	if controlPlaneUpgradable {
+		log.Infof(ctx, "Upgrading controlplane components for control host %v", host.HostnameOverride)
+		if err := doDeployControlHost(ctx, host, localConnDialerFactory, prsMap, cpNodePlanMap[host.Address].Processes, alpineImage, certMap); err != nil {
+			return err
+		}
+	}
+	if workerPlaneUpgradable {
+		log.Infof(ctx, "Upgrading workerplane components for control host %v", host.HostnameOverride)
+		if err := doDeployWorkerPlaneHost(ctx, host, localConnDialerFactory, prsMap, cpNodePlanMap[host.Address].Processes, certMap, updateWorkersOnly, alpineImage); err != nil {
+			return err
+		}
+	}
+
+	if err := checkNodeReady(kubeClient, host, ControlRole); err != nil {
+		return err
+	}
+	if err := k8s.CordonUncordon(kubeClient, host.HostnameOverride, false); err != nil {
+		return err
+	}
 	return nil
 }
 
