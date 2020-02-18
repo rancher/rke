@@ -27,18 +27,18 @@ require (
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/kontainer-driver-metadata v0.0.0-20200123225253-a5b9f3e0b2df
-	github.com/rancher/norman v0.0.0-20200123223841-6d86f4e37a69
-	github.com/rancher/types v0.0.0-20200128160249-56c60bfefb76
+	github.com/rancher/kontainer-driver-metadata v0.0.0-20200218183853-2f58a2f30054
+	github.com/rancher/norman v0.0.0-20200211155126-fc45a55d4dfd
+	github.com/rancher/types v0.0.0-20200218191331-dc762fc27c91
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/urfave/cli v1.20.0
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	gopkg.in/ini.v1 v1.46.0 // indirect
-	gopkg.in/yaml.v2 v2.2.4
+	gopkg.in/yaml.v2 v2.2.5
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
 	k8s.io/apiserver v0.17.2
