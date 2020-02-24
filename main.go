@@ -1,3 +1,5 @@
+//go:generate go run ./codegen/codegen.go
+//go:generate go run ./vendor/github.com/go-bindata/go-bindata/go-bindata -o ./data/bindata.go -ignore bindata.go -pkg data -modtime 1557785965 -mode 0644 ./data/
 package main
 
 import (
@@ -5,10 +7,9 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/rancher/rke/metadata"
-
 	"github.com/mattn/go-colorable"
 	"github.com/rancher/rke/cmd"
+	"github.com/rancher/rke/metadata"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )

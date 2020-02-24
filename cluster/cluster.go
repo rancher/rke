@@ -556,7 +556,9 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 		},
 	}
 	if metadata.K8sVersionToRKESystemImages == nil {
-		metadata.InitMetadata(ctx)
+		if err := metadata.InitMetadata(ctx); err != nil {
+			return nil, err
+		}
 	}
 	if len(c.ConfigPath) == 0 {
 		c.ConfigPath = pki.ClusterConfig
