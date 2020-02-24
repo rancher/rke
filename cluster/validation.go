@@ -196,37 +196,38 @@ func ValidateHostCount(c *Cluster) error {
 	return nil
 }
 
-func (c *Cluster) ValidateHostCountForUpgrade() error {
+func (c *Cluster) ValidateHostCountForUpgradeAndCalculateMaxUnavailable() (int, error) {
 	var inactiveControlPlaneHosts, inactiveWorkerOnlyHosts []string
-	var workerOnlyHosts int
+	var workerOnlyHosts, maxUnavailable int
+
 	for _, host := range c.InactiveHosts {
-		if host.IsControl {
+		if host.IsControl && !c.HostsLabeledToIgnoreUpgrade[host.Address] {
 			inactiveControlPlaneHosts = append(inactiveControlPlaneHosts, host.HostnameOverride)
 		}
-		if !host.IsEtcd && !host.IsControl {
+		if !host.IsEtcd && !host.IsControl && !c.HostsLabeledToIgnoreUpgrade[host.Address] {
 			inactiveWorkerOnlyHosts = append(inactiveWorkerOnlyHosts, host.HostnameOverride)
 		}
 		// not breaking out of the loop so we can log all of the inactive hosts
 	}
 	if len(inactiveControlPlaneHosts) >= 1 {
-		return fmt.Errorf("cannot proceed with upgrade of controlplane if one or more controlplane hosts are inactive; found inactive hosts: %v", strings.Join(inactiveControlPlaneHosts, ","))
+		return maxUnavailable, fmt.Errorf("cannot proceed with upgrade of controlplane if one or more controlplane hosts are inactive; found inactive hosts: %v", strings.Join(inactiveControlPlaneHosts, ","))
 	}
-
 	for _, host := range c.WorkerHosts {
-		if host.IsControl || host.IsEtcd {
+		if host.IsControl || host.IsEtcd || c.HostsLabeledToIgnoreUpgrade[host.Address] {
 			continue
 		}
 		workerOnlyHosts++
 	}
-
+	// maxUnavailable should be calculated against all hosts provided in cluster.yml except the ones labelled to be ignored for upgrade
+	workerOnlyHosts += len(inactiveWorkerOnlyHosts)
 	maxUnavailable, err := services.CalculateMaxUnavailable(c.UpgradeStrategy.MaxUnavailable, workerOnlyHosts)
 	if err != nil {
-		return err
+		return maxUnavailable, err
 	}
 	if len(inactiveWorkerOnlyHosts) >= maxUnavailable {
-		return fmt.Errorf("cannot proceed with upgrade of worker components since %v (>=maxUnavailable) hosts are inactive; found inactive hosts: %v", len(inactiveWorkerOnlyHosts), strings.Join(inactiveWorkerOnlyHosts, ","))
+		return maxUnavailable, fmt.Errorf("cannot proceed with upgrade of worker components since %v (>=maxUnavailable) hosts are inactive; found inactive hosts: %v", len(inactiveWorkerOnlyHosts), strings.Join(inactiveWorkerOnlyHosts, ","))
 	}
-	return nil
+	return maxUnavailable, nil
 }
 
 func validateDuplicateNodes(c *Cluster) error {

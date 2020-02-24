@@ -60,21 +60,24 @@ func getDrainHelper(kubeClient *kubernetes.Clientset, upgradeStrategy v3.NodeUpg
 	return drainHelper
 }
 
-func getNodeListForUpgrade(kubeClient *kubernetes.Clientset, hostsFailed *sync.Map, newHosts map[string]bool, isUpgradeForWorkerPlane bool) ([]v1.Node, error) {
+func getNodeListForUpgrade(kubeClient *kubernetes.Clientset, hostsFailed *sync.Map, newHosts, inactiveHosts map[string]bool) ([]v1.Node, error) {
 	var nodeList []v1.Node
 	nodes, err := k8s.GetNodeList(kubeClient)
 	if err != nil {
 		return nodeList, err
 	}
 	for _, node := range nodes.Items {
-		if isUpgradeForWorkerPlane {
-			// exclude hosts that are already included in failed hosts list
-			if _, ok := hostsFailed.Load(node.Name); ok {
-				continue
-			}
+		if _, ok := hostsFailed.Load(node.Labels[k8s.HostnameLabel]); ok {
+			continue
 		}
 		// exclude hosts that are newly added to the cluster since they can take time to come up
-		if newHosts[node.Name] {
+		if newHosts[node.Labels[k8s.HostnameLabel]] {
+			continue
+		}
+		if inactiveHosts[node.Labels[k8s.HostnameLabel]] {
+			continue
+		}
+		if val, ok := node.Labels[k8s.IgnoreHostDuringUpgradeLabel]; ok && val == "true" {
 			continue
 		}
 		nodeList = append(nodeList, node)
