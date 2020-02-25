@@ -94,15 +94,17 @@ func UpgradeControlPlaneNodes(ctx context.Context, kubeClient *kubernetes.Client
 			return err
 		}
 		var maxUnavailableHit bool
+		var nodeNotReady string
 		for _, node := range nodes {
 			// in case any previously added nodes or till now unprocessed nodes become unreachable during upgrade
 			if !k8s.IsNodeReady(node) && currentHostsPool[node.Labels[k8s.HostnameLabel]] {
 				maxUnavailableHit = true
+				nodeNotReady = node.Labels[k8s.HostnameLabel]
 				break
 			}
 		}
 		if maxUnavailableHit {
-			return err
+			return fmt.Errorf("maxUnavailable limit hit for controlplane since node %v is in NotReady state", nodeNotReady)
 		}
 
 		controlPlaneUpgradable, err := isControlPlaneHostUpgradable(ctx, host, cpNodePlanMap[host.Address].Processes)
