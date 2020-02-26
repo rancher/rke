@@ -161,6 +161,7 @@ type ClusterAlertRuleSpec struct {
 	EventRule         *EventRule         `json:"eventRule,omitempty"`
 	SystemServiceRule *SystemServiceRule `json:"systemServiceRule,omitempty"`
 	MetricRule        *MetricRule        `json:"metricRule,omitempty"`
+	ClusterScanRule   *ClusterScanRule   `json:"clusterScanRule,omitempty"`
 }
 
 type ProjectAlertRule struct {
@@ -197,6 +198,11 @@ type CommonRuleField struct {
 	Severity    string `json:"severity,omitempty" norman:"required,options=info|critical|warning,default=critical"`
 	Inherited   *bool  `json:"inherited,omitempty" norman:"default=true"`
 	TimingField
+}
+
+type ClusterScanRule struct {
+	ScanRunType  ClusterScanRunType `json:"scanRunType,omitempty" norman:"required,options=manual|scheduled,default=scheduled"`
+	FailuresOnly bool               `json:"failuresOnly,omitempty"`
 }
 
 type MetricRule struct {
@@ -283,7 +289,7 @@ type SMTPConfig struct {
 	Host             string `json:"host,omitempty" norman:"required,type=hostname"`
 	Port             int    `json:"port,omitempty" norman:"required,min=1,max=65535,default=587"`
 	Username         string `json:"username,omitempty"`
-	Password         string `json:"password,omitempty"`
+	Password         string `json:"password,omitempty" norman:"type=password"`
 	Sender           string `json:"sender,omitempty" norman:"required"`
 	DefaultRecipient string `json:"defaultRecipient,omitempty" norman:"required"`
 	TLS              bool   `json:"tls,omitempty" norman:"required,default=true"`
