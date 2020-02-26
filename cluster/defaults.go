@@ -220,7 +220,8 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 
 func (c *Cluster) setNodeUpgradeStrategy() {
 	if c.UpgradeStrategy == nil {
-		logrus.Infof("No input provided for maxUnavailable, setting it to default value of %v", DefaultMaxUnavailable)
+		// we need to escape the "%" at the end of "10%" here so its not interpreted
+		logrus.Debugf("No input provided for maxUnavailable, setting it to default value of %v", DefaultMaxUnavailable+"%")
 		c.UpgradeStrategy = &v3.NodeUpgradeStrategy{
 			MaxUnavailable: DefaultMaxUnavailable,
 		}
