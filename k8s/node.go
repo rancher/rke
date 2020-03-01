@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -14,13 +14,14 @@ import (
 )
 
 const (
-	HostnameLabel                = "kubernetes.io/hostname"
-	InternalAddressAnnotation    = "rke.cattle.io/internal-ip"
-	ExternalAddressAnnotation    = "rke.cattle.io/external-ip"
-	IgnoreHostDuringUpgradeLabel = "rke.cattle.io/ignore-during-upgrade"
-	AWSCloudProvider             = "aws"
-	MaxRetries                   = 5
-	RetryInterval                = 5
+	HostnameLabel                    = "kubernetes.io/hostname"
+	FlannelAddressOverrideAnnotation = "flannel.alpha.coreos.com/public-ip-overwrite"
+	InternalAddressAnnotation        = "rke.cattle.io/internal-ip"
+	ExternalAddressAnnotation        = "rke.cattle.io/external-ip"
+	IgnoreHostDuringUpgradeLabel     = "rke.cattle.io/ignore-during-upgrade"
+	AWSCloudProvider                 = "aws"
+	MaxRetries                       = 5
+	RetryInterval                    = 5
 )
 
 func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProvider string) error {
@@ -198,12 +199,14 @@ func toTaint(taintStr string) v1.Taint {
 
 func SetNodeAddressesAnnotations(node *v1.Node, internalAddress, externalAddress string) {
 	currentExternalAnnotation := node.Annotations[ExternalAddressAnnotation]
-	currentInternalAnnotation := node.Annotations[ExternalAddressAnnotation]
-	if currentExternalAnnotation == externalAddress && currentInternalAnnotation == internalAddress {
+	currentInternalAnnotation := node.Annotations[InternalAddressAnnotation]
+	currentFlannelAnnotation := node.Annotations[FlannelAddressOverrideAnnotation]
+	if currentExternalAnnotation == externalAddress && currentInternalAnnotation == internalAddress && currentFlannelAnnotation == internalAddress {
 		return
 	}
 	node.Annotations[ExternalAddressAnnotation] = externalAddress
 	node.Annotations[InternalAddressAnnotation] = internalAddress
+	node.Annotations[FlannelAddressOverrideAnnotation] = internalAddress
 }
 
 func delTaintFromList(l []v1.Taint, t v1.Taint) []v1.Taint {
