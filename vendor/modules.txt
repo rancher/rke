@@ -4,7 +4,7 @@ github.com/Masterminds/goutils
 github.com/Masterminds/semver/v3
 # github.com/Masterminds/sprig/v3 v3.0.0
 github.com/Masterminds/sprig/v3
-# github.com/Microsoft/go-winio v0.4.11
+# github.com/Microsoft/go-winio v0.4.12
 github.com/Microsoft/go-winio
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
@@ -14,7 +14,7 @@ github.com/blang/semver
 github.com/cespare/xxhash/v2
 # github.com/containerd/containerd v1.3.0-beta.0.0.20190808172034-23faecfb66ab
 github.com/containerd/containerd/errdefs
-# github.com/coreos/etcd v3.3.15+incompatible
+# github.com/coreos/etcd v3.3.17+incompatible
 github.com/coreos/etcd/client
 github.com/coreos/etcd/pkg/pathutil
 github.com/coreos/etcd/pkg/srv
@@ -48,7 +48,7 @@ github.com/docker/docker/api/types/volume
 github.com/docker/docker/client
 github.com/docker/docker/errdefs
 github.com/docker/docker/pkg/stdcopy
-# github.com/docker/go-connections v0.3.0
+# github.com/docker/go-connections v0.4.0
 github.com/docker/go-connections/nat
 github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
@@ -93,7 +93,7 @@ github.com/huandu/xstrings
 github.com/imdario/mergo
 # github.com/json-iterator/go v1.1.9
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/mattn/go-colorable v0.1.2
 github.com/mattn/go-colorable
@@ -148,13 +148,13 @@ github.com/rancher/norman/types/convert
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20200226215232-12620b5bd7ff
+# github.com/rancher/types v0.0.0-20200303162837-300a04e6f743
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/condition
 github.com/rancher/types/image
 github.com/rancher/types/kdm
-# github.com/rancher/wrangler v0.4.2-0.20200214231136-099089b8a398
+# github.com/rancher/wrangler v0.5.0
 github.com/rancher/wrangler/pkg/name
 github.com/rancher/wrangler/pkg/ratelimit
 # github.com/sirupsen/logrus v1.4.2
