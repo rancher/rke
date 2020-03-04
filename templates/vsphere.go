@@ -60,4 +60,12 @@ vm-name = "{{ .VsphereConfig.Global.VMName }}"
         {{- if ne .VsphereConfig.Network.PublicNetwork "" }}
         public-network = "{{ .VsphereConfig.Network.PublicNetwork }}"
         {{- end }}
+
+[Labels]
+        {{- if ne .VsphereConfig.Labels.Zone "" }}
+        zone = "{{ .VsphereConfig.Labels.Zone }}"
+        {{- end }}
+        {{- if ne .VsphereConfig.Labels.Region "" }}
+        region = "{{ .VsphereConfig.Labels.Region }}"
+        {{- end }}
 `
