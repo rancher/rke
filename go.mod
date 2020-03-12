@@ -25,7 +25,7 @@ require (
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/norman v0.0.0-20200211155126-fc45a55d4dfd
+	github.com/rancher/norman v0.0.0-20200312033725-5c74e1ee1e6d
 	github.com/rancher/types v0.0.0-20200303162837-300a04e6f743
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
