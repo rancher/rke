@@ -206,6 +206,7 @@ func validateCerts(state cluster.State) error {
 			} else {
 				failedErrs = errors.Wrap(failedErrs, fmt.Sprintf("Certificate [%s] is nil", certPKI.Name))
 			}
+			continue
 		}
 
 		certPool := x509.NewCertPool()
