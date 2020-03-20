@@ -15,10 +15,9 @@ import (
 
 const (
 	HostnameLabel                    = "kubernetes.io/hostname"
-	FlannelAddressOverrideAnnotation = "flannel.alpha.coreos.com/public-ip-overwrite"
+  FlannelAddressOverrideAnnotation = "flannel.alpha.coreos.com/public-ip-overwrite"
 	InternalAddressAnnotation        = "rke.cattle.io/internal-ip"
 	ExternalAddressAnnotation        = "rke.cattle.io/external-ip"
-	IgnoreHostDuringUpgradeLabel     = "rke.cattle.io/ignore-during-upgrade"
 	AWSCloudProvider                 = "aws"
 	MaxRetries                       = 5
 	RetryInterval                    = 5
@@ -43,12 +42,15 @@ func GetNodeList(k8sClient *kubernetes.Clientset) (*v1.NodeList, error) {
 func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error) {
 	var listErr error
 	for retries := 0; retries < MaxRetries; retries++ {
+		logrus.Debugf("Checking node list for node %v, retry #%v", nodeName, retries)
 		nodes, err := GetNodeList(k8sClient)
 		if err != nil {
 			listErr = err
 			time.Sleep(time.Second * RetryInterval)
 			continue
 		}
+		// reset listErr back to nil
+		listErr = nil
 		for _, node := range nodes.Items {
 			if strings.ToLower(node.Labels[HostnameLabel]) == strings.ToLower(nodeName) {
 				return &node, nil

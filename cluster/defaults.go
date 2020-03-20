@@ -3,9 +3,11 @@ package cluster
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/rancher/rke/cloudprovider"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
@@ -64,6 +66,10 @@ const (
 	DefaultFlannelBackendVxLan     = "vxlan"
 	DefaultFlannelBackendVxLanPort = "8472"
 	DefaultFlannelBackendVxLanVNI  = "1"
+
+	DefaultCalicoFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
+
+	DefaultCanalFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
 
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
@@ -305,6 +311,18 @@ func (c *Cluster) setClusterServicesDefaults() {
 		}
 	}
 
+	enableKubeAPIAuditLog, err := checkVersionNeedsKubeAPIAuditLog(c.Version)
+	if err != nil {
+		logrus.Warnf("Can not determine if cluster version [%s] needs to have kube-api audit log enabled: %v", c.Version, err)
+	}
+	if enableKubeAPIAuditLog {
+		logrus.Debugf("Enabling kube-api audit log for cluster version [%s]", c.Version)
+
+		if c.Services.KubeAPI.AuditLog == nil {
+			c.Services.KubeAPI.AuditLog = &v3.AuditLog{Enabled: true}
+		}
+
+	}
 	if c.Services.KubeAPI.AuditLog != nil &&
 		c.Services.KubeAPI.AuditLog.Enabled {
 		if c.Services.KubeAPI.AuditLog.Configuration == nil {
@@ -453,6 +471,7 @@ func (c *Cluster) setClusterImageDefaults() error {
 		&c.SystemImages.Ingress:                   d(imageDefaults.Ingress, privRegURL),
 		&c.SystemImages.IngressBackend:            d(imageDefaults.IngressBackend, privRegURL),
 		&c.SystemImages.MetricsServer:             d(imageDefaults.MetricsServer, privRegURL),
+		&c.SystemImages.Nodelocal:                 d(imageDefaults.Nodelocal, privRegURL),
 		// this's a stopgap, we could drop this after https://github.com/kubernetes/kubernetes/pull/75618 merged
 		&c.SystemImages.WindowsPodInfraContainer: d(imageDefaults.WindowsPodInfraContainer, privRegURL),
 	}
@@ -484,7 +503,9 @@ func (c *Cluster) setClusterDNSDefaults() error {
 		logrus.Debugf("Cluster version [%s] is less than version [%s], using DNS provider [%s]", clusterSemVer, K8sVersionCoreDNSSemVer, DefaultDNSProvider)
 		ClusterDNSProvider = DefaultDNSProvider
 	}
-	c.DNS = &v3.DNSConfig{}
+	if c.DNS == nil {
+		c.DNS = &v3.DNSConfig{}
+	}
 	c.DNS.Provider = ClusterDNSProvider
 	logrus.Debugf("DNS provider set to [%s]", ClusterDNSProvider)
 	return nil
@@ -502,7 +523,8 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	switch c.Network.Plugin {
 	case CalicoNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{
-			CalicoCloudProvider: DefaultNetworkCloudProvider,
+			CalicoCloudProvider:          DefaultNetworkCloudProvider,
+			CalicoFlexVolPluginDirectory: DefaultCalicoFlexVolPluginDirectory,
 		}
 	case FlannelNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{
@@ -515,6 +537,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			CanalFlannelBackendType:                 DefaultFlannelBackendVxLan,
 			CanalFlannelBackendPort:                 DefaultFlannelBackendVxLanPort,
 			CanalFlannelBackendVxLanNetworkIdentify: DefaultFlannelBackendVxLanVNI,
+			CanalFlexVolPluginDirectory:             DefaultCanalFlexVolPluginDirectory,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
@@ -596,7 +619,7 @@ func GetExternalFlags(local, updateOnly, disablePortCheck bool, configDir, clust
 func (c *Cluster) setAddonsDefaults() {
 	c.Ingress.UpdateStrategy = setDaemonsetAddonDefaults(c.Ingress.UpdateStrategy)
 	c.Network.UpdateStrategy = setDaemonsetAddonDefaults(c.Network.UpdateStrategy)
-	c.DNS.UpdateStrategy = setDeploymentAddonDefaults(c.DNS.UpdateStrategy)
+	c.DNS.UpdateStrategy = setDNSDeploymentAddonDefaults(c.DNS.UpdateStrategy, c.DNS.Provider)
 	if c.DNS.LinearAutoscalerParams == nil {
 		c.DNS.LinearAutoscalerParams = &DefaultClusterProportionalAutoscalerLinearParams
 	}
@@ -630,4 +653,63 @@ func setDeploymentAddonDefaults(updateStrategy *appsv1.DeploymentStrategy) *apps
 		updateStrategy.RollingUpdate.MaxSurge = &DefaultDeploymentUpdateStrategyParams
 	}
 	return updateStrategy
+}
+
+func setDNSDeploymentAddonDefaults(updateStrategy *appsv1.DeploymentStrategy, dnsProvider string) *appsv1.DeploymentStrategy {
+	var (
+		coreDNSMaxUnavailable, coreDNSMaxSurge = intstr.FromInt(1), intstr.FromInt(0)
+		kubeDNSMaxSurge, kubeDNSMaxUnavailable = intstr.FromString("10%"), intstr.FromInt(0)
+	)
+	if updateStrategy != nil && updateStrategy.Type != appsv1.RollingUpdateDeploymentStrategyType {
+		return updateStrategy
+	}
+	switch dnsProvider {
+	case CoreDNSProvider:
+		if updateStrategy == nil || updateStrategy.RollingUpdate == nil {
+			return &appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateDeployment{
+					MaxUnavailable: &coreDNSMaxUnavailable,
+					MaxSurge:       &coreDNSMaxSurge,
+				},
+			}
+		}
+		if updateStrategy.RollingUpdate.MaxUnavailable == nil {
+			updateStrategy.RollingUpdate.MaxUnavailable = &coreDNSMaxUnavailable
+		}
+	case KubeDNSProvider:
+		if updateStrategy == nil || updateStrategy.RollingUpdate == nil {
+			return &appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateDeployment{
+					MaxUnavailable: &kubeDNSMaxUnavailable,
+					MaxSurge:       &kubeDNSMaxSurge,
+				},
+			}
+		}
+		if updateStrategy.RollingUpdate.MaxSurge == nil {
+			updateStrategy.RollingUpdate.MaxSurge = &kubeDNSMaxSurge
+		}
+	}
+
+	return updateStrategy
+}
+
+func checkVersionNeedsKubeAPIAuditLog(k8sVersion string) (bool, error) {
+	toMatch, err := semver.Make(k8sVersion[1:])
+	if err != nil {
+		return false, fmt.Errorf("Cluster version [%s] can not be parsed as semver", k8sVersion[1:])
+	}
+	logrus.Debugf("Checking if cluster version [%s] needs to have kube-api audit log enabled", k8sVersion[1:])
+	// kube-api audit log needs to be enabled for k8s 1.15.11 and up, k8s 1.16.8 and up, k8s 1.17.4 and up
+	clusterKubeAPIAuditLogRange, err := semver.ParseRange(">=1.15.11-rancher0 <=1.15.99 || >=1.16.8-rancher0 <=1.16.99 || >=1.17.4-rancher0")
+	if err != nil {
+		return false, errors.New("Failed to parse semver range for checking to enable kube-api audit log")
+	}
+	if clusterKubeAPIAuditLogRange(toMatch) {
+		logrus.Debugf("Cluster version [%s] needs to have kube-api audit log enabled", k8sVersion[1:])
+		return true, nil
+	}
+	logrus.Debugf("Cluster version [%s] does not need to have kube-api audit log enabled", k8sVersion[1:])
+	return false, nil
 }

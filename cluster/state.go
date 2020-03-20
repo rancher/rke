@@ -86,7 +86,7 @@ func SaveFullStateToKubernetes(ctx context.Context, kubeCluster *Cluster, fullSt
 				time.Sleep(time.Second * 5)
 				continue
 			}
-			log.Infof(ctx, "[state] Successfully Saved full cluster state to Kubernetes ConfigMap: %s", StateConfigMapName)
+			log.Infof(ctx, "[state] Successfully Saved full cluster state to Kubernetes ConfigMap: %s", FullStateConfigMapName)
 			timeout <- true
 			break
 		}
@@ -190,7 +190,7 @@ func (s *FullState) WriteStateFile(ctx context.Context, statePath string) error 
 	if err != nil {
 		return fmt.Errorf("Failed to Marshal state object: %v", err)
 	}
-	logrus.Debugf("Writing state file: %s", stateFile)
+	logrus.Tracef("Writing state file: %s", stateFile)
 	if err := ioutil.WriteFile(statePath, stateFile, 0640); err != nil {
 		return fmt.Errorf("Failed to write state file: %v", err)
 	}
