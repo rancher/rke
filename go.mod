@@ -26,7 +26,7 @@ require (
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/norman v0.0.0-20200312033725-5c74e1ee1e6d
-	github.com/rancher/types v0.0.0-20200303162837-300a04e6f743
+	github.com/rancher/types v0.0.0-20200326224903-b4612bd96d9b
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect

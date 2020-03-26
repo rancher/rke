@@ -27,6 +27,7 @@ type CatalogSpec struct {
 	CatalogKind string `json:"catalogKind,omitempty"`
 	Username    string `json:"username,omitempty"`
 	Password    string `json:"password,omitempty" norman:"type=password"`
+	HelmVersion string `json:"helmVersion,omitempty" norman:"noupdate"`
 }
 
 type CatalogStatus struct {
@@ -41,6 +42,7 @@ var (
 	CatalogConditionRefreshed  condition.Cond = "Refreshed"
 	CatalogConditionUpgraded   condition.Cond = "Upgraded"
 	CatalogConditionDiskCached condition.Cond = "DiskCached"
+	CatalogConditionProcessed  condition.Cond = "Processed"
 )
 
 type CatalogCondition struct {
@@ -114,6 +116,7 @@ type TemplateSpec struct {
 }
 
 type TemplateStatus struct {
+	HelmVersion string `json:"helmVersion,omitempty" norman:"noupdate,nocreate"`
 }
 
 type TemplateVersion struct {
@@ -165,6 +168,7 @@ type TemplateVersionSpec struct {
 }
 
 type TemplateVersionStatus struct {
+	HelmVersion string `json:"helmVersion,omitempty" norman:"noupdate,nocreate"`
 }
 
 type File struct {
