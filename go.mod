@@ -4,7 +4,7 @@ go 1.12
 
 replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
-	k8s.io/client-go => k8s.io/client-go v0.17.2
+	k8s.io/client-go => k8s.io/client-go v0.18.0
 )
 
 require (
@@ -25,19 +25,19 @@ require (
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/rancher/norman v0.0.0-20200312033725-5c74e1ee1e6d
-	github.com/rancher/types v0.0.0-20200326224903-b4612bd96d9b
+	github.com/rancher/norman v0.0.0-20200326201949-eb806263e8ad
+	github.com/rancher/types v0.0.0-20200326224235-0d1e1dcc8d55
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/urfave/cli v1.20.0
-	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
+	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	gopkg.in/yaml.v2 v2.2.5
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
-	k8s.io/apiserver v0.17.2
+	gopkg.in/yaml.v2 v2.2.8
+	k8s.io/api v0.18.0
+	k8s.io/apimachinery v0.18.0
+	k8s.io/apiserver v0.18.0
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kubectl v0.17.2
-	sigs.k8s.io/yaml v1.1.0
+	k8s.io/kubectl v0.18.0
+	sigs.k8s.io/yaml v1.2.0
 )
