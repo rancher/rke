@@ -40,6 +40,8 @@ const (
 
 	FlannelVxLanNetworkIdentify = 1
 
+	FlannelSubnetLen = 24
+
 	ProtocolTCP = "TCP"
 	ProtocolUDP = "UDP"
 
@@ -52,6 +54,7 @@ const (
 	FlannelBackendPort = "flannel_backend_port"
 	// FlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using VxLan mode in the cluster with Windows nodes
 	FlannelBackendVxLanNetworkIdentify = "flannel_backend_vni"
+	FlannelBackendSubnetLen            = "flannel_backend_subnetlen"
 
 	CalicoNetworkPlugin          = "calico"
 	CalicoNodeLabel              = "calico-node"
@@ -66,6 +69,7 @@ const (
 	CanalFlannelBackendPort = "canal_flannel_backend_port"
 	// CanalFlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using Flannel VxLan mode in the cluster with Windows nodes
 	CanalFlannelBackendVxLanNetworkIdentify = "canal_flannel_backend_vni"
+	CanalFlannelBackendSubnetLen            = "canal_flannel_backend_subnetlen"
 	CanalFlexVolPluginDirectory             = "canal_flex_volume_plugin_dir"
 
 	WeaveNetworkPlugin  = "weave"
@@ -164,6 +168,10 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 	if err != nil {
 		return err
 	}
+	subnetLen, err := atoiWithDefault(c.Network.Options[FlannelBackendSubnetLen], FlannelSubnetLen)
+	if err != nil {
+		return err
+	}
 
 	flannelConfig := map[string]interface{}{
 		ClusterCIDR:      c.ClusterCIDR,
@@ -171,9 +179,10 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 		CNIImage:         c.SystemImages.FlannelCNI,
 		FlannelInterface: c.Network.Options[FlannelIface],
 		FlannelBackend: map[string]interface{}{
-			"Type": c.Network.Options[FlannelBackendType],
-			"VNI":  vni,
-			"Port": port,
+			"Type":      c.Network.Options[FlannelBackendType],
+			"VNI":       vni,
+			"Port":      port,
+			"SubnetLen": subnetLen,
 		},
 		RBACConfig:     c.Authorization.Mode,
 		ClusterVersion: util.GetTagMajorVersion(c.Version),
@@ -227,6 +236,10 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 	if err != nil {
 		return err
 	}
+	subnetLen, err := atoiWithDefault(c.Network.Options[CanalFlannelBackendSubnetLen], FlannelSubnetLen)
+	if err != nil {
+		return err
+	}
 
 	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName)
 	canalConfig := map[string]interface{}{
@@ -243,9 +256,10 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 		CanalInterface:  c.Network.Options[CanalIface],
 		FlexVolImg:      c.SystemImages.CanalFlexVol,
 		FlannelBackend: map[string]interface{}{
-			"Type": c.Network.Options[CanalFlannelBackendType],
-			"VNI":  flannelVni,
-			"Port": flannelPort,
+			"Type":      c.Network.Options[CanalFlannelBackendType],
+			"VNI":       flannelVni,
+			"Port":      flannelPort,
+			"SubnetLen": subnetLen,
 		},
 		NodeSelector: c.Network.NodeSelector,
 		MTU:          c.Network.MTU,
