@@ -21,6 +21,7 @@ import (
 
 const (
 	RancherMetadataURLEnv = "RANCHER_METADATA_URL"
+	RKEVersionDev = "v1.1.1-rc100"
 )
 
 var (
@@ -90,7 +91,7 @@ func readFile(file string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
-const RKEVersionDev = "v0.2.3"
+
 
 func initAddonTemplates(data kdm.Data) {
 	K8sVersionToTemplates = data.K8sVersionedTemplates

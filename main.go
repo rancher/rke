@@ -48,7 +48,8 @@ func mainErr() error {
 			metadata.RKEVersion = app.Version
 			return nil
 		}
-		logrus.Warnf("This is not an officially supported version (%s) of RKE. Please download the latest official release at https://github.com/rancher/rke/releases/latest", app.Version)
+		metadata.RKEVersion = metadata.RKEVersionDev
+		logrus.Warnf("This is not an officially supported version (%s) of RKE. Please download the latest official release at https://github.com/rancher/rke/releases/latest", metadata.RKEVersion)
 		return nil
 	}
 	app.Author = "Rancher Labs, Inc."
