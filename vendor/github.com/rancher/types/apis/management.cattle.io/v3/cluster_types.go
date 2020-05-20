@@ -71,6 +71,7 @@ const (
 	ClusterDriverLocal    = "local"
 	ClusterDriverRKE      = "rancherKubernetesEngine"
 	ClusterDriverK3s      = "k3s"
+	ClusterDriverK3os     = "k3os"
 )
 
 // +genclient
@@ -153,6 +154,7 @@ type ClusterStatus struct {
 	Capabilities                         Capabilities                `json:"capabilities,omitempty"`
 	MonitoringStatus                     *MonitoringStatus           `json:"monitoringStatus,omitempty" norman:"nocreate,noupdate"`
 	NodeVersion                          int                         `json:"nodeVersion,omitempty"`
+	NodeCount                            int                         `json:"nodeCount,omitempty" norman:"nocreate,noupdate"`
 	IstioEnabled                         bool                        `json:"istioEnabled,omitempty" norman:"nocreate,noupdate,default=false"`
 	CertificatesExpiration               map[string]CertExpiration   `json:"certificatesExpiration,omitempty"`
 	ScheduledClusterScanStatus           *ScheduledClusterScanStatus `json:"scheduledClusterScanStatus,omitempty"`
