@@ -13,6 +13,18 @@ type HandlerTransaction struct {
 	result bool
 }
 
+func (h *HandlerTransaction) do(f func()) {
+	if h == nil {
+		f()
+	} else {
+		go func() {
+			if h.shouldContinue() {
+				f()
+			}
+		}()
+	}
+}
+
 func (h *HandlerTransaction) shouldContinue() bool {
 	select {
 	case <-h.parent.Done():

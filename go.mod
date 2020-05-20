@@ -1,6 +1,6 @@
 module github.com/rancher/rke
 
-go 1.12
+go 1.13
 
 replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
@@ -9,6 +9,7 @@ replace (
 
 require (
 	github.com/Masterminds/sprig/v3 v3.0.0
+	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/containerd/containerd v1.3.0-beta.0.0.20190808172034-23faecfb66ab // indirect
 	github.com/coreos/etcd v3.3.17+incompatible
@@ -24,9 +25,10 @@ require (
 	github.com/mattn/go-colorable v0.1.2
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
-	github.com/pkg/errors v0.8.1
-	github.com/rancher/norman v0.0.0-20200326201949-eb806263e8ad
-	github.com/rancher/types v0.0.0-20200326224235-0d1e1dcc8d55
+	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/pkg/errors v0.9.1
+	github.com/rancher/norman v0.0.0-20200517050325-f53cae161640
+	github.com/rancher/types v0.0.0-20200602180723-12f6c0979333
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
