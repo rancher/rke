@@ -45,3 +45,15 @@ func TestPrivateRegistry(t *testing.T) {
 	assert.Equal(t, a, a2)
 
 }
+
+func TestGetKubeletDockerConfig(t *testing.T) {
+	e := "{\"auths\":{\"https://registry.example.com\":{\"auth\":\"dXNlcjE6cGFzc3d+cmQ=\"}}}"
+	c, err := GetKubeletDockerConfig(map[string]v3.PrivateRegistry{
+		"https://registry.example.com": v3.PrivateRegistry{
+			User:     "user1",
+			Password: "passw~rd",
+		},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, c, e)
+}
