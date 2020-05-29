@@ -1,8 +1,21 @@
 #!/bin/bash
 
+function kubectlinstall {
+    K8SVERSION=$1
+    if [ ! -f /usr/local/bin/kubectl-${K8SVERSION} ]; then
+        echo_with_time "Downloading kubectl ${K8SVERSION}"
+        curl -sL -o /usr/local/bin/kubectl-${K8SVERSION} https://storage.googleapis.com/kubernetes-release/release/$K8SVERSION/bin/linux/amd64/kubectl
+        chmod +x /usr/local/bin/kubectl-${K8SVERSION}
+    fi
+}
+
+function echo_with_time {
+    echo "$(date --utc +%Y-%m-%dT%H:%M:%SZ) "$@""
+}
+
 function cleanup {
     echo ""
-    echo "---- Clean Up RKE ----"
+    echo_with_time "---- Clean Up RKE ----"
     for i in ./bin/cluster-*.yml; do
         ./bin/rke remove --dind --force --config $i 2>&1 >/dev/null
     done
@@ -16,8 +29,10 @@ RESULT="0"
 declare -A versions_to_test
 declare -A pids_to_version
 declare -A pids_results
+declare -A rollout_results
+declare -A rkeup_results
 
-echo "INFO - Running $0"
+echo_with_time "INFO - Running $0"
 source $(dirname $0)/version
 
 cd $(dirname $0)/..
@@ -41,7 +56,7 @@ for ver in $all_versions; do
 done
 
 for ver in "${!versions_to_test[@]}"; do
-    echo "testing ${versions_to_test["${ver}"]}"
+    echo_with_time "Testing version ${versions_to_test["${ver}"]}"
 
     # Create cluster yaml with random node names
     node=$(cat /dev/urandom | tr -dc a-z | head -c${1:-8})
@@ -68,6 +83,7 @@ done
 # Wait for rke to finish
 for pid in $pids; do
     wait $pid
+    echo_with_time "PID ${pid} for ${pid_to_version["${pid}"]} is done"
     pid_results["${pid}"]="$?"
 done
 
@@ -76,17 +92,58 @@ for pid in $tail_pids; do
     kill $pid 2>&1 >/dev/null
 done
 
-echo ""
-echo "---- TEST RESULTS ----"
 for pid in "${!pid_results[@]}"; do
     if [ "${pid_results["${pid}"]}" == "0" ]; then
-        echo "[PASS] ${pid_to_version["${pid}"]}"
+        rkeup_results["${pid}"]="0"
+	CLUSTERK8SVERSION=$(echo "${pid_to_version["${pid}"]}" | awk -F'-' '{ print $1 }')
+        echo_with_time "[OK] rke up successful for ${pid_to_version["${pid}"]}"
+        kubectlinstall $CLUSTERK8SVERSION
+        echo_with_time "Checking rollout status of all deployments/daemonsets for ${pid_to_version["${pid}"]}"
+        for namespace in $(/usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" get namespace -o custom-columns=NAME:.metadata.name --no-headers); do
+            if [ "${rollout_results["${pid}"]}" = "1" ]; then
+                continue
+            fi
+            while read name kind; do
+                if [ "$name" = "" ] || [ "$kind" = "" ]; then
+                    continue
+                fi
+                if [ "${rollout_results["${pid}"]}" = "1" ]; then
+                    continue
+                fi
+                echo_with_time "Checking rollout status of $kind $name in namespace $namespace for ${pid_to_version["${pid}"]}"
+                /usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
+                if [ $? -ne 0 ]; then
+                    echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for ${pid_to_version["${pid}"]} did not complete in 5 minutes"
+                    rollout_results["${pid}"]="1"
+                    /usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
+                    /usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" -n kube-system get pods
+                else
+                    echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for ${pid_to_version["${pid}"]} complete"
+                    rollout_results["${pid}"]="0"
+                fi
+            done <<<$(/usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
+        done
     else
-        echo "[FAIL] ${pid_to_version["${pid}"]}"
-        RESULT="1"
+        rkeup_results["${pid}"]="1"
     fi
 done
 
-if [ "$RESULT" == "1" ]; then
+echo ""
+echo_with_time "---- TEST RESULTS ----"
+for pid in "${!pid_results[@]}"; do
+    if [ "${rkeup_results["${pid}"]}" != "0" ]; then
+        echo_with_time "[FAIL] ${pid_to_version["${pid}"]} (rke up)"
+        RESULT=1
+        continue
+    fi
+    if [ "${rollout_results["${pid}"]}" != "0" ]; then
+        echo_with_time "[FAIL] ${pid_to_version["${pid}"]} (rollout status)"
+        RESULT=1
+        continue
+    fi
+    echo_with_time "[PASS] ${pid_to_version["${pid}"]}"
+done
+
+if [ "$RESULT" = "1" ]; then
     exit 1
 fi
