@@ -26,13 +26,15 @@ const (
 	calicov117           = "calico-v1.17"
 	calicov117Privileged = "calico-v1.17-privileged"
 
-	canalv18            = "canal-v1.8"
-	canalv113           = "canal-v1.13"
-	canalv115           = "canal-v1.15"
-	canalv115Privileged = "canal-v1.15-privileged"
-	canalv116           = "canal-v1.16"
-	canalv117           = "canal-v1.17"
-	canalv117Privileged = "canal-v1.17-privileged"
+	canalv18                      = "canal-v1.8"
+	canalv113                     = "canal-v1.13"
+	canalv115                     = "canal-v1.15"
+	canalv115Privileged           = "canal-v1.15-privileged"
+	canalv115PrivilegedCalico3134 = "canal-v1.15-privileged-calico3134"
+	canalv116                     = "canal-v1.16"
+	canalv117                     = "canal-v1.17"
+	canalv117Privileged           = "canal-v1.17-privileged"
+	canalv117PrivilegedCalico3134 = "canal-v1.17-privileged-calico3134"
 
 	flannelv18  = "flannel-v1.8"
 	flannelv115 = "flannel-v1.15"
@@ -75,15 +77,20 @@ func LoadK8sVersionedTemplates() map[string]map[string]string {
 			">=1.8.0-rancher0 <1.13.0-rancher0":     calicov18,
 		},
 		Canal: {
-			">=1.17.4-rancher0":                     canalv117Privileged,
-			">=1.17.0-rancher0 <1.17.4-rancher0":    canalv117,
-			">=1.16.8-rancher0 <1.17.0-rancher0":    canalv117Privileged,
-			">=1.16.4-rancher1 <1.16.8-rancher0":    canalv117,
-			">=1.16.0-alpha <1.16.4-rancher1":       canalv116,
-			">=1.15.11-rancher1-1 <1.16.0-alpha":    canalv115Privileged,
-			">=1.15.0-rancher0 <1.15.11-rancher1-1": canalv115,
-			">=1.13.0-rancher0 <1.15.0-rancher0":    canalv113,
-			">=1.8.0-rancher0 <1.13.0-rancher0":     canalv18,
+			">=1.17.6-rancher2-1":                      canalv117PrivilegedCalico3134,
+			">=1.17.4-rancher0 <1.17.6-rancher2-1":     canalv117Privileged,
+			">=1.17.0-rancher0 <1.17.4-rancher0":       canalv117,
+			">=1.16.10-rancher2-1 <1.17.0-rancher0":    canalv117PrivilegedCalico3134,
+			">=1.16.8-rancher0 <1.16.10-rancher2-1":    canalv117Privileged,
+			">=1.16.4-rancher1 <1.16.8-rancher0":       canalv117,
+			">=1.16.0-alpha <1.16.4-rancher1":          canalv116,
+			">=1.15.12-rancher2-2 <1.16.0-alpha":       canalv115PrivilegedCalico3134,
+			">=1.15.11-rancher1-1 <1.15.12-rancher1-1": canalv115Privileged,
+			// 1.15.12-rancher1-1 comes from 2.2.13, uses old canalv115 template
+			">=1.15.12-rancher1-1 <1.15.12-rancher2-2": canalv115,
+			">=1.15.0-rancher0 <1.15.11-rancher1-1":    canalv115,
+			">=1.13.0-rancher0 <1.15.0-rancher0":       canalv113,
+			">=1.8.0-rancher0 <1.13.0-rancher0":        canalv18,
 		},
 		Flannel: {
 			">=1.16.0-alpha":                    flannelv116,
@@ -113,11 +120,11 @@ func LoadK8sVersionedTemplates() map[string]map[string]string {
 			// New ingress template introduced for 1.13.10-rancher1-3, 1.14.6-rancher2, 1.15.3-rancher2
 			">=1.13.10-rancher1-3 <1.14.0-rancher0":   nginxIngressV115,
 			">=1.14.6-rancher2 <1.15.0-rancher0":      nginxIngressV115,
-			">=1.15.3-rancher2 <1.15.12-rancher1-2":   nginxIngressV115,
+			">=1.15.3-rancher2 <1.15.12-rancher1-1":   nginxIngressV115,
 			">=1.16.1-rancher1-1 <1.16.10-rancher1-1": nginxIngressV115,
 			">=1.17.0-rancher1-1 <1.17.6-rancher1-1":  nginxIngressV115,
-			// New ingress template introduced for 1.15.12-rancher1-2, 1.16.10-rancher1-1, 1.17.6-rancher1-1
-			">=1.15.12-rancher1-2 <1.16.1-rancher1-1": nginxIngressV11512,
+			// New ingress template introduced for 1.15.12-rancher1-1, 1.16.10-rancher1-1, 1.17.6-rancher1-1
+			">=1.15.12-rancher1-1 <1.16.1-rancher1-1": nginxIngressV11512,
 			">=1.16.10-rancher1-1 <1.17.0-rancher1-1": nginxIngressV11512,
 			">=1.17.6-rancher1-1":                     nginxIngressV11512,
 		},
@@ -142,13 +149,15 @@ func getTemplates() map[string]string {
 		flannelv116: FlannelTemplateV116,
 		flannelv18:  FlannelTemplate,
 
-		canalv113:           CanalTemplateV113,
-		canalv18:            CanalTemplateV112,
-		canalv115:           CanalTemplateV115,
-		canalv115Privileged: CanalTemplateV115Privileged,
-		canalv116:           CanalTemplateV116,
-		canalv117:           CanalTemplateV117,
-		canalv117Privileged: CanalTemplateV117Privileged,
+		canalv113:                     CanalTemplateV113,
+		canalv18:                      CanalTemplateV112,
+		canalv115:                     CanalTemplateV115,
+		canalv115Privileged:           CanalTemplateV115Privileged,
+		canalv115PrivilegedCalico3134: CanalTemplateV115PrivilegedCalico3134,
+		canalv116:                     CanalTemplateV116,
+		canalv117:                     CanalTemplateV117,
+		canalv117Privileged:           CanalTemplateV117Privileged,
+		canalv117PrivilegedCalico3134: CanalTemplateV117PrivilegedCalico3134,
 
 		coreDnsv18:  CoreDNSTemplate,
 		coreDnsv116: CoreDNSTemplateV116,
