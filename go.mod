@@ -1,6 +1,6 @@
 module github.com/rancher/rke
 
-go 1.12
+go 1.13
 
 replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
@@ -30,7 +30,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/norman v0.0.0-20200520181341-ab75acb55410
-	github.com/rancher/types v0.0.0-20200520205802-ee9c76e143bf
+	github.com/rancher/types v0.0.0-20200528213132-b5fb46b1825d
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
