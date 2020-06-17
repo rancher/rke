@@ -951,7 +951,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, pr
 	CommandArgs := map[string]string{
 		"name":                        "etcd-" + host.HostnameOverride,
 		"data-dir":                    services.EtcdDataDir,
-		"advertise-client-urls":       "https://" + host.InternalAddress + ":2379,https://" + host.InternalAddress + ":4001",
+		"advertise-client-urls":       "https://" + host.InternalAddress + ":2379",
 		"listen-client-urls":          "https://" + listenAddress + ":2379",
 		"initial-advertise-peer-urls": "https://" + host.InternalAddress + ":2380",
 		"listen-peer-urls":            "https://" + listenAddress + ":2380",
