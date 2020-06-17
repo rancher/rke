@@ -2,8 +2,13 @@ package templates
 
 const VsphereCloudProviderTemplate = `
 [Global]
+{{- if and (ne .VsphereConfig.Global.SecretName "") (ne .VsphereConfig.Global.SecretNamespace "") }}
+secret-name = "{{ .VsphereConfig.Global.SecretName }}"
+secret-namespace = "{{ .VsphereConfig.Global.SecretNamespace }}"
+{{- else }}
 user = "{{ .VsphereConfig.Global.User }}"
 password = "{{ .VsphereConfig.Global.Password }}"
+{{- end }}
 {{- if ne .VsphereConfig.Global.VCenterIP "" }}
 server = "{{ .VsphereConfig.Global.VCenterIP }}"
 {{- end }}
@@ -33,8 +38,13 @@ vm-name = "{{ .VsphereConfig.Global.VMName }}"
 
 {{ range $k,$v := .VsphereConfig.VirtualCenter }}
 [VirtualCenter "{{ $k }}"]
+        {{- if and (ne $v.SecretName "") (ne $v.SecretNamespace "") }}
+        secret-name = "{{ $v.SecretName }}"
+        secret-namespace = "{{ $v.SecretNamespace }}"
+        {{- else }}
         user = "{{ $v.User }}"
         password = "{{ $v.Password }}"
+        {{- end }}
         {{- if ne $v.VCenterPort "" }}
         port = "{{ $v.VCenterPort }}"
         {{- end }}
