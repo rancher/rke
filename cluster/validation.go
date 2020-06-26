@@ -67,12 +67,183 @@ func validateAuthOptions(c *Cluster) error {
 	return nil
 }
 
+func transformAciNetworkOption(option string) (string, string) {
+	var description string
+	switch option {
+	case AciSystemIdentifier:
+		option = "system_id"
+		description = "unique suffix for all cluster related objects in aci"
+	case AciServiceGraphSubnet:
+		option = "node_svc_subnet"
+		description = "Subnet to use for service graph endpoints on aci"
+	case AciStaticExternalSubnet:
+		option = "extern_static"
+		description = "Subnet to use for static external IPs on aci"
+	case AciDynamicExternalSubnet:
+		option = "extern_dynamic"
+		description = "Subnet to use for dynamic external IPs on aci"
+	case AciToken:
+		description = "UUID for this version of the input configuration"
+	case AciApicUserName:
+		description = "User name for aci apic"
+	case AciApicUserKey:
+		description = "Base64 encoded private key for aci apic user"
+	case AciApicUserCrt:
+		description = "Base64 encoded certificate for aci apic user"
+	case AciEncapType:
+		description = "One of the supported encap types for aci(vlan/vxlan)"
+	case AciMcastRangeStart:
+		description = "Mcast range start address for endpoint groups on aci"
+	case AciMcastRangeEnd:
+		description = "Mcast range end address for endpoint groups on aci"
+	case AciNodeSubnet:
+		description = "Kubernetes node address subnet"
+	case AciAEP:
+		description = "Attachment entity profile name on aci"
+	case AciVRFName:
+		description = "VRF Name on aci"
+	case AciVRFTenant:
+		description = "Tenant for VRF on aci"
+	case AciL3Out:
+		description = "L3Out on aci"
+	case AciKubeAPIVlan:
+		description = "Vlan for node network on aci"
+	case AciServiceVlan:
+		description = "Vlan for service graph nodes on aci"
+	case AciInfraVlan:
+		description = "Vlan for infra network on aci"
+	}
+	return option, description
+}
+
+func validateAciCloudOptionsDisabled(option string, value string) (string, string, bool) {
+	var description string
+	ok := false
+	switch option {
+	case AciUseOpflexServerVolume:
+		if value == DefaultAciUseOpflexServerVolume {
+			ok = true
+		}
+		description = "Use mounted volume for opflex server"
+	case AciUseHostNetnsVolume:
+		if value == DefaultAciUseHostNetnsVolume {
+			ok = true
+		}
+		description = "Mount host netns for opflex server"
+	case AciCApic:
+		if value == DefaultAciCApic {
+			ok = true
+		}
+		description = "Provision cloud apic"
+	case AciUseAciAnywhereCRD:
+		if value == DefaultAciUseAciAnywhereCRD {
+			ok = true
+		}
+		description = "Use Aci anywhere CRD"
+	case AciRunGbpContainer:
+		if value == DefaultAciRunGbpContainer {
+			ok = true
+		}
+		description = "Run Gbp Server"
+	case AciRunOpflexServerContainer:
+		if value == DefaultAciRunOpflexServerContainer {
+			ok = true
+		}
+		description = "Run Opflex Server"
+	case AciEpRegistry:
+		if value == "" {
+			ok = true
+		}
+		description = "Registry for Ep whether CRD or MODB"
+	case AciOpflexMode:
+		if value == "" {
+			ok = true
+		}
+		description = "Opflex overlay mode or on-prem"
+	case AciSubnetDomainName:
+		if value == "" {
+			ok = true
+		}
+		description = "Subnet domain name"
+	case AciKafkaClientCrt:
+		if value == "" {
+			ok = true
+		}
+		description = "CApic Kafka client certificate"
+	case AciKafkaClientKey:
+		if value == "" {
+			ok = true
+		}
+		description = "CApic Kafka client key"
+	case AciOverlayVRFName:
+		if value == "" {
+			ok = true
+		}
+		description = "Overlay VRF name"
+	case AciGbpPodSubnet:
+		if value == "" {
+			ok = true
+		}
+		description = "Gbp pod subnet"
+	case AciOpflexServerPort:
+		if value == "" {
+			ok = true
+		}
+		description = "Opflex server port"
+	}
+	return option, description, ok
+}
+
 func validateNetworkOptions(c *Cluster) error {
-	if c.Network.Plugin != NoNetworkPlugin && c.Network.Plugin != FlannelNetworkPlugin && c.Network.Plugin != CalicoNetworkPlugin && c.Network.Plugin != CanalNetworkPlugin && c.Network.Plugin != WeaveNetworkPlugin {
+	if c.Network.Plugin != NoNetworkPlugin && c.Network.Plugin != FlannelNetworkPlugin && c.Network.Plugin != CalicoNetworkPlugin && c.Network.Plugin != CanalNetworkPlugin && c.Network.Plugin != WeaveNetworkPlugin && c.Network.Plugin != AciNetworkPlugin {
 		return fmt.Errorf("Network plugin [%s] is not supported", c.Network.Plugin)
 	}
 	if c.Network.Plugin == FlannelNetworkPlugin && c.Network.MTU != 0 {
 		return fmt.Errorf("Network plugin [%s] does not support configuring MTU", FlannelNetworkPlugin)
+	}
+	if c.Network.Plugin == AciNetworkPlugin {
+		//Skip cloud options and throw an error.
+		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciUseOpflexServerVolume,
+			AciSubnetDomainName, AciKafkaClientCrt, AciKafkaClientKey, AciCApic, UseAciAnywhereCRD,
+			AciOverlayVRFName, AciGbpPodSubnet, AciRunGbpContainer, AciRunOpflexServerContainer, AciOpflexServerPort}
+		for _, v := range cloudOptionsList {
+			val, ok := c.Network.Options[v]
+			_, _, disabled := validateAciCloudOptionsDisabled(v, val)
+			if ok && !disabled {
+				return fmt.Errorf("Network plugin aci: %s = %s is provided,but cloud options are not allowed in this release", v, val)
+			}
+		}
+
+		networkOptionsList := []string{AciSystemIdentifier, AciToken, AciApicUserName, AciApicUserKey,
+			AciApicUserCrt, AciEncapType, AciMcastRangeStart, AciMcastRangeEnd,
+			AciNodeSubnet, AciAEP, AciVRFName, AciVRFTenant, AciL3Out, AciDynamicExternalSubnet,
+			AciStaticExternalSubnet, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan,
+			AciNodeSubnet}
+		for _, v := range networkOptionsList {
+			val, ok := c.Network.Options[v]
+			if !ok || val == "" {
+				var description string
+				v, description = transformAciNetworkOption(v)
+				return fmt.Errorf("Network plugin aci: %s(%s) under aci_network_provider is not provided", strings.TrimPrefix(v, "aci_"), description)
+			}
+		}
+		if c.Network.AciNetworkProvider != nil {
+			if c.Network.AciNetworkProvider.ApicHosts == nil {
+				return fmt.Errorf("Network plugin aci: %s(address of aci apic hosts) under aci_network_provider is not provided", "apic_hosts")
+			}
+			if c.Network.AciNetworkProvider.L3OutExternalNetworks == nil {
+				return fmt.Errorf("Network plugin aci: %s(external network name/s on aci) under aci_network_provider is not provided", "l3out_external_networks")
+			}
+		} else {
+			var requiredArgs []string
+			for _, v := range networkOptionsList {
+				v, _ = transformAciNetworkOption(v)
+				requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", strings.TrimPrefix("aci_", v)))
+			}
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", ApicHosts))
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", L3OutExternalNetworks))
+			return fmt.Errorf("Network plugin aci: multiple parameters under aci_network_provider are not provided: %s", requiredArgs)
+		}
 	}
 	return nil
 }
@@ -335,6 +506,28 @@ func validateNetworkImages(c *Cluster) error {
 		if len(c.SystemImages.WeaveNode) == 0 {
 			return errors.New("weave image is not populated")
 		}
+	} else if c.Network.Plugin == AciNetworkPlugin {
+		if len(c.SystemImages.AciCniDeployContainer) == 0 {
+			return errors.New("aci cnideploy image is not populated")
+		}
+		if len(c.SystemImages.AciHostContainer) == 0 {
+			return errors.New("aci host container image is not populated")
+		}
+		if len(c.SystemImages.AciOpflexContainer) == 0 {
+			return errors.New("aci opflex agent image is not populated")
+		}
+		if len(c.SystemImages.AciMcastContainer) == 0 {
+			return errors.New("aci mcast container image is not populated")
+		}
+		if len(c.SystemImages.AciOpenvSwitchContainer) == 0 {
+			return errors.New("aci openvswitch image is not populated")
+		}
+		if len(c.SystemImages.AciControllerContainer) == 0 {
+			return errors.New("aci controller image is not populated")
+		}
+		//Skipping Cloud image validation.
+		//c.SystemImages.AciOpflexServerContainer
+		//c.SystemImages.AciGbpServerContainer
 	}
 	return nil
 }
