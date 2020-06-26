@@ -11,6 +11,7 @@ replace (
 require (
 	github.com/Masterminds/sprig/v3 v3.0.0
 	github.com/Microsoft/hcsshim v0.8.9 // indirect
+	github.com/apparentlymart/go-cidr v1.0.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/containerd/continuity v0.0.0-20200710164510-efbc4488d8fe // indirect
 	github.com/coreos/bbolt v1.3.1-coreos.6 // indirect
