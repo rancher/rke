@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DINDImage           = "docker:17.03-dind"
+	DINDImage           = "docker:19.03.12-dind"
 	DINDContainerPrefix = "rke-dind"
 	DINDPlane           = "dind"
 	DINDNetwork         = "dind-network"
@@ -67,6 +67,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 					"dockerd-entrypoint.sh --storage-driver=" + storageDriver,
 			},
 			Hostname: dindAddress,
+			Env:      []string{"DOCKER_TLS_CERTDIR="},
 		}
 		hostCfg := &container.HostConfig{
 			Privileged: true,
