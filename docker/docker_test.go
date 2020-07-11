@@ -3,7 +3,7 @@ package docker
 import (
 	"testing"
 
-	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/rke/types"
 	"github.com/stretchr/testify/assert"
 )
 
