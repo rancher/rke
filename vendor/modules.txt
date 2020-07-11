@@ -191,21 +191,13 @@ github.com/rancher/lasso/pkg/scheme
 github.com/rancher/norman/condition
 github.com/rancher/norman/controller
 github.com/rancher/norman/httperror
-github.com/rancher/norman/lifecycle
 github.com/rancher/norman/metrics
 github.com/rancher/norman/objectclient
-github.com/rancher/norman/resource
 github.com/rancher/norman/types
 github.com/rancher/norman/types/convert
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20200609171939-d21f6b7b59e8
-github.com/rancher/types/apis/management.cattle.io/v3
-github.com/rancher/types/apis/project.cattle.io/v3
-github.com/rancher/types/condition
-github.com/rancher/types/image
-github.com/rancher/types/kdm
 # github.com/rancher/wrangler v0.6.2-0.20200515155908-1923f3f8ec3f
 github.com/rancher/wrangler/pkg/name
 # github.com/russross/blackfriday v1.5.2
@@ -268,6 +260,19 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 golang.org/x/time/rate
+# golang.org/x/tools v0.0.0-20191115202509-3a792d9c32b2
+golang.org/x/tools/go/ast/astutil
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/internal/gcimporter
+golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/go/packages
+golang.org/x/tools/imports
+golang.org/x/tools/internal/fastwalk
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/imports
+golang.org/x/tools/internal/module
+golang.org/x/tools/internal/semver
+golang.org/x/tools/internal/span
 # google.golang.org/appengine v1.6.5
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/base
@@ -491,6 +496,15 @@ k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
 # k8s.io/component-base v0.18.0
 k8s.io/component-base/version
+# k8s.io/gengo v0.0.0-20200114144118-36b2048a9120
+k8s.io/gengo/args
+k8s.io/gengo/examples/deepcopy-gen
+k8s.io/gengo/examples/deepcopy-gen/generators
+k8s.io/gengo/examples/set-gen/sets
+k8s.io/gengo/generator
+k8s.io/gengo/namer
+k8s.io/gengo/parser
+k8s.io/gengo/types
 # k8s.io/klog v1.0.0
 k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
