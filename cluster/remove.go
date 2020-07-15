@@ -70,7 +70,7 @@ func (c *Cluster) CleanupNodes(ctx context.Context) error {
 
 func (c *Cluster) CleanupFiles(ctx context.Context) error {
 	pki.RemoveAdminConfig(ctx, c.LocalKubeConfigPath)
-	removeStateFile(ctx, c.StateFilePath)
+	RemoveStateFile(ctx, c.StateFilePath)
 	return nil
 }
 

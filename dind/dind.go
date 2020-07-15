@@ -120,6 +120,10 @@ func RmoveDindContainer(ctx context.Context, dindAddress string) error {
 	if err := cli.ContainerRemove(ctx, containerName, types.ContainerRemoveOptions{
 		Force:         true,
 		RemoveVolumes: true}); err != nil {
+		if client.IsErrNotFound(err) {
+			logrus.Debugf("[remove/%s] Container doesn't exist on host [%s]", containerName, cli.DaemonHost())
+			return nil
+		}
 		return fmt.Errorf("Failed to remove dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
 	}
 	logrus.Infof("[%s] Successfully Removed dind container [%s] on host [%s]", DINDPlane, containerName, cli.DaemonHost())
