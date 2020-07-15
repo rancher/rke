@@ -166,8 +166,12 @@ func clusterRemoveDind(ctx *cli.Context) error {
 			return err
 		}
 	}
-	localKubeConfigPath := pki.GetLocalKubeConfig(filePath, "")
 	// remove the kube config file
+	localKubeConfigPath := pki.GetLocalKubeConfig(filePath, "")
 	pki.RemoveAdminConfig(context.Background(), localKubeConfigPath)
+
+	// remove cluster state file
+	stateFilePath := cluster.GetStateFilePath(filePath, "")
+	cluster.RemoveStateFile(context.Background(), stateFilePath)
 	return err
 }

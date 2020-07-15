@@ -264,7 +264,7 @@ func ReadStateFile(ctx context.Context, statePath string) (*FullState, error) {
 	return rkeFullState, nil
 }
 
-func removeStateFile(ctx context.Context, statePath string) {
+func RemoveStateFile(ctx context.Context, statePath string) {
 	log.Infof(ctx, "Removing state file: %s", statePath)
 	if err := os.Remove(statePath); err != nil {
 		logrus.Warningf("Failed to remove state file: %v", err)
