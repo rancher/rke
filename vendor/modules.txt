@@ -194,7 +194,7 @@ github.com/rancher/norman/types/convert
 github.com/rancher/norman/types/definition
 github.com/rancher/norman/types/slice
 github.com/rancher/norman/types/values
-# github.com/rancher/types v0.0.0-20200609171948-b18f4c194419
+# github.com/rancher/types v0.0.0-20200723224053-ae84b42a4797
 github.com/rancher/types/apis/management.cattle.io/v3
 github.com/rancher/types/apis/project.cattle.io/v3
 github.com/rancher/types/condition
@@ -231,7 +231,7 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20191112182307-2180aed22343
+# golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
