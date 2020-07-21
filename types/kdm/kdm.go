@@ -47,7 +47,8 @@ type Data struct {
 	CisBenchmarkVersionInfo map[string]CisBenchmarkVersionInfo
 
 	// K3S specific data, opaque and defined by the config file in kdm
-	K3S map[string]interface{} `json:"k3s,omitempty"`
+	K3S  map[string]interface{} `json:"k3s,omitempty"`
+	RKE2 map[string]interface{} `json:"rke2,omitempty"`
 }
 
 func FromData(b []byte) (Data, error) {
