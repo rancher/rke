@@ -48,6 +48,7 @@ type Data struct {
 
 	// K3S specific data, opaque and defined by the config file in kdm
 	K3S  map[string]interface{} `json:"k3s,omitempty"`
+	//Rke2 specific data, defined by the config file in kdm
 	RKE2 map[string]interface{} `json:"rke2,omitempty"`
 }
 
