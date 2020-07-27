@@ -24,8 +24,8 @@ const (
 )
 
 func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProvider string) error {
-
-	if cloudProvider == AWSCloudProvider {
+	// If cloud provider is configured, the node name can be set by the cloud provider, which can be different from the original node name
+	if cloudProvider != "" {
 		node, err := GetNode(k8sClient, nodeName)
 		if err != nil {
 			return err
