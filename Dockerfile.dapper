@@ -1,5 +1,5 @@
-FROM ubuntu:16.04
-# FROM arm=armhf/ubuntu:16.04
+FROM ubuntu:20.04
+# FROM arm=armhf/ubuntu:20.04 arm64=arm64v8/ubuntu:20.04
 
 ARG DAPPER_HOST_ARCH
 ENV HOST_ARCH=${DAPPER_HOST_ARCH} ARCH=${DAPPER_HOST_ARCH}
