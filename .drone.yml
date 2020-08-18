@@ -12,16 +12,6 @@ steps:
   image: rancher/dapper:1.11.2
   commands:
   - dapper ci
-  privileged: true
-  volumes:
-  - name: socket
-    path: /var/run/docker.sock
-
-- name: build-all-binaries
-  pull: default
-  image: rancher/dapper:1.11.2
-  commands:
-  - dapper build
   - ls -lR dist/artifacts
   environment:
     CROSS: 1
@@ -29,12 +19,6 @@ steps:
   volumes:
   - name: socket
     path: /var/run/docker.sock
-  when:
-    event:
-    - tag
-    ref:
-      include:
-      - "refs/tags/*"
 
 - name: stage-binaries
   pull: default
