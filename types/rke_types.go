@@ -151,6 +151,8 @@ type RKESystemImages struct {
 	CanalNode string `yaml:"canal_node" json:"canalNode,omitempty"`
 	// Canal CNI image
 	CanalCNI string `yaml:"canal_cni" json:"canalCni,omitempty"`
+	// Canal Controllers Image needed for Calico/Canal v3.14.0+
+	CanalControllers string `yaml:"canal_controllers" json:"canalControllers,omitempty"`
 	//CanalFlannel image
 	CanalFlannel string `yaml:"canal_flannel" json:"canalFlannel,omitempty"`
 	//CanalFlexVol image
