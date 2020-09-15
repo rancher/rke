@@ -880,7 +880,7 @@ type NodeDrainInput struct {
 	Force bool `yaml:"force" json:"force,omitempty"`
 	// If there are DaemonSet-managed pods, drain will not proceed without IgnoreDaemonSets set to true
 	// (even when set to true, kubectl won't delete pods - so setting default to true)
-	IgnoreDaemonSets *bool `yaml:"ignore_daemonsets" json:"ignoreDaemonSets,omitempty" norman:"default=true"`
+	IgnoreDaemonSets *bool `yaml:"ignore_daemonsets" json:"ignoreDaemonSets,omitempty" norman:"notnullable,default=true"`
 	// Continue even if there are pods using emptyDir
 	DeleteLocalData bool `yaml:"delete_local_data" json:"deleteLocalData,omitempty"`
 	//Period of time in seconds given to each pod to terminate gracefully.
