@@ -49,8 +49,9 @@ const (
 	KubeletDockerConfigPath    = "/var/lib/kubelet/config.json"
 
 	// MaxEtcdOldEnvVersion The versions are maxed out for minor versions because -rancher1 suffix will cause semver to think its older, example: v1.15.0 > v1.15.0-rancher1
-	MaxEtcdOldEnvVersion = "v3.2.99"
-	MaxK8s115Version     = "v1.15"
+	MaxEtcdOldEnvVersion   = "v3.2.99"
+	MaxK8s115Version       = "v1.15"
+	MaxEtcdPort4001Version = "v3.4.3-rancher99"
 
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 )
@@ -841,7 +842,6 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	CommandArgs := map[string]string{
 		"name":                        "etcd-" + host.HostnameOverride,
 		"data-dir":                    services.EtcdDataDir,
-		"advertise-client-urls":       "https://" + host.InternalAddress + ":2379,https://" + host.InternalAddress + ":4001",
 		"listen-client-urls":          "https://" + listenAddress + ":2379",
 		"initial-advertise-peer-urls": "https://" + host.InternalAddress + ":2380",
 		"listen-peer-urls":            "https://" + listenAddress + ":2380",
@@ -854,6 +854,28 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 		"key-file":                    pki.GetKeyPath(nodeName),
 		"peer-cert-file":              pki.GetCertPath(nodeName),
 		"peer-key-file":               pki.GetKeyPath(nodeName),
+	}
+
+	etcdTag, err := util.GetImageTagFromImage(c.Services.Etcd.Image)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	etcdSemVer, err := util.StrToSemVer(etcdTag)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	maxEtcdPort4001Version, err := util.StrToSemVer(MaxEtcdPort4001Version)
+	if err != nil {
+		logrus.Warn(err)
+	}
+
+	// We removed advertising port 4001 starting with k8s 1.19 (etcd v3.4.13 and up)
+	if etcdSemVer.LessThan(*maxEtcdPort4001Version) {
+		logrus.Debugf("etcd version [%s] is less than max version [%s] for advertising port 4001, going to advertise port 4001", etcdSemVer, maxEtcdPort4001Version)
+		CommandArgs["advertise-client-urls"] = "https://" + host.InternalAddress + ":2379,https://" + host.InternalAddress + ":4001"
+	} else {
+		logrus.Debugf("etcd version [%s] is higher than max version [%s] for advertising port 4001, not going to advertise port 4001", etcdSemVer, maxEtcdPort4001Version)
+		CommandArgs["advertise-client-urls"] = "https://" + host.InternalAddress + ":2379"
 	}
 
 	Binds := []string{
@@ -898,14 +920,6 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Etcd.Image, c.PrivateRegistriesMap)
 
 	// Determine etcd version for correct etcdctl environment variables
-	etcdTag, err := util.GetImageTagFromImage(c.Services.Etcd.Image)
-	if err != nil {
-		logrus.Warn(err)
-	}
-	etcdSemVer, err := util.StrToSemVer(etcdTag)
-	if err != nil {
-		logrus.Warn(err)
-	}
 	maxEtcdOldEnvSemVer, err := util.StrToSemVer(MaxEtcdOldEnvVersion)
 	if err != nil {
 		logrus.Warn(err)
