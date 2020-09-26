@@ -121,7 +121,7 @@ for pid in "${!pid_results[@]}"; do
                     echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for ${pid_to_version["${pid}"]} complete"
                     rollout_results["${pid}"]="0"
                 fi
-            done <<<$(/usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
+            done < <(/usr/local/bin/kubectl-${CLUSTERK8SVERSION} --kubeconfig "./bin/kube_config_cluster-${pid_to_version["${pid}"]}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
         done
     else
         rkeup_results["${pid}"]="1"
