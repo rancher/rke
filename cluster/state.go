@@ -17,6 +17,7 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/rke/services"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -66,6 +67,19 @@ func (c *Cluster) GetClusterState(ctx context.Context, fullState *FullState) (*C
 		return nil, err
 	}
 	return currentCluster, nil
+}
+
+func (c *Cluster) GetStateFileFromConfigMap(ctx context.Context) (string, error) {
+	kubeletImage := c.Services.Kubelet.Image
+	for _, host := range c.ControlPlaneHosts {
+		stateFile, err := services.RunGetStateFileFromConfigMap(ctx, host, c.PrivateRegistriesMap, kubeletImage)
+		if err != nil || stateFile == "" {
+			logrus.Infof("Could not get ConfigMap with cluster state from host [%s]", host.Address)
+			continue
+		}
+		return stateFile, nil
+	}
+	return "", fmt.Errorf("Unable to get ConfigMap with cluster state from any Control Plane host")
 }
 
 func SaveFullStateToKubernetes(ctx context.Context, kubeCluster *Cluster, fullState *FullState) error {
