@@ -790,15 +790,18 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 	if len(kubeCluster.ControlPlaneHosts) == 0 {
 		return nil
 	}
+	var activeControlPlaneHostFound bool
 	log.Infof(ctx, "[reconcile] Rebuilding and updating local kube config")
 	var workingConfig, newConfig string
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCertName]
 	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
 	for _, cpHost := range kubeCluster.ControlPlaneHosts {
 		if (currentKubeConfig == pki.CertificatePKI{}) {
+			log.Debugf(ctx, "[reconcile] Rebuilding and updating local kube config, creating new address")
 			kubeCluster.Certificates = make(map[string]pki.CertificatePKI)
 			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHost.Address, kubeCluster.ClusterName)
 		} else {
+			log.Debugf(ctx, "[reconcile] Rebuilding and updating local kube config, creating new kubeconfig")
 			kubeURL := fmt.Sprintf("https://%s:6443", cpHost.Address)
 			caData := string(cert.EncodeCertPEM(caCrt))
 			crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
@@ -810,9 +813,14 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 		}
 		workingConfig = newConfig
 		if _, err := GetK8sVersion(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport); err == nil {
-			log.Infof(ctx, "[reconcile] host [%s] is active master on the cluster", cpHost.Address)
+			log.Infof(ctx, "[reconcile] host [%s] is a control plane node with reachable Kubernetes API endpoint in the cluster", cpHost.Address)
+			activeControlPlaneHostFound = true
 			break
 		}
+		log.Warnf(ctx, "[reconcile] host [%s] is a control plane node without reachable Kubernetes API endpoint in the cluster", cpHost.Address)
+	}
+	if !activeControlPlaneHostFound {
+		log.Warnf(ctx, "[reconcile] no control plane node with reachable Kubernetes API endpoint in the cluster found")
 	}
 	currentKubeConfig.Config = workingConfig
 	kubeCluster.Certificates[pki.KubeAdminCertName] = currentKubeConfig

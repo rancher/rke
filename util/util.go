@@ -2,6 +2,8 @@ package util
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"reflect"
@@ -179,4 +181,66 @@ func CleanWindowsPath(s string) string {
 		new = append(new, "")
 	}
 	return strings.Join(new, "\\")
+}
+
+func ReplaceFileWithBackup(originalFile, prefixBackupFile string) error {
+	fileExists, err := IsFileExists(originalFile)
+	if err != nil {
+		return err
+	}
+	if !fileExists {
+		return nil
+	}
+	tmpfile, err := ioutil.TempFile(".", prefixBackupFile)
+	if err != nil {
+		return err
+	}
+	err = os.Rename(originalFile, tmpfile.Name())
+	if err != nil {
+		return err
+	}
+	logrus.Infof("Moved file [%s] to new location [%s] as back-up", originalFile, tmpfile.Name())
+	return nil
+}
+
+func CopyFileWithPrefix(originalFile, prefixDestFile string) error {
+	fileExists, err := IsFileExists(originalFile)
+	if err != nil {
+		return err
+	}
+	if !fileExists {
+		return nil
+	}
+
+	sourceFileStat, err := os.Stat(originalFile)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", originalFile)
+	}
+
+	source, err := os.Open(originalFile)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destFile, err := ioutil.TempFile(".", prefixDestFile)
+	if err != nil {
+		return err
+	}
+
+	destination, err := os.Create(destFile.Name())
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("Copied file [%s] to new location [%s] as back-up", originalFile, destFile.Name())
+	return nil
 }
