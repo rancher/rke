@@ -6669,7 +6669,7 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.18.8-beta19+rke2"
+    "version": "v1.18.9+rke2r1"
    }
   ]
  }
