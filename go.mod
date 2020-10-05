@@ -11,6 +11,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/Microsoft/hcsshim v0.8.9 // indirect
 	github.com/apparentlymart/go-cidr v1.0.1
+	github.com/aws/aws-sdk-go v1.38.65
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/containerd/containerd v1.4.1-0.20201117152358-0edc412565dc // indirect
 	github.com/containerd/continuity v0.0.0-20200710164510-efbc4488d8fe // indirect

@@ -54,6 +54,11 @@ func (c *Cluster) ValidateCluster(ctx context.Context) error {
 		return err
 	}
 
+	// validate registry credential plugin
+	if err := validateRegistryAuthPlugin(c); err != nil {
+		return err
+	}
+
 	// validate services options
 	return validateServicesOptions(c)
 }
@@ -602,6 +607,22 @@ func validateCRIDockerdOption(c *Cluster) error {
 			return fmt.Errorf("Enabling cri-dockerd for cluster version [%s] is not supported", k8sVersion)
 		}
 		logrus.Infof("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
+	}
+	return nil
+}
+
+func validateRegistryAuthPlugin(c *Cluster) error {
+	for _, pr := range c.PrivateRegistriesMap {
+		if len(pr.CredentialPlugin) != 0 {
+			if credPluginType, ok := pr.CredentialPlugin["type"]; ok {
+				switch credPluginType {
+				case "ecr":
+					logrus.Debugf("Plugin type %s is valid", credPluginType)
+				default:
+					return fmt.Errorf("invalid registry plugin helper provided for %s", pr.URL)
+				}
+			}
+		}
 	}
 	return nil
 }

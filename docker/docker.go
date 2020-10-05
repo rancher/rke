@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rancher/rke/util"
+
 	"github.com/coreos/go-semver/semver"
 	ref "github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -41,7 +43,8 @@ const (
 )
 
 type dockerConfig struct {
-	Auths map[string]authConfig `json:"auths,omitempty"`
+	Auths       map[string]authConfig `json:"auths,omitempty"`
+	CredHelpers map[string]string     `json:"credHelpers,omitempty"`
 }
 
 type authConfig types.AuthConfig
@@ -667,10 +670,28 @@ func tryRegistryAuth(pr v3.PrivateRegistry) types.RequestPrivilegeFunc {
 }
 
 func getRegistryAuth(pr v3.PrivateRegistry) (string, error) {
-	authConfig := types.AuthConfig{
-		Username: pr.User,
-		Password: pr.Password,
+	var authConfig types.AuthConfig
+	var err error
+	if len(pr.User) == 0 && len(pr.Password) == 0 && len(pr.CredentialPlugin) != 0 {
+		if regType, ok := pr.CredentialPlugin["type"]; ok {
+			switch regType {
+			case "ecr":
+				// generate ecr authConfig
+				authConfig, err = util.ECRCredentialPlugin(pr.CredentialPlugin, pr.URL)
+				if err != nil {
+					return "", err
+				}
+			default:
+				return "", fmt.Errorf("Unsupported Credential Plugin")
+			}
+		}
+	} else {
+		authConfig = types.AuthConfig{
+			Username: pr.User,
+			Password: pr.Password,
+		}
 	}
+
 	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {
 		return "", err
@@ -738,12 +759,20 @@ func isContainerEnvChanged(containerEnv, imageConfigEnv, dockerfileEnv []string)
 
 func GetKubeletDockerConfig(prsMap map[string]v3.PrivateRegistry) (string, error) {
 	auths := map[string]authConfig{}
-
+	credHelper := make(map[string]string)
 	for url, pr := range prsMap {
-		auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", pr.User, pr.Password)))
-		auths[url] = authConfig{Auth: auth}
+		if len(pr.CredentialPlugin) != 0 {
+			if credPluginType, ok := pr.CredentialPlugin["type"]; ok {
+				if credPluginType == "ecr" {
+					credHelper[pr.URL] = "ecr-login"
+				}
+			}
+		} else {
+			auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", pr.User, pr.Password)))
+			auths[url] = authConfig{Auth: auth}
+		}
 	}
-	cfg, err := json.Marshal(dockerConfig{auths})
+	cfg, err := json.Marshal(dockerConfig{auths, credHelper})
 	if err != nil {
 		return "", err
 	}
