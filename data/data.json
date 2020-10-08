@@ -1546,6 +1546,71 @@
     "v": "2"
    }
   },
+  "v1.16.15-rancher1-2": {
+   "etcd": {
+    "client-cert-auth": "true",
+    "peer-client-cert-auth": "true"
+   },
+   "kubeapi": {
+    "allow-privileged": "true",
+    "anonymous-auth": "false",
+    "bind-address": "0.0.0.0",
+    "enable-admission-plugins": "NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,NodeRestriction,Priority,TaintNodesByCondition,PersistentVolumeClaimResize",
+    "insecure-port": "0",
+    "kubelet-preferred-address-types": "InternalIP,ExternalIP,Hostname",
+    "profiling": "false",
+    "requestheader-extra-headers-prefix": "X-Remote-Extra-",
+    "requestheader-group-headers": "X-Remote-Group",
+    "requestheader-username-headers": "X-Remote-User",
+    "runtime-config": "authorization.k8s.io/v1beta1=true",
+    "secure-port": "6443",
+    "service-account-lookup": "true",
+    "storage-backend": "etcd3",
+    "tls-cipher-suites": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+   },
+   "kubelet": {
+    "address": "0.0.0.0",
+    "anonymous-auth": "false",
+    "authentication-token-webhook": "true",
+    "authorization-mode": "Webhook",
+    "cgroups-per-qos": "True",
+    "cni-bin-dir": "/opt/cni/bin",
+    "cni-conf-dir": "/etc/cni/net.d",
+    "enforce-node-allocatable": "",
+    "event-qps": "0",
+    "make-iptables-util-chains": "true",
+    "network-plugin": "cni",
+    "read-only-port": "0",
+    "resolv-conf": "/etc/resolv.conf",
+    "streaming-connection-idle-timeout": "30m",
+    "tls-cipher-suites": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+    "v": "2",
+    "volume-plugin-dir": "/var/lib/kubelet/volumeplugins"
+   },
+   "kubeproxy": {
+    "healthz-bind-address": "127.0.0.1",
+    "v": "2"
+   },
+   "kubeController": {
+    "address": "0.0.0.0",
+    "allocate-node-cidrs": "true",
+    "allow-untagged-cloud": "true",
+    "configure-cloud-routes": "false",
+    "enable-hostpath-provisioner": "false",
+    "leader-elect": "true",
+    "node-monitor-grace-period": "40s",
+    "pod-eviction-timeout": "5m0s",
+    "profiling": "false",
+    "terminated-pod-gc-threshold": "1000",
+    "v": "2"
+   },
+   "scheduler": {
+    "address": "0.0.0.0",
+    "leader-elect": "true",
+    "profiling": "false",
+    "v": "2"
+   }
+  },
   "v1.16.3-rancher1-1": {
    "etcd": {
     "client-cert-auth": "true",
