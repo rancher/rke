@@ -2,6 +2,8 @@
 
 function kubectlinstall {
     k8sversion=$1
+    echo_with_time "Removing kubectl cache from ${HOME}/.kube/cache"
+    rm -rf "${HOME}/.kube/cache"
     if [ ! -f "/usr/local/bin/kubectl-${k8sversion}" ]; then
         echo_with_time "Downloading kubectl ${k8sversion}"
         curl -sL -o "/usr/local/bin/kubectl-${k8sversion}" "https://storage.googleapis.com/kubernetes-release/release/${k8sversion}/bin/linux/amd64/kubectl"
