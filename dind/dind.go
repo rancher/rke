@@ -21,7 +21,7 @@ const (
 )
 
 func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindStorageDriver, dindDNS string) (string, error) {
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return "", err
 	}
@@ -107,7 +107,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 }
 
 func RmoveDindContainer(ctx context.Context, dindAddress string) error {
-	cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
