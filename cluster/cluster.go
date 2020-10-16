@@ -496,9 +496,6 @@ func parseAddonConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineC
 }
 
 func parseIngressConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
-	if &rkeConfig.Ingress == nil {
-		return nil
-	}
 	var r map[string]interface{}
 	err := ghodssyaml.Unmarshal([]byte(clusterFile), &r)
 	if err != nil {
