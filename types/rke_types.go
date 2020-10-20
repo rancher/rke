@@ -48,7 +48,7 @@ type RancherKubernetesEngineConfig struct {
 	// kubernetes directory path for windows
 	WindowsPrefixPath string `yaml:"win_prefix_path" json:"winPrefixPath,omitempty"`
 	// Timeout in seconds for status check on addon deployment jobs
-	AddonJobTimeout int `yaml:"addon_job_timeout" json:"addonJobTimeout,omitempty" norman:"default=30"`
+	AddonJobTimeout int `yaml:"addon_job_timeout" json:"addonJobTimeout,omitempty" norman:"default=45"`
 	// Bastion/Jump Host configuration
 	BastionHost BastionHost `yaml:"bastion_host" json:"bastionHost,omitempty"`
 	// Monitoring Config
