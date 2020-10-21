@@ -101,7 +101,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 	var hostsFailed sync.Map
 
 	hostsQueue := util.GetObjectQueue(allHosts)
-	if upgradeStrategy.Drain {
+	if upgradeStrategy.Drain != nil && *upgradeStrategy.Drain {
 		drainHelper = getDrainHelper(kubeClient, *upgradeStrategy)
 		log.Infof(ctx, "[%s] Parameters provided to drain command: %#v", WorkerRole, fmt.Sprintf("Force: %v, IgnoreAllDaemonSets: %v, DeleteLocalData: %v, Timeout: %v, GracePeriodSeconds: %v", drainHelper.Force, drainHelper.IgnoreAllDaemonSets, drainHelper.DeleteLocalData, drainHelper.Timeout, drainHelper.GracePeriodSeconds))
 
@@ -169,7 +169,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 					}
 					continue
 				}
-				if err := upgradeWorkerHost(ctx, kubeClient, runHost, upgradeStrategy.Drain, drainHelper, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage); err != nil {
+				if err := upgradeWorkerHost(ctx, kubeClient, runHost, upgradeStrategy.Drain != nil && *upgradeStrategy.Drain, drainHelper, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage); err != nil {
 					errList = append(errList, err)
 					hostsFailed.Store(runHost.HostnameOverride, true)
 					hostsFailedToUpgrade <- runHost.HostnameOverride
