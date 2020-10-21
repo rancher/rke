@@ -241,7 +241,7 @@ func (c *Cluster) setNodeUpgradeStrategy() {
 	}
 	setDefaultIfEmpty(&c.UpgradeStrategy.MaxUnavailableWorker, DefaultMaxUnavailableWorker)
 	setDefaultIfEmpty(&c.UpgradeStrategy.MaxUnavailableControlplane, DefaultMaxUnavailableControlplane)
-	if !c.UpgradeStrategy.Drain {
+	if c.UpgradeStrategy.Drain != nil && *c.UpgradeStrategy.Drain {
 		return
 	}
 	if c.UpgradeStrategy.DrainInput == nil {

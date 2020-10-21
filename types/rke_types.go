@@ -72,7 +72,7 @@ type NodeUpgradeStrategy struct {
 	MaxUnavailableWorker string `yaml:"max_unavailable_worker" json:"maxUnavailableWorker,omitempty" norman:"min=1,default=10%"`
 	// MaxUnavailableControlplane input can be a number of nodes or a percentage of nodes
 	MaxUnavailableControlplane string          `yaml:"max_unavailable_controlplane" json:"maxUnavailableControlplane,omitempty" norman:"min=1,default=1"`
-	Drain                      bool            `yaml:"drain" json:"drain,omitempty"`
+	Drain                      *bool           `yaml:"drain" json:"drain,omitempty"`
 	DrainInput                 *NodeDrainInput `yaml:"node_drain_input" json:"nodeDrainInput,omitempty"`
 }
 
