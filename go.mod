@@ -32,7 +32,7 @@ require (
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/norman v0.0.0-20200520181341-ab75acb55410
-	github.com/rancher/types v0.0.0-20200723224053-ae84b42a4797
+	github.com/rancher/types v0.0.0-20201022171446-1df760cc0093
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
