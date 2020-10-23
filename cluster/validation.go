@@ -316,17 +316,22 @@ func validateNetworkImages(c *Cluster) error {
 			return errors.New("flannel image is not populated")
 		}
 	} else if c.Network.Plugin == CalicoNetworkPlugin {
-		if len(c.SystemImages.CalicoCNI) == 0 {
-			return errors.New("calico cni image is not populated")
-		}
-		if len(c.SystemImages.CalicoCtl) == 0 {
-			return errors.New("calico ctl image is not populated")
-		}
-		if len(c.SystemImages.CalicoNode) == 0 {
-			return errors.New("calico image is not populated")
-		}
-		if len(c.SystemImages.CalicoControllers) == 0 {
-			return errors.New("calico controllers image is not populated")
+		// If TigeraOperator is specified then the versions used will be
+		// bundled with the Operator, so only check the Calico images when
+		// the Operator is not used.
+		if len(c.SystemImages.TigeraOperator) == 0 {
+			if len(c.SystemImages.CalicoCNI) == 0 {
+				return errors.New("calico cni image is not populated")
+			}
+			if len(c.SystemImages.CalicoCtl) == 0 {
+				return errors.New("calico ctl image is not populated")
+			}
+			if len(c.SystemImages.CalicoNode) == 0 {
+				return errors.New("calico image is not populated")
+			}
+			if len(c.SystemImages.CalicoControllers) == 0 {
+				return errors.New("calico controllers image is not populated")
+			}
 		}
 	} else if c.Network.Plugin == WeaveNetworkPlugin {
 		if len(c.SystemImages.WeaveCNI) == 0 {

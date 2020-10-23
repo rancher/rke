@@ -431,14 +431,22 @@ func newDefaultAdmissionConfiguration() (*apiserverv1alpha1.AdmissionConfigurati
 	return admissionConfiguration, nil
 }
 
-func (c *Cluster) setClusterImageDefaults() error {
-	var privRegURL string
+func (c *Cluster) getDefaultPrivateRegistryURL() string {
+	for _, privReg := range c.PrivateRegistries {
+		if privReg.IsDefault {
+			return privReg.URL
+		}
+	}
+	return ""
+}
 
+func (c *Cluster) setClusterImageDefaults() error {
 	imageDefaults, ok := metadata.K8sVersionToRKESystemImages[c.Version]
 	if !ok {
 		return nil
 	}
 
+	privRegURL := c.getDefaultPrivateRegistryURL()
 	for _, privReg := range c.PrivateRegistries {
 		if privReg.IsDefault {
 			privRegURL = privReg.URL
@@ -466,6 +474,7 @@ func (c *Cluster) setClusterImageDefaults() error {
 		&c.SystemImages.CalicoCtl:                 d(imageDefaults.CalicoCtl, privRegURL),
 		&c.SystemImages.CalicoControllers:         d(imageDefaults.CalicoControllers, privRegURL),
 		&c.SystemImages.CalicoFlexVol:             d(imageDefaults.CalicoFlexVol, privRegURL),
+		&c.SystemImages.TigeraOperator:            d(imageDefaults.TigeraOperator, privRegURL),
 		&c.SystemImages.CanalNode:                 d(imageDefaults.CanalNode, privRegURL),
 		&c.SystemImages.CanalCNI:                  d(imageDefaults.CanalCNI, privRegURL),
 		&c.SystemImages.CanalControllers:          d(imageDefaults.CanalControllers, privRegURL),

@@ -97,12 +97,14 @@ const (
 	Image              = "Image"
 	CNIImage           = "CNIImage"
 	NodeImage          = "NodeImage"
+	OperatorImage      = "OperatorImage"
 	ControllersImage   = "ControllersImage"
 	CanalFlannelImg    = "CanalFlannelImg"
 	FlexVolImg         = "FlexVolImg"
 	WeaveLoopbackImage = "WeaveLoopbackImage"
 
 	Calicoctl = "Calicoctl"
+	Kubectl   = "Kubectl"
 
 	FlannelInterface = "FlannelInterface"
 	FlannelBackend   = "FlannelBackend"
@@ -115,6 +117,8 @@ const (
 
 	NodeSelector   = "NodeSelector"
 	UpdateStrategy = "UpdateStrategy"
+
+	PrivateRegistry = "PrivateRegistry"
 )
 
 var EtcdPortList = []string{
@@ -204,12 +208,15 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context, data map[string]interface{
 		FlexVolImg:       c.SystemImages.CalicoFlexVol,
 		RBACConfig:       c.Authorization.Mode,
 		NodeSelector:     c.Network.NodeSelector,
+		OperatorImage:    c.SystemImages.TigeraOperator,
+		Kubectl:          c.Services.KubeAPI.Image, // Use same image that is used in GetAddonsExecuteJob for doAddonDeploy
 		MTU:              c.Network.MTU,
 		UpdateStrategy: &appsv1.DaemonSetUpdateStrategy{
 			Type:          c.Network.UpdateStrategy.Strategy,
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
 		FlexVolPluginDir: c.Network.Options[CalicoFlexVolPluginDirectory],
+		PrivateRegistry:  c.getDefaultPrivateRegistryURL,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(calicoConfig, data)
 	if err != nil {

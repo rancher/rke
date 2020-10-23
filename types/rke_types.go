@@ -147,6 +147,8 @@ type RKESystemImages struct {
 	CalicoCtl string `yaml:"calico_ctl" json:"calicoCtl,omitempty"`
 	//CalicoFlexVol image
 	CalicoFlexVol string `yaml:"calico_flexvol" json:"calicoFlexVol,omitempty"`
+	//TigeraOperator image: Operator to deploy Calico
+	TigeraOperator string `yaml:"tigera_operator" json:"tigeraOperator,omitempty"`
 	// Canal Node Image
 	CanalNode string `yaml:"canal_node" json:"canalNode,omitempty"`
 	// Canal CNI image
