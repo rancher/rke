@@ -633,6 +633,19 @@ func (c *Cluster) setAddonsDefaults() {
 	if c.Monitoring.Replicas == nil {
 		c.Monitoring.Replicas = &DefaultMonitoringAddonReplicas
 	}
+
+	if c.Ingress.NetworkMode == "" {
+		c.Ingress.NetworkMode = DefaultNetworkMode
+	}
+
+	if c.Ingress.HTTPPort == 0 {
+		c.Ingress.HTTPPort = DefaultHTTPPort
+	}
+
+	if c.Ingress.HTTPSPort == 0 {
+		c.Ingress.HTTPSPort = DefaultHTTPSPort
+	}
+
 }
 
 func setDaemonsetAddonDefaults(updateStrategy *v3.DaemonSetUpdateStrategy) *v3.DaemonSetUpdateStrategy {
