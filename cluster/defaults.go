@@ -447,12 +447,6 @@ func (c *Cluster) setClusterImageDefaults() error {
 	}
 
 	privRegURL := c.getDefaultPrivateRegistryURL()
-	for _, privReg := range c.PrivateRegistries {
-		if privReg.IsDefault {
-			privRegURL = privReg.URL
-			break
-		}
-	}
 	systemImagesDefaultsMap := map[*string]string{
 		&c.SystemImages.Alpine:                    d(imageDefaults.Alpine, privRegURL),
 		&c.SystemImages.NginxProxy:                d(imageDefaults.NginxProxy, privRegURL),

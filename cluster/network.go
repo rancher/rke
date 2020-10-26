@@ -216,7 +216,7 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context, data map[string]interface{
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
 		FlexVolPluginDir: c.Network.Options[CalicoFlexVolPluginDirectory],
-		PrivateRegistry:  c.getDefaultPrivateRegistryURL,
+		PrivateRegistry:  c.getDefaultPrivateRegistryURL(),
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(calicoConfig, data)
 	if err != nil {
