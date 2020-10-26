@@ -1,5 +1,5 @@
 //go:generate go run ./codegen/codegen.go
-//go:generate go run ./vendor/github.com/go-bindata/go-bindata/go-bindata -o ./data/bindata.go -ignore bindata.go -pkg data -modtime 1557785965 -mode 0644 ./data/
+//go:generate go run -mod=vendor ./vendor/github.com/go-bindata/go-bindata/go-bindata -o ./data/bindata.go -ignore bindata.go -pkg data -modtime 1557785965 -mode 0644 ./data/
 package main
 
 import (
