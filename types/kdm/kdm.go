@@ -7,16 +7,17 @@ import (
 )
 
 const (
-	Calico        = "calico"
-	Canal         = "canal"
-	Flannel       = "flannel"
-	Weave         = "weave"
-	CoreDNS       = "coreDNS"
-	KubeDNS       = "kubeDNS"
-	MetricsServer = "metricsServer"
-	NginxIngress  = "nginxIngress"
-	Nodelocal     = "nodelocal"
-	TemplateKeys  = "templateKeys"
+	CalicoOperator = "calicoOperator"
+	CalicoLegacy   = "calico"
+	Canal          = "canal"
+	Flannel        = "flannel"
+	Weave          = "weave"
+	CoreDNS        = "coreDNS"
+	KubeDNS        = "kubeDNS"
+	MetricsServer  = "metricsServer"
+	NginxIngress   = "nginxIngress"
+	Nodelocal      = "nodelocal"
+	TemplateKeys   = "templateKeys"
 )
 
 // +k8s:deepcopy-gen=false

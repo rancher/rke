@@ -67,6 +67,8 @@ const (
 	DefaultFlannelBackendVxLanPort = "8472"
 	DefaultFlannelBackendVxLanVNI  = "1"
 
+	DefaultCalicoInstallMethod          = "operator"
+	K8sVersionCalicoInstallMethod       = "1.19.3"
 	DefaultCalicoFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
 
 	DefaultCanalFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
@@ -519,7 +521,7 @@ func (c *Cluster) setClusterDNSDefaults() error {
 	return nil
 }
 
-func (c *Cluster) setClusterNetworkDefaults() {
+func (c *Cluster) setClusterNetworkDefaults() error {
 	setDefaultIfEmpty(&c.Network.Plugin, DefaultNetworkPlugin)
 
 	if c.Network.Options == nil {
@@ -533,6 +535,26 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap = map[string]string{
 			CalicoCloudProvider:          DefaultNetworkCloudProvider,
 			CalicoFlexVolPluginDirectory: DefaultCalicoFlexVolPluginDirectory,
+		}
+		clusterSemVer, err := util.StrToSemVer(c.Version)
+		if err != nil {
+			return err
+		}
+		installMethodSemVer, err := util.StrToSemVer(K8sVersionCalicoInstallMethod)
+		if err != nil {
+			return err
+		}
+		// Default Calico Install method for cluster version 1.19.3 and higher is operator
+		installMethod := DefaultCalicoInstallMethod
+		// If cluster version is less than 1.19.3 (installMethodSemVer), use legacy
+		if clusterSemVer.LessThan(*installMethodSemVer) {
+			installMethod = CalicoLegacyInstallMethod
+		}
+		if c.Network.CalicoNetworkProvider != nil {
+			setDefaultIfEmpty(&c.Network.CalicoNetworkProvider.CloudProvider, DefaultNetworkCloudProvider)
+			networkPluginConfigDefaultsMap[CalicoCloudProvider] = c.Network.CalicoNetworkProvider.CloudProvider
+			setDefaultIfEmpty(&c.Network.CalicoNetworkProvider.InstallMethod, installMethod)
+			networkPluginConfigDefaultsMap[CalicoInstallMethod] = installMethod
 		}
 	case FlannelNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{
@@ -548,10 +570,6 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			CanalFlexVolPluginDirectory:             DefaultCanalFlexVolPluginDirectory,
 		}
 	}
-	if c.Network.CalicoNetworkProvider != nil {
-		setDefaultIfEmpty(&c.Network.CalicoNetworkProvider.CloudProvider, DefaultNetworkCloudProvider)
-		networkPluginConfigDefaultsMap[CalicoCloudProvider] = c.Network.CalicoNetworkProvider.CloudProvider
-	}
 	if c.Network.FlannelNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[FlannelIface] = c.Network.FlannelNetworkProvider.Iface
 
@@ -565,6 +583,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
 	}
+	return nil
 }
 
 func (c *Cluster) setClusterAuthnDefaults() {

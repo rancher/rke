@@ -526,6 +526,8 @@ type CloudProvider struct {
 type CalicoNetworkProvider struct {
 	// Cloud provider type used with calico
 	CloudProvider string `json:"cloudProvider"`
+	// Install method used to install Calico
+	InstallMethod string `json:"installMethod"`
 }
 
 type FlannelNetworkProvider struct {

@@ -74,6 +74,22 @@ func validateNetworkOptions(c *Cluster) error {
 	if c.Network.Plugin == FlannelNetworkPlugin && c.Network.MTU != 0 {
 		return fmt.Errorf("Network plugin [%s] does not support configuring MTU", FlannelNetworkPlugin)
 	}
+	if c.Network.Plugin == CalicoNetworkPlugin {
+		if v, ok := c.Network.Options[CalicoInstallMethod]; ok {
+			switch v {
+			case CalicoOperatorInstallMethod, CalicoLegacyInstallMethod:
+			default:
+				return fmt.Errorf("Network option [%s] has invalid option: %s", CalicoInstallMethod, v)
+			}
+		}
+		if c.Network.CalicoNetworkProvider != nil {
+			switch c.Network.CalicoNetworkProvider.InstallMethod {
+			case CalicoOperatorInstallMethod, CalicoLegacyInstallMethod, "":
+			default:
+				return fmt.Errorf("CalicoNetworkProvider.InstallMethod has invalid option: %s", c.Network.CalicoNetworkProvider.InstallMethod)
+			}
+		}
+	}
 	return nil
 }
 

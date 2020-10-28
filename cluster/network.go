@@ -15,6 +15,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/templates"
 	v3 "github.com/rancher/rke/types"
+	kdm "github.com/rancher/rke/types/kdm"
 	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -58,6 +59,9 @@ const (
 	CalicoControllerLabel        = "calico-kube-controllers"
 	CalicoCloudProvider          = "calico_cloud_provider"
 	CalicoFlexVolPluginDirectory = "calico_flex_volume_plugin_dir"
+	CalicoInstallMethod          = "calico_install_method"
+	CalicoOperatorInstallMethod  = "operator"
+	CalicoLegacyInstallMethod    = "legacy"
 
 	CanalNetworkPlugin      = "canal"
 	CanalIface              = "canal_iface"
@@ -294,8 +298,18 @@ func (c *Cluster) doWeaveDeploy(ctx context.Context, data map[string]interface{}
 
 func (c *Cluster) getNetworkPluginManifest(pluginConfig, data map[string]interface{}) (string, error) {
 	switch c.Network.Plugin {
-	case CanalNetworkPlugin, FlannelNetworkPlugin, CalicoNetworkPlugin, WeaveNetworkPlugin:
+	case CanalNetworkPlugin, FlannelNetworkPlugin, WeaveNetworkPlugin:
 		tmplt, err := templates.GetVersionedTemplates(c.Network.Plugin, data, c.Version)
+		if err != nil {
+			return "", err
+		}
+		return templates.CompileTemplateFromMap(tmplt, pluginConfig)
+	case CalicoNetworkPlugin:
+		plugin := kdm.CalicoOperator
+		if CalicoLegacyInstallMethod == c.Network.Options[CalicoInstallMethod] {
+			plugin = kdm.CalicoLegacy
+		}
+		tmplt, err := templates.GetVersionedTemplates(plugin, data, c.Version)
 		if err != nil {
 			return "", err
 		}
