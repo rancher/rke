@@ -6,6 +6,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
@@ -529,7 +530,7 @@ func (c *Cluster) runServicePortChecks(ctx context.Context) error {
 
 func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList []string, planeHosts []*hosts.Host, image string, prsMap map[string]v3.PrivateRegistry) error {
 	var hosts []string
-
+	var portCheckLogs string
 	for _, host := range planeHosts {
 		hosts = append(hosts, host.InternalAddress)
 	}
@@ -551,28 +552,32 @@ func checkPlaneTCPPortsFromHost(ctx context.Context, host *hosts.Host, portList 
 			Type: "json-file",
 		},
 	}
-	if err := docker.DoRemoveContainer(ctx, host.DClient, PortCheckContainer, host.Address); err != nil {
-		return err
-	}
-	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, PortCheckContainer, host.Address, "network", prsMap); err != nil {
-		return err
-	}
+	for retries := 0; retries < 3; retries++ {
+		logrus.Infof("[network] Checking if host [%s] can connect to host(s) [%s] on port(s) [%s], try #%d", host.Address, strings.Join(hosts, " "), strings.Join(portList, " "), retries+1)
+		if err := docker.DoRemoveContainer(ctx, host.DClient, PortCheckContainer, host.Address); err != nil {
+			return err
+		}
+		if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, PortCheckContainer, host.Address, "network", prsMap); err != nil {
+			return err
+		}
 
-	containerLog, _, logsErr := docker.GetContainerLogsStdoutStderr(ctx, host.DClient, PortCheckContainer, "all", true)
-	if logsErr != nil {
-		log.Warnf(ctx, "[network] Failed to get network port check logs: %v", logsErr)
-	}
-	logrus.Debugf("[network] containerLog [%s] on host: %s", containerLog, host.Address)
+		containerLog, _, logsErr := docker.GetContainerLogsStdoutStderr(ctx, host.DClient, PortCheckContainer, "all", true)
+		if logsErr != nil {
+			log.Warnf(ctx, "[network] Failed to get network port check logs: %v", logsErr)
+		}
+		logrus.Debugf("[network] containerLog [%s] on host: %s", containerLog, host.Address)
 
-	if err := docker.RemoveContainer(ctx, host.DClient, host.Address, PortCheckContainer); err != nil {
-		return err
+		if err := docker.RemoveContainer(ctx, host.DClient, host.Address, PortCheckContainer); err != nil {
+			return err
+		}
+		logrus.Debugf("[network] Length of containerLog is [%d] on host: %s", len(containerLog), host.Address)
+		if len(containerLog) == 0 {
+			return nil
+		}
+		portCheckLogs = strings.Join(strings.Split(strings.TrimSpace(containerLog), "\n"), ", ")
+		time.Sleep(5 * time.Second)
 	}
-	logrus.Debugf("[network] Length of containerLog is [%d] on host: %s", len(containerLog), host.Address)
-	if len(containerLog) > 0 {
-		portCheckLogs := strings.Join(strings.Split(strings.TrimSpace(containerLog), "\n"), ", ")
-		return fmt.Errorf("[network] Host [%s] is not able to connect to the following ports: [%s]. Please check network policies and firewall rules", host.Address, portCheckLogs)
-	}
-	return nil
+	return fmt.Errorf("[network] Host [%s] is not able to connect to the following ports: [%s]. Please check network policies and firewall rules", host.Address, portCheckLogs)
 }
 
 func getPortBindings(hostAddress string, portList []string) []nat.PortBinding {
