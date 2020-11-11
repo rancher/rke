@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	comments = `# If you intened to deploy Kubernetes in an air-gapped environment,
+	comments = `# If you intended to deploy Kubernetes in an air-gapped environment,
 # please consult the documentation on how to configure custom RKE images.`
 )
 
