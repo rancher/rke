@@ -7113,7 +7113,7 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.4.0-rc1",
-    "version": "v1.17.14+k3s1"
+    "version": "v1.17.14+k3s2"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
@@ -7123,7 +7123,7 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.4+k3s1"
+    "version": "v1.19.3+k3s3"
    }
   ]
  },
@@ -7132,7 +7132,7 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.18.11+rke2r1"
+    "version": "v1.18.10+rke2r1"
    }
   ]
  }
