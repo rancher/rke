@@ -704,7 +704,7 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 			EncryptionProviderFile: encryptConfig,
 		},
 	}
-	if metadata.K8sVersionToRKESystemImages == nil {
+	if !metadata.MetadataInitialized {
 		if err := metadata.InitMetadata(ctx); err != nil {
 			return nil, err
 		}

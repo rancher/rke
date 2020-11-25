@@ -24,16 +24,16 @@ const (
 )
 
 var (
-	RKEVersion                  string
-	DefaultK8sVersion           string
-	K8sVersionToTemplates       map[string]map[string]string
-	K8sVersionToRKESystemImages map[string]v3.RKESystemImages
-	K8sVersionToServiceOptions  map[string]v3.KubernetesServicesOptions
-	K8sVersionToDockerVersions  map[string][]string
-	K8sVersionsCurrent          []string
-	K8sBadVersions              = map[string]bool{}
-
+	RKEVersion                        string
+	DefaultK8sVersion                 string
+	K8sVersionToTemplates             map[string]map[string]string
+	K8sVersionToRKESystemImages       map[string]v3.RKESystemImages
+	K8sVersionToServiceOptions        map[string]v3.KubernetesServicesOptions
+	K8sVersionToDockerVersions        map[string][]string
+	K8sVersionsCurrent                []string
+	K8sBadVersions                    = map[string]bool{}
 	K8sVersionToWindowsServiceOptions map[string]v3.KubernetesServicesOptions
+	MetadataInitialized               bool
 
 	c = http.Client{
 		Timeout: time.Second * 30,
@@ -52,6 +52,7 @@ func InitMetadata(ctx context.Context) error {
 	initAddonTemplates(data)
 	initServiceOptions(data)
 	initDockerOptions(data)
+	MetadataInitialized = true
 	return nil
 }
 
