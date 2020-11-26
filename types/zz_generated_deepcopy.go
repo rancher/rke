@@ -22,6 +22,7 @@ package types
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	v1alpha1 "k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
 	v1 "k8s.io/apiserver/pkg/apis/audit/v1"
@@ -468,6 +469,13 @@ func (in *DNSConfig) DeepCopyInto(out *DNSConfig) {
 		*out = new(LinearAutoscalerParams)
 		**out = **in
 	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -843,6 +851,13 @@ func (in *IngressConfig) DeepCopyInto(out *IngressConfig) {
 		*out = new(DaemonSetUpdateStrategy)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -1109,6 +1124,13 @@ func (in *MonitoringConfig) DeepCopyInto(out *MonitoringConfig) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -1168,6 +1190,13 @@ func (in *NetworkConfig) DeepCopyInto(out *NetworkConfig) {
 		in, out := &in.UpdateStrategy, &out.UpdateStrategy
 		*out = new(DaemonSetUpdateStrategy)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }
