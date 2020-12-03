@@ -37,7 +37,6 @@ const (
 	UserAddonJobName               = "rke-user-addon-deploy-job"
 	UserAddonIncludeJobName        = "rke-user-includes-addons-deploy-job"
 	MetricsServerAddonResourceName = "rke-metrics-addon"
-	NginxIngressAddonAppName       = "ingress-nginx"
 	KubeDNSAddonAppName            = "kube-dns"
 	KubeDNSAutoscalerAppName       = "kube-dns-autoscaler"
 	CoreDNSAutoscalerAppName       = "coredns-autoscaler"
@@ -47,6 +46,10 @@ const (
 	CoreDNSProvider = "coredns"
 	KubeDNSProvider = "kube-dns"
 	Nodelocal       = "nodelocal"
+
+	NginxIngressAddonAppName                 = "ingress-nginx"
+	NginxIngressAddonDefaultBackendName      = "default-http-backend"
+	NginxIngressAddonDefaultBackendNamespace = "ingress-nginx"
 )
 
 var DNSProviders = []string{KubeDNSProvider, CoreDNSProvider}
@@ -66,6 +69,7 @@ type ingressOptions struct {
 	HTTPPort          int
 	HTTPSPort         int
 	NetworkMode       string
+	DefaultBackend    bool
 	UpdateStrategy    *appsv1.DaemonSetUpdateStrategy
 	Tolerations       []v1.Toleration
 }
@@ -557,7 +561,6 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 			if err := c.doAddonDelete(ctx, IngressAddonResourceName, false); err != nil {
 				return err
 			}
-
 			log.Infof(ctx, "[ingress] ingress controller removed successfully")
 		} else {
 			log.Infof(ctx, "[ingress] ingress controller is disabled, skipping ingress controller")
@@ -579,6 +582,7 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 		HTTPPort:          c.Ingress.HTTPPort,
 		HTTPSPort:         c.Ingress.HTTPSPort,
 		NetworkMode:       c.Ingress.NetworkMode,
+		DefaultBackend:    *c.Ingress.DefaultBackend,
 		UpdateStrategy: &appsv1.DaemonSetUpdateStrategy{
 			Type:          c.Ingress.UpdateStrategy.Strategy,
 			RollingUpdate: c.Ingress.UpdateStrategy.RollingUpdate,
@@ -612,9 +616,26 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 			return fmt.Errorf("Failed to apply default PodSecurityPolicy ClusterRole and ClusterRoleBinding: %v", err)
 		}
 	}
+
+	// After deployment of the new ingress controller based on the update strategy, remove the default backend as requested.
+	if !ingressConfig.DefaultBackend {
+		log.Infof(ctx, "[ingress] removing default backend service and deployment if they exist")
+		kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+		if err != nil {
+			return err
+		}
+		if err = k8s.DeleteServiceIfExists(ctx, kubeClient, NginxIngressAddonDefaultBackendName, NginxIngressAddonDefaultBackendNamespace); err != nil {
+			return err
+		}
+		if err = k8s.DeleteDeploymentIfExists(ctx, kubeClient, NginxIngressAddonDefaultBackendName, NginxIngressAddonDefaultBackendNamespace); err != nil {
+			return err
+		}
+	}
+
 	log.Infof(ctx, "[ingress] ingress controller %s deployed successfully", c.Ingress.Provider)
 	return nil
 }
+
 func (c *Cluster) removeDNSProvider(ctx context.Context, dnsprovider string) error {
 	AddonJobExists, err := addons.AddonJobExists(getAddonResourceName(dnsprovider)+"-deploy-job", c.LocalKubeConfigPath, c.K8sWrapTransport)
 	if err != nil {
