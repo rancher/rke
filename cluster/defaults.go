@@ -141,6 +141,7 @@ var (
 	}
 	DefaultClusterProportionalAutoscalerLinearParams = v3.LinearAutoscalerParams{CoresPerReplica: 128, NodesPerReplica: 4, Min: 1, PreventSinglePointFailure: true}
 	DefaultMonitoringAddonReplicas                   = int32(1)
+	DefaultDefaultBackend                            = true
 )
 
 type ExternalFlags struct {
@@ -808,6 +809,9 @@ func (c *Cluster) setAddonsDefaults() {
 		c.Ingress.HTTPSPort = DefaultHTTPSPort
 	}
 
+	if c.Ingress.DefaultBackend == nil {
+		c.Ingress.DefaultBackend = &DefaultDefaultBackend
+	}
 }
 
 func setDaemonsetAddonDefaults(updateStrategy *v3.DaemonSetUpdateStrategy) *v3.DaemonSetUpdateStrategy {

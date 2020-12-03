@@ -443,6 +443,8 @@ type IngressConfig struct {
 	NetworkMode string `yaml:"network_mode" json:"networkMode,omitempty"`
 	// Tolerations for Deployments
 	Tolerations []v1.Toleration `yaml:"tolerations" json:"tolerations,omitempty"`
+	// Enable or disable nginx default-http-backend
+	DefaultBackend *bool `yaml:"default_backend" json:"defaultBackend,omitempty" norman:"default=true"`
 }
 
 type ExtraEnv struct {
