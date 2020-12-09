@@ -8,7 +8,6 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/rke/pki/cert"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -58,25 +57,18 @@ func rotateEncryptionKeyFromCli(ctx *cli.Context) error {
 	// setting up the flags
 	flags := cluster.GetExternalFlags(false, false, false, false, "", filePath)
 
-	_, _, _, _, _, err = RotateEncryptionKey(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
-	return err
+	return RotateEncryptionKey(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
 }
 
-func RotateEncryptionKey(
-	ctx context.Context,
-	rkeConfig *v3.RancherKubernetesEngineConfig,
-	dialersOptions hosts.DialersOptions,
-	flags cluster.ExternalFlags,
-) (string, string, string, string, map[string]pki.CertificatePKI, error) {
-	log.Infof(ctx, "Rotating cluster secrets encryption key")
-
-	var APIURL, caCrt, clientCert, clientKey string
-
+func RotateEncryptionKey(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig,
+	dialersOptions hosts.DialersOptions, flags cluster.ExternalFlags) error {
+	log.Infof(ctx, "Rotating cluster secrets encryption key..")
 	stateFilePath := cluster.GetStateFilePath(flags.ClusterFilePath, flags.ConfigDir)
 	rkeFullState, _ := cluster.ReadStateFile(ctx, stateFilePath)
-
-	// We generate the first encryption config in ClusterInit, to store it ASAP. It's written to the DesiredState
+	// We generate the first encryption config in ClusterInit, to store it ASAP. It's written
+	// to the DesiredState
 	stateEncryptionConfig := rkeFullState.DesiredState.EncryptionConfig
+
 	// if CurrentState has EncryptionConfig, it means this is NOT the first time we enable encryption, we should use the _latest_ applied value from the current cluster
 	if rkeFullState.CurrentState.EncryptionConfig != "" {
 		stateEncryptionConfig = rkeFullState.CurrentState.EncryptionConfig
@@ -84,43 +76,32 @@ func RotateEncryptionKey(
 
 	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags, stateEncryptionConfig)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, nil, err
+		return err
 	}
-
 	if kubeCluster.IsEncryptionCustomConfig() {
-		return APIURL, caCrt, clientCert, clientKey, nil, fmt.Errorf("can't rotate encryption keys: Key Rotation is not supported with custom configuration")
+		return fmt.Errorf("can't rotate encryption keys: Key Rotation is not supported with custom configuration")
 	}
 	if !kubeCluster.IsEncryptionEnabled() {
-		return APIURL, caCrt, clientCert, clientKey, nil, fmt.Errorf("can't rotate encryption keys: Encryption Configuration is disabled")
+		return fmt.Errorf("can't rotate encryption keys: Encryption Configuration is disabled")
 	}
-
 	kubeCluster.Certificates = rkeFullState.DesiredState.CertificatesBundle
 	if err := kubeCluster.SetupDialers(ctx, dialersOptions); err != nil {
-		return APIURL, caCrt, clientCert, clientKey, nil, err
+		return err
 	}
 	if err := kubeCluster.TunnelHosts(ctx, flags); err != nil {
-		return APIURL, caCrt, clientCert, clientKey, nil, err
+		return err
 	}
-	if len(kubeCluster.ControlPlaneHosts) > 0 {
-		APIURL = fmt.Sprintf("https://%s:6443", kubeCluster.ControlPlaneHosts[0].Address)
-	}
-	clientCert = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Certificate))
-	clientKey = string(cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAdminCertName].Key))
-	caCrt = string(cert.EncodeCertPEM(kubeCluster.Certificates[pki.CACertName].Certificate))
 
 	err = kubeCluster.RotateEncryptionKey(ctx, rkeFullState)
 	if err != nil {
-		return APIURL, caCrt, clientCert, clientKey, nil, err
+		return err
 	}
-
 	// make sure we have the latest state
 	rkeFullState, _ = cluster.ReadStateFile(ctx, stateFilePath)
-
 	log.Infof(ctx, "Reconciling cluster state")
 	if err := kubeCluster.ReconcileDesiredStateEncryptionConfig(ctx, rkeFullState); err != nil {
-		return APIURL, caCrt, clientCert, clientKey, nil, err
+		return err
 	}
-
 	log.Infof(ctx, "Cluster secrets encryption key rotated successfully")
-	return APIURL, caCrt, clientCert, clientKey, kubeCluster.Certificates, nil
+	return nil
 }
