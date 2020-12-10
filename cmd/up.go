@@ -85,9 +85,10 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
-
-	// We generate the first encryption config in ClusterInit, to store it ASAP. It's written to the DesiredState
+	// We generate the first encryption config in ClusterInit, to store it ASAP. It's written
+	// to the DesiredState
 	stateEncryptionConfig := clusterState.DesiredState.EncryptionConfig
+
 	// if CurrentState has EncryptionConfig, it means this is NOT the first time we enable encryption, we should use the _latest_ applied value from the current cluster
 	if clusterState.CurrentState.EncryptionConfig != "" {
 		stateEncryptionConfig = clusterState.CurrentState.EncryptionConfig
@@ -101,10 +102,6 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	// check if rotate certificates is triggered
 	if kubeCluster.RancherKubernetesEngineConfig.RotateCertificates != nil {
 		return rebuildClusterWithRotatedCertificates(ctx, dialersOptions, flags, svcOptionsData)
-	}
-	// if we need to rotate the encryption key, do so and then return
-	if kubeCluster.RancherKubernetesEngineConfig.RotateEncryptionKey {
-		return RotateEncryptionKey(ctx, clusterState.CurrentState.RancherKubernetesEngineConfig.DeepCopy(), dialersOptions, flags)
 	}
 
 	log.Infof(ctx, "Building Kubernetes cluster")

@@ -32,6 +32,7 @@ func getLogger(ctx context.Context) logger {
 
 func Infof(ctx context.Context, msg string, args ...interface{}) {
 	getLogger(ctx).Infof(msg, args...)
+
 }
 
 func Warnf(ctx context.Context, msg string, args ...interface{}) {
