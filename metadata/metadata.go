@@ -44,6 +44,9 @@ var (
 func InitMetadata(ctx context.Context) error {
 	kdmMutex.Lock()
 	defer kdmMutex.Unlock()
+	if MetadataInitialized {
+		return nil
+	}
 	data, err := loadData()
 	if err != nil {
 		return fmt.Errorf("failed to load data.json, error: %v", err)
@@ -53,6 +56,7 @@ func InitMetadata(ctx context.Context) error {
 	initServiceOptions(data)
 	initDockerOptions(data)
 	MetadataInitialized = true
+	logrus.Debugf("metadata initialized successfully")
 	return nil
 }
 
