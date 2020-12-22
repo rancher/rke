@@ -705,9 +705,11 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 		},
 	}
 	if !metadata.MetadataInitialized {
+		logrus.Debugf("metadataInitialized: [False] [%s]", rkeConfig.ClusterName)
 		if err := metadata.InitMetadata(ctx); err != nil {
 			return nil, err
 		}
+		logrus.Debugf("metadataInitialized: [%v] [%s]", metadata.MetadataInitialized, rkeConfig.ClusterName)
 	}
 	if len(c.ConfigPath) == 0 {
 		c.ConfigPath = pki.ClusterConfig
