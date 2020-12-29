@@ -31,7 +31,7 @@ func RestartKubeAPI(ctx context.Context, host *hosts.Host) error {
 }
 
 func RestartKubeAPIWithHealthcheck(ctx context.Context, hostList []*hosts.Host, df hosts.DialerFactory, certMap map[string]pki.CertificatePKI) error {
-	log.Infof(ctx, "[%s] Restarting %s on contorl plane nodes..", ControlRole, KubeAPIContainerName)
+	log.Infof(ctx, "[%s] Restarting %s on %s nodes..", ControlRole, KubeAPIContainerName, ControlRole)
 	for _, runHost := range hostList {
 		logrus.Debugf("[%s] Restarting %s on node [%s]", ControlRole, KubeAPIContainerName, runHost.Address)
 		if err := RestartKubeAPI(ctx, runHost); err != nil {
@@ -44,6 +44,6 @@ func RestartKubeAPIWithHealthcheck(ctx context.Context, hostList []*hosts.Host, 
 			return err
 		}
 	}
-	log.Infof(ctx, "[%s] Restarted %s on contorl plane nodes successfully", ControlRole, KubeAPIContainerName)
+	log.Infof(ctx, "[%s] Restarted %s on %s nodes successfully", ControlRole, KubeAPIContainerName, ControlRole)
 	return nil
 }
