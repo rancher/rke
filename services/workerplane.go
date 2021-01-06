@@ -103,7 +103,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 	hostsQueue := util.GetObjectQueue(allHosts)
 	if upgradeStrategy.Drain != nil && *upgradeStrategy.Drain {
 		drainHelper = getDrainHelper(kubeClient, *upgradeStrategy)
-		log.Infof(ctx, "[%s] Parameters provided to drain command: %#v", WorkerRole, fmt.Sprintf("Force: %v, IgnoreAllDaemonSets: %v, DeleteLocalData: %v, Timeout: %v, GracePeriodSeconds: %v", drainHelper.Force, drainHelper.IgnoreAllDaemonSets, drainHelper.DeleteLocalData, drainHelper.Timeout, drainHelper.GracePeriodSeconds))
+		log.Infof(ctx, "[%s] Parameters provided to drain command: %#v", WorkerRole, fmt.Sprintf("Force: %v, IgnoreAllDaemonSets: %v, DeleteEmptyDirData: %v, Timeout: %v, GracePeriodSeconds: %v", drainHelper.Force, drainHelper.IgnoreAllDaemonSets, drainHelper.DeleteEmptyDirData, drainHelper.Timeout, drainHelper.GracePeriodSeconds))
 
 	}
 	currentHostsPool := make(map[string]bool)
