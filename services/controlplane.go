@@ -70,7 +70,7 @@ func UpgradeControlPlaneNodes(ctx context.Context, kubeClient *kubernetes.Client
 	}
 	if upgradeStrategy.Drain != nil && *upgradeStrategy.Drain {
 		drainHelper = getDrainHelper(kubeClient, *upgradeStrategy)
-		log.Infof(ctx, "[%s] Parameters provided to drain command: %#v", ControlRole, fmt.Sprintf("Force: %v, IgnoreAllDaemonSets: %v, DeleteLocalData: %v, Timeout: %v, GracePeriodSeconds: %v", drainHelper.Force, drainHelper.IgnoreAllDaemonSets, drainHelper.DeleteLocalData, drainHelper.Timeout, drainHelper.GracePeriodSeconds))
+		log.Infof(ctx, "[%s] Parameters provided to drain command: %#v", ControlRole, fmt.Sprintf("Force: %v, IgnoreAllDaemonSets: %v, DeleteEmptyDirData: %v, Timeout: %v, GracePeriodSeconds: %v", drainHelper.Force, drainHelper.IgnoreAllDaemonSets, drainHelper.DeleteEmptyDirData, drainHelper.Timeout, drainHelper.GracePeriodSeconds))
 	}
 	var inactiveHostErr error
 	if len(inactiveHosts) > 0 {

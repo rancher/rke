@@ -36,7 +36,7 @@ limitations under the License.
 //   // +k8s:deepcopy-gen=package
 //
 // DeepCopy functions can be generated for individual types, rather than the
-// entire package by specifying a comment on the type definion of the form:
+// entire package by specifying a comment on the type definition of the form:
 //   // +k8s:deepcopy-gen=true
 //
 // When generating for a whole package, individual types may opt out of
@@ -61,7 +61,7 @@ import (
 	"k8s.io/gengo/examples/deepcopy-gen/generators"
 
 	"github.com/spf13/pflag"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 func main() {
