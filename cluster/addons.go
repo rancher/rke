@@ -346,7 +346,7 @@ func (c *Cluster) deployKubeDNS(ctx context.Context, data map[string]interface{}
 	if err != nil {
 		return err
 	}
-	if err := c.doAddonDeploy(ctx, kubeDNSYaml, getAddonResourceName(c.DNS.Provider), false); err != nil {
+	if err := c.doAddonDeploy(ctx, kubeDNSYaml, getAddonResourceName(c.DNS.Provider), true); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[addons] %s deployed successfully", c.DNS.Provider)
@@ -383,7 +383,7 @@ func (c *Cluster) deployCoreDNS(ctx context.Context, data map[string]interface{}
 	if err != nil {
 		return err
 	}
-	if err := c.doAddonDeploy(ctx, coreDNSYaml, getAddonResourceName(c.DNS.Provider), false); err != nil {
+	if err := c.doAddonDeploy(ctx, coreDNSYaml, getAddonResourceName(c.DNS.Provider), true); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[addons] CoreDNS deployed successfully")
@@ -433,7 +433,7 @@ func (c *Cluster) deployMetricServer(ctx context.Context, data map[string]interf
 	if err != nil {
 		return err
 	}
-	if err := c.doAddonDeploy(ctx, metricsYaml, MetricsServerAddonResourceName, false); err != nil {
+	if err := c.doAddonDeploy(ctx, metricsYaml, MetricsServerAddonResourceName, true); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[addons] Metrics Server deployed successfully")
@@ -607,7 +607,7 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 	if err != nil {
 		return err
 	}
-	if err := c.doAddonDeploy(ctx, ingressYaml, IngressAddonResourceName, false); err != nil {
+	if err := c.doAddonDeploy(ctx, ingressYaml, IngressAddonResourceName, true); err != nil {
 		return err
 	}
 	// ingress runs in it's own namespace, so it needs it's own role/rolebinding for PSP
@@ -737,7 +737,7 @@ func (c *Cluster) deployNodelocal(ctx context.Context, data map[string]interface
 	if err != nil {
 		return err
 	}
-	if err := c.doAddonDeploy(ctx, nodelocalYaml, getAddonResourceName(Nodelocal), false); err != nil {
+	if err := c.doAddonDeploy(ctx, nodelocalYaml, getAddonResourceName(Nodelocal), true); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[dns] %s deployed successfully", Nodelocal)
