@@ -47,7 +47,7 @@ To specify RANCHER_METADATA_URL in runtime, populate the environment variable wh
 ```bash
 RANCHER_METADATA_URL=${URL} rke [commands] [options]
 
-RANCHER_METATDATA_URL=${./local/data.json} rke [commands] [options]
+RANCHER_METADATA_URL=${./local/data.json} rke [commands] [options]
 ```
     
 `RANCHER_METADATA_URL` defaults to `https://releases.rancher.com/kontainer-driver-metadata/dev-v2.4/data.json`.
