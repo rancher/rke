@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
+	"path"
 	"strings"
 	"sync"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
@@ -365,4 +367,38 @@ func isControlPlaneHostUpgradable(ctx context.Context, host *hosts.Host, process
 	}
 	logrus.Debugf("[%s] Host %v is not upgradable", ControlRole, host.HostnameOverride)
 	return false, nil
+}
+
+func RunGetStateFileFromConfigMap(ctx context.Context, controlPlaneHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, dockerImage string) (string, error) {
+	imageCfg := &container.Config{
+		Entrypoint: []string{"bash"},
+		Cmd: []string{
+			"-c",
+			"kubectl --kubeconfig /etc/kubernetes/ssl/kubecfg-kube-node.yaml -n kube-system get configmap full-cluster-state -o json | jq -r .data.\\\"full-cluster-state\\\" | jq -r . > /tmp/configmap.cluster.rkestate",
+		},
+		Image: dockerImage,
+	}
+	hostCfg := &container.HostConfig{
+		Binds: []string{
+			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(controlPlaneHost.PrefixPath, "/etc/kubernetes")),
+		},
+		NetworkMode:   container.NetworkMode("host"),
+		RestartPolicy: container.RestartPolicy{Name: "no"},
+	}
+
+	if err := docker.DoRemoveContainer(ctx, controlPlaneHost.DClient, ControlPlaneConfigMapStateFileContainerName, controlPlaneHost.Address); err != nil {
+		return "", err
+	}
+	if err := docker.DoRunOnetimeContainer(ctx, controlPlaneHost.DClient, imageCfg, hostCfg, ControlPlaneConfigMapStateFileContainerName, controlPlaneHost.Address, ControlRole, prsMap); err != nil {
+		return "", err
+	}
+	statefile, err := docker.ReadFileFromContainer(ctx, controlPlaneHost.DClient, controlPlaneHost.Address, ControlPlaneConfigMapStateFileContainerName, "/tmp/configmap.cluster.rkestate")
+	if err != nil {
+		return "", err
+	}
+	if err := docker.DoRemoveContainer(ctx, controlPlaneHost.DClient, ControlPlaneConfigMapStateFileContainerName, controlPlaneHost.Address); err != nil {
+		return "", err
+	}
+
+	return statefile, nil
 }

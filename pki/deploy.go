@@ -183,6 +183,7 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 
 func DeployAdminConfig(ctx context.Context, kubeConfig, localConfigPath string) error {
 	if len(kubeConfig) == 0 {
+		logrus.Infof("kubeConfig is empty")
 		return nil
 	}
 	logrus.Debugf("Deploying admin Kubeconfig locally at [%s]", localConfigPath)
