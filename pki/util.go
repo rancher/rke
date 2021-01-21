@@ -592,18 +592,20 @@ func ReadCertsAndKeysFromDir(certDir string) (map[string]CertificatePKI, error) 
 
 	for _, file := range files {
 		logrus.Debugf("[certificates] reading file %s from directory [%s]", file.Name(), certDir)
-		// fetching cert
-		cert, err := getCertFromFile(certDir, file.Name())
-		if err != nil {
-			continue
+		if !strings.HasSuffix(file.Name(), "-key.pem") && !strings.HasSuffix(file.Name(), "-csr.pem") {
+			// fetching cert
+			cert, err := getCertFromFile(certDir, file.Name())
+			if err != nil {
+				return nil, err
+			}
+			// fetching the cert's key
+			certName := strings.TrimSuffix(file.Name(), ".pem")
+			key, err := getKeyFromFile(certDir, certName+"-key.pem")
+			if err != nil {
+				return nil, err
+			}
+			certMap[certName] = ToCertObject(certName, getCommonName(certName), getOUName(certName), cert, key, nil)
 		}
-		// fetching the cert's key
-		certName := strings.TrimSuffix(file.Name(), ".pem")
-		key, err := getKeyFromFile(certDir, certName+"-key.pem")
-		if err != nil {
-			continue
-		}
-		certMap[certName] = ToCertObject(certName, getCommonName(certName), getOUName(certName), cert, key, nil)
 	}
 
 	return certMap, nil
@@ -633,6 +635,7 @@ func getCertFromFile(certDir string, fileName string) (*x509.Certificate, error)
 	var certificate *x509.Certificate
 	certPEM, _ := ioutil.ReadFile(filepath.Join(certDir, fileName))
 	if len(certPEM) > 0 {
+		logrus.Debugf("Certificate file [%s/%s] content is greater than 0", certDir, fileName)
 		certificates, err := cert.ParseCertsPEM(certPEM)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read certificate [%s]: %v", fileName, err)
@@ -648,7 +651,7 @@ func getKeyFromFile(certDir string, fileName string) (*rsa.PrivateKey, error) {
 	if len(keyPEM) > 0 {
 		keyInterface, err := cert.ParsePrivateKeyPEM(keyPEM)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read key [%s]: %v", fileName, err)
+			return nil, fmt.Errorf("failed to read key [%s], make sure it is not encrypted: %v", fileName, err)
 		}
 		key = keyInterface.(*rsa.PrivateKey)
 	}
