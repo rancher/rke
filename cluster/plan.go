@@ -21,6 +21,7 @@ import (
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -39,6 +40,7 @@ const (
 	EtcdPathPrefix       = "/registry"
 	CloudConfigSumEnv    = "RKE_CLOUD_CONFIG_CHECKSUM"
 	CloudProviderNameEnv = "RKE_CLOUD_PROVIDER_NAME"
+	AuditLogConfigSumEnv = "RKE_AUDITLOG_CONFIG_CHECKSUM"
 
 	DefaultToolsEntrypoint        = "/opt/rke-tools/entrypoint.sh"
 	DefaultToolsEntrypointVersion = "0.1.13"
@@ -191,7 +193,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	if len(c.CloudProvider.Name) > 0 {
 		c.Services.KubeAPI.ExtraEnv = append(
 			c.Services.KubeAPI.ExtraEnv,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
+			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 	if c.EncryptionConfig.EncryptionProviderFile != "" {
 		CommandArgs[EncryptionProviderConfigArgument] = EncryptionProviderFilePath
@@ -265,6 +267,14 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	}
 	if c.Services.KubeAPI.AuditLog != nil && c.Services.KubeAPI.AuditLog.Enabled {
 		Binds = append(Binds, fmt.Sprintf("%s:/var/log/kube-audit:z", path.Join(host.PrefixPath, "/var/log/kube-audit")))
+		bytes, err := yaml.Marshal(c.Services.KubeAPI.AuditLog.Configuration.Policy)
+		if err != nil {
+			logrus.Warnf("Error while marshalling auditlog policy: %v", err)
+		}
+
+		c.Services.KubeAPI.ExtraEnv = append(
+			c.Services.KubeAPI.ExtraEnv,
+			fmt.Sprintf("%s=%s", AuditLogConfigSumEnv, getStringChecksum(string(bytes))))
 	}
 
 	// Override args if they exist, add additional args
@@ -323,7 +333,7 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 	if len(c.CloudProvider.Name) > 0 {
 		c.Services.KubeController.ExtraEnv = append(
 			c.Services.KubeController.ExtraEnv,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
+			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 
 	if serviceOptions.KubeController != nil {
@@ -499,7 +509,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 
 	if len(c.CloudProvider.Name) > 0 {
 		Env = append(Env,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
+			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 	if len(c.PrivateRegistriesMap) > 0 {
 		kubeletDockerConfig, _ := docker.GetKubeletDockerConfig(c.PrivateRegistriesMap)
@@ -1046,7 +1056,7 @@ func (c *Cluster) getDefaultKubernetesServicesOptions(osType string) (v3.Kuberne
 	return v3.KubernetesServicesOptions{}, fmt.Errorf("getDefaultKubernetesServicesOptions: No serviceOptions found for cluster version [%s] or cluster major version [%s]", c.Version, clusterMajorVersion)
 }
 
-func getCloudConfigChecksum(config string) string {
+func getStringChecksum(config string) string {
 	configByteSum := md5.Sum([]byte(config))
 	return fmt.Sprintf("%x", configByteSum)
 }
