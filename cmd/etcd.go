@@ -341,6 +341,10 @@ func RestoreEtcdSnapshotFromCli(ctx *cli.Context) error {
 	if etcdSnapshotName == "" {
 		return fmt.Errorf("you must specify the snapshot name to restore")
 	}
+	// Warn user if etcdSnapshotName contains extension (should just be snapshotname, not the filename)
+	if strings.HasSuffix(etcdSnapshotName, ".zip") {
+		logrus.Warnf("The snapshot name [%s] ends with the file extension (.zip) which is not needed, the snapshot name should be provided without the extension", etcdSnapshotName)
+	}
 	// setting up the flags
 	// flag to use local state file
 	useLocalState := ctx.Bool("use-local-state")
