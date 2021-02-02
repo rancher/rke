@@ -7422,11 +7422,11 @@
   "2.4.3": "v1.17.x",
   "2.4.4": "v1.17.x",
   "2.4.5": "v1.18.x",
-  "default": "v1.19.x"
+  "default": "v1.20.x"
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.19.7-rancher1-1"
+  "default": "v1.20.2-rancher2-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
@@ -7802,6 +7802,9 @@
   },
   "v1.19": {
    "benchmarkVersion": "rke-cis-1.5"
+  },
+  "v1.20": {
+   "benchmarkVersion": "rke-cis-1.6"
   }
  },
  "CisBenchmarkVersionInfo": {
