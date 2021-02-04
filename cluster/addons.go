@@ -43,6 +43,11 @@ const (
 	KubeAPIAuthAppName             = "kube-api-auth"
 	CattleClusterAgentAppName      = "cattle-cluster-agent"
 
+	CoreDNSPriorityClassNameKey           = "coredns_priority_class_name"
+	CoreDNSAutoscalerPriorityClassNameKey = "coredns_autoscaler_priority_class_name"
+	KubeDNSPriorityClassNameKey           = "kube_dns_priority_class_name"
+	KubeDNSAutoscalerPriorityClassNameKey = "kube_dns_autoscaler_priority_class_name"
+
 	CoreDNSProvider = "coredns"
 	KubeDNSProvider = "kube-dns"
 	Nodelocal       = "nodelocal"
@@ -55,75 +60,83 @@ const (
 var DNSProviders = []string{KubeDNSProvider, CoreDNSProvider}
 
 type ingressOptions struct {
-	RBACConfig        string
-	Options           map[string]string
-	NodeSelector      map[string]string
-	ExtraArgs         map[string]string
-	ExtraEnvs         []v3.ExtraEnv
-	ExtraVolumes      []v3.ExtraVolume
-	ExtraVolumeMounts []v3.ExtraVolumeMount
-	DNSPolicy         string
-	AlpineImage       string
-	IngressImage      string
-	IngressBackend    string
-	HTTPPort          int
-	HTTPSPort         int
-	NetworkMode       string
-	DefaultBackend    bool
-	UpdateStrategy    *appsv1.DaemonSetUpdateStrategy
-	Tolerations       []v1.Toleration
+	RBACConfig                              string
+	Options                                 map[string]string
+	NodeSelector                            map[string]string
+	ExtraArgs                               map[string]string
+	ExtraEnvs                               []v3.ExtraEnv
+	ExtraVolumes                            []v3.ExtraVolume
+	ExtraVolumeMounts                       []v3.ExtraVolumeMount
+	DNSPolicy                               string
+	AlpineImage                             string
+	IngressImage                            string
+	IngressBackend                          string
+	HTTPPort                                int
+	HTTPSPort                               int
+	NetworkMode                             string
+	DefaultBackend                          bool
+	UpdateStrategy                          *appsv1.DaemonSetUpdateStrategy
+	Tolerations                             []v1.Toleration
+	NginxIngressControllerPriorityClassName string
+	DefaultHTTPBackendPriorityClassName     string
 }
 
 type MetricsServerOptions struct {
-	RBACConfig         string
-	Options            map[string]string
-	NodeSelector       map[string]string
-	MetricsServerImage string
-	Version            string
-	UpdateStrategy     *appsv1.DeploymentStrategy
-	Replicas           *int32
-	Tolerations        []v1.Toleration
+	RBACConfig                     string
+	Options                        map[string]string
+	NodeSelector                   map[string]string
+	MetricsServerImage             string
+	Version                        string
+	UpdateStrategy                 *appsv1.DeploymentStrategy
+	Replicas                       *int32
+	Tolerations                    []v1.Toleration
+	MetricsServerPriorityClassName string
 }
 
 type CoreDNSOptions struct {
-	RBACConfig             string
-	CoreDNSImage           string
-	CoreDNSAutoScalerImage string
-	ClusterDomain          string
-	ClusterDNSServer       string
-	ReverseCIDRs           []string
-	UpstreamNameservers    []string
-	NodeSelector           map[string]string
-	UpdateStrategy         *appsv1.DeploymentStrategy
-	LinearAutoscalerParams string
-	Tolerations            []v1.Toleration
+	RBACConfig                         string
+	CoreDNSImage                       string
+	CoreDNSAutoScalerImage             string
+	ClusterDomain                      string
+	ClusterDNSServer                   string
+	ReverseCIDRs                       []string
+	UpstreamNameservers                []string
+	NodeSelector                       map[string]string
+	UpdateStrategy                     *appsv1.DeploymentStrategy
+	LinearAutoscalerParams             string
+	Tolerations                        []v1.Toleration
+	CoreDNSPriorityClassName           string
+	CoreDNSAutoscalerPriorityClassName string
 }
 
 type KubeDNSOptions struct {
-	RBACConfig             string
-	KubeDNSImage           string
-	DNSMasqImage           string
-	KubeDNSAutoScalerImage string
-	KubeDNSSidecarImage    string
-	ClusterDomain          string
-	ClusterDNSServer       string
-	ReverseCIDRs           []string
-	UpstreamNameservers    []string
-	StubDomains            map[string][]string
-	NodeSelector           map[string]string
-	UpdateStrategy         *appsv1.DeploymentStrategy
-	LinearAutoscalerParams string
-	Tolerations            []v1.Toleration
+	RBACConfig                         string
+	KubeDNSImage                       string
+	DNSMasqImage                       string
+	KubeDNSAutoScalerImage             string
+	KubeDNSSidecarImage                string
+	ClusterDomain                      string
+	ClusterDNSServer                   string
+	ReverseCIDRs                       []string
+	UpstreamNameservers                []string
+	StubDomains                        map[string][]string
+	NodeSelector                       map[string]string
+	UpdateStrategy                     *appsv1.DeploymentStrategy
+	LinearAutoscalerParams             string
+	Tolerations                        []v1.Toleration
+	KubeDNSPriorityClassName           string
+	KubeDNSAutoscalerPriorityClassName string
 }
 
 type NodelocalOptions struct {
-	RBACConfig       string
-	NodelocalImage   string
-	ClusterDomain    string
-	ClusterDNSServer string
-	IPAddress        string
-	NodeSelector     map[string]string
-	UpdateStrategy   *appsv1.DaemonSetUpdateStrategy
+	RBACConfig                    string
+	NodelocalImage                string
+	ClusterDomain                 string
+	ClusterDNSServer              string
+	IPAddress                     string
+	NodeSelector                  map[string]string
+	UpdateStrategy                *appsv1.DaemonSetUpdateStrategy
+	NodeLocalDNSPriorityClassName string
 }
 
 type addonError struct {
@@ -331,7 +344,9 @@ func (c *Cluster) deployKubeDNS(ctx context.Context, data map[string]interface{}
 			Type:          c.DNS.UpdateStrategy.Strategy,
 			RollingUpdate: c.DNS.UpdateStrategy.RollingUpdate,
 		},
-		Tolerations: c.DNS.Tolerations,
+		Tolerations:                        c.DNS.Tolerations,
+		KubeDNSPriorityClassName:           c.DNS.Options[KubeDNSPriorityClassNameKey],
+		KubeDNSAutoscalerPriorityClassName: c.DNS.Options[KubeDNSAutoscalerPriorityClassNameKey],
 	}
 	linearModeBytes, err := json.Marshal(c.DNS.LinearAutoscalerParams)
 	if err != nil {
@@ -368,7 +383,9 @@ func (c *Cluster) deployCoreDNS(ctx context.Context, data map[string]interface{}
 			Type:          c.DNS.UpdateStrategy.Strategy,
 			RollingUpdate: c.DNS.UpdateStrategy.RollingUpdate,
 		},
-		Tolerations: c.DNS.Tolerations,
+		Tolerations:                        c.DNS.Tolerations,
+		CoreDNSPriorityClassName:           c.DNS.Options[CoreDNSPriorityClassNameKey],
+		CoreDNSAutoscalerPriorityClassName: c.DNS.Options[CoreDNSAutoscalerPriorityClassNameKey],
 	}
 	linearModeBytes, err := json.Marshal(c.DNS.LinearAutoscalerParams)
 	if err != nil {
@@ -422,8 +439,9 @@ func (c *Cluster) deployMetricServer(ctx context.Context, data map[string]interf
 			Type:          c.Monitoring.UpdateStrategy.Strategy,
 			RollingUpdate: c.Monitoring.UpdateStrategy.RollingUpdate,
 		},
-		Replicas:    c.Monitoring.Replicas,
-		Tolerations: c.Monitoring.Tolerations,
+		Replicas:                       c.Monitoring.Replicas,
+		Tolerations:                    c.Monitoring.Tolerations,
+		MetricsServerPriorityClassName: c.Monitoring.MetricsServerPriorityClassName,
 	}
 	tmplt, err := templates.GetVersionedTemplates(kdm.MetricsServer, data, c.Version)
 	if err != nil {
@@ -587,7 +605,9 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 			Type:          c.Ingress.UpdateStrategy.Strategy,
 			RollingUpdate: c.Ingress.UpdateStrategy.RollingUpdate,
 		},
-		Tolerations: c.Ingress.Tolerations,
+		Tolerations:                             c.Ingress.Tolerations,
+		NginxIngressControllerPriorityClassName: c.Ingress.NginxIngressControllerPriorityClassName,
+		DefaultHTTPBackendPriorityClassName:     c.Ingress.DefaultHTTPBackendPriorityClassName,
 	}
 	// since nginx ingress controller 0.16.0, it can be run as non-root and doesn't require privileged anymore.
 	// So we can use securityContext instead of setting privileges via initContainer.
@@ -716,12 +736,13 @@ func (c *Cluster) deployDNS(ctx context.Context, data map[string]interface{}) er
 func (c *Cluster) deployNodelocal(ctx context.Context, data map[string]interface{}) error {
 	log.Infof(ctx, "[dns] Setting up %s", Nodelocal)
 	NodelocalConfig := NodelocalOptions{
-		NodelocalImage:   c.SystemImages.Nodelocal,
-		RBACConfig:       c.Authorization.Mode,
-		ClusterDomain:    c.ClusterDomain,
-		ClusterDNSServer: c.ClusterDNSServer,
-		IPAddress:        c.DNS.Nodelocal.IPAddress,
-		NodeSelector:     c.DNS.Nodelocal.NodeSelector,
+		NodelocalImage:                c.SystemImages.Nodelocal,
+		RBACConfig:                    c.Authorization.Mode,
+		ClusterDomain:                 c.ClusterDomain,
+		ClusterDNSServer:              c.ClusterDNSServer,
+		IPAddress:                     c.DNS.Nodelocal.IPAddress,
+		NodeSelector:                  c.DNS.Nodelocal.NodeSelector,
+		NodeLocalDNSPriorityClassName: c.DNS.Nodelocal.NodeLocalDNSPriorityClassName,
 	}
 	if c.DNS.Nodelocal.UpdateStrategy != nil {
 		NodelocalConfig.UpdateStrategy = &appsv1.DaemonSetUpdateStrategy{
