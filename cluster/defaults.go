@@ -557,6 +557,10 @@ func (c *Cluster) setClusterDNSDefaults() error {
 	}
 	c.DNS.Provider = ClusterDNSProvider
 	logrus.Debugf("DNS provider set to [%s]", ClusterDNSProvider)
+	if c.DNS.Options == nil {
+		// don't break if the user didn't define options
+		c.DNS.Options = make(map[string]string)
+	}
 	return nil
 }
 
