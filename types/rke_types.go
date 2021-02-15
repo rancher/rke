@@ -587,12 +587,12 @@ type AciNetworkProvider struct {
 	AEP                      string   `yaml:"aep,omitempty" json:"aep,omitempty"`
 	VRFName                  string   `yaml:"vrf_name,omitempty" json:"vrfName,omitempty"`
 	VRFTenant                string   `yaml:"vrf_tenant,omitempty" json:"vrfTenant,omitempty"`
-	L3Out                    string   `yaml:"l3out,omitempty" json:"l3Out,omitempty"`
-	L3OutExternalNetworks    []string `yaml:"l3out_external_networks" json:"l3OutExternalNetworks,omitempty"`
+	L3Out                    string   `yaml:"l3out,omitempty" json:"l3out,omitempty"`
+	L3OutExternalNetworks    []string `yaml:"l3out_external_networks" json:"l3outExternalNetworks,omitempty"`
 	DynamicExternalSubnet    string   `yaml:"extern_dynamic,omitempty" json:"externDynamic,omitempty"`
 	StaticExternalSubnet     string   `yaml:"extern_static,omitempty" json:"externStatic,omitempty"`
 	ServiceGraphSubnet       string   `yaml:"node_svc_subnet,omitempty" json:"nodeSvcSubnet,omitempty"`
-	KubeAPIVlan              string   `yaml:"kube_api_vlan,omitempty" json:"kubeAPIVlan,omitempty"`
+	KubeAPIVlan              string   `yaml:"kube_api_vlan,omitempty" json:"kubeApiVlan,omitempty"`
 	ServiceVlan              string   `yaml:"service_vlan,omitempty" json:"serviceVlan,omitempty"`
 	InfraVlan                string   `yaml:"infra_vlan,omitempty" json:"infraVlan,omitempty"`
 	Tenant                   string   `yaml:"tenant,omitempty" json:"tenant,omitempty"`
@@ -619,7 +619,7 @@ type AciNetworkProvider struct {
 	SnatPortRangeStart       string   `yaml:"snat_port_range_start,omitempty" json:"snatPortRangeStart,omitempty"`
 	SnatPortRangeEnd         string   `yaml:"snat_port_range_end,omitempty" json:"snatPortRangeEnd,omitempty"`
 	SnatPortsPerNode         string   `yaml:"snat_ports_per_node,omitempty" json:"snatPortsPerNode,omitempty"`
-	OpflexClientSSL          string   `yaml:"opflex_client_ssl,omitempty" json:"opflexClientSSL,omitempty"`
+	OpflexClientSSL          string   `yaml:"opflex_client_ssl,omitempty" json:"opflexClientSsl,omitempty"`
 	UsePrivilegedContainer   string   `yaml:"use_privileged_container,omitempty" json:"usePrivilegedContainer,omitempty"`
 	UseHostNetnsVolume       string   `yaml:"use_host_netns_volume,omitempty" json:"useHostNetnsVolume,omitempty"`
 	UseOpflexServerVolume    string   `yaml:"use_opflex_server_volume,omitempty" json:"useOpflexServerVolume,omitempty"`
@@ -627,9 +627,9 @@ type AciNetworkProvider struct {
 	KafkaBrokers             []string `yaml:"kafka_brokers,omitempty" json:"kafkaBrokers,omitempty"`
 	KafkaClientCrt           string   `yaml:"kafka_client_crt,omitempty" json:"kafkaClientCrt,omitempty"`
 	KafkaClientKey           string   `yaml:"kafka_client_key,omitempty" json:"kafkaClientKey,omitempty"`
-	CApic                    string   `yaml:"capic,omitempty" json:"cApic,omitempty"`
-	UseAciAnywhereCRD        string   `yaml:"use_aci_anywhere_crd,omitempty" json:"useAciAnywhereCRD,omitempty"`
-	OverlayVRFName           string   `yaml:"overlay_vrf_name,omitempty" json:"overlayVRFName,omitempty"`
+	CApic                    string   `yaml:"capic,omitempty" json:"capic,omitempty"`
+	UseAciAnywhereCRD        string   `yaml:"use_aci_anywhere_crd,omitempty" json:"useAciAnywhereCrd,omitempty"`
+	OverlayVRFName           string   `yaml:"overlay_vrf_name,omitempty" json:"overlayVrfName,omitempty"`
 	GbpPodSubnet             string   `yaml:"gbp_pod_subnet,omitempty" json:"gbpPodSubnet,omitempty"`
 	RunGbpContainer          string   `yaml:"run_gbp_container,omitempty" json:"runGbpContainer,omitempty"`
 	RunOpflexServerContainer string   `yaml:"run_opflex_server_container,omitempty" json:"runOpflexServerContainer,omitempty"`
