@@ -6374,7 +6374,7 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
-  "v1.18.15-rancher2-1": {
+  "v1.18.16-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.3-rancher1",
    "alpine": "rancher/rke-tools:v0.1.71",
    "nginxProxy": "rancher/rke-tools:v0.1.71",
@@ -6387,7 +6387,7 @@
    "coredns": "rancher/coredns-coredns:1.6.9",
    "corednsAutoscaler": "rancher/cluster-proportional-autoscaler:1.7.1",
    "nodelocal": "rancher/k8s-dns-node-cache:1.15.7",
-   "kubernetes": "rancher/hyperkube:v1.18.15-rancher2",
+   "kubernetes": "rancher/hyperkube:v1.18.16-rancher1",
    "flannel": "rancher/coreos-flannel:v0.12.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/calico-node:v3.13.4",
@@ -6833,7 +6833,7 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
-  "v1.19.7-rancher2-1": {
+  "v1.19.8-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.13-rancher1",
    "alpine": "rancher/rke-tools:v0.1.71",
    "nginxProxy": "rancher/rke-tools:v0.1.71",
@@ -6846,7 +6846,7 @@
    "coredns": "rancher/coredns-coredns:1.7.0",
    "corednsAutoscaler": "rancher/cluster-proportional-autoscaler:1.8.1",
    "nodelocal": "rancher/k8s-dns-node-cache:1.15.13",
-   "kubernetes": "rancher/hyperkube:v1.19.7-rancher2",
+   "kubernetes": "rancher/hyperkube:v1.19.8-rancher1",
    "flannel": "rancher/coreos-flannel:v0.13.0-rancher1",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/calico-node:v3.16.5",
@@ -6875,7 +6875,7 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
-  "v1.20.2-rancher2-1": {
+  "v1.20.4-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.14-rancher1",
    "alpine": "rancher/rke-tools:v0.1.71",
    "nginxProxy": "rancher/rke-tools:v0.1.71",
@@ -6888,7 +6888,7 @@
    "coredns": "rancher/coredns-coredns:1.8.0",
    "corednsAutoscaler": "rancher/cluster-proportional-autoscaler:1.8.1",
    "nodelocal": "rancher/k8s-dns-node-cache:1.15.13",
-   "kubernetes": "rancher/hyperkube:v1.20.2-rancher2",
+   "kubernetes": "rancher/hyperkube:v1.20.4-rancher1",
    "flannel": "rancher/coreos-flannel:v0.13.0-rancher1",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/calico-node:v3.17.2",
@@ -6907,7 +6907,7 @@
    "ingress": "rancher/nginx-ingress-controller:nginx-0.43.0-rancher1",
    "ingressBackend": "rancher/nginx-ingress-controller-defaultbackend:1.5-rancher1",
    "metricsServer": "rancher/metrics-server:v0.4.1",
-   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.4",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
    "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
    "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
    "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
@@ -7035,8 +7035,8 @@
    "\u003e=1.17.0-rancher0 \u003c1.17.4-rancher0": "calico-v1.17",
    "\u003e=1.17.4-rancher0 \u003c1.19.0-rancher0": "calico-v1.17-privileged",
    "\u003e=1.19.0-rancher0 \u003c1.19.4-rancher1-2": "calico-v3.16.0",
-   "\u003e=1.19.4-rancher1-2 \u003c1.20.2-rancher1-1": "calico-v3.16.5",
-   "\u003e=1.20.2-rancher1-1": "calico-v3.17.1",
+   "\u003e=1.19.4-rancher1-2 \u003c1.20.4-rancher1-1": "calico-v3.16.5",
+   "\u003e=1.20.4-rancher1-1": "calico-v3.17.1",
    "\u003e=1.8.0-rancher0 \u003c1.13.0-rancher0": "calico-v1.8"
   },
   "canal": {
@@ -7053,8 +7053,8 @@
    "\u003e=1.17.4-rancher0 \u003c1.17.6-rancher2-1": "canal-v1.17-privileged",
    "\u003e=1.17.6-rancher2-1 \u003c1.19.0-rancher0": "canal-v1.17-privileged-calico3134",
    "\u003e=1.19.0-rancher0 \u003c1.19.4-rancher1-2": "canal-v3.16.0",
-   "\u003e=1.19.4-rancher1-2 \u003c1.20.2-rancher1-1": "canal-v3.16.5",
-   "\u003e=1.20.2-rancher1-1": "canal-v3.17.1",
+   "\u003e=1.19.4-rancher1-2 \u003c1.20.4-rancher1-1": "canal-v3.16.5",
+   "\u003e=1.20.4-rancher1-1": "canal-v3.17.1",
    "\u003e=1.8.0-rancher0 \u003c1.13.0-rancher0": "canal-v1.8"
   },
   "coreDNS": {
@@ -7072,8 +7072,8 @@
    "\u003e=1.8.0-rancher0 \u003c1.16.0-alpha": "kubedns-v1.8"
   },
   "metricsServer": {
-   "\u003e=1.20.2-rancher1-1": "metricsserver-v1.20",
-   "\u003e=1.8.0-rancher0 \u003c1.20.2-rancher1-1": "metricsserver-v1.8"
+   "\u003e=1.20.4-rancher1-1": "metricsserver-v1.20",
+   "\u003e=1.8.0-rancher0 \u003c1.20.4-rancher1-1": "metricsserver-v1.8"
   },
   "nginxIngress": {
    "\u003e=1.13.10-rancher1-3 \u003c1.14.0-rancher0": "nginxingress-v1.15",
@@ -7138,8 +7138,8 @@
    "weave-v1.8": "\n---\n# This ConfigMap can be used to configure a self-hosted Weave Net installation.\napiVersion: v1\nkind: List\nitems:\n  - apiVersion: v1\n    kind: ServiceAccount\n    metadata:\n      name: weave-net\n      namespace: kube-system\n  - apiVersion: extensions/v1beta1\n    kind: DaemonSet\n    metadata:\n      name: weave-net\n      labels:\n        name: weave-net\n      namespace: kube-system\n    spec:\n      template:\n        metadata:\n          annotations:\n            scheduler.alpha.kubernetes.io/critical-pod: ''\n            scheduler.alpha.kubernetes.io/tolerations: \u003e-\n              [{\"key\":\"dedicated\",\"operator\":\"Equal\",\"value\":\"master\",\"effect\":\"NoSchedule\"}]\n          labels:\n            name: weave-net\n        spec:\n          affinity:\n            nodeAffinity:\n              requiredDuringSchedulingIgnoredDuringExecution:\n                nodeSelectorTerms:\n                  - matchExpressions:\n                    - key: beta.kubernetes.io/os\n                      operator: NotIn\n                      values:\n                        - windows\n{{if .NodeSelector}}\n          nodeSelector:\n            {{ range $k, $v := .NodeSelector }}\n              {{ $k }}: \"{{ $v }}\"\n            {{ end }}\n{{end}}\n          containers:\n            - name: weave\n              command:\n                - /home/weave/launch.sh\n              env:\n                - name: HOSTNAME\n                  valueFrom:\n                    fieldRef:\n                      apiVersion: v1\n                      fieldPath: spec.nodeName\n                - name: IPALLOC_RANGE\n                  value: \"{{.ClusterCIDR}}\"\n                {{- if .WeavePassword}}\n                - name: WEAVE_PASSWORD\n                  value: \"{{.WeavePassword}}\"\n                {{- end}}\n                {{- if .MTU }}\n                {{- if ne .MTU 0 }}\n                - name: WEAVE_MTU\n                  value: \"{{.MTU}}\"\n                {{- end }}\n                {{- end }}\n              image: {{.Image}}\n              readinessProbe:\n                httpGet:\n                  host: 127.0.0.1\n                  path: /status\n                  port: 6784\n                initialDelaySeconds: 30\n              resources:\n                requests:\n                  cpu: 10m\n              securityContext:\n                privileged: true\n              volumeMounts:\n                - name: weavedb\n                  mountPath: /weavedb\n                - name: cni-bin\n                  mountPath: /host/opt\n                - name: cni-bin2\n                  mountPath: /host/home\n                - name: cni-conf\n                  mountPath: /host/etc\n                - name: dbus\n                  mountPath: /host/var/lib/dbus\n                - name: lib-modules\n                  mountPath: /lib/modules\n                - name: xtables-lock\n                  mountPath: /run/xtables.lock\n            - name: weave-npc\n              env:\n                - name: HOSTNAME\n                  valueFrom:\n                    fieldRef:\n                      apiVersion: v1\n                      fieldPath: spec.nodeName\n              image: {{.CNIImage}}\n              resources:\n                requests:\n                  cpu: 10m\n              securityContext:\n                privileged: true\n              volumeMounts:\n                - name: xtables-lock\n                  mountPath: /run/xtables.lock\n            - name: weave-plugins\n              command:\n                - /opt/rke-tools/weave-plugins-cni.sh\n              image: {{.WeaveLoopbackImage}}\n              securityContext:\n                privileged: true\n              volumeMounts:\n                - name: cni-bin\n                  mountPath: /opt\n          hostNetwork: true\n          hostPID: true\n          restartPolicy: Always\n          securityContext:\n            seLinuxOptions: {}\n          serviceAccountName: weave-net\n          tolerations:\n          - operator: Exists\n            effect: NoSchedule\n          - operator: Exists\n            effect: NoExecute\n          volumes:\n            - name: weavedb\n              hostPath:\n                path: /var/lib/weave\n            - name: cni-bin\n              hostPath:\n                path: /opt\n            - name: cni-bin2\n              hostPath:\n                path: /home\n            - name: cni-conf\n              hostPath:\n                path: /etc\n            - name: dbus\n              hostPath:\n                path: /var/lib/dbus\n            - name: lib-modules\n              hostPath:\n                path: /lib/modules\n            - name: xtables-lock\n              hostPath:\n                path: /run/xtables.lock\n      updateStrategy:\n{{if .UpdateStrategy}}\n{{ toYaml .UpdateStrategy | indent 8}}\n{{end}}\n        type: RollingUpdate\n{{- if eq .RBACConfig \"rbac\"}}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: weave-net\n  labels:\n    name: weave-net\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRole\nmetadata:\n  name: weave-net\n  labels:\n    name: weave-net\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - pods\n      - namespaces\n      - nodes\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - networkpolicies\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - nodes/status\n    verbs:\n      - patch\n      - update\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRoleBinding\nmetadata:\n  name: weave-net\n  labels:\n    name: weave-net\nroleRef:\n  kind: ClusterRole\n  name: weave-net\n  apiGroup: rbac.authorization.k8s.io\nsubjects:\n  - kind: ServiceAccount\n    name: weave-net\n    namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: Role\nmetadata:\n  name: weave-net\n  labels:\n    name: weave-net\n  namespace: kube-system\nrules:\n  - apiGroups:\n      - ''\n    resourceNames:\n      - weave-net\n    resources:\n      - configmaps\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    verbs:\n      - create\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: RoleBinding\nmetadata:\n  name: weave-net\n  labels:\n    name: weave-net\n  namespace: kube-system\nroleRef:\n  kind: Role\n  name: weave-net\n  apiGroup: rbac.authorization.k8s.io\nsubjects:\n  - kind: ServiceAccount\n    name: weave-net\n    namespace: kube-system\n{{- end}}\n"
   },
   "weave": {
-   "\u003e=1.16.0-alpha \u003c1.20.2-rancher1-1": "weave-v1.16",
-   "\u003e=1.20.2-rancher1-1": "weave-v1.20",
+   "\u003e=1.16.0-alpha \u003c1.20.4-rancher1-1": "weave-v1.16",
+   "\u003e=1.20.4-rancher1-1": "weave-v1.20",
    "\u003e=1.8.0-rancher0 \u003c1.16.0-alpha": "weave-v1.8"
   }
  },
@@ -7352,7 +7352,7 @@
    "minRKEVersion": "1.1.3-rc0",
    "minRancherVersion": "2.4.5-rc0"
   },
-  "v1.18.15-rancher2-1": {
+  "v1.18.16-rancher1-1": {
    "minRKEVersion": "1.1.3-rc0",
    "minRancherVersion": "2.4.5-rc0"
   },
@@ -7434,7 +7434,7 @@
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.20.2-rancher2-1"
+  "default": "v1.20.4-rancher1-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
