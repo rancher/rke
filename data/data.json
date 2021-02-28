@@ -5830,10 +5830,10 @@
   },
   "v1.17.17-rancher2-1": {
    "etcd": "rancher/coreos-etcd:v3.4.3-rancher1",
-   "alpine": "rancher/rke-tools:v0.1.71",
-   "nginxProxy": "rancher/rke-tools:v0.1.71",
-   "certDownloader": "rancher/rke-tools:v0.1.71",
-   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.71",
+   "alpine": "rancher/rke-tools:v0.1.72",
+   "nginxProxy": "rancher/rke-tools:v0.1.72",
+   "certDownloader": "rancher/rke-tools:v0.1.72",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.72",
    "kubedns": "rancher/k8s-dns-kube-dns:1.15.0",
    "dnsmasq": "rancher/k8s-dns-dnsmasq-nanny:1.15.0",
    "kubednsSidecar": "rancher/k8s-dns-sidecar:1.15.0",
@@ -6376,10 +6376,10 @@
   },
   "v1.18.16-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.3-rancher1",
-   "alpine": "rancher/rke-tools:v0.1.71",
-   "nginxProxy": "rancher/rke-tools:v0.1.71",
-   "certDownloader": "rancher/rke-tools:v0.1.71",
-   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.71",
+   "alpine": "rancher/rke-tools:v0.1.72",
+   "nginxProxy": "rancher/rke-tools:v0.1.72",
+   "certDownloader": "rancher/rke-tools:v0.1.72",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.72",
    "kubedns": "rancher/k8s-dns-kube-dns:1.15.2",
    "dnsmasq": "rancher/k8s-dns-dnsmasq-nanny:1.15.2",
    "kubednsSidecar": "rancher/k8s-dns-sidecar:1.15.2",
@@ -6835,10 +6835,10 @@
   },
   "v1.19.8-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.13-rancher1",
-   "alpine": "rancher/rke-tools:v0.1.71",
-   "nginxProxy": "rancher/rke-tools:v0.1.71",
-   "certDownloader": "rancher/rke-tools:v0.1.71",
-   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.71",
+   "alpine": "rancher/rke-tools:v0.1.72",
+   "nginxProxy": "rancher/rke-tools:v0.1.72",
+   "certDownloader": "rancher/rke-tools:v0.1.72",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.72",
    "kubedns": "rancher/k8s-dns-kube-dns:1.15.10",
    "dnsmasq": "rancher/k8s-dns-dnsmasq-nanny:1.15.10",
    "kubednsSidecar": "rancher/k8s-dns-sidecar:1.15.10",
@@ -6877,10 +6877,10 @@
   },
   "v1.20.4-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.14-rancher1",
-   "alpine": "rancher/rke-tools:v0.1.71",
-   "nginxProxy": "rancher/rke-tools:v0.1.71",
-   "certDownloader": "rancher/rke-tools:v0.1.71",
-   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.71",
+   "alpine": "rancher/rke-tools:v0.1.72",
+   "nginxProxy": "rancher/rke-tools:v0.1.72",
+   "certDownloader": "rancher/rke-tools:v0.1.72",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.72",
    "kubedns": "rancher/k8s-dns-kube-dns:1.15.10",
    "dnsmasq": "rancher/k8s-dns-dnsmasq-nanny:1.15.10",
    "kubednsSidecar": "rancher/k8s-dns-sidecar:1.15.10",
@@ -7812,7 +7812,7 @@
    "benchmarkVersion": "rke-cis-1.5"
   },
   "v1.20": {
-   "benchmarkVersion": "rke-cis-1.6"
+   "benchmarkVersion": "rke-cis-1.5"
   }
  },
  "CisBenchmarkVersionInfo": {
@@ -7923,17 +7923,17 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.4.5-rc1",
-    "version": "v1.18.15+k3s1"
+    "version": "v1.18.16+k3s1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.7+k3s1"
+    "version": "v1.19.8+k3s1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.2+k3s1"
+    "version": "v1.20.4+k3s1"
    }
   ]
  },
@@ -7942,12 +7942,12 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.18.15+rke2r1"
+    "version": "v1.18.16+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.7+rke2r1"
+    "version": "v1.19.8+rke2r1"
    }
   ]
  }
