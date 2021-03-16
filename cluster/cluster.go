@@ -99,6 +99,7 @@ const (
 	NameLabel              = "name"
 
 	WorkerThreads = util.WorkerThreads
+	SELinuxLabel  = services.SELinuxLabel
 
 	serviceAccountTokenFileParam = "service-account-key-file"
 
@@ -132,7 +133,7 @@ func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptionData map[stri
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		log.Infof(ctx, "[etcd] External etcd connection string has been specified, skipping etcd plane")
 	} else {
-		if err := services.RunEtcdPlane(ctx, c.EtcdHosts, etcdNodePlanMap, c.LocalConnDialerFactory, c.PrivateRegistriesMap, c.UpdateWorkersOnly, c.SystemImages.Alpine, c.Services.Etcd, c.Certificates); err != nil {
+		if err := services.RunEtcdPlane(ctx, c.EtcdHosts, etcdNodePlanMap, c.LocalConnDialerFactory, c.PrivateRegistriesMap, c.UpdateWorkersOnly, c.SystemImages.Alpine, c.Services.Etcd, c.Certificates, c.Version); err != nil {
 			return "", fmt.Errorf("[etcd] Failed to bring up Etcd Plane: %v", err)
 		}
 	}
@@ -155,7 +156,8 @@ func (c *Cluster) DeployControlPlane(ctx context.Context, svcOptionData map[stri
 			cpNodePlanMap,
 			c.UpdateWorkersOnly,
 			c.SystemImages.Alpine,
-			c.Certificates); err != nil {
+			c.Certificates,
+			c.Version); err != nil {
 			return "", fmt.Errorf("[controlPlane] Failed to bring up Control Plane: %v", err)
 		}
 		return "", nil
@@ -201,7 +203,8 @@ func (c *Cluster) UpgradeControlPlane(ctx context.Context, kubeClient *kubernete
 			cpNodePlanMap,
 			c.UpdateWorkersOnly,
 			c.SystemImages.Alpine,
-			c.Certificates)
+			c.Certificates,
+			c.Version)
 		if err != nil {
 			logrus.Errorf("Failed to upgrade controlplane components on NotReady hosts, error: %v", err)
 		}
@@ -211,7 +214,8 @@ func (c *Cluster) UpgradeControlPlane(ctx context.Context, kubeClient *kubernete
 			cpNodePlanMap,
 			c.Certificates,
 			c.UpdateWorkersOnly,
-			c.SystemImages.Alpine)
+			c.SystemImages.Alpine,
+			c.Version)
 		if err != nil {
 			logrus.Errorf("Failed to upgrade worker components on NotReady hosts, error: %v", err)
 		}
@@ -230,7 +234,7 @@ func (c *Cluster) UpgradeControlPlane(ctx context.Context, kubeClient *kubernete
 		cpNodePlanMap,
 		c.UpdateWorkersOnly,
 		c.SystemImages.Alpine,
-		c.Certificates, c.UpgradeStrategy, c.NewHosts, inactiveHosts, c.MaxUnavailableForControlNodes)
+		c.Certificates, c.UpgradeStrategy, c.NewHosts, inactiveHosts, c.MaxUnavailableForControlNodes, c.Version)
 	if err != nil {
 		return "", fmt.Errorf("[controlPlane] Failed to upgrade Control Plane: %v", err)
 	}
@@ -273,7 +277,8 @@ func (c *Cluster) DeployWorkerPlane(ctx context.Context, svcOptionData map[strin
 			workerNodePlanMap,
 			c.Certificates,
 			c.UpdateWorkersOnly,
-			c.SystemImages.Alpine); err != nil {
+			c.SystemImages.Alpine,
+			c.Version); err != nil {
 			return "", fmt.Errorf("[workerPlane] Failed to bring up Worker Plane: %v", err)
 		}
 		return "", nil
@@ -318,7 +323,8 @@ func (c *Cluster) UpgradeWorkerPlane(ctx context.Context, kubeClient *kubernetes
 			workerNodePlanMap,
 			c.Certificates,
 			c.UpdateWorkersOnly,
-			c.SystemImages.Alpine)
+			c.SystemImages.Alpine,
+			c.Version)
 		if err != nil {
 			logrus.Errorf("Failed to upgrade worker components on NotReady hosts, error: %v", err)
 		}
@@ -337,7 +343,11 @@ func (c *Cluster) UpgradeWorkerPlane(ctx context.Context, kubeClient *kubernetes
 		workerNodePlanMap,
 		c.Certificates,
 		c.UpdateWorkersOnly,
-		c.SystemImages.Alpine, c.UpgradeStrategy, c.NewHosts, c.MaxUnavailableForWorkerNodes)
+		c.SystemImages.Alpine,
+		c.UpgradeStrategy,
+		c.NewHosts,
+		c.MaxUnavailableForWorkerNodes,
+		c.Version)
 	if err != nil {
 		return "", fmt.Errorf("[workerPlane] Failed to upgrade Worker Plane: %v", err)
 	}

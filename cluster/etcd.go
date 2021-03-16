@@ -23,7 +23,7 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 			containerTimeout = c.Services.Etcd.BackupConfig.Timeout
 		}
 		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
-		if err := services.RunEtcdSnapshotSave(newCtx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd); err != nil {
+		if err := services.RunEtcdSnapshotSave(newCtx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd, c.Version); err != nil {
 			return err
 		}
 	}
@@ -54,7 +54,8 @@ func (c *Cluster) DeployRestoreCerts(ctx context.Context, clusterCerts map[strin
 					c.SystemImages.CertDownloader,
 					c.PrivateRegistriesMap,
 					false,
-					env); err != nil {
+					env,
+					c.Version); err != nil {
 					errList = append(errList, err)
 				}
 			}
@@ -81,7 +82,7 @@ func (c *Cluster) DeployStateFile(ctx context.Context, stateFilePath, snapshotNa
 		errgrp.Go(func() error {
 			var errList []error
 			for host := range hostsQueue {
-				err := pki.DeployStateOnPlaneHost(ctx, host.(*hosts.Host), c.SystemImages.CertDownloader, c.PrivateRegistriesMap, stateFilePath, snapshotName)
+				err := pki.DeployStateOnPlaneHost(ctx, host.(*hosts.Host), c.SystemImages.CertDownloader, c.PrivateRegistriesMap, stateFilePath, snapshotName, c.Version)
 				if err != nil {
 					errList = append(errList, err)
 				}
@@ -95,7 +96,7 @@ func (c *Cluster) DeployStateFile(ctx context.Context, stateFilePath, snapshotNa
 func (c *Cluster) GetStateFileFromSnapshot(ctx context.Context, snapshotName string) (string, error) {
 	backupImage := c.getBackupImage()
 	for _, host := range c.EtcdHosts {
-		stateFile, err := services.RunGetStateFileFromSnapshot(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotName, c.Services.Etcd)
+		stateFile, err := services.RunGetStateFileFromSnapshot(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotName, c.Services.Etcd, c.Version)
 		if err != nil || stateFile == "" {
 			logrus.Infof("Could not extract state file from snapshot [%s] on host [%s]", snapshotName, host.Address)
 			continue
@@ -125,7 +126,7 @@ func (c *Cluster) PrepareBackup(ctx context.Context, snapshotPath string) error 
 				log.Warnf(ctx, "failed to stop etcd container on host [%s]: %v", host.Address, err)
 			}
 			// start the download server, only one node should have it!
-			if err := services.StartBackupServer(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath); err != nil {
+			if err := services.StartBackupServer(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, c.Version); err != nil {
 				log.Warnf(ctx, "failed to start backup server on host [%s]: %v", host.Address, err)
 				errors = append(errors, err)
 				continue
@@ -147,7 +148,7 @@ func (c *Cluster) PrepareBackup(ctx context.Context, snapshotPath string) error 
 			if host.Address == backupServer.Address { // we skip the backup server if it's there
 				continue
 			}
-			if err := services.DownloadEtcdSnapshotFromBackupServer(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, backupServer); err != nil {
+			if err := services.DownloadEtcdSnapshotFromBackupServer(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, backupServer, c.Version); err != nil {
 				return err
 			}
 		}
@@ -163,7 +164,7 @@ func (c *Cluster) PrepareBackup(ctx context.Context, snapshotPath string) error 
 		c.Services.Etcd.BackupConfig.S3BackupConfig != nil {
 		log.Infof(ctx, "[etcd] etcd s3 backup configuration found, will use s3 as source")
 		for _, host := range c.EtcdHosts {
-			if err := services.DownloadEtcdSnapshotFromS3(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, c.Services.Etcd); err != nil {
+			if err := services.DownloadEtcdSnapshotFromS3(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, c.Services.Etcd, c.Version); err != nil {
 				return err
 			}
 		}
@@ -190,7 +191,7 @@ func (c *Cluster) RestoreEtcdSnapshot(ctx context.Context, snapshotPath string) 
 		}
 		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
 		if err := services.RestoreEtcdSnapshot(newCtx, host, c.PrivateRegistriesMap, c.SystemImages.Etcd, backupImage,
-			snapshotPath, initCluster, c.Services.Etcd); err != nil {
+			snapshotPath, initCluster, c.Services.Etcd, c.Version); err != nil {
 			return fmt.Errorf("[etcd] Failed to restore etcd snapshot: %v", err)
 		}
 	}
@@ -201,7 +202,7 @@ func (c *Cluster) RemoveEtcdSnapshot(ctx context.Context, snapshotName string) e
 	backupImage := c.getBackupImage()
 	for _, host := range c.EtcdHosts {
 		if err := services.RunEtcdSnapshotRemove(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotName,
-			false, c.Services.Etcd); err != nil {
+			false, c.Services.Etcd, c.Version); err != nil {
 			return err
 		}
 	}
@@ -214,7 +215,7 @@ func (c *Cluster) etcdSnapshotChecksum(ctx context.Context, snapshotPath string)
 	backupImage := c.getBackupImage()
 
 	for _, etcdHost := range c.EtcdHosts {
-		checksum, err := services.GetEtcdSnapshotChecksum(ctx, etcdHost, c.PrivateRegistriesMap, backupImage, snapshotPath)
+		checksum, err := services.GetEtcdSnapshotChecksum(ctx, etcdHost, c.PrivateRegistriesMap, backupImage, snapshotPath, c.Version)
 		if err != nil {
 			return false
 		}

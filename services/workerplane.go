@@ -26,7 +26,7 @@ const (
 	unschedulableControlTaint = "node-role.kubernetes.io/controlplane=true:NoSchedule"
 )
 
-func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, workerNodePlanMap map[string]v3.RKEConfigNodePlan, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage string) error {
+func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, workerNodePlanMap map[string]v3.RKEConfigNodePlan, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage, k8sVersion string) error {
 	log.Infof(ctx, "[%s] Building up Worker Plane..", WorkerRole)
 	var errgrp errgroup.Group
 
@@ -36,7 +36,7 @@ func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialer
 			var errList []error
 			for host := range hostsQueue {
 				runHost := host.(*hosts.Host)
-				err := doDeployWorkerPlaneHost(ctx, runHost, localConnDialerFactory, prsMap, workerNodePlanMap[runHost.Address].Processes, certMap, updateWorkersOnly, alpineImage)
+				err := doDeployWorkerPlaneHost(ctx, runHost, localConnDialerFactory, prsMap, workerNodePlanMap[runHost.Address].Processes, certMap, updateWorkersOnly, alpineImage, k8sVersion)
 				if err != nil {
 					errList = append(errList, err)
 				}
@@ -52,14 +52,14 @@ func RunWorkerPlane(ctx context.Context, allHosts []*hosts.Host, localConnDialer
 	return nil
 }
 
-func UpgradeWorkerPlaneForWorkerAndEtcdNodes(ctx context.Context, kubeClient *kubernetes.Clientset, mixedRolesHosts []*hosts.Host, workerOnlyHosts []*hosts.Host, inactiveHosts map[string]bool, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, workerNodePlanMap map[string]v3.RKEConfigNodePlan, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage string, upgradeStrategy *v3.NodeUpgradeStrategy, newHosts map[string]bool, maxUnavailable int) (string, error) {
+func UpgradeWorkerPlaneForWorkerAndEtcdNodes(ctx context.Context, kubeClient *kubernetes.Clientset, mixedRolesHosts []*hosts.Host, workerOnlyHosts []*hosts.Host, inactiveHosts map[string]bool, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, workerNodePlanMap map[string]v3.RKEConfigNodePlan, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage string, upgradeStrategy *v3.NodeUpgradeStrategy, newHosts map[string]bool, maxUnavailable int, k8sVersion string) (string, error) {
 	log.Infof(ctx, "[%s] Upgrading Worker Plane..", WorkerRole)
 	var errMsgMaxUnavailableNotFailed string
 	updateNewHostsList(kubeClient, append(mixedRolesHosts, workerOnlyHosts...), newHosts)
 	if len(mixedRolesHosts) > 0 {
 		log.Infof(ctx, "First checking and processing worker components for upgrades on nodes with etcd role one at a time")
 	}
-	multipleRolesHostsFailedToUpgrade, err := processWorkerPlaneForUpgrade(ctx, kubeClient, mixedRolesHosts, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage, 1, upgradeStrategy, newHosts, inactiveHosts)
+	multipleRolesHostsFailedToUpgrade, err := processWorkerPlaneForUpgrade(ctx, kubeClient, mixedRolesHosts, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage, 1, upgradeStrategy, newHosts, inactiveHosts, k8sVersion)
 	if err != nil {
 		logrus.Errorf("Failed to upgrade hosts: %v with error %v", strings.Join(multipleRolesHostsFailedToUpgrade, ","), err)
 		return errMsgMaxUnavailableNotFailed, err
@@ -68,7 +68,7 @@ func UpgradeWorkerPlaneForWorkerAndEtcdNodes(ctx context.Context, kubeClient *ku
 	if len(workerOnlyHosts) > 0 {
 		log.Infof(ctx, "Now checking and upgrading worker components on nodes with only worker role %v at a time", maxUnavailable)
 	}
-	workerOnlyHostsFailedToUpgrade, err := processWorkerPlaneForUpgrade(ctx, kubeClient, workerOnlyHosts, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage, maxUnavailable, upgradeStrategy, newHosts, inactiveHosts)
+	workerOnlyHostsFailedToUpgrade, err := processWorkerPlaneForUpgrade(ctx, kubeClient, workerOnlyHosts, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage, maxUnavailable, upgradeStrategy, newHosts, inactiveHosts, k8sVersion)
 	if err != nil {
 		logrus.Errorf("Failed to upgrade hosts: %v with error %v", strings.Join(workerOnlyHostsFailedToUpgrade, ","), err)
 		if len(workerOnlyHostsFailedToUpgrade) >= maxUnavailable {
@@ -93,7 +93,7 @@ func updateNewHostsList(kubeClient *kubernetes.Clientset, allHosts []*hosts.Host
 
 func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Clientset, allHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory,
 	prsMap map[string]v3.PrivateRegistry, workerNodePlanMap map[string]v3.RKEConfigNodePlan, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage string,
-	maxUnavailable int, upgradeStrategy *v3.NodeUpgradeStrategy, newHosts, inactiveHosts map[string]bool) ([]string, error) {
+	maxUnavailable int, upgradeStrategy *v3.NodeUpgradeStrategy, newHosts, inactiveHosts map[string]bool, k8sVersion string) ([]string, error) {
 	var errgrp errgroup.Group
 	var drainHelper drain.Helper
 	var failedHosts []string
@@ -120,7 +120,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 				runHost := host.(*hosts.Host)
 				logrus.Infof("[workerplane] Processing host %v", runHost.HostnameOverride)
 				if newHosts[runHost.HostnameOverride] {
-					if err := doDeployWorkerPlaneHost(ctx, runHost, localConnDialerFactory, prsMap, workerNodePlanMap[runHost.Address].Processes, certMap, updateWorkersOnly, alpineImage); err != nil {
+					if err := doDeployWorkerPlaneHost(ctx, runHost, localConnDialerFactory, prsMap, workerNodePlanMap[runHost.Address].Processes, certMap, updateWorkersOnly, alpineImage, k8sVersion); err != nil {
 						errList = append(errList, err)
 						hostsFailedToUpgrade <- runHost.HostnameOverride
 						hostsFailed.Store(runHost.HostnameOverride, true)
@@ -154,7 +154,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 				if maxUnavailableHit || len(hostsFailedToUpgrade) >= maxUnavailable {
 					break
 				}
-				upgradable, err := isWorkerHostUpgradable(ctx, runHost, workerNodePlanMap[runHost.Address].Processes)
+				upgradable, err := isWorkerHostUpgradable(ctx, runHost, workerNodePlanMap[runHost.Address].Processes, k8sVersion)
 				if err != nil {
 					errList = append(errList, err)
 					hostsFailed.Store(runHost.HostnameOverride, true)
@@ -169,7 +169,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 					}
 					continue
 				}
-				if err := upgradeWorkerHost(ctx, kubeClient, runHost, upgradeStrategy.Drain != nil && *upgradeStrategy.Drain, drainHelper, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage); err != nil {
+				if err := upgradeWorkerHost(ctx, kubeClient, runHost, upgradeStrategy.Drain != nil && *upgradeStrategy.Drain, drainHelper, localConnDialerFactory, prsMap, workerNodePlanMap, certMap, updateWorkersOnly, alpineImage, k8sVersion); err != nil {
 					errList = append(errList, err)
 					hostsFailed.Store(runHost.HostnameOverride, true)
 					hostsFailedToUpgrade <- runHost.HostnameOverride
@@ -192,13 +192,13 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 
 func upgradeWorkerHost(ctx context.Context, kubeClient *kubernetes.Clientset, runHost *hosts.Host, drainFlag bool, drainHelper drain.Helper,
 	localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, workerNodePlanMap map[string]v3.RKEConfigNodePlan, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool,
-	alpineImage string) error {
+	alpineImage, k8sVersion string) error {
 	// cordon and drain
 	if err := cordonAndDrainNode(kubeClient, runHost, drainFlag, drainHelper, WorkerRole); err != nil {
 		return err
 	}
 	logrus.Debugf("[workerplane] upgrading host %v", runHost.HostnameOverride)
-	if err := doDeployWorkerPlaneHost(ctx, runHost, localConnDialerFactory, prsMap, workerNodePlanMap[runHost.Address].Processes, certMap, updateWorkersOnly, alpineImage); err != nil {
+	if err := doDeployWorkerPlaneHost(ctx, runHost, localConnDialerFactory, prsMap, workerNodePlanMap[runHost.Address].Processes, certMap, updateWorkersOnly, alpineImage, k8sVersion); err != nil {
 		return err
 	}
 	// consider upgrade done when kubeclient lists node as ready
@@ -209,7 +209,7 @@ func upgradeWorkerHost(ctx context.Context, kubeClient *kubernetes.Clientset, ru
 	return k8s.CordonUncordon(kubeClient, runHost.HostnameOverride, false)
 }
 
-func doDeployWorkerPlaneHost(ctx context.Context, host *hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage string) error {
+func doDeployWorkerPlaneHost(ctx context.Context, host *hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage, k8sVersion string) error {
 	if updateWorkersOnly {
 		if !host.UpdateWorker {
 			return nil
@@ -225,7 +225,7 @@ func doDeployWorkerPlaneHost(ctx context.Context, host *hosts.Host, localConnDia
 			host.ToAddTaints = append(host.ToAddTaints, unschedulableControlTaint)
 		}
 	}
-	return doDeployWorkerPlane(ctx, host, localConnDialerFactory, prsMap, processMap, certMap, alpineImage)
+	return doDeployWorkerPlane(ctx, host, localConnDialerFactory, prsMap, processMap, certMap, alpineImage, k8sVersion)
 }
 
 func RemoveWorkerPlane(ctx context.Context, workerHosts []*hosts.Host, force bool) error {
@@ -299,28 +299,28 @@ func RestartWorkerPlane(ctx context.Context, workerHosts []*hosts.Host) error {
 
 func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 	localConnDialerFactory hosts.DialerFactory,
-	prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, alpineImage string) error {
+	prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, alpineImage, k8sVersion string) error {
 	// run nginx proxy
 	if !host.IsControl {
-		if err := runNginxProxy(ctx, host, prsMap, processMap[NginxProxyContainerName], alpineImage); err != nil {
+		if err := runNginxProxy(ctx, host, prsMap, processMap[NginxProxyContainerName], alpineImage, k8sVersion); err != nil {
 			return err
 		}
 	}
 	// run sidekick
-	if err := runSidekick(ctx, host, prsMap, processMap[SidekickContainerName]); err != nil {
+	if err := runSidekick(ctx, host, prsMap, processMap[SidekickContainerName], k8sVersion); err != nil {
 		return err
 	}
 	// run kubelet
-	if err := runKubelet(ctx, host, localConnDialerFactory, prsMap, processMap[KubeletContainerName], certMap, alpineImage); err != nil {
+	if err := runKubelet(ctx, host, localConnDialerFactory, prsMap, processMap[KubeletContainerName], certMap, alpineImage, k8sVersion); err != nil {
 		return err
 	}
-	return runKubeproxy(ctx, host, localConnDialerFactory, prsMap, processMap[KubeproxyContainerName], alpineImage)
+	return runKubeproxy(ctx, host, localConnDialerFactory, prsMap, processMap[KubeproxyContainerName], alpineImage, k8sVersion)
 }
 
-func isWorkerHostUpgradable(ctx context.Context, host *hosts.Host, processMap map[string]v3.Process) (bool, error) {
+func isWorkerHostUpgradable(ctx context.Context, host *hosts.Host, processMap map[string]v3.Process, k8sVersion string) (bool, error) {
 	for _, service := range []string{NginxProxyContainerName, SidekickContainerName, KubeletContainerName, KubeproxyContainerName} {
 		process := processMap[service]
-		imageCfg, hostCfg, _ := GetProcessConfig(process, host)
+		imageCfg, hostCfg, _ := GetProcessConfig(process, host, k8sVersion)
 		upgradable, err := docker.IsContainerUpgradable(ctx, host.DClient, imageCfg, hostCfg, service, host.Address, WorkerRole)
 		if err != nil {
 			if client.IsErrNotFound(err) {

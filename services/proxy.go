@@ -13,8 +13,8 @@ const (
 	NginxProxyEnvName = "CP_HOSTS"
 )
 
-func runNginxProxy(ctx context.Context, host *hosts.Host, prsMap map[string]v3.PrivateRegistry, proxyProcess v3.Process, alpineImage string) error {
-	imageCfg, hostCfg, _ := GetProcessConfig(proxyProcess, host)
+func runNginxProxy(ctx context.Context, host *hosts.Host, prsMap map[string]v3.PrivateRegistry, proxyProcess v3.Process, alpineImage, k8sVersion string) error {
+	imageCfg, hostCfg, _ := GetProcessConfig(proxyProcess, host, k8sVersion)
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, NginxProxyContainerName, host.Address, WorkerRole, prsMap); err != nil {
 		return err
 	}

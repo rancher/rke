@@ -11,13 +11,15 @@ import (
 
 	"github.com/rancher/rke/metadata"
 
+	sv "github.com/blang/semver"
 	"github.com/coreos/go-semver/semver"
 	ref "github.com/docker/distribution/reference"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	WorkerThreads = 50
+	WorkerThreads               = 50
+	SemVerK8sVersion122OrHigher = ">=1.22.0-rancher0"
 )
 
 var ProxyEnvVars = [3]string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}
@@ -28,6 +30,57 @@ func StrToSemVer(version string) (*semver.Version, error) {
 		return nil, err
 	}
 	return v, nil
+}
+
+func SemVerMatchRange(k8sVersion, versionRange string) (bool, error) {
+	if len(k8sVersion) == 0 {
+		return false, fmt.Errorf("Cluster version has zero length")
+	}
+	toMatch, err := sv.Make(k8sVersion[1:])
+	if err != nil {
+		return false, fmt.Errorf("Cluster version [%s] can not be parsed as semver: %v", k8sVersion, err)
+	}
+	semVerRange, err := sv.ParseRange(versionRange)
+	if err != nil {
+		return false, fmt.Errorf("Failed to parse semver range [%s]: %v", versionRange, err)
+	}
+	if semVerRange(toMatch) {
+		logrus.Debugf("SemVerMatchRange: Cluster version [%s] matches range [%s]", k8sVersion, versionRange)
+		return true, nil
+	}
+	return false, nil
+}
+
+func RemoveZFromBinds(binds []string) []string {
+	var returnSlice []string
+	for _, element := range binds {
+		lastIndex := strings.LastIndex(element, ":")
+		bindOptions := element[lastIndex+1:]
+
+		if bindOptions != "" {
+			var cleanBindOptions []string
+
+			splitBindOptions := strings.Split(bindOptions, ",")
+			if len(splitBindOptions) >= 1 {
+				for _, bindOption := range splitBindOptions {
+					if strings.EqualFold(bindOption, "z") {
+						continue
+					}
+					cleanBindOptions = append(cleanBindOptions, bindOption)
+
+				}
+			}
+			var newString string
+			if len(cleanBindOptions) > 0 {
+				newString = fmt.Sprintf("%s%s", element[:lastIndex], fmt.Sprintf(":%s", strings.Join(cleanBindOptions, ",")))
+			} else {
+				newString = fmt.Sprintf("%s%s", element[:lastIndex], strings.Join(cleanBindOptions, ","))
+
+			}
+			returnSlice = append(returnSlice, newString)
+		}
+	}
+	return returnSlice
 }
 
 func GetObjectQueue(l interface{}) chan interface{} {

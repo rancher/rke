@@ -41,7 +41,8 @@ func RunEtcdPlane(
 	updateWorkersOnly bool,
 	alpineImage string,
 	es v3.ETCDService,
-	certMap map[string]pki.CertificatePKI) error {
+	certMap map[string]pki.CertificatePKI,
+	k8sVersion string) error {
 	log.Infof(ctx, "[%s] Building up etcd plane..", ETCDRole)
 	for _, host := range etcdHosts {
 		if updateWorkersOnly {
@@ -51,10 +52,10 @@ func RunEtcdPlane(
 		etcdProcess := etcdNodePlanMap[host.Address].Processes[EtcdContainerName]
 
 		// need to run this first to set proper ownership and permissions on etcd data dir
-		if err := setEtcdPermissions(ctx, host, prsMap, alpineImage, etcdProcess); err != nil {
+		if err := setEtcdPermissions(ctx, host, prsMap, alpineImage, etcdProcess, k8sVersion); err != nil {
 			return err
 		}
-		imageCfg, hostCfg, _ := GetProcessConfig(etcdProcess, host)
+		imageCfg, hostCfg, _ := GetProcessConfig(etcdProcess, host, k8sVersion)
 		if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, EtcdContainerName, host.Address, ETCDRole, prsMap); err != nil {
 			return err
 		}
@@ -63,10 +64,10 @@ func RunEtcdPlane(
 			if err != nil {
 				return err
 			}
-			if err := RunEtcdSnapshotSave(ctx, host, prsMap, rkeToolsImage, EtcdSnapshotContainerName, false, es); err != nil {
+			if err := RunEtcdSnapshotSave(ctx, host, prsMap, rkeToolsImage, EtcdSnapshotContainerName, false, es, k8sVersion); err != nil {
 				return err
 			}
-			if err := pki.SaveBackupBundleOnHost(ctx, host, rkeToolsImage, EtcdSnapshotPath, prsMap); err != nil {
+			if err := pki.SaveBackupBundleOnHost(ctx, host, rkeToolsImage, EtcdSnapshotPath, prsMap, k8sVersion); err != nil {
 				return err
 			}
 			if err := createLogLink(ctx, host, EtcdSnapshotContainerName, ETCDRole, alpineImage, prsMap); err != nil {
@@ -87,7 +88,7 @@ func RunEtcdPlane(
 	var healthError error
 	var hosts []string
 	for _, host := range etcdHosts {
-		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host)
+		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host, k8sVersion)
 		healthError = isEtcdHealthy(localConnDialerFactory, host, clientCert, clientKey, healthCheckURL)
 		if healthError == nil {
 			break
@@ -277,7 +278,7 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 		// Need to health check after successful member remove (especially for leader re-election)
 		// We will check all hosts to see if the cluster becomes healthy
 		var healthError error
-		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host)
+		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host, k8sVersion)
 		logrus.Infof("[remove/%s] Checking etcd cluster health on [etcd-%s] after removing [etcd-%s]", ETCDRole, host.HostnameOverride, toDeleteEtcdHost.HostnameOverride)
 		logrus.Debugf("[remove/%s] healthCheckURL for checking etcd cluster health on [etcd-%s] after removing [%s]: [%s]", ETCDRole, host.HostnameOverride, toDeleteEtcdHost.HostnameOverride, healthCheckURL)
 		healthError = isEtcdHealthy(localConnDialerFactory, host, cert, key, healthCheckURL)
@@ -298,10 +299,10 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 	return nil
 }
 
-func ReloadEtcdCluster(ctx context.Context, readyEtcdHosts []*hosts.Host, newHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte, prsMap map[string]v3.PrivateRegistry, etcdNodePlanMap map[string]v3.RKEConfigNodePlan, alpineImage string) error {
-	imageCfg, hostCfg, _ := GetProcessConfig(etcdNodePlanMap[newHost.Address].Processes[EtcdContainerName], newHost)
+func ReloadEtcdCluster(ctx context.Context, readyEtcdHosts []*hosts.Host, newHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte, prsMap map[string]v3.PrivateRegistry, etcdNodePlanMap map[string]v3.RKEConfigNodePlan, alpineImage, k8sVersion string) error {
+	imageCfg, hostCfg, _ := GetProcessConfig(etcdNodePlanMap[newHost.Address].Processes[EtcdContainerName], newHost, k8sVersion)
 
-	if err := setEtcdPermissions(ctx, newHost, prsMap, alpineImage, etcdNodePlanMap[newHost.Address].Processes[EtcdContainerName]); err != nil {
+	if err := setEtcdPermissions(ctx, newHost, prsMap, alpineImage, etcdNodePlanMap[newHost.Address].Processes[EtcdContainerName], k8sVersion); err != nil {
 		return err
 	}
 
@@ -315,7 +316,7 @@ func ReloadEtcdCluster(ctx context.Context, readyEtcdHosts []*hosts.Host, newHos
 	var healthError error
 	var hosts []string
 	for _, host := range readyEtcdHosts {
-		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host)
+		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host, k8sVersion)
 		healthError = isEtcdHealthy(localConnDialerFactory, host, cert, key, healthCheckURL)
 		if healthError == nil {
 			break
@@ -389,7 +390,7 @@ func IsEtcdMember(ctx context.Context, etcdHost *hosts.Host, etcdHosts []*hosts.
 	return false, nil
 }
 
-func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, once bool, es v3.ETCDService) error {
+func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, once bool, es v3.ETCDService, k8sVersion string) error {
 	backupCmd := "etcd-backup"
 	restartPolicy := "always"
 	imageCfg := &container.Config{
@@ -420,12 +421,27 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 		imageCfg = configS3BackupImgCmd(ctx, imageCfg, es.BackupConfig)
 	}
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: restartPolicy},
 	}
+
+	binds := []string{
+		fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+	hostCfg.Binds = binds
 
 	if once {
 		log.Infof(ctx, "[etcd] Running snapshot save once on host [%s]", etcdHost.Address)
@@ -470,7 +486,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	return nil
 }
 
-func RunGetStateFileFromSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, es v3.ETCDService) (string, error) {
+func RunGetStateFileFromSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, es v3.ETCDService, k8sVersion string) (string, error) {
 	backupCmd := "etcd-backup"
 	imageCfg := &container.Config{
 		Cmd: []string{
@@ -487,12 +503,29 @@ func RunGetStateFileFromSnapshot(ctx context.Context, etcdHost *hosts.Host, prsM
 		imageCfg = configS3BackupImgCmd(ctx, imageCfg, es.BackupConfig)
 	}
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-		},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "no"},
 	}
+
+	binds := []string{
+		fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return "", err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+
+	hostCfg.Binds = binds
 
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdStateFileContainerName, etcdHost.Address); err != nil {
 		return "", err
@@ -511,7 +544,7 @@ func RunGetStateFileFromSnapshot(ctx context.Context, etcdHost *hosts.Host, prsM
 	return statefile, nil
 }
 
-func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, es v3.ETCDService) error {
+func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, es v3.ETCDService, k8sVersion string) error {
 	s3Backend := es.BackupConfig.S3BackupConfig
 	if len(s3Backend.Endpoint) == 0 || len(s3Backend.BucketName) == 0 {
 		return fmt.Errorf("failed to get snapshot [%s] from s3 on host [%s], invalid s3 configurations", name, etcdHost.Address)
@@ -554,12 +587,30 @@ func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMa
 	}
 	log.Infof(ctx, s3Logline)
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "no"},
 	}
+
+	binds := []string{
+		fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+
+	hostCfg.Binds = binds
+
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address); err != nil {
 		return err
 	}
@@ -581,7 +632,7 @@ func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMa
 }
 
 func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry,
-	etcdRestoreImage, etcdBackupImage, snapshotName, initCluster string, es v3.ETCDService) error {
+	etcdRestoreImage, etcdBackupImage, snapshotName, initCluster string, es v3.ETCDService, k8sVersion string) error {
 	log.Infof(ctx, "[etcd] Restoring [%s] snapshot on etcd host [%s]", snapshotName, etcdHost.Address)
 	nodeName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
 	snapshotPath := fmt.Sprintf("%s%s", EtcdSnapshotPath, snapshotName)
@@ -610,12 +661,28 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 		Image: etcdRestoreImage,
 	}
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			"/opt/rke/:/opt/rke/:z",
-			fmt.Sprintf("%s:/var/lib/rancher/etcd:z", path.Join(etcdHost.PrefixPath, "/var/lib/etcd")),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode: container.NetworkMode("host"),
 	}
+	binds := []string{
+		"/opt/rke/:/opt/rke/:z",
+		fmt.Sprintf("%s:/var/lib/rancher/etcd:z", path.Join(etcdHost.PrefixPath, "/var/lib/etcd")),
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+	hostCfg.Binds = binds
+
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdRestoreContainerName, etcdHost.Address); err != nil {
 		return err
 	}
@@ -640,10 +707,10 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	if err := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdRestoreContainerName); err != nil {
 		return err
 	}
-	return RunEtcdSnapshotRemove(ctx, etcdHost, prsMap, etcdBackupImage, snapshotName, true, es)
+	return RunEtcdSnapshotRemove(ctx, etcdHost, prsMap, etcdBackupImage, snapshotName, true, es, k8sVersion)
 }
 
-func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, cleanupRestore bool, es v3.ETCDService) error {
+func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, cleanupRestore bool, es v3.ETCDService, k8sVersion string) error {
 	log.Infof(ctx, "[etcd] Removing snapshot [%s] from host [%s]", name, etcdHost.Address)
 	imageCfg := &container.Config{
 		Image: etcdSnapshotImage,
@@ -684,11 +751,28 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 	}
 
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-		},
 		RestartPolicy: container.RestartPolicy{Name: "no"},
 	}
+
+	binds := []string{
+		fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+	hostCfg.Binds = binds
+
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdSnapshotRemoveContainerName, etcdHost.Address); err != nil {
 		return err
 	}
@@ -709,7 +793,7 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 	return docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotRemoveContainerName)
 }
 
-func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, alpineImage, snapshotName string) (string, error) {
+func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, alpineImage, snapshotName, k8sVersion string) (string, error) {
 	var checksum string
 	var err error
 	var stderr string
@@ -723,10 +807,26 @@ func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap m
 		},
 		Image: alpineImage,
 	}
-	hostCfg := &container.HostConfig{
-		Binds: []string{
-			"/opt/rke/:/opt/rke/:z",
-		}}
+	hostCfg := &container.HostConfig{}
+
+	binds := []string{
+		"/opt/rke/:/opt/rke/:z",
+	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return "", err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+	hostCfg.Binds = binds
 
 	if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdChecksumContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return checksum, err
@@ -788,7 +888,7 @@ func configS3BackupImgCmd(ctx context.Context, imageCfg *container.Config, bc *v
 	return imageCfg
 }
 
-func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string) error {
+func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage, name, k8sVersion string) error {
 	log.Infof(ctx, "[etcd] starting backup server on host [%s]", etcdHost.Address)
 
 	imageCfg := &container.Config{
@@ -805,12 +905,27 @@ func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[str
 	}
 
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "no"},
 	}
+	binds := []string{
+		fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+	hostCfg.Binds = binds
+
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdServeBackupContainerName, etcdHost.Address); err != nil {
 		return err
 	}
@@ -836,7 +951,7 @@ func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[str
 	return nil
 }
 
-func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage, name string, backupServer *hosts.Host) error {
+func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage, name string, backupServer *hosts.Host, k8sVersion string) error {
 	log.Infof(ctx, "[etcd] Get snapshot [%s] on host [%s]", name, etcdHost.Address)
 	imageCfg := &container.Config{
 		Cmd: []string{
@@ -853,12 +968,30 @@ func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.H
 	}
 
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "on-failure"},
 	}
+
+	binds := []string{
+		fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+
+	}
+
+	hostCfg.Binds = binds
+
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address); err != nil {
 		return err
 	}
@@ -879,7 +1012,7 @@ func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.H
 	return docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdDownloadBackupContainerName)
 }
 
-func setEtcdPermissions(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, alpineImage string, process v3.Process) error {
+func setEtcdPermissions(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, alpineImage string, process v3.Process, k8sVersion string) error {
 	var dataBind string
 
 	cmd := fmt.Sprintf("chmod 700 %s", EtcdDataDir)
@@ -901,6 +1034,20 @@ func setEtcdPermissions(ctx context.Context, etcdHost *hosts.Host, prsMap map[st
 	hostCfg := &container.HostConfig{
 		Binds: []string{dataBind},
 	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		if hosts.IsDockerSELinuxEnabled(etcdHost) {
+			// We apply the label because we do not rewrite SELinux labels anymore on volume mounts (no :z)
+			logrus.Debugf("Applying security opt label [%s] for [%s] container on host [%s]", SELinuxLabel, EtcdPermFixContainerName, etcdHost.Address)
+			hostCfg.SecurityOpt = []string{SELinuxLabel}
+		}
+	}
+
 	if err := docker.DoRunOnetimeContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdPermFixContainerName,
 		etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return err

@@ -126,6 +126,10 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		}
 	}
 
+	if err = kubeCluster.RunSELinuxCheck(ctx); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
 	err = cluster.SetUpAuthentication(ctx, kubeCluster, currentCluster, clusterState)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
