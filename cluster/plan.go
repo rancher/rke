@@ -51,9 +51,10 @@ const (
 	KubeletDockerConfigPath    = "/var/lib/kubelet/config.json"
 
 	// MaxEtcdOldEnvVersion The versions are maxed out for minor versions because -rancher1 suffix will cause semver to think its older, example: v1.15.0 > v1.15.0-rancher1
-	MaxEtcdOldEnvVersion   = "v3.2.99"
-	MaxK8s115Version       = "v1.15"
-	MaxEtcdPort4001Version = "v3.4.3-rancher99"
+	MaxEtcdOldEnvVersion      = "v3.2.99"
+	MaxK8s115Version          = "v1.15"
+	MaxEtcdPort4001Version    = "v3.4.3-rancher99"
+	MaxEtcdNoStrictTLSVersion = "v3.4.14-rancher99"
 
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 )
@@ -878,6 +879,10 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	if err != nil {
 		logrus.Warn(err)
 	}
+	maxEtcdNoStrictTLSVersion, err := util.StrToSemVer(MaxEtcdNoStrictTLSVersion)
+	if err != nil {
+		logrus.Warn(err)
+	}
 
 	// We removed advertising port 4001 starting with k8s 1.19 (etcd v3.4.13 and up)
 	if etcdSemVer.LessThan(*maxEtcdPort4001Version) {
@@ -886,6 +891,14 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	} else {
 		logrus.Debugf("etcd version [%s] is higher than max version [%s] for advertising port 4001, not going to advertise port 4001", etcdSemVer, maxEtcdPort4001Version)
 		CommandArgs["advertise-client-urls"] = "https://" + host.InternalAddress + ":2379"
+	}
+
+	// Add in stricter TLS ciphter suites starting with etcd v3.4.15
+	if etcdSemVer.LessThan(*maxEtcdNoStrictTLSVersion) {
+		logrus.Debugf("etcd version [%s] is less than max version [%s] for adding stricter TLS cipher suites, not going to add stricter TLS cipher suites arguments to etcd", etcdSemVer, maxEtcdNoStrictTLSVersion)
+	} else {
+		logrus.Debugf("etcd version [%s] is higher than max version [%s] for adding stricter TLS cipher suites, going to add stricter TLS cipher suites arguments to etcd", etcdSemVer, maxEtcdNoStrictTLSVersion)
+		CommandArgs["cipher-suites"] = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
 	}
 
 	Binds := []string{
