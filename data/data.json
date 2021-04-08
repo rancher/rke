@@ -7511,6 +7511,10 @@
    "maxRKEVersion": "0.2.8",
    "maxRancherVersion": "2.2.9"
   },
+  "v1.16": {
+   "maxRKEVersion": "1.2.7",
+   "maxRancherVersion": "2.5.7"
+  },
   "v1.16.10-rancher2-1": {
    "minRKEVersion": "1.1.2-rc0",
    "minRancherVersion": "2.4.4-rc0"
