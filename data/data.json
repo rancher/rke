@@ -7705,7 +7705,7 @@
    "weaveNode": "weaveworks/weave-kube:2.8.1",
    "weaveCni": "weaveworks/weave-npc:2.8.1",
    "podInfraContainer": "rancher/mirrored-pause:3.2",
-   "ingress": "rancher/nginx-ingress-controller:nginx-0.43.0-rancher1",
+   "ingress": "rancher/nginx-ingress-controller:nginx-0.43.0-rancher3",
    "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
    "metricsServer": "rancher/mirrored-metrics-server:v0.4.1",
    "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
