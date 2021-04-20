@@ -7705,7 +7705,7 @@
    "weaveNode": "weaveworks/weave-kube:2.8.1",
    "weaveCni": "weaveworks/weave-npc:2.8.1",
    "podInfraContainer": "rancher/mirrored-pause:3.2",
-   "ingress": "rancher/nginx-ingress-controller:nginx-0.43.0-rancher1",
+   "ingress": "rancher/nginx-ingress-controller:nginx-0.43.0-rancher3",
    "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
    "metricsServer": "rancher/mirrored-metrics-server:v0.4.1",
    "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
@@ -8768,17 +8768,17 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.4.5-rc1",
-    "version": "v1.18.17+k3s1"
+    "version": "v1.18.18+k3s1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.9+k3s1"
+    "version": "v1.19.10+k3s1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.5+k3s1"
+    "version": "v1.20.6+k3s1"
    }
   ]
  },
@@ -8787,17 +8787,17 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.18.17+rke2r1"
+    "version": "v1.18.18+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.9+rke2r1"
+    "version": "v1.19.10+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.5+rke2r1"
+    "version": "v1.20.6+rke2r1"
    }
   ]
  }
