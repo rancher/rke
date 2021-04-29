@@ -80,7 +80,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 				"net.ipv4.conf.all.rp_filter": "1",
 			},
 		}
-		resp, err := cli.ContainerCreate(ctx, imageCfg, hostCfg, nil, containerName)
+		resp, err := cli.ContainerCreate(ctx, imageCfg, hostCfg, nil, nil, containerName)
 		if err != nil {
 			return "", fmt.Errorf("Failed to create [%s] container on host [%s]: %v", containerName, cli.DaemonHost(), err)
 		}
