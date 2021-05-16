@@ -259,7 +259,7 @@ func GetCrtNameForHost(host *hosts.Host, prefix string) string {
 	} else {
 		newAddress = strings.Replace(host.Address, ".", "-", -1)
 	}
-	return prefix + "-" + newAddress
+	return prefix + "-" + strings.ToLower(newAddress)
 }
 
 func GetCertPath(name string) string {
