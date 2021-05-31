@@ -9455,12 +9455,12 @@
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.19.12+rke2r1"
+    "version": "v1.19.13+rke2r2"
    },
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.20.8+rke2r1"
+    "version": "v1.20.9+rke2r2"
    },
    {
     "agentArgs": {
@@ -9518,11 +9518,11 @@
      },
      "rke2-calico": {
       "repo": "rancher-rke2-charts",
-      "verion": "v3.19.1-105"
+      "version": "v3.19.2-201"
      },
      "rke2-calico-crd": {
       "repo": "rancher-rke2-charts",
-      "version": "v1.0.005"
+      "version": "v1.0.101"
      },
      "rke2-canal": {
       "repo": "rancher-rke2-charts",
@@ -9530,7 +9530,7 @@
      },
      "rke2-cilium": {
       "repo": "rancher-rke2-charts",
-      "version": "1.9.607"
+      "version": "1.9.808"
      },
      "rke2-coredns": {
       "repo": "rancher-rke2-charts",
@@ -9538,11 +9538,7 @@
      },
      "rke2-ingress-nginx": {
       "repo": "rancher-rke2-charts",
-      "version": "3.30.002"
-     },
-     "rke2-kube-proxy": {
-      "repo": "rancher-rke2-charts",
-      "version": "v1.21.1-build2021052004"
+      "version": "3.34.002"
      },
      "rke2-metrics-server": {
       "repo": "rancher-rke2-charts",
@@ -9550,7 +9546,7 @@
      },
      "rke2-multus": {
       "repo": "rancher-rke2-charts",
-      "version": "v3.7.1-build2021041602"
+      "version": "v3.7.1-build2021041603"
      }
     },
     "maxChannelServerVersion": "v2.6.99",
@@ -9618,7 +9614,7 @@
       "type": "array"
      }
     },
-    "version": "v1.21.3-rc4+rke2r2"
+    "version": "v1.21.3-rc5+rke2r2"
    }
   ]
  }
