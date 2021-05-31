@@ -95,6 +95,8 @@ type BastionHost struct {
 	SSHCert string `yaml:"ssh_cert" json:"sshCert,omitempty"`
 	// SSH Certificate Path
 	SSHCertPath string `yaml:"ssh_cert_path" json:"sshCertPath,omitempty"`
+	// Ignore proxy environment variables
+	IgnoreProxyEnvVars bool `yaml:"ignore_proxy_env_vars" json:"ignoreProxyEnvVars,omitempty"`
 }
 
 type PrivateRegistry struct {
