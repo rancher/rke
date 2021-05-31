@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -777,6 +778,12 @@ func (c *Cluster) SetupDialers(ctx context.Context, dailersOptions hosts.Dialers
 		c.K8sWrapTransport, err = hosts.BastionHostWrapTransport(c.BastionHost)
 		if err != nil {
 			return err
+		}
+		if c.BastionHost.IgnoreProxyEnvVars {
+			logrus.Debug("Unset http proxy environment variables")
+			for _, v := range util.ProxyEnvVars {
+				os.Unsetenv(v)
+			}
 		}
 	}
 	return nil
