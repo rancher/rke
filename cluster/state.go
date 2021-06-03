@@ -193,7 +193,7 @@ func RebuildState(ctx context.Context, kubeCluster *Cluster, oldState *FullState
 				}
 			}
 		}
-		
+
 		return newState, nil
 	}
 
