@@ -17,6 +17,7 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/rke/services"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -66,6 +67,19 @@ func (c *Cluster) GetClusterState(ctx context.Context, fullState *FullState) (*C
 		return nil, err
 	}
 	return currentCluster, nil
+}
+
+func (c *Cluster) GetStateFileFromConfigMap(ctx context.Context) (string, error) {
+	kubeletImage := c.Services.Kubelet.Image
+	for _, host := range c.ControlPlaneHosts {
+		stateFile, err := services.RunGetStateFileFromConfigMap(ctx, host, c.PrivateRegistriesMap, kubeletImage)
+		if err != nil || stateFile == "" {
+			logrus.Infof("Could not get ConfigMap with cluster state from host [%s]", host.Address)
+			continue
+		}
+		return stateFile, nil
+	}
+	return "", fmt.Errorf("Unable to get ConfigMap with cluster state from any Control Plane host")
 }
 
 func SaveFullStateToKubernetes(ctx context.Context, kubeCluster *Cluster, fullState *FullState) error {
@@ -168,6 +182,18 @@ func RebuildState(ctx context.Context, kubeCluster *Cluster, oldState *FullState
 		}
 		newState.DesiredState.CertificatesBundle = certBundle
 		newState.CurrentState = oldState.CurrentState
+
+		if isEncryptionEnabled(rkeConfig) {
+			if oldState.DesiredState.EncryptionConfig != "" {
+				newState.DesiredState.EncryptionConfig = oldState.DesiredState.EncryptionConfig
+			} else {
+				var err error
+				if newState.DesiredState.EncryptionConfig, err = kubeCluster.getEncryptionProviderFile(); err != nil {
+					return nil, err
+				}
+			}
+		}
+		
 		return newState, nil
 	}
 
@@ -191,7 +217,7 @@ func (s *FullState) WriteStateFile(ctx context.Context, statePath string) error 
 		return fmt.Errorf("Failed to Marshal state object: %v", err)
 	}
 	logrus.Tracef("Writing state file: %s", stateFile)
-	if err := ioutil.WriteFile(statePath, stateFile, 0640); err != nil {
+	if err := ioutil.WriteFile(statePath, stateFile, 0600); err != nil {
 		return fmt.Errorf("Failed to write state file: %v", err)
 	}
 	log.Infof(ctx, "Successfully Deployed state file at [%s]", statePath)
