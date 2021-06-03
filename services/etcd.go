@@ -346,10 +346,14 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
+			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: restartPolicy},
+	}
+
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 
 	if once {
@@ -413,10 +417,14 @@ func RunGetStateFileFromSnapshot(ctx context.Context, etcdHost *hosts.Host, prsM
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
 		},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "no"},
+	}
+
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdStateFileContainerName, etcdHost.Address); err != nil {
@@ -449,13 +457,19 @@ func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMa
 			"--name", name,
 			"--s3-backup=true",
 			"--s3-endpoint=" + s3Backend.Endpoint,
-			"--s3-accessKey=" + s3Backend.AccessKey,
-			"--s3-secretKey=" + s3Backend.SecretKey,
 			"--s3-bucketName=" + s3Backend.BucketName,
 			"--s3-region=" + s3Backend.Region,
 		},
 		Image: etcdSnapshotImage,
 		Env:   es.ExtraEnv,
+	}
+	// Base64 encoding S3 accessKey and secretKey before add them as env variables
+	if len(s3Backend.AccessKey) > 0 || len(s3Backend.SecretKey) > 0 {
+		env := []string{
+			"S3_ACCESS_KEY=" + base64.StdEncoding.EncodeToString([]byte(s3Backend.AccessKey)),
+			"S3_SECRET_KEY=" + base64.StdEncoding.EncodeToString([]byte(s3Backend.SecretKey)),
+		}
+		imageCfg.Env = append(imageCfg.Env, env...)
 	}
 	s3Logline := fmt.Sprintf("[etcd] Snapshot [%s] will be downloaded on host [%s] from S3 compatible backend at [%s] from bucket [%s] using accesskey [%s]", name, etcdHost.Address, s3Backend.Endpoint, s3Backend.BucketName, s3Backend.AccessKey)
 	if s3Backend.Region != "" {
@@ -474,10 +488,13 @@ func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMa
 	log.Infof(ctx, s3Logline)
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
+			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "no"},
+	}
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address); err != nil {
 		return err
@@ -530,10 +547,13 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/opt/rke/:/opt/rke/:z",
-			fmt.Sprintf("%s:/var/lib/rancher/etcd:z", path.Join(etcdHost.PrefixPath, "/var/lib/etcd")),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
+			"/opt/rke/:/opt/rke/",
+			fmt.Sprintf("%s:/var/lib/rancher/etcd", path.Join(etcdHost.PrefixPath, "/var/lib/etcd")),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode: container.NetworkMode("host"),
+	}
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdRestoreContainerName, etcdHost.Address); err != nil {
 		return err
@@ -581,10 +601,16 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 		s3cmd := []string{
 			"--s3-backup",
 			"--s3-endpoint=" + es.BackupConfig.S3BackupConfig.Endpoint,
-			"--s3-accessKey=" + es.BackupConfig.S3BackupConfig.AccessKey,
-			"--s3-secretKey=" + es.BackupConfig.S3BackupConfig.SecretKey,
 			"--s3-bucketName=" + es.BackupConfig.S3BackupConfig.BucketName,
 			"--s3-region=" + es.BackupConfig.S3BackupConfig.Region,
+		}
+		// Base64 encoding S3 accessKey and secretKey before add them as env variables
+		if len(es.BackupConfig.S3BackupConfig.AccessKey) > 0 || len(es.BackupConfig.S3BackupConfig.SecretKey) > 0 {
+			env := []string{
+				"S3_ACCESS_KEY=" + base64.StdEncoding.EncodeToString([]byte(es.BackupConfig.S3BackupConfig.AccessKey)),
+				"S3_SECRET_KEY=" + base64.StdEncoding.EncodeToString([]byte(es.BackupConfig.S3BackupConfig.SecretKey)),
+			}
+			imageCfg.Env = append(imageCfg.Env, env...)
 		}
 		if es.BackupConfig.S3BackupConfig.CustomCA != "" {
 			caStr := base64.StdEncoding.EncodeToString([]byte(es.BackupConfig.S3BackupConfig.CustomCA))
@@ -598,9 +624,12 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
+			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
 		},
 		RestartPolicy: container.RestartPolicy{Name: "no"},
+	}
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdSnapshotRemoveContainerName, etcdHost.Address); err != nil {
 		return err
@@ -638,9 +667,12 @@ func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap m
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			"/opt/rke/:/opt/rke/:z",
+			"/opt/rke/:/opt/rke/",
 		}}
 
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+	}
 	if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdChecksumContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return checksum, err
 	}
@@ -671,11 +703,17 @@ func configS3BackupImgCmd(ctx context.Context, imageCfg *container.Config, bc *v
 		cmd = append(cmd, []string{
 			"--s3-backup=true",
 			"--s3-endpoint=" + bc.S3BackupConfig.Endpoint,
-			"--s3-accessKey=" + bc.S3BackupConfig.AccessKey,
-			"--s3-secretKey=" + bc.S3BackupConfig.SecretKey,
 			"--s3-bucketName=" + bc.S3BackupConfig.BucketName,
 			"--s3-region=" + bc.S3BackupConfig.Region,
 		}...)
+		// Base64 encoding S3 accessKey and secretKey before add them as env variables
+		if len(bc.S3BackupConfig.AccessKey) > 0 || len(bc.S3BackupConfig.SecretKey) > 0 {
+			env := []string{
+				"S3_ACCESS_KEY=" + base64.StdEncoding.EncodeToString([]byte(bc.S3BackupConfig.AccessKey)),
+				"S3_SECRET_KEY=" + base64.StdEncoding.EncodeToString([]byte(bc.S3BackupConfig.SecretKey)),
+			}
+			imageCfg.Env = append(imageCfg.Env, env...)
+		}
 		s3Logline := fmt.Sprintf("[etcd] Snapshots configured to S3 compatible backend at [%s] to bucket [%s] using accesskey [%s]", bc.S3BackupConfig.Endpoint, bc.S3BackupConfig.BucketName, bc.S3BackupConfig.AccessKey)
 		if bc.S3BackupConfig.Region != "" {
 			s3Logline += fmt.Sprintf(" and using region [%s]", bc.S3BackupConfig.Region)
@@ -713,10 +751,13 @@ func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[str
 
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
+			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "no"},
+	}
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdServeBackupContainerName, etcdHost.Address); err != nil {
 		return err
@@ -761,10 +802,13 @@ func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.H
 
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/backup:z", EtcdSnapshotPath),
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
+			fmt.Sprintf("%s:/backup", EtcdSnapshotPath),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
 		NetworkMode:   container.NetworkMode("host"),
 		RestartPolicy: container.RestartPolicy{Name: "on-failure"},
+	}
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 	}
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address); err != nil {
 		return err
@@ -808,6 +852,13 @@ func setEtcdPermissions(ctx context.Context, etcdHost *hosts.Host, prsMap map[st
 	hostCfg := &container.HostConfig{
 		Binds: []string{dataBind},
 	}
+
+	if hosts.IsDockerSELinuxEnabled(etcdHost) {
+		// We apply the label because we do not rewrite SELinux labels anymore on volume mounts (no :z)
+		logrus.Debugf("Applying security opt label [%s] for [%s] container on host [%s]", SELinuxLabel, EtcdPermFixContainerName, etcdHost.Address)
+		hostCfg.SecurityOpt = []string{SELinuxLabel}
+	}
+
 	if err := docker.DoRunOnetimeContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdPermFixContainerName,
 		etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return err

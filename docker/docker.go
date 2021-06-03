@@ -34,6 +34,10 @@ const (
 	StopTimeout = 5
 	// RetryCount is the amount of retries for Docker operations
 	RetryCount = 3
+	// WaitTimeout in seconds
+	WaitTimeout = 300
+	// WaitTimeoutContextKey name
+	WaitTimeoutContextKey = "wait_timeout"
 )
 
 type dockerConfig struct {
@@ -433,7 +437,7 @@ func CreateContainer(ctx context.Context, dClient *client.Client, hostname strin
 	var err error
 	// Retry up to RetryCount times to see if image exists
 	for i := 1; i <= RetryCount; i++ {
-		created, err = dClient.ContainerCreate(ctx, imageCfg, hostCfg, nil, containerName)
+		created, err = dClient.ContainerCreate(ctx, imageCfg, hostCfg, nil, nil, containerName)
 		if err != nil {
 			logrus.Warningf("Failed to create Docker container [%s] on host [%s]: %v", containerName, hostname, err)
 			continue
@@ -492,8 +496,12 @@ func WaitForContainer(ctx context.Context, dClient *client.Client, hostname stri
 	if dClient == nil {
 		return 1, fmt.Errorf("Failed waiting for container: docker client is nil for container [%s] on host [%s]", containerName, hostname)
 	}
-	// 5 minutes timeout, especially for transferring snapshots
-	for retries := 0; retries < 300; retries++ {
+	// Set containerTimeout value from context or default. Especially for transferring snapshots
+	containerTimeout := WaitTimeout
+	if v, ok := ctx.Value(WaitTimeoutContextKey).(int); ok && v > 0 {
+		containerTimeout = v
+	}
+	for retries := 0; retries < containerTimeout; retries++ {
 		log.Infof(ctx, "Waiting for [%s] container to exit on host [%s]", containerName, hostname)
 		container, err := InspectContainer(ctx, dClient, hostname, containerName)
 		if err != nil {

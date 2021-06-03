@@ -53,13 +53,16 @@ const (
 	// FlannelBackendPort must be 4789 if using VxLan mode in the cluster with Windows nodes
 	FlannelBackendPort = "flannel_backend_port"
 	// FlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using VxLan mode in the cluster with Windows nodes
-	FlannelBackendVxLanNetworkIdentify = "flannel_backend_vni"
+	FlannelBackendVxLanNetworkIdentify  = "flannel_backend_vni"
+	KubeFlannelPriorityClassNameKeyName = "kube_flannel_priority_class_name"
 
-	CalicoNetworkPlugin          = "calico"
-	CalicoNodeLabel              = "calico-node"
-	CalicoControllerLabel        = "calico-kube-controllers"
-	CalicoCloudProvider          = "calico_cloud_provider"
-	CalicoFlexVolPluginDirectory = "calico_flex_volume_plugin_dir"
+	CalicoNetworkPlugin                           = "calico"
+	CalicoNodeLabel                               = "calico-node"
+	CalicoControllerLabel                         = "calico-kube-controllers"
+	CalicoCloudProvider                           = "calico_cloud_provider"
+	CalicoFlexVolPluginDirectory                  = "calico_flex_volume_plugin_dir"
+	CalicoNodePriorityClassNameKeyName            = "calico_node_priority_class_name"
+	CalicoKubeControllersPriorityClassNameKeyName = "calico_kube_controllers_priority_class_name"
 
 	CanalNetworkPlugin      = "canal"
 	CanalIface              = "canal_iface"
@@ -69,9 +72,11 @@ const (
 	// CanalFlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using Flannel VxLan mode in the cluster with Windows nodes
 	CanalFlannelBackendVxLanNetworkIdentify = "canal_flannel_backend_vni"
 	CanalFlexVolPluginDirectory             = "canal_flex_volume_plugin_dir"
+	CanalPriorityClassNameKeyName           = "canal_priority_class_name"
 
-	WeaveNetworkPlugin  = "weave"
-	WeaveNetworkAppName = "weave-net"
+	WeaveNetworkPlugin               = "weave"
+	WeaveNetworkAppName              = "weave-net"
+	WeaveNetPriorityClassNameKeyName = "weave_net_priority_class_name"
 
 	AciNetworkPlugin            = "aci"
 	AciOVSMemoryLimit           = "aci_ovs_memory_limit"
@@ -168,97 +173,102 @@ const (
 
 	Calicoctl = "Calicoctl"
 
-	FlannelInterface         = "FlannelInterface"
-	FlannelBackend           = "FlannelBackend"
-	CanalInterface           = "CanalInterface"
-	FlexVolPluginDir         = "FlexVolPluginDir"
-	WeavePassword            = "WeavePassword"
-	MTU                      = "MTU"
-	RBACConfig               = "RBACConfig"
-	ClusterVersion           = "ClusterVersion"
-	SystemIdentifier         = "SystemIdentifier"
-	ApicHosts                = "ApicHosts"
-	Token                    = "Token"
-	ApicUserName             = "ApicUserName"
-	ApicUserKey              = "ApicUserKey"
-	ApicUserCrt              = "ApicUserCrt"
-	ApicRefreshTime          = "ApicRefreshTime"
-	VmmDomain                = "VmmDomain"
-	VmmController            = "VmmController"
-	EncapType                = "EncapType"
-	McastRangeStart          = "McastRangeStart"
-	McastRangeEnd            = "McastRangeEnd"
-	AEP                      = "AEP"
-	VRFName                  = "VRFName"
-	VRFTenant                = "VRFTenant"
-	L3Out                    = "L3Out"
-	L3OutExternalNetworks    = "L3OutExternalNetworks"
-	DynamicExternalSubnet    = "DynamicExternalSubnet"
-	StaticExternalSubnet     = "StaticExternalSubnet"
-	ServiceGraphSubnet       = "ServiceGraphSubnet"
-	KubeAPIVlan              = "KubeAPIVlan"
-	ServiceVlan              = "ServiceVlan"
-	InfraVlan                = "InfraVlan"
-	ImagePullPolicy          = "ImagePullPolicy"
-	ImagePullSecret          = "ImagePullSecret"
-	Tenant                   = "Tenant"
-	ServiceMonitorInterval   = "ServiceMonitorInterval"
-	PBRTrackingNonSnat       = "PBRTrackingNonSnat"
-	InstallIstio             = "InstallIstio"
-	IstioProfile             = "IstioProfile"
-	DropLogEnable            = "DropLogEnable"
-	ControllerLogLevel       = "ControllerLogLevel"
-	HostAgentLogLevel        = "HostAgentLogLevel"
-	OpflexAgentLogLevel      = "OpflexAgentLogLevel"
-	AciCniDeployContainer    = "AciCniDeployContainer"
-	AciHostContainer         = "AciHostContainer"
-	AciOpflexContainer       = "AciOpflexContainer"
-	AciMcastContainer        = "AciMcastContainer"
-	AciOpenvSwitchContainer  = "AciOpenvSwitchContainer"
-	AciControllerContainer   = "AciControllerContainer"
-	AciGbpServerContainer    = "AciGbpServerContainer"
-	AciOpflexServerContainer = "AciOpflexServerContainer"
-	StaticServiceIPStart     = "StaticServiceIPStart"
-	StaticServiceIPEnd       = "StaticServiceIPEnd"
-	PodGateway               = "PodGateway"
-	PodIPStart               = "PodIPStart"
-	PodIPEnd                 = "PodIPEnd"
-	NodeServiceIPStart       = "NodeServiceIPStart"
-	NodeServiceIPEnd         = "NodeServiceIPEnd"
-	ServiceIPStart           = "ServiceIPStart"
-	ServiceIPEnd             = "ServiceIPEnd"
-	UseAciCniPriorityClass   = "UseAciCniPriorityClass"
-	NoPriorityClass          = "NoPriorityClass"
-	MaxNodesSvcGraph         = "MaxNodesSvcGraph"
-	SnatContractScope        = "SnatContractScope"
-	PodSubnetChunkSize       = "PodSubnetChunkSize"
-	EnableEndpointSlice      = "EnableEndpointSlice"
-	SnatNamespace            = "SnatNamespace"
-	EpRegistry               = "EpRegistry"
-	OpflexMode               = "OpflexMode"
-	SnatPortRangeStart       = "SnatPortRangeStart"
-	SnatPortRangeEnd         = "SnatPortRangeEnd"
-	SnatPortsPerNode         = "SnatPortsPerNode"
-	OpflexClientSSL          = "OpflexClientSSL"
-	UsePrivilegedContainer   = "UsePrivilegedContainer"
-	UseHostNetnsVolume       = "UseHostNetnsVolume"
-	UseOpflexServerVolume    = "UseOpflexServerVolume"
-	KafkaBrokers             = "KafkaBrokers"
-	KafkaClientCrt           = "KafkaClientCrt"
-	KafkaClientKey           = "KafkaClientKey"
-	SubnetDomainName         = "SubnetDomainName"
-	CApic                    = "CApic"
-	UseAciAnywhereCRD        = "UseAciAnywhereCRD"
-	OverlayVRFName           = "OverlayVRFName"
-	GbpPodSubnet             = "GbpPodSubnet"
-	RunGbpContainer          = "RunGbpContainer"
-	RunOpflexServerContainer = "RunOpflexServerContainer"
-	OpflexServerPort         = "OpflexServerPort"
-	OVSMemoryLimit           = "OVSMemoryLimit"
-	NodeSubnet               = "NodeSubnet"
-	NodeSelector             = "NodeSelector"
-	UpdateStrategy           = "UpdateStrategy"
-	Tolerations              = "Tolerations"
+	FlannelInterface                       = "FlannelInterface"
+	FlannelBackend                         = "FlannelBackend"
+	KubeFlannelPriorityClassName           = "KubeFlannelPriorityClassName"
+	CalicoNodePriorityClassName            = "CalicoNodePriorityClassName"
+	CalicoKubeControllersPriorityClassName = "CalicoKubeControllersPriorityClassName"
+	CanalInterface                         = "CanalInterface"
+	CanalPriorityClassName                 = "CanalPriorityClassName"
+	FlexVolPluginDir                       = "FlexVolPluginDir"
+	WeavePassword                          = "WeavePassword"
+	WeaveNetPriorityClassName              = "WeaveNetPriorityClassName"
+	MTU                                    = "MTU"
+	RBACConfig                             = "RBACConfig"
+	ClusterVersion                         = "ClusterVersion"
+	SystemIdentifier                       = "SystemIdentifier"
+	ApicHosts                              = "ApicHosts"
+	Token                                  = "Token"
+	ApicUserName                           = "ApicUserName"
+	ApicUserKey                            = "ApicUserKey"
+	ApicUserCrt                            = "ApicUserCrt"
+	ApicRefreshTime                        = "ApicRefreshTime"
+	VmmDomain                              = "VmmDomain"
+	VmmController                          = "VmmController"
+	EncapType                              = "EncapType"
+	McastRangeStart                        = "McastRangeStart"
+	McastRangeEnd                          = "McastRangeEnd"
+	AEP                                    = "AEP"
+	VRFName                                = "VRFName"
+	VRFTenant                              = "VRFTenant"
+	L3Out                                  = "L3Out"
+	L3OutExternalNetworks                  = "L3OutExternalNetworks"
+	DynamicExternalSubnet                  = "DynamicExternalSubnet"
+	StaticExternalSubnet                   = "StaticExternalSubnet"
+	ServiceGraphSubnet                     = "ServiceGraphSubnet"
+	KubeAPIVlan                            = "KubeAPIVlan"
+	ServiceVlan                            = "ServiceVlan"
+	InfraVlan                              = "InfraVlan"
+	ImagePullPolicy                        = "ImagePullPolicy"
+	ImagePullSecret                        = "ImagePullSecret"
+	Tenant                                 = "Tenant"
+	ServiceMonitorInterval                 = "ServiceMonitorInterval"
+	PBRTrackingNonSnat                     = "PBRTrackingNonSnat"
+	InstallIstio                           = "InstallIstio"
+	IstioProfile                           = "IstioProfile"
+	DropLogEnable                          = "DropLogEnable"
+	ControllerLogLevel                     = "ControllerLogLevel"
+	HostAgentLogLevel                      = "HostAgentLogLevel"
+	OpflexAgentLogLevel                    = "OpflexAgentLogLevel"
+	AciCniDeployContainer                  = "AciCniDeployContainer"
+	AciHostContainer                       = "AciHostContainer"
+	AciOpflexContainer                     = "AciOpflexContainer"
+	AciMcastContainer                      = "AciMcastContainer"
+	AciOpenvSwitchContainer                = "AciOpenvSwitchContainer"
+	AciControllerContainer                 = "AciControllerContainer"
+	AciGbpServerContainer                  = "AciGbpServerContainer"
+	AciOpflexServerContainer               = "AciOpflexServerContainer"
+	StaticServiceIPStart                   = "StaticServiceIPStart"
+	StaticServiceIPEnd                     = "StaticServiceIPEnd"
+	PodGateway                             = "PodGateway"
+	PodIPStart                             = "PodIPStart"
+	PodIPEnd                               = "PodIPEnd"
+	NodeServiceIPStart                     = "NodeServiceIPStart"
+	NodeServiceIPEnd                       = "NodeServiceIPEnd"
+	ServiceIPStart                         = "ServiceIPStart"
+	ServiceIPEnd                           = "ServiceIPEnd"
+	UseAciCniPriorityClass                 = "UseAciCniPriorityClass"
+	NoPriorityClass                        = "NoPriorityClass"
+	MaxNodesSvcGraph                       = "MaxNodesSvcGraph"
+	SnatContractScope                      = "SnatContractScope"
+	PodSubnetChunkSize                     = "PodSubnetChunkSize"
+	EnableEndpointSlice                    = "EnableEndpointSlice"
+	SnatNamespace                          = "SnatNamespace"
+	EpRegistry                             = "EpRegistry"
+	OpflexMode                             = "OpflexMode"
+	SnatPortRangeStart                     = "SnatPortRangeStart"
+	SnatPortRangeEnd                       = "SnatPortRangeEnd"
+	SnatPortsPerNode                       = "SnatPortsPerNode"
+	OpflexClientSSL                        = "OpflexClientSSL"
+	UsePrivilegedContainer                 = "UsePrivilegedContainer"
+	UseHostNetnsVolume                     = "UseHostNetnsVolume"
+	UseOpflexServerVolume                  = "UseOpflexServerVolume"
+	KafkaBrokers                           = "KafkaBrokers"
+	KafkaClientCrt                         = "KafkaClientCrt"
+	KafkaClientKey                         = "KafkaClientKey"
+	SubnetDomainName                       = "SubnetDomainName"
+	CApic                                  = "CApic"
+	UseAciAnywhereCRD                      = "UseAciAnywhereCRD"
+	OverlayVRFName                         = "OverlayVRFName"
+	GbpPodSubnet                           = "GbpPodSubnet"
+	RunGbpContainer                        = "RunGbpContainer"
+	RunOpflexServerContainer               = "RunOpflexServerContainer"
+	OpflexServerPort                       = "OpflexServerPort"
+	OVSMemoryLimit                         = "OVSMemoryLimit"
+	NodeSubnet                             = "NodeSubnet"
+	NodeSelector                           = "NodeSelector"
+	UpdateStrategy                         = "UpdateStrategy"
+	Tolerations                            = "Tolerations"
 )
 
 var EtcdPortList = []string{
@@ -328,6 +338,7 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 			Type:          c.Network.UpdateStrategy.Strategy,
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
+		KubeFlannelPriorityClassName: c.Network.Options[KubeFlannelPriorityClassNameKeyName],
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(flannelConfig, data)
 	if err != nil {
@@ -355,8 +366,10 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context, data map[string]interface{
 			Type:          c.Network.UpdateStrategy.Strategy,
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
-		FlexVolPluginDir: c.Network.Options[CalicoFlexVolPluginDirectory],
-		Tolerations:      c.Network.Tolerations,
+		Tolerations:                            c.Network.Tolerations,
+		FlexVolPluginDir:                       c.Network.Options[CalicoFlexVolPluginDirectory],
+		CalicoNodePriorityClassName:            c.Network.Options[CalicoNodePriorityClassNameKeyName],
+		CalicoKubeControllersPriorityClassName: c.Network.Options[CalicoKubeControllersPriorityClassNameKeyName],
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(calicoConfig, data)
 	if err != nil {
@@ -401,8 +414,10 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 			Type:          c.Network.UpdateStrategy.Strategy,
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
-		FlexVolPluginDir: c.Network.Options[CanalFlexVolPluginDirectory],
-		Tolerations:      c.Network.Tolerations,
+		Tolerations:                            c.Network.Tolerations,
+		FlexVolPluginDir:                       c.Network.Options[CanalFlexVolPluginDirectory],
+		CanalPriorityClassName:                 c.Network.Options[CanalPriorityClassNameKeyName],
+		CalicoKubeControllersPriorityClassName: c.Network.Options[CalicoKubeControllersPriorityClassNameKeyName],
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(canalConfig, data)
 	if err != nil {
@@ -425,6 +440,7 @@ func (c *Cluster) doWeaveDeploy(ctx context.Context, data map[string]interface{}
 			Type:          c.Network.UpdateStrategy.Strategy,
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
+		WeaveNetPriorityClassName: c.Network.Options[WeaveNetPriorityClassNameKeyName],
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(weaveConfig, data)
 	if err != nil {

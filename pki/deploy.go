@@ -86,7 +86,7 @@ func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownload
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 		Privileged: true,
 	}
@@ -145,7 +145,7 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 		Privileged: true,
 	}
@@ -183,11 +183,12 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 
 func DeployAdminConfig(ctx context.Context, kubeConfig, localConfigPath string) error {
 	if len(kubeConfig) == 0 {
+		logrus.Infof("kubeConfig is empty")
 		return nil
 	}
 	logrus.Debugf("Deploying admin Kubeconfig locally at [%s]", localConfigPath)
 	logrus.Tracef("Deploying admin Kubeconfig locally: %s", kubeConfig)
-	err := ioutil.WriteFile(localConfigPath, []byte(kubeConfig), 0640)
+	err := ioutil.WriteFile(localConfigPath, []byte(kubeConfig), 0600)
 	if err != nil {
 		return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
 	}
@@ -302,7 +303,7 @@ func FetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.
 	}
 	hostCfg := &container.HostConfig{
 		Binds: []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 		},
 		Privileged: true,
 	}

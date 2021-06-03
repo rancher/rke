@@ -18,7 +18,12 @@ import (
 func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 	backupImage := c.getBackupImage()
 	for _, host := range c.EtcdHosts {
-		if err := services.RunEtcdSnapshotSave(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd); err != nil {
+		containerTimeout := DefaultEtcdBackupConfigTimeout
+		if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.Timeout > 0 {
+			containerTimeout = c.Services.Etcd.BackupConfig.Timeout
+		}
+		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
+		if err := services.RunEtcdSnapshotSave(newCtx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd); err != nil {
 			return err
 		}
 	}
@@ -63,6 +68,16 @@ func (c *Cluster) DeployRestoreCerts(ctx context.Context, clusterCerts map[strin
 }
 
 func (c *Cluster) DeployStateFile(ctx context.Context, stateFilePath, snapshotName string) error {
+	stateFileExists, err := util.IsFileExists(stateFilePath)
+	if err != nil {
+		logrus.Warnf("Could not read cluster state file from [%s], error: [%v]. Snapshot will be created without cluster state file. You can retrieve the cluster state file using 'rke util get-state-file'", stateFilePath, err)
+		return nil
+	}
+	if !stateFileExists {
+		logrus.Warnf("Could not read cluster state file from [%s], file does not exist. Snapshot will be created without cluster state file. You can retrieve the cluster state file using 'rke util get-state-file'", stateFilePath)
+		return nil
+	}
+
 	var errgrp errgroup.Group
 	hostsQueue := util.GetObjectQueue(c.EtcdHosts)
 	for w := 0; w < WorkerThreads; w++ {
@@ -175,7 +190,12 @@ func (c *Cluster) RestoreEtcdSnapshot(ctx context.Context, snapshotPath string) 
 	initCluster := services.GetEtcdInitialCluster(c.EtcdHosts)
 	backupImage := c.getBackupImage()
 	for _, host := range c.EtcdHosts {
-		if err := services.RestoreEtcdSnapshot(ctx, host, c.PrivateRegistriesMap, c.SystemImages.Etcd, backupImage,
+		containerTimeout := DefaultEtcdBackupConfigTimeout
+		if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.Timeout > 0 {
+			containerTimeout = c.Services.Etcd.BackupConfig.Timeout
+		}
+		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
+		if err := services.RestoreEtcdSnapshot(newCtx, host, c.PrivateRegistriesMap, c.SystemImages.Etcd, backupImage,
 			snapshotPath, initCluster, c.Services.Etcd); err != nil {
 			return fmt.Errorf("[etcd] Failed to restore etcd snapshot: %v", err)
 		}

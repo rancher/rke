@@ -21,6 +21,7 @@ import (
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -39,6 +40,7 @@ const (
 	EtcdPathPrefix       = "/registry"
 	CloudConfigSumEnv    = "RKE_CLOUD_CONFIG_CHECKSUM"
 	CloudProviderNameEnv = "RKE_CLOUD_PROVIDER_NAME"
+	AuditLogConfigSumEnv = "RKE_AUDITLOG_CONFIG_CHECKSUM"
 
 	DefaultToolsEntrypoint        = "/opt/rke-tools/entrypoint.sh"
 	DefaultToolsEntrypointVersion = "0.1.13"
@@ -49,9 +51,10 @@ const (
 	KubeletDockerConfigPath    = "/var/lib/kubelet/config.json"
 
 	// MaxEtcdOldEnvVersion The versions are maxed out for minor versions because -rancher1 suffix will cause semver to think its older, example: v1.15.0 > v1.15.0-rancher1
-	MaxEtcdOldEnvVersion   = "v3.2.99"
-	MaxK8s115Version       = "v1.15"
-	MaxEtcdPort4001Version = "v3.4.3-rancher99"
+	MaxEtcdOldEnvVersion      = "v3.2.99"
+	MaxK8s115Version          = "v1.15"
+	MaxEtcdPort4001Version    = "v3.4.3-rancher99"
+	MaxEtcdNoStrictTLSVersion = "v3.4.14-rancher99"
 
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 )
@@ -191,7 +194,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	if len(c.CloudProvider.Name) > 0 {
 		c.Services.KubeAPI.ExtraEnv = append(
 			c.Services.KubeAPI.ExtraEnv,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
+			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 	if c.EncryptionConfig.EncryptionProviderFile != "" {
 		CommandArgs[EncryptionProviderConfigArgument] = EncryptionProviderFilePath
@@ -261,10 +264,18 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
 	if c.Services.KubeAPI.AuditLog != nil && c.Services.KubeAPI.AuditLog.Enabled {
-		Binds = append(Binds, fmt.Sprintf("%s:/var/log/kube-audit:z", path.Join(host.PrefixPath, "/var/log/kube-audit")))
+		Binds = append(Binds, fmt.Sprintf("%s:/var/log/kube-audit", path.Join(host.PrefixPath, "/var/log/kube-audit")))
+		bytes, err := yaml.Marshal(c.Services.KubeAPI.AuditLog.Configuration.Policy)
+		if err != nil {
+			logrus.Warnf("Error while marshalling auditlog policy: %v", err)
+		}
+
+		c.Services.KubeAPI.ExtraEnv = append(
+			c.Services.KubeAPI.ExtraEnv,
+			fmt.Sprintf("%s=%s", AuditLogConfigSumEnv, getStringChecksum(string(bytes))))
 	}
 
 	// Override args if they exist, add additional args
@@ -323,7 +334,7 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 	if len(c.CloudProvider.Name) > 0 {
 		c.Services.KubeController.ExtraEnv = append(
 			c.Services.KubeController.ExtraEnv,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
+			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 
 	if serviceOptions.KubeController != nil {
@@ -345,7 +356,7 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
 
 	for arg, value := range c.Services.KubeController.ExtraArgs {
@@ -468,29 +479,29 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		}
 	} else {
 		Binds = []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
-			"/etc/cni:/etc/cni:rw,z",
-			"/opt/cni:/opt/cni:rw,z",
-			fmt.Sprintf("%s:/var/lib/cni:z", path.Join(host.PrefixPath, "/var/lib/cni")),
-			"/var/lib/calico:/var/lib/calico:z",
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
+			"/etc/cni:/etc/cni:rw",
+			"/opt/cni:/opt/cni:rw",
+			fmt.Sprintf("%s:/var/lib/cni", path.Join(host.PrefixPath, "/var/lib/cni")),
+			"/var/lib/calico:/var/lib/calico",
 			"/etc/resolv.conf:/etc/resolv.conf",
 			"/sys:/sys:rprivate",
-			host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,rslave,z",
-			fmt.Sprintf("%s:%s:shared,z", path.Join(host.PrefixPath, "/var/lib/kubelet"), path.Join(host.PrefixPath, "/var/lib/kubelet")),
-			"/var/lib/rancher:/var/lib/rancher:shared,z",
+			host.DockerInfo.DockerRootDir + ":" + host.DockerInfo.DockerRootDir + ":rw,rslave",
+			fmt.Sprintf("%s:%s:shared", path.Join(host.PrefixPath, "/var/lib/kubelet"), path.Join(host.PrefixPath, "/var/lib/kubelet")),
+			"/var/lib/rancher:/var/lib/rancher:shared",
 			"/var/run:/var/run:rw,rprivate",
 			"/run:/run:rprivate",
 			fmt.Sprintf("%s:/etc/ceph", path.Join(host.PrefixPath, "/etc/ceph")),
 			"/dev:/host/dev:rprivate",
-			"/var/log/containers:/var/log/containers:z",
-			"/var/log/pods:/var/log/pods:z",
+			"/var/log/containers:/var/log/containers",
+			"/var/log/pods:/var/log/pods",
 			"/usr:/host/usr:ro",
 			"/etc:/host/etc:ro",
 		}
 
 		// Special case to simplify using flex volumes
 		if path.Join(host.PrefixPath, "/var/lib/kubelet") != "/var/lib/kubelet" {
-			Binds = append(Binds, "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins:shared,z")
+			Binds = append(Binds, "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins:shared")
 		}
 	}
 	Binds = append(Binds, host.GetExtraBinds(kubelet.BaseService)...)
@@ -499,7 +510,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 
 	if len(c.CloudProvider.Name) > 0 {
 		Env = append(Env,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getCloudConfigChecksum(c.CloudConfigFile)))
+			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 	if len(c.PrivateRegistriesMap) > 0 {
 		kubeletDockerConfig, _ := docker.GetKubeletDockerConfig(c.PrivateRegistriesMap)
@@ -599,7 +610,7 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		}
 	} else {
 		Binds = []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+			fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 			"/run:/run",
 		}
 
@@ -717,7 +728,7 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 		services.SidekickContainerName,
 	}
 	Binds := []string{
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
 
 	for arg, value := range c.Services.Scheduler.ExtraArgs {
@@ -814,15 +825,11 @@ func (c *Cluster) BuildSidecarProcess(host *hosts.Host) v3.Process {
 func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, serviceOptions v3.KubernetesServicesOptions) v3.Process {
 	nodeName := pki.GetCrtNameForHost(host, pki.EtcdCertName)
 	initCluster := ""
-	architecture := "amd64"
+	architecture := host.DockerInfo.Architecture
 	if len(etcdHosts) == 0 {
 		initCluster = services.GetEtcdInitialCluster(c.EtcdHosts)
-		if len(c.EtcdHosts) > 0 {
-			architecture = c.EtcdHosts[0].DockerInfo.Architecture
-		}
 	} else {
 		initCluster = services.GetEtcdInitialCluster(etcdHosts)
-		architecture = etcdHosts[0].DockerInfo.Architecture
 	}
 
 	clusterState := "new"
@@ -868,6 +875,10 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	if err != nil {
 		logrus.Warn(err)
 	}
+	maxEtcdNoStrictTLSVersion, err := util.StrToSemVer(MaxEtcdNoStrictTLSVersion)
+	if err != nil {
+		logrus.Warn(err)
+	}
 
 	// We removed advertising port 4001 starting with k8s 1.19 (etcd v3.4.13 and up)
 	if etcdSemVer.LessThan(*maxEtcdPort4001Version) {
@@ -878,9 +889,17 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 		CommandArgs["advertise-client-urls"] = "https://" + host.InternalAddress + ":2379"
 	}
 
+	// Add in stricter TLS ciphter suites starting with etcd v3.4.15
+	if etcdSemVer.LessThan(*maxEtcdNoStrictTLSVersion) {
+		logrus.Debugf("etcd version [%s] is less than max version [%s] for adding stricter TLS cipher suites, not going to add stricter TLS cipher suites arguments to etcd", etcdSemVer, maxEtcdNoStrictTLSVersion)
+	} else {
+		logrus.Debugf("etcd version [%s] is higher than max version [%s] for adding stricter TLS cipher suites, going to add stricter TLS cipher suites arguments to etcd", etcdSemVer, maxEtcdNoStrictTLSVersion)
+		CommandArgs["cipher-suites"] = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+	}
+
 	Binds := []string{
-		fmt.Sprintf("%s:%s:z", path.Join(host.PrefixPath, "/var/lib/etcd"), services.EtcdDataDir),
-		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+		fmt.Sprintf("%s:%s", path.Join(host.PrefixPath, "/var/lib/etcd"), services.EtcdDataDir),
+		fmt.Sprintf("%s:/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
 
 	if serviceOptions.Etcd != nil {
@@ -1046,7 +1065,7 @@ func (c *Cluster) getDefaultKubernetesServicesOptions(osType string) (v3.Kuberne
 	return v3.KubernetesServicesOptions{}, fmt.Errorf("getDefaultKubernetesServicesOptions: No serviceOptions found for cluster version [%s] or cluster major version [%s]", c.Version, clusterMajorVersion)
 }
 
-func getCloudConfigChecksum(config string) string {
+func getStringChecksum(config string) string {
 	configByteSum := md5.Sum([]byte(config))
 	return fmt.Sprintf("%x", configByteSum)
 }

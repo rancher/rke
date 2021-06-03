@@ -22,24 +22,25 @@ const (
 	SidekickServiceName   = "sidekick"
 	RBACAuthorizationMode = "rbac"
 
-	KubeAPIContainerName            = "kube-apiserver"
-	KubeletContainerName            = "kubelet"
-	KubeproxyContainerName          = "kube-proxy"
-	KubeControllerContainerName     = "kube-controller-manager"
-	SchedulerContainerName          = "kube-scheduler"
-	EtcdContainerName               = "etcd"
-	EtcdSnapshotContainerName       = "etcd-rolling-snapshots"
-	EtcdSnapshotOnceContainerName   = "etcd-snapshot-once"
-	EtcdSnapshotRemoveContainerName = "etcd-remove-snapshot"
-	EtcdRestoreContainerName        = "etcd-restore"
-	EtcdDownloadBackupContainerName = "etcd-download-backup"
-	EtcdServeBackupContainerName    = "etcd-Serve-backup"
-	EtcdChecksumContainerName       = "etcd-checksum-checker"
-	EtcdStateFileContainerName      = "etcd-extract-statefile"
-	NginxProxyContainerName         = "nginx-proxy"
-	SidekickContainerName           = "service-sidekick"
-	LogLinkContainerName            = "rke-log-linker"
-	LogCleanerContainerName         = "rke-log-cleaner"
+	KubeAPIContainerName                        = "kube-apiserver"
+	KubeletContainerName                        = "kubelet"
+	KubeproxyContainerName                      = "kube-proxy"
+	KubeControllerContainerName                 = "kube-controller-manager"
+	SchedulerContainerName                      = "kube-scheduler"
+	EtcdContainerName                           = "etcd"
+	EtcdSnapshotContainerName                   = "etcd-rolling-snapshots"
+	EtcdSnapshotOnceContainerName               = "etcd-snapshot-once"
+	EtcdSnapshotRemoveContainerName             = "etcd-remove-snapshot"
+	EtcdRestoreContainerName                    = "etcd-restore"
+	EtcdDownloadBackupContainerName             = "etcd-download-backup"
+	EtcdServeBackupContainerName                = "etcd-Serve-backup"
+	EtcdChecksumContainerName                   = "etcd-checksum-checker"
+	EtcdStateFileContainerName                  = "etcd-extract-statefile"
+	ControlPlaneConfigMapStateFileContainerName = "extract-statefile-configmap"
+	NginxProxyContainerName                     = "nginx-proxy"
+	SidekickContainerName                       = "service-sidekick"
+	LogLinkContainerName                        = "rke-log-linker"
+	LogCleanerContainerName                     = "rke-log-cleaner"
 
 	KubeAPIPort        = 6443
 	SchedulerPort      = 10251
@@ -51,6 +52,7 @@ const (
 
 	ContainerNameLabel = "io.rancher.rke.container.name"
 	MCSLabel           = "label=level:s0:c1000,c1001"
+	SELinuxLabel       = "label=type:rke_container_t"
 )
 
 type RestartFunc func(context.Context, *hosts.Host) error
@@ -141,6 +143,10 @@ func GetProcessConfig(process v3.Process, host *hosts.Host) (*container.Config, 
 				hostCfg.SecurityOpt = []string{MCSLabel}
 			}
 		}
+		// We apply the label because we do not rewrite SELinux labels anymore on volume mounts (no :z)
+		logrus.Debugf("Applying security opt label [%s] for etcd container on host [%s]", SELinuxLabel, host.Address)
+		hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+
 	}
 	return imageCfg, hostCfg, process.HealthCheck.URL
 }
