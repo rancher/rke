@@ -44,6 +44,7 @@ steps:
     - "build/bin/rke_*"
     - "dist/artifacts/${DRONE_TAG}/*"
     prerelease: true
+    title: "Pre-release ${DRONE_TAG}"
   when:
     event:
     - tag
@@ -63,6 +64,7 @@ steps:
     - "dist/artifacts/${DRONE_TAG}/*"
     api_key:
       from_secret: github_token
+    title: "Release ${DRONE_TAG}"
   when:
     event:
     - tag
