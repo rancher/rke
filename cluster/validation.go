@@ -11,7 +11,7 @@ import (
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/util"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -308,11 +308,7 @@ func validateServicesOptions(c *Cluster) error {
 	}
 
 	// validate etcd s3 backup backend configurations
-	if err := validateEtcdBackupOptions(c); err != nil {
-		return err
-	}
-
-	return nil
+	return validateEtcdBackupOptions(c)
 }
 
 func validateEtcdBackupOptions(c *Cluster) error {
@@ -436,10 +432,7 @@ func validateSystemImages(c *Cluster) error {
 	if err := validateMetricsImages(c); err != nil {
 		return err
 	}
-	if err := validateIngressImages(c); err != nil {
-		return err
-	}
-	return nil
+	return validateIngressImages(c)
 }
 
 func validateKubernetesImages(c *Cluster) error {
