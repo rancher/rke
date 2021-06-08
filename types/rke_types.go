@@ -33,6 +33,8 @@ type RancherKubernetesEngineConfig struct {
 	Authorization AuthzConfig `yaml:"authorization" json:"authorization,omitempty"`
 	// Enable/disable strict docker version checking
 	IgnoreDockerVersion *bool `yaml:"ignore_docker_version" json:"ignoreDockerVersion" norman:"default=true"`
+	// Enable/disable using cri-dockerd
+	EnableCRIDockerd *bool `yaml:"enable_cri_dockerd" json:"enableCRIDockerd" norman:"default=false"`
 	// Kubernetes version to use (if kubernetes image is specified, image version takes precedence)
 	Version string `yaml:"kubernetes_version" json:"kubernetesVersion,omitempty"`
 	// List of private registries and their credentials
