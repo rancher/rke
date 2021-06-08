@@ -21,7 +21,7 @@ type RancherKubernetesEngineConfig struct {
 	Addons string `yaml:"addons" json:"addons,omitempty"`
 	// List of urls or paths for addons
 	AddonsInclude []string `yaml:"addons_include" json:"addonsInclude,omitempty"`
-	// List of images used internally for proxy, cert downlaod and kubedns
+	// List of images used internally for proxy, cert download and kubedns
 	SystemImages RKESystemImages `yaml:"system_images" json:"systemImages,omitempty"`
 	// SSH Private Key Path
 	SSHKeyPath string `yaml:"ssh_key_path" json:"sshKeyPath,omitempty" norman:"nocreate,noupdate"`
@@ -33,7 +33,7 @@ type RancherKubernetesEngineConfig struct {
 	Authorization AuthzConfig `yaml:"authorization" json:"authorization,omitempty"`
 	// Enable/disable strict docker version checking
 	IgnoreDockerVersion *bool `yaml:"ignore_docker_version" json:"ignoreDockerVersion" norman:"default=true"`
-	// Kubernetes version to use (if kubernetes image is specifed, image version takes precedence)
+	// Kubernetes version to use (if kubernetes image is specified, image version takes precedence)
 	Version string `yaml:"kubernetes_version" json:"kubernetesVersion,omitempty"`
 	// List of private registries and their credentials
 	PrivateRegistries []PrivateRegistry `yaml:"private_registries" json:"privateRegistries,omitempty"`

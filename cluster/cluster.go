@@ -514,10 +514,7 @@ func parseIngressConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngin
 	if err := parseIngressExtraVolumes(ingressMap, rkeConfig); err != nil {
 		return err
 	}
-	if err := parseIngressExtraVolumeMounts(ingressMap, rkeConfig); err != nil {
-		return err
-	}
-	return nil
+	return parseIngressExtraVolumeMounts(ingressMap, rkeConfig)
 }
 
 func parseDaemonSetUpdateStrategy(updateStrategyField interface{}) (*v3.DaemonSetUpdateStrategy, error) {
@@ -1100,10 +1097,7 @@ func RestartClusterPods(ctx context.Context, kubeCluster *Cluster) error {
 			return util.ErrList(errList)
 		})
 	}
-	if err := errgrp.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return errgrp.Wait()
 }
 
 func IsLegacyKubeAPI(ctx context.Context, kubeCluster *Cluster) (bool, error) {
