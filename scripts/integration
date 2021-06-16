@@ -79,7 +79,6 @@ nodes:
 EOF
 
     # Run rke - output to logs and track results.
-    export DOCKER_API_VERSION=1.24
     ./bin/rke up --dind --config "./bin/cluster-${version_to_test}.yml" 2>&1 >"./bin/cluster-${version_to_test}.log" &
     pids="$pids $!"
     pids_to_version["$!"]="${version_to_test}"
@@ -184,7 +183,6 @@ for ver in "${!versions_to_test[@]}"; do
 
     echo_with_time "Upgrading cluster version ${versions_to_test["${ver}"]} to version ${upgrade_to_version}"
     # Run rke - output to logs and track results.
-    export DOCKER_API_VERSION=1.24
     ./bin/rke up --dind --config "./bin/cluster-${versions_to_test["${ver}"]}.yml" 2>&1 >"./bin/cluster-upgrade-${versions_to_test["${ver}"]}-${upgrade_to_version}.log" &
     pids_upgrade="$pids_upgrade $!"
     pids_upgrade_to_version["$!"]="${versions_to_test["${ver}"]}"
