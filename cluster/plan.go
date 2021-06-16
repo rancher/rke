@@ -55,6 +55,7 @@ const (
 	MaxK8s115Version          = "v1.15"
 	MaxEtcdPort4001Version    = "v3.4.3-rancher99"
 	MaxEtcdNoStrictTLSVersion = "v3.4.14-rancher99"
+	MaxK8s121Version          = "v1.21.99-rancher99"
 
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
@@ -371,11 +372,26 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
 	}
+	k8sTag, err := util.GetImageTagFromImage(c.SystemImages.Kubernetes)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	k8sSemVer, err := util.StrToSemVer(k8sTag)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	maxK8s121Version, err := util.StrToSemVer(MaxK8s121Version)
+	if err != nil {
+		logrus.Warn(err)
+	}
 
 	Binds = append(Binds, c.Services.KubeController.ExtraBinds...)
+	healthCheck := v3.HealthCheck{}
 
-	healthCheck := v3.HealthCheck{
-		URL: services.GetHealthCheckURL(false, services.KubeControllerPort),
+	if k8sSemVer.LessThan(*maxK8s121Version) {
+		healthCheck.URL = services.GetHealthCheckURL(false, services.KubeControllerPortMaxV121)
+	} else {
+		healthCheck.URL = services.GetHealthCheckURL(true, services.KubeControllerPort)
 	}
 
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.KubeController.Image, c.PrivateRegistriesMap)
