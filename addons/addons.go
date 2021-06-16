@@ -6,26 +6,45 @@ import (
 
 	"k8s.io/client-go/transport"
 
+	"github.com/blang/semver"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/templates"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetAddonsExecuteJob(addonName, nodeName, image string) (string, error) {
-	return getAddonJob(addonName, nodeName, image, false)
+func GetAddonsExecuteJob(addonName, nodeName, image, k8sVersion string) (string, error) {
+	return getAddonJob(addonName, nodeName, image, k8sVersion, false)
 }
 
-func GetAddonsDeleteJob(addonName, nodeName, image string) (string, error) {
-	return getAddonJob(addonName, nodeName, image, true)
+func GetAddonsDeleteJob(addonName, nodeName, image, k8sVersion string) (string, error) {
+	return getAddonJob(addonName, nodeName, image, k8sVersion, true)
 }
 
-func getAddonJob(addonName, nodeName, image string, isDelete bool) (string, error) {
+func getAddonJob(addonName, nodeName, image, k8sVersion string, isDelete bool) (string, error) {
+	OSLabel := "beta.kubernetes.io/os"
+	toMatch, err := semver.Make(k8sVersion[1:])
+	if err != nil {
+		return "", fmt.Errorf("Cluster version [%s] can not be parsed as semver: %v", k8sVersion, err)
+	}
+
+	logrus.Debugf("Checking addon job OS label for cluster version [%s]", k8sVersion)
+	// kubernetes.io/os should be used 1.22.0 and up
+	OSLabelRange, err := semver.ParseRange(">=1.22.0-rancher0")
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse semver range for checking OS label for addon job: %v", err)
+	}
+	if OSLabelRange(toMatch) {
+		logrus.Debugf("Cluster version [%s] needs to use new OS label", k8sVersion)
+		OSLabel = "kubernetes.io/os"
+	}
+
 	jobConfig := map[string]string{
 		"AddonName": addonName,
 		"NodeName":  nodeName,
 		"Image":     image,
 		"DeleteJob": strconv.FormatBool(isDelete),
+		"OSLabel":   OSLabel,
 	}
 	template, err := templates.CompileTemplateFromMap(templates.AddonJobTemplate, jobConfig)
 	logrus.Tracef("template for [%s] is: [%s]", addonName, template)

@@ -14,10 +14,11 @@ const (
 	FakeAddonName  = "example-addon"
 	FakeNodeName   = "node1"
 	FakeAddonImage = "example/example:latest"
+	FakeK8sVersion = "v1.21.1-rancher1-1"
 )
 
 func TestJobManifest(t *testing.T) {
-	jobYaml, err := GetAddonsExecuteJob(FakeAddonName, FakeNodeName, FakeAddonImage)
+	jobYaml, err := GetAddonsExecuteJob(FakeAddonName, FakeNodeName, FakeAddonImage, FakeK8sVersion)
 	if err != nil {
 		t.Fatalf("Failed to get addon execute job: %v", err)
 	}
