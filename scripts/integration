@@ -97,8 +97,8 @@ done
 # Wait for rke to finish
 for pid in $pids; do
     wait $pid
-    echo_with_time "PID ${pid} for ${pids_to_version["${pid}"]} is done"
     pid_results["${pid}"]="$?"
+    echo_with_time "PID ${pid} for ${pids_to_version["${pid}"]} is done"
 done
 
 # Stop tailing the logs
@@ -203,8 +203,8 @@ done
 # Wait for rke to finish
 for pid_upgrade in $pids_upgrade; do
     wait $pid_upgrade
-    echo_with_time "PID ${pid_upgrade} for upgrade of ${pids_upgrade_to_version["${pid_upgrade}"]} to "${version_to_upgraded_version["${pids_upgrade_to_version["${pid_upgrade}"]}"]}" is done"
     pid_upgrade_results["${pid_upgrade}"]="$?"
+    echo_with_time "PID ${pid_upgrade} for upgrade of ${pids_upgrade_to_version["${pid_upgrade}"]} to "${version_to_upgraded_version["${pids_upgrade_to_version["${pid_upgrade}"]}"]}" is done"
 done
 
 # Stop tailing the logs
