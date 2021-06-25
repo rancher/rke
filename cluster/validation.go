@@ -208,6 +208,31 @@ func validateNetworkOptions(c *Cluster) error {
 	if c.Network.Plugin == FlannelNetworkPlugin && c.Network.MTU != 0 {
 		return fmt.Errorf("Network plugin [%s] does not support configuring MTU", FlannelNetworkPlugin)
 	}
+	dualStack := false
+	serviceClusterRanges := strings.Split(c.Services.KubeAPI.ServiceClusterIPRange, ",")
+	if len(serviceClusterRanges) > 1 {
+		logrus.Debugf("Found more than 1 service cluster IP range, assuming dual stack")
+		dualStack = true
+	}
+	clusterCIDRs := strings.Split(c.Services.KubeController.ClusterCIDR, ",")
+	if len(clusterCIDRs) > 1 {
+		logrus.Debugf("Found more than 1 cluster CIDR, assuming dual stack")
+		dualStack = true
+	}
+	if dualStack {
+		IPv6CompatibleNetworkPluginFound := false
+		for _, networkPlugin := range IPv6CompatibleNetworkPlugins {
+			if c.Network.Plugin == networkPlugin {
+				logrus.Debugf("Found IPv6 compatible network plugin [%s] == [%s]", c.Network.Plugin, networkPlugin)
+				IPv6CompatibleNetworkPluginFound = true
+				break
+			}
+		}
+		if !IPv6CompatibleNetworkPluginFound {
+			return fmt.Errorf("Network plugin [%s] does not support IPv6 (dualstack)", c.Network.Plugin)
+		}
+	}
+
 	if c.Network.Plugin == AciNetworkPlugin {
 		//Skip cloud options and throw an error.
 		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciUseOpflexServerVolume,

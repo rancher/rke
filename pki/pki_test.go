@@ -86,8 +86,8 @@ func TestPKI(t *testing.T) {
 		net.ParseIP("127.0.0.1"),
 		net.ParseIP(rkeConfig.Nodes[0].InternalAddress),
 		net.ParseIP(rkeConfig.Nodes[0].Address),
-		kubernetesServiceIP,
 	}
+	kubeAPIAltIPs = append(kubeAPIAltIPs, kubernetesServiceIP...)
 
 	for _, testIP := range kubeAPIAltIPs {
 		found := false

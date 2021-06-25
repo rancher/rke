@@ -289,6 +289,7 @@ var EtcdClientPortList = []string{
 }
 
 var CalicoNetworkLabels = []string{CalicoNodeLabel, CalicoControllerLabel}
+var IPv6CompatibleNetworkPlugins = []string{CalicoNetworkPlugin}
 
 func (c *Cluster) deployNetworkPlugin(ctx context.Context, data map[string]interface{}) error {
 	log.Infof(ctx, "[network] Setting up network plugin: %s", c.Network.Plugin)
