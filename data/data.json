@@ -9208,17 +9208,17 @@
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.18.19+rke2r1"
+    "version": "v1.18.20+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.19.11+rke2r1"
+    "version": "v1.19.12+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.20.7+rke2r2"
+    "version": "v1.20.8+rke2r1"
    },
    {
     "agentArgs": {
@@ -9366,7 +9366,7 @@
       "type": "array"
      }
     },
-    "version": "v1.21.1-rc3+rke2r1"
+    "version": "v1.21.2+rke2r1"
    }
   ]
  }
