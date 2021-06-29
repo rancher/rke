@@ -12,14 +12,17 @@ steps:
   image: rancher/dapper:1.11.2
   commands:
   - dapper ci
-  - ls -lR dist/artifacts
+  - ls -lR build/bin
   environment:
     CROSS: 1
   privileged: true
   volumes:
   - name: socket
     path: /var/run/docker.sock
-
+  when:
+    event:
+    - pull_request
+    - tag
 
 - name: stage-binaries
   pull: default
@@ -43,10 +46,12 @@ steps:
     - sha256
     files:
     - "build/bin/rke_*"
-    - "dist/artifacts/${DRONE_TAG}/*"
     prerelease: true
     title: "Pre-release ${DRONE_TAG}"
   when:
+    instance:
+      include:
+      - drone-publish.rancher.io
     event:
     - tag
     ref:
@@ -62,11 +67,13 @@ steps:
     - sha256
     files:
     - "build/bin/rke_*"
-    - "dist/artifacts/${DRONE_TAG}/*"
     api_key:
       from_secret: github_token
     title: "Release ${DRONE_TAG}"
   when:
+    instance:
+      include:
+      - drone-publish.rancher.io
     event:
     - tag
     ref:
@@ -97,6 +104,10 @@ steps:
   volumes:
   - name: socket
     path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
 
 - name: integration-flannel
   pull: default
@@ -107,6 +118,10 @@ steps:
   volumes:
   - name: socket
     path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
 
 - name: integration-calico
   pull: default
@@ -117,6 +132,10 @@ steps:
   volumes:
   - name: socket
     path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
 
 - name: integration-weave
   pull: default
@@ -127,6 +146,10 @@ steps:
   volumes:
   - name: socket
     path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
 
 volumes:
 - name: socket
