@@ -419,9 +419,12 @@ func GenerateEtcdCSRs(ctx context.Context, certs map[string]CertificatePKI, rkeC
 	for _, host := range etcdHosts {
 		etcdName := GetCrtNameForHost(host, EtcdCertName)
 		etcdCrt := certs[etcdName].Certificate
-		etcdCSRPEM := certs[etcdName].CSRPEM
-		if etcdCSRPEM != "" {
-			return nil
+		etcdCsr := certs[etcdName].CSR
+		if etcdCsr != nil {
+			if reflect.DeepEqual(etcdAltNames.DNSNames, etcdCsr.DNSNames) &&
+				DeepEqualIPsAltNames(etcdAltNames.IPs, etcdCsr.IPAddresses) {
+				continue
+			}
 		}
 		logrus.Infof("[certificates] Generating etcd-%s csr and key", host.InternalAddress)
 		etcdCSR, etcdKey, err := GenerateCertSigningRequestAndKey(true, EtcdCertName, etcdAltNames, certs[etcdName].Key, nil)
@@ -532,7 +535,7 @@ func GenerateKubeletCSR(ctx context.Context, certs map[string]CertificatePKI, rk
 		if oldKubeletCSR != nil &&
 			reflect.DeepEqual(kubeletAltNames.DNSNames, oldKubeletCSR.DNSNames) &&
 			DeepEqualIPsAltNames(kubeletAltNames.IPs, oldKubeletCSR.IPAddresses) {
-			return nil
+			continue
 		}
 		logrus.Infof("[certificates] Generating %s Kubernetes Kubelet csr", kubeletName)
 		kubeletCSR, kubeletKey, err := GenerateCertSigningRequestAndKey(true, kubeletName, kubeletAltNames, certs[kubeletName].Key, nil)
