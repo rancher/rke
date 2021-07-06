@@ -71,6 +71,7 @@ type ingressOptions struct {
 	AlpineImage                             string
 	IngressImage                            string
 	IngressBackend                          string
+	IngressWebhook                          string
 	HTTPPort                                int
 	HTTPSPort                               int
 	NetworkMode                             string
@@ -588,6 +589,7 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 		DNSPolicy:         c.Ingress.DNSPolicy,
 		IngressImage:      c.SystemImages.Ingress,
 		IngressBackend:    c.SystemImages.IngressBackend,
+		IngressWebhook:    c.SystemImages.IngressWebhook,
 		ExtraEnvs:         c.Ingress.ExtraEnvs,
 		ExtraVolumes:      c.Ingress.ExtraVolumes,
 		ExtraVolumeMounts: c.Ingress.ExtraVolumeMounts,
