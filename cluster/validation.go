@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/metadata"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/util"
-	"k8s.io/api/core/v1"
+	"github.com/sirupsen/logrus"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -579,6 +581,25 @@ func validateIngressImages(c *Cluster) error {
 		}
 		if len(c.SystemImages.IngressBackend) == 0 {
 			return errors.New("ingress backend image is not populated")
+		}
+		// Ingress Webhook image is used starting with k8s 1.21
+		k8sVersion := c.RancherKubernetesEngineConfig.Version
+		toMatch, err := semver.Make(k8sVersion[1:])
+		if err != nil {
+			return fmt.Errorf("%s is not valid semver", k8sVersion)
+		}
+		logrus.Debugf("Checking if ingress webhook image is required for cluster version [%s]", k8sVersion)
+
+		IngressWebhookImageRequiredRange, err := semver.ParseRange(">=1.21.0-rancher0")
+		if err != nil {
+			logrus.Warnf("Failed to parse semver range for checking required ingress webhook image")
+		}
+		if IngressWebhookImageRequiredRange(toMatch) {
+			logrus.Debugf("Cluster version [%s] uses ingress webhook image, checking if image is populated", k8sVersion)
+			if len(c.SystemImages.IngressWebhook) == 0 {
+				return errors.New("ingress webhook image is not populated")
+			}
+
 		}
 	}
 	return nil

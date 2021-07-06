@@ -510,6 +510,7 @@ func (c *Cluster) setClusterImageDefaults() error {
 		&c.SystemImages.WeaveCNI:                  d(imageDefaults.WeaveCNI, privRegURL),
 		&c.SystemImages.Ingress:                   d(imageDefaults.Ingress, privRegURL),
 		&c.SystemImages.IngressBackend:            d(imageDefaults.IngressBackend, privRegURL),
+		&c.SystemImages.IngressWebhook:            d(imageDefaults.IngressWebhook, privRegURL),
 		&c.SystemImages.MetricsServer:             d(imageDefaults.MetricsServer, privRegURL),
 		&c.SystemImages.Nodelocal:                 d(imageDefaults.Nodelocal, privRegURL),
 		&c.SystemImages.AciCniDeployContainer:     d(imageDefaults.AciCniDeployContainer, privRegURL),
