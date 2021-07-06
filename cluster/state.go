@@ -182,6 +182,11 @@ func RebuildState(ctx context.Context, kubeCluster *Cluster, oldState *FullState
 		}
 		newState.DesiredState.CertificatesBundle = certBundle
 		newState.CurrentState = oldState.CurrentState
+
+		err = updateEncryptionConfig(kubeCluster, oldState, newState)
+		if err != nil {
+			return nil, err
+		}
 		return newState, nil
 	}
 
@@ -341,7 +346,12 @@ func rebuildExistingState(ctx context.Context, kubeCluster *Cluster, oldState, n
 		return err
 	}
 	newState.DesiredState.CertificatesBundle = pkiCertBundle
-	if isEncryptionEnabled(rkeConfig) {
+	err := updateEncryptionConfig(kubeCluster, oldState, newState)
+	return err
+}
+
+func updateEncryptionConfig(kubeCluster *Cluster, oldState *FullState, newState *FullState) error {
+	if isEncryptionEnabled(&kubeCluster.RancherKubernetesEngineConfig) {
 		if oldState.DesiredState.EncryptionConfig != "" {
 			newState.DesiredState.EncryptionConfig = oldState.DesiredState.EncryptionConfig
 		} else {
@@ -351,6 +361,5 @@ func rebuildExistingState(ctx context.Context, kubeCluster *Cluster, oldState, n
 			}
 		}
 	}
-
 	return nil
 }
