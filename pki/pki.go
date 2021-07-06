@@ -83,7 +83,7 @@ func RegenerateEtcdCertificate(
 	etcdHost *hosts.Host,
 	etcdHosts []*hosts.Host,
 	clusterDomain string,
-	KubernetesServiceIP net.IP) (map[string]CertificatePKI, error) {
+	KubernetesServiceIP []net.IP) (map[string]CertificatePKI, error) {
 
 	etcdName := GetCrtNameForHost(etcdHost, EtcdCertName)
 	log.Infof(ctx, "[certificates] Regenerating new %s certificate and key", etcdName)

@@ -58,7 +58,7 @@ type Cluster struct {
 	InactiveHosts                    []*hosts.Host
 	K8sWrapTransport                 transport.WrapperFunc
 	KubeClient                       *kubernetes.Clientset
-	KubernetesServiceIP              net.IP
+	KubernetesServiceIP              []net.IP
 	LocalKubeConfigPath              string
 	LocalConnDialerFactory           hosts.DialerFactory
 	PrivateRegistriesMap             map[string]v3.PrivateRegistry
@@ -736,7 +736,7 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 	}
 	// extract cluster network configuration
 	if err = c.setNetworkOptions(); err != nil {
-		return nil, fmt.Errorf("failed set network options: %v", err)
+		return nil, fmt.Errorf("Failed to set network options: %v", err)
 	}
 
 	// Register cloud provider

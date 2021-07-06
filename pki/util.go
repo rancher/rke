@@ -163,7 +163,7 @@ func GetIPHostAltnamesForHost(host *hosts.Host) *cert.AltNames {
 	}
 }
 
-func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP net.IP, SANs []string) *cert.AltNames {
+func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP []net.IP, SANs []string) *cert.AltNames {
 	ips := []net.IP{}
 	dnsNames := []string{}
 	for _, host := range cpHosts {
@@ -198,7 +198,7 @@ func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceI
 	}
 
 	ips = append(ips, net.ParseIP("127.0.0.1"))
-	ips = append(ips, KubernetesServiceIP)
+	ips = append(ips, KubernetesServiceIP...)
 	dnsNames = append(dnsNames, []string{
 		"localhost",
 		"kubernetes",
@@ -379,19 +379,24 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 	return certList
 }
 
-func GetKubernetesServiceIP(serviceClusterRange string) (net.IP, error) {
-	ip, ipnet, err := net.ParseCIDR(serviceClusterRange)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get kubernetes service IP from Kube API option [service_cluster_ip_range]: %v", err)
-	}
-	ip = ip.Mask(ipnet.Mask)
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
+func GetKubernetesServiceIP(serviceClusterRange string) ([]net.IP, error) {
+	var serviceIPs []net.IP
+	serviceClusterRanges := strings.Split(serviceClusterRange, ",")
+	for _, serviceClusterRange := range serviceClusterRanges {
+		ip, ipnet, err := net.ParseCIDR(serviceClusterRange)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get kubernetes service IP from Kube API option [service_cluster_ip_range]: %v", err)
 		}
+		ip = ip.Mask(ipnet.Mask)
+		for j := len(ip) - 1; j >= 0; j-- {
+			ip[j]++
+			if ip[j] > 0 {
+				break
+			}
+		}
+		serviceIPs = append(serviceIPs, ip)
 	}
-	return ip, nil
+	return serviceIPs, nil
 }
 
 func GetLocalKubeConfig(configPath, configDir string) string {
