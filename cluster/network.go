@@ -34,10 +34,7 @@ const (
 	KubeAPIPort      = "6443"
 	EtcdPort1        = "2379"
 	EtcdPort2        = "2380"
-	ScedulerPort     = "10251"
-	ControllerPort   = "10252"
 	KubeletPort      = "10250"
-	KubeProxyPort    = "10256"
 	FlannelVxLanPort = 8472
 
 	FlannelVxLanNetworkIdentify = 1
