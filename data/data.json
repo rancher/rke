@@ -9074,12 +9074,12 @@
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.19.12+k3s1"
+    "version": "v1.19.13+k3s1"
    },
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.20.8+k3s1"
+    "version": "v1.20.9+k3s1"
    },
    {
     "agentArgs": {
@@ -9207,7 +9207,7 @@
       "type": "array"
      }
     },
-    "version": "v1.21.2+k3s1"
+    "version": "v1.21.3+k3s1"
    }
   ]
  },
