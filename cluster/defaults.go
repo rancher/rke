@@ -123,6 +123,7 @@ const (
 	DefaultHTTPPort                   = 80
 	DefaultHTTPSPort                  = 443
 	DefaultNetworkMode                = "hostNetwork"
+	DefaultNetworkModeV121            = "hostPort"
 )
 
 var (
@@ -804,9 +805,26 @@ func (c *Cluster) setAddonsDefaults() {
 	if c.Monitoring.Replicas == nil {
 		c.Monitoring.Replicas = &DefaultMonitoringAddonReplicas
 	}
+	k8sVersion := c.RancherKubernetesEngineConfig.Version
+	toMatch, err := semver.Make(k8sVersion[1:])
+	if err != nil {
+		logrus.Warnf("Cluster version [%s] can not be parsed as semver", k8sVersion)
+	}
 
 	if c.Ingress.NetworkMode == "" {
-		c.Ingress.NetworkMode = DefaultNetworkMode
+		networkMode := DefaultNetworkMode
+		logrus.Debugf("Checking network mode for ingress for cluster version [%s]", k8sVersion)
+		// network mode will be hostport for k8s 1.21 and up
+		hostPortRange, err := semver.ParseRange(">=1.21.0-rancher0")
+		if err != nil {
+			logrus.Warnf("Failed to parse semver range for checking ingress network mode")
+		}
+		if hostPortRange(toMatch) {
+			logrus.Debugf("Cluster version [%s] needs to have ingress network mode set to hostPort", k8sVersion)
+			networkMode = DefaultNetworkModeV121
+		}
+
+		c.Ingress.NetworkMode = networkMode
 	}
 
 	if c.Ingress.HTTPPort == 0 {
@@ -819,11 +837,6 @@ func (c *Cluster) setAddonsDefaults() {
 
 	if c.Ingress.DefaultBackend == nil {
 		defaultBackend := true
-		k8sVersion := c.RancherKubernetesEngineConfig.Version
-		toMatch, err := semver.Make(k8sVersion[1:])
-		if err != nil {
-			logrus.Warnf("Cluster version [%s] can not be parsed as semver", k8sVersion)
-		}
 		logrus.Debugf("Checking ingress default backend for cluster version [%s]", k8sVersion)
 		// default backend will be false for k8s 1.21 and up
 		disableIngressDefaultBackendRange, err := semver.ParseRange(">=1.21.0-rancher0")
