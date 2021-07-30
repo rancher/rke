@@ -8029,7 +8029,7 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
-  "v1.21.1-rancher2-1": {
+  "v1.21.1-rancher3-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.4.16-rancher1",
    "alpine": "rancher/rke-tools:v0.1.76",
    "nginxProxy": "rancher/rke-tools:v0.1.76",
@@ -8042,7 +8042,7 @@
    "coredns": "rancher/mirrored-coredns-coredns:1.8.4",
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.3",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.18.0",
-   "kubernetes": "rancher/hyperkube:v1.21.1-rancher2",
+   "kubernetes": "rancher/hyperkube:v1.21.1-rancher3",
    "flannel": "rancher/mirrored-coreos-flannel:v0.14.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/mirrored-calico-node:v3.19.1",
@@ -8672,7 +8672,7 @@
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.21.1-rancher2-1"
+  "default": "v1.21.1-rancher3-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
@@ -9017,6 +9017,42 @@
     "enforce-node-allocatable": "''",
     "event-qps": "0",
     "feature-gates": "HyperVContainer=true,WindowsGMSA=true",
+    "image-pull-progress-deadline": "30m",
+    "kube-reserved": "cpu=500m,memory=500Mi,ephemeral-storage=1Gi",
+    "make-iptables-util-chains": "true",
+    "network-plugin": "cni",
+    "read-only-port": "0",
+    "resolv-conf": "''",
+    "streaming-connection-idle-timeout": "30m",
+    "system-reserved": "cpu=1000m,memory=2Gi,ephemeral-storage=2Gi",
+    "tls-cipher-suites": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+    "v": "2",
+    "volume-plugin-dir": "[PREFIX_PATH]/var/lib/kubelet/volumeplugins"
+   },
+   "kubeproxy": {
+    "enable-dsr": "false",
+    "feature-gates": "WinOverlay=true",
+    "healthz-bind-address": "127.0.0.1",
+    "proxy-mode": "kernelspace",
+    "v": "2"
+   },
+   "kubeController": null,
+   "scheduler": null
+  },
+  "v1.21": {
+   "etcd": null,
+   "kubeapi": null,
+   "kubelet": {
+    "address": "0.0.0.0",
+    "anonymous-auth": "false",
+    "authentication-token-webhook": "true",
+    "authorization-mode": "Webhook",
+    "cert-dir": "[PREFIX_PATH]/var/lib/kubelet/pki",
+    "cgroups-per-qos": "false",
+    "cni-bin-dir": "[PREFIX_PATH]/opt/cni/bin",
+    "cni-conf-dir": "[PREFIX_PATH]/etc/cni/net.d",
+    "enforce-node-allocatable": "''",
+    "event-qps": "0",
     "image-pull-progress-deadline": "30m",
     "kube-reserved": "cpu=500m,memory=500Mi,ephemeral-storage=1Gi",
     "make-iptables-util-chains": "true",
