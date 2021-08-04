@@ -441,7 +441,7 @@ func CreateContainer(ctx context.Context, dClient *client.Client, hostname strin
 	// Retry up to RetryCount times to see if image exists
 	for i := 1; i <= RetryCount; i++ {
 		created, err = dClient.ContainerCreate(ctx, imageCfg, hostCfg, nil, nil, containerName)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "is already in use") {
 			logrus.Warningf("Failed to create Docker container [%s] on host [%s]: %v", containerName, hostname, err)
 			continue
 		}
