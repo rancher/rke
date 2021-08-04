@@ -9306,6 +9306,7 @@
    {
     "agentArgs": {
      "docker": {
+      "default": false,
       "type": "boolean"
      },
      "flannel-conf": {
@@ -9324,9 +9325,11 @@
       "type": "string"
      },
      "protect-kernel-defaults": {
+      "default": false,
       "type": "boolean"
      },
      "selinux": {
+      "default": false,
       "type": "boolean"
      },
      "snapshotter": {
@@ -9371,27 +9374,35 @@
       "type": "array"
      },
      "disable-api-server": {
+      "default": false,
       "type": "boolean"
      },
      "disable-cloud-controller": {
+      "default": false,
       "type": "boolean"
      },
      "disable-controller-manager": {
+      "default": false,
       "type": "boolean"
      },
      "disable-etcd": {
+      "default": false,
       "type": "boolean"
      },
      "disable-kube-proxy": {
+      "default": false,
       "type": "boolean"
      },
      "disable-network-policy": {
+      "default": false,
       "type": "boolean"
      },
      "disable-scheduler": {
+      "default": false,
       "type": "boolean"
      },
      "etcd-expose-metrics": {
+      "default": false,
       "type": "boolean"
      },
      "flannel-backend": {
@@ -9417,6 +9428,7 @@
       "type": "array"
      },
      "secrets-encryption": {
+      "default": false,
       "type": "boolean"
      },
      "service-cidr": {
@@ -9486,6 +9498,7 @@
       "type": "enum"
      },
      "protect-kernel-defaults": {
+      "default": false,
       "type": "boolean"
      },
      "selinux": {
@@ -9577,9 +9590,11 @@
       "type": "array"
      },
      "disable-kube-proxy": {
+      "default": false,
       "type": "boolean"
      },
      "etcd-expose-metrics": {
+      "default": false,
       "type": "boolean"
      },
      "kube-apiserver-arg": {
@@ -9604,7 +9619,7 @@
       "type": "array"
      }
     },
-    "version": "v1.21.3-rc1+rke2r2"
+    "version": "v1.21.3-rc2+rke2r2"
    }
   ]
  }
