@@ -9161,7 +9161,7 @@
    },
    "kubeproxy": {
     "enable-dsr": "false",
-    "feature-gates": "WinOverlay=true",
+    "feature-gates": "IPv6DualStack=false",
     "healthz-bind-address": "127.0.0.1",
     "proxy-mode": "kernelspace",
     "v": "2"
