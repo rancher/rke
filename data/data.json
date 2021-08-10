@@ -8131,16 +8131,16 @@
    "kubernetes": "rancher/hyperkube:v1.21.3-rancher1",
    "flannel": "rancher/mirrored-coreos-flannel:v0.14.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
-   "calicoNode": "rancher/mirrored-calico-node:v3.19.1",
-   "calicoCni": "rancher/mirrored-calico-cni:v3.19.1",
-   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.19.1",
-   "calicoCtl": "rancher/mirrored-calico-ctl:v3.19.1",
-   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.19.1",
-   "canalNode": "rancher/mirrored-calico-node:v3.19.1",
-   "canalCni": "rancher/mirrored-calico-cni:v3.19.1",
-   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.19.1",
+   "calicoNode": "rancher/mirrored-calico-node:v3.19.2",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.19.2",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.19.2",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.19.2",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.19.2",
+   "canalNode": "rancher/mirrored-calico-node:v3.19.2",
+   "canalCni": "rancher/mirrored-calico-cni:v3.19.2",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.19.2",
    "canalFlannel": "rancher/mirrored-coreos-flannel:v0.14.0",
-   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.19.1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.19.2",
    "weaveNode": "weaveworks/weave-kube:2.8.1",
    "weaveCni": "weaveworks/weave-npc:2.8.1",
    "podInfraContainer": "rancher/mirrored-pause:3.4.1",
@@ -9455,12 +9455,12 @@
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.19.13+rke2r1"
+    "version": "v1.19.12+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.20.9+rke2r1"
+    "version": "v1.20.8+rke2r1"
    },
    {
     "agentArgs": {
