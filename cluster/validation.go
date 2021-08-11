@@ -220,6 +220,22 @@ func validateNetworkOptions(c *Cluster) error {
 		dualStack = true
 	}
 	if dualStack {
+		// Only Calico template in k8s v1.21 and up is supported
+		k8sVersion := c.RancherKubernetesEngineConfig.Version
+		toMatch, err := semver.Make(k8sVersion[1:])
+		if err != nil {
+			return fmt.Errorf("%s is not valid semver", k8sVersion)
+		}
+		logrus.Debugf("Checking if dual stack can be enabled for cluster version [%s]", k8sVersion)
+
+		DualStackRequiredRange, err := semver.ParseRange(">=1.21.0-rancher0")
+		if err != nil {
+			logrus.Warnf("Failed to parse semver range for checking dual stack")
+		}
+		if !DualStackRequiredRange(toMatch) {
+			return fmt.Errorf("Cluster version [%s] does not support IPv6 (dualstack)", k8sVersion)
+		}
+
 		IPv6CompatibleNetworkPluginFound := false
 		for _, networkPlugin := range IPv6CompatibleNetworkPlugins {
 			if c.Network.Plugin == networkPlugin {
