@@ -53,11 +53,15 @@ const (
 	Nodelocal       = "nodelocal"
 
 	NginxIngressAddonAppName                 = "ingress-nginx"
+	NginxIngressAddonAppNamespace            = "ingress-nginx"
 	NginxIngressAddonDefaultBackendName      = "default-http-backend"
 	NginxIngressAddonDefaultBackendNamespace = "ingress-nginx"
 )
 
-var DNSProviders = []string{KubeDNSProvider, CoreDNSProvider}
+var (
+	DNSProviders              = []string{KubeDNSProvider, CoreDNSProvider}
+	NginxIngressAddonJobNames = []string{"ingress-nginx-admission-create", "ingress-nginx-admission-patch"}
+)
 
 type ingressOptions struct {
 	RBACConfig                              string
@@ -612,6 +616,20 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 		version := strings.Split(ingressSplits[1], "-")[0]
 		if version < "0.16.0" {
 			ingressConfig.AlpineImage = c.SystemImages.Alpine
+		}
+		// since nginx ingress controller 0.40.0, admission batch jobs are deployed.
+		// Before deployment of the new ingress controller based on the update strategy, remove admission batch jobs if they exist.
+		if version > "0.40.0" {
+			log.Infof(ctx, "[ingress] removing admission batch jobs if they exist")
+			kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+			if err != nil {
+				return err
+			}
+			for _, jobName := range NginxIngressAddonJobNames {
+				if err = k8s.DeleteK8sJobIfExists(kubeClient, jobName, NginxIngressAddonAppNamespace); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	tmplt, err := templates.GetVersionedTemplates(kdm.NginxIngress, data, c.Version)
