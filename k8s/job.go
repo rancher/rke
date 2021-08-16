@@ -71,6 +71,13 @@ func DeleteK8sSystemJob(jobYaml string, k8sClient *kubernetes.Clientset, timeout
 	return nil
 }
 
+func DeleteK8sJobIfExists(k8sClient *kubernetes.Clientset, name, namespace string) error {
+	if err := deleteK8sJob(k8sClient, name, namespace); err != nil && !apierrors.IsNotFound(err) {
+		return err
+	}
+	return nil
+}
+
 func ensureJobCompleted(k8sClient *kubernetes.Clientset, j interface{}) error {
 	job := j.(v1.Job)
 
