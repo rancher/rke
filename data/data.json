@@ -7446,6 +7446,48 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
+  "v1.19.14-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
+   "alpine": "rancher/rke-tools:v0.1.77",
+   "nginxProxy": "rancher/rke-tools:v0.1.77",
+   "certDownloader": "rancher/rke-tools:v0.1.77",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.77",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.15.10",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.15.10",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.15.10",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "coredns": "rancher/mirrored-coredns-coredns:1.7.0",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
+   "kubernetes": "rancher/hyperkube:v1.19.14-rancher1",
+   "flannel": "rancher/coreos-flannel:v0.13.0-rancher1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.16.5",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.16.5",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.16.5",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.16.5",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.16.5",
+   "canalNode": "rancher/mirrored-calico-node:v3.16.5",
+   "canalCni": "rancher/mirrored-calico-cni:v3.16.5",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.16.5",
+   "canalFlannel": "rancher/coreos-flannel:v0.13.0-rancher1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.16.5",
+   "weaveNode": "weaveworks/weave-kube:2.7.0",
+   "weaveCni": "weaveworks/weave-npc:2.7.0",
+   "podInfraContainer": "rancher/mirrored-pause:3.2",
+   "ingress": "rancher/nginx-ingress-controller:nginx-0.35.0-rancher2",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.3.6",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
+   "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
+   "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciMcastContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciOvsContainer": "noiro/openvswitch:5.1.1.0.1ae238a",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.1.1.0.1ae238a",
+   "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
+  },
   "v1.19.2-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.13-rancher1",
    "alpine": "rancher/rke-tools:v0.1.65",
@@ -7740,6 +7782,48 @@
    "ingress": "rancher/nginx-ingress-controller:nginx-0.35.0-rancher2",
    "ingressBackend": "rancher/nginx-ingress-controller-defaultbackend:1.5-rancher1",
    "metricsServer": "rancher/metrics-server:v0.3.6",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
+   "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
+   "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciMcastContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciOvsContainer": "noiro/openvswitch:5.1.1.0.1ae238a",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.1.1.0.1ae238a",
+   "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
+  },
+  "v1.20.10-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
+   "alpine": "rancher/rke-tools:v0.1.77",
+   "nginxProxy": "rancher/rke-tools:v0.1.77",
+   "certDownloader": "rancher/rke-tools:v0.1.77",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.77",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.15.10",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.15.10",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.15.10",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "coredns": "rancher/mirrored-coredns-coredns:1.8.0",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
+   "kubernetes": "rancher/hyperkube:v1.20.10-rancher1",
+   "flannel": "rancher/coreos-flannel:v0.13.0-rancher1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.17.2",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.17.2",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.17.2",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.17.2",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.17.2",
+   "canalNode": "rancher/mirrored-calico-node:v3.17.2",
+   "canalCni": "rancher/mirrored-calico-cni:v3.17.2",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.17.2",
+   "canalFlannel": "rancher/coreos-flannel:v0.13.0-rancher1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.17.2",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.2",
+   "ingress": "rancher/nginx-ingress-controller:nginx-0.43.0-rancher3",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.4.1",
    "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
    "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
    "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
@@ -8483,7 +8567,15 @@
    "minRKEVersion": "1.2.0-rc0",
    "minRancherVersion": "2.5.0-rc0"
   },
+  "v1.19.14-rancher1-1": {
+   "minRKEVersion": "1.2.0-rc0",
+   "minRancherVersion": "2.5.0-rc0"
+  },
   "v1.20": {
+   "minRKEVersion": "1.2.0-rc0",
+   "minRancherVersion": "2.5.6-rc0"
+  },
+  "v1.20.10-rancher1-1": {
    "minRKEVersion": "1.2.0-rc0",
    "minRancherVersion": "2.5.6-rc0"
   },
@@ -8537,7 +8629,7 @@
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.20.9-rancher1-1"
+  "default": "v1.20.10-rancher1-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
@@ -9050,12 +9142,12 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.13+rke2r1"
+    "version": "v1.19.13+rke2r2"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.9+rke2r1"
+    "version": "v1.20.9+rke2r2"
    }
   ]
  }
