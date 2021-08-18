@@ -672,18 +672,10 @@ func tryRegistryAuth(pr v3.PrivateRegistry) types.RequestPrivilegeFunc {
 func getRegistryAuth(pr v3.PrivateRegistry) (string, error) {
 	var authConfig types.AuthConfig
 	var err error
-	if len(pr.User) == 0 && len(pr.Password) == 0 && len(pr.CredentialPlugin) != 0 {
-		if regType, ok := pr.CredentialPlugin["type"]; ok {
-			switch regType {
-			case "ecr":
-				// generate ecr authConfig
-				authConfig, err = util.ECRCredentialPlugin(pr.CredentialPlugin, pr.URL)
-				if err != nil {
-					return "", err
-				}
-			default:
-				return "", fmt.Errorf("Unsupported Credential Plugin")
-			}
+	if len(pr.User) == 0 && len(pr.Password) == 0 && pr.ECRCredentialPlugin != nil {
+		authConfig, err = util.ECRCredentialPlugin(pr.ECRCredentialPlugin, pr.URL)
+		if err != nil {
+			return "", err
 		}
 	} else {
 		authConfig = types.AuthConfig{
@@ -761,12 +753,8 @@ func GetKubeletDockerConfig(prsMap map[string]v3.PrivateRegistry) (string, error
 	auths := map[string]authConfig{}
 	credHelper := make(map[string]string)
 	for url, pr := range prsMap {
-		if len(pr.CredentialPlugin) != 0 {
-			if credPluginType, ok := pr.CredentialPlugin["type"]; ok {
-				if credPluginType == "ecr" {
-					credHelper[pr.URL] = "ecr-login"
-				}
-			}
+		if pr.ECRCredentialPlugin != nil {
+			credHelper[pr.URL] = "ecr-login"
 		} else {
 			auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", pr.User, pr.Password)))
 			auths[url] = authConfig{Auth: auth}

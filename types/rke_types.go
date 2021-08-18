@@ -110,8 +110,8 @@ type PrivateRegistry struct {
 	Password string `yaml:"password" json:"password,omitempty" norman:"type=password"`
 	// Default registry
 	IsDefault bool `yaml:"is_default" json:"isDefault,omitempty"`
-	// CredentialPlugin
-	CredentialPlugin map[string]string `yaml:"credentialPlugin" json:"credentialPlugin,omitempty"`
+	// ECRCredentialPlugin
+	ECRCredentialPlugin *ECRCredentialPlugin `yaml:"ecr_credential_plugin" json:"ecrCredentialPlugin,omitempty"`
 }
 
 type RKESystemImages struct {
@@ -1010,4 +1010,10 @@ type NodeDrainInput struct {
 	GracePeriod int `yaml:"grace_period" json:"gracePeriod,omitempty" norman:"default=-1"`
 	// Time to wait (in seconds) before giving up for one try
 	Timeout int `yaml:"timeout" json:"timeout" norman:"min=1,max=10800,default=120"`
+}
+
+type ECRCredentialPlugin struct {
+	AwsAccessKeyID     string `yaml:"aws_access_key_id" json:"awsAccessKeyId,omitempty"`
+	AwsSecretAccessKey string `yaml:"aws_secret_access_key" json:"awsSecretAccessKey,omitempty"`
+	AwsSessionToken    string `yaml:"aws_session_token" json:"awsAccessToken,omitempty"`
 }
