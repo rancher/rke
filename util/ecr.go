@@ -6,11 +6,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/docker/docker/api/types"
+	v3 "github.com/rancher/rke/types"
 )
 
 const proxyEndpointScheme = "https://"
@@ -18,7 +21,13 @@ const proxyEndpointScheme = "https://"
 var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
 
 // ECRCredentialPlugin is a wrapper to generate ECR token using the AWS Credentials
-func ECRCredentialPlugin(plugin map[string]string, pr string) (authConfig types.AuthConfig, err error) {
+func ECRCredentialPlugin(plugin *v3.ECRCredentialPlugin, pr string) (authConfig types.AuthConfig, err error) {
+	if plugin == nil {
+		err = fmt.Errorf("ECRCredentialPlugin: ECRCredentialPlugin called with nil plugin data")
+		return authConfig, err
+	}
+
+	logrus.Tracef("ECRCredentialPlugin: ECRCredentialPlugin called with plugin [%v] and pr [%s]", plugin, pr)
 
 	if strings.HasPrefix(pr, proxyEndpointScheme) {
 		pr = strings.TrimPrefix(pr, proxyEndpointScheme)
@@ -34,17 +43,16 @@ func ECRCredentialPlugin(plugin map[string]string, pr string) (authConfig types.
 		Region: aws.String(matches[3]),
 	}
 
+	logrus.Debugf("ECRCredentialPlugin: Setting Region to [%s]", matches[3])
 	var sess *session.Session
-	awsAccessKeyID, accessKeyOK := plugin["aws_access_key_id"]
-	awsSecretAccessKey, secretKeyOK := plugin["aws_secret_access_key"]
 
 	// Use predefined keys and override env lookup if keys are present //
-	if accessKeyOK && secretKeyOK {
-		// if session token doesnt exist just pass empty string
-		awsSessionToken := plugin["aws_session_token"]
-		config.Credentials = credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken)
+	if plugin.AwsAccessKeyID != "" && plugin.AwsSecretAccessKey != "" {
+		// if session token doesn't exist just pass empty string
+		config.Credentials = credentials.NewStaticCredentials(plugin.AwsAccessKeyID, plugin.AwsSecretAccessKey, plugin.AwsSessionToken)
 		sess, err = session.NewSession(config)
 	} else {
+		logrus.Debug("ECRCredentialPlugin: aws_access_key_id and aws_secret_access_key keys not in plugin, using IAM role or env variables")
 		sess, err = session.NewSessionWithOptions(session.Options{
 			Config:            *config,
 			SharedConfigState: session.SharedConfigEnable,
@@ -52,6 +60,7 @@ func ECRCredentialPlugin(plugin map[string]string, pr string) (authConfig types.
 	}
 
 	if err != nil {
+		logrus.Trace("ECRCredentialPlugin: Error found while constructing auth session, returning authConfig")
 		return authConfig, err
 	}
 
