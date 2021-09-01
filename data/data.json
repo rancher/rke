@@ -7448,10 +7448,10 @@
   },
   "v1.19.14-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
-   "alpine": "rancher/rke-tools:v0.1.77",
-   "nginxProxy": "rancher/rke-tools:v0.1.77",
-   "certDownloader": "rancher/rke-tools:v0.1.77",
-   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.77",
+   "alpine": "rancher/rke-tools:v0.1.78",
+   "nginxProxy": "rancher/rke-tools:v0.1.78",
+   "certDownloader": "rancher/rke-tools:v0.1.78",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.78",
    "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.15.10",
    "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.15.10",
    "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.15.10",
@@ -7460,7 +7460,7 @@
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
    "kubernetes": "rancher/hyperkube:v1.19.14-rancher1",
-   "flannel": "rancher/coreos-flannel:v0.13.0-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.13.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/mirrored-calico-node:v3.16.5",
    "calicoCni": "rancher/mirrored-calico-cni:v3.16.5",
@@ -7794,10 +7794,10 @@
   },
   "v1.20.10-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
-   "alpine": "rancher/rke-tools:v0.1.77",
-   "nginxProxy": "rancher/rke-tools:v0.1.77",
-   "certDownloader": "rancher/rke-tools:v0.1.77",
-   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.77",
+   "alpine": "rancher/rke-tools:v0.1.78",
+   "nginxProxy": "rancher/rke-tools:v0.1.78",
+   "certDownloader": "rancher/rke-tools:v0.1.78",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.78",
    "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.15.10",
    "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.15.10",
    "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.15.10",
@@ -7806,7 +7806,7 @@
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
    "kubernetes": "rancher/hyperkube:v1.20.10-rancher1",
-   "flannel": "rancher/coreos-flannel:v0.13.0-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.13.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/mirrored-calico-node:v3.17.2",
    "calicoCni": "rancher/mirrored-calico-cni:v3.17.2",
@@ -9142,12 +9142,12 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.13+rke2r2"
+    "version": "v1.19.14+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.9+rke2r2"
+    "version": "v1.20.10+rke2r1"
    }
   ]
  }
