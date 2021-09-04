@@ -510,8 +510,7 @@ func (c *Cluster) readEncryptionCustomConfig() (string, error) {
 		return "", nil
 	}
 
-	return templates.CompileTemplateFromMap(templates.CustomEncryptionProviderFile,
-		struct{ CustomConfig string }{CustomConfig: string(yamlConfig)})
+	return string(yamlConfig), nil
 }
 
 func resolveCustomEncryptionConfig(clusterFile string) (string, *apiserverconfigv1.EncryptionConfiguration, error) {
