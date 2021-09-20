@@ -230,6 +230,8 @@ type RKEConfigNode struct {
 	Labels map[string]string `yaml:"labels" json:"labels,omitempty"`
 	// Node Taints
 	Taints []RKETaint `yaml:"taints" json:"taints,omitempty"`
+	// Kubelet Service Options
+	Kubelet KubeletService `yaml:"kubelet" json:"kubelet,omitempty"`
 }
 
 type K8sVersionInfo struct {
