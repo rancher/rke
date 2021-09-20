@@ -538,7 +538,31 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		Env = append(Env, c.getWindowsEnv(host)...)
 	}
 
-	for arg, value := range host.GetExtraArgs(kubelet.BaseService) {
+	// Overide kubelet config depend on each host
+	mergeService := kubelet.BaseService
+	if host.KubeletService.Image != "" {
+		mergeService.Image = host.KubeletService.Image
+	}
+	if len(host.KubeletService.ExtraArgs) != 0 {
+		mergeService.ExtraArgs = host.KubeletService.ExtraArgs
+	}
+	if len(host.KubeletService.ExtraBinds) != 0 {
+		mergeService.ExtraBinds = host.KubeletService.ExtraBinds
+	}
+	if len(host.KubeletService.ExtraEnv) != 0 {
+		mergeService.ExtraEnv = host.KubeletService.ExtraEnv
+	}
+	if len(host.KubeletService.WindowsExtraArgs) != 0 {
+		mergeService.WindowsExtraArgs = host.KubeletService.WindowsExtraArgs
+	}
+	if len(host.KubeletService.WindowsExtraBinds) != 0 {
+		mergeService.WindowsExtraBinds = host.KubeletService.WindowsExtraBinds
+	}
+	if len(host.KubeletService.WindowsExtraEnv) != 0 {
+		mergeService.WindowsExtraEnv = host.KubeletService.WindowsExtraEnv
+	}
+
+	for arg, value := range host.GetExtraArgs(mergeService) {
 		CommandArgs[arg] = value
 	}
 

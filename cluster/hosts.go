@@ -69,11 +69,12 @@ func (c *Cluster) InvertIndexHosts() error {
 	c.ControlPlaneHosts = make([]*hosts.Host, 0)
 	for _, host := range c.Nodes {
 		newHost := hosts.Host{
-			RKEConfigNode: host,
-			ToAddLabels:   map[string]string{},
-			ToDelLabels:   map[string]string{},
-			ToAddTaints:   []string{},
-			ToDelTaints:   []string{},
+			RKEConfigNode:  host,
+			ToAddLabels:    map[string]string{},
+			ToDelLabels:    map[string]string{},
+			ToAddTaints:    []string{},
+			ToDelTaints:    []string{},
+			KubeletService: host.Kubelet,
 			DockerInfo: types.Info{
 				DockerRootDir: "/var/lib/docker",
 			},

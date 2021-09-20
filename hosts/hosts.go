@@ -38,6 +38,7 @@ type Host struct {
 	UpdateWorker        bool
 	PrefixPath          string
 	BastionHost         v3.BastionHost
+	KubeletService      v3.KubeletService
 }
 
 const (
