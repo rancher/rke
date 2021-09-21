@@ -1464,6 +1464,7 @@ func (in *RKEConfigNode) DeepCopyInto(out *RKEConfigNode) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	in.Kubelet.DeepCopyInto(&out.Kubelet)
 	return
 }
 
