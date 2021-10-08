@@ -89,12 +89,12 @@ func RunEtcdPlane(
 		_, _, healthCheckURL := GetProcessConfig(etcdNodePlanMap[host.Address].Processes[EtcdContainerName], host)
 		healthError = isEtcdHealthy(localConnDialerFactory, host, clientCert, clientKey, healthCheckURL)
 		if healthError == nil {
-			break
+			continue
 		}
 		logrus.Warn(healthError)
 		hosts = append(hosts, host.Address)
 	}
-	if healthError != nil {
+	if hosts != nil {
 		return fmt.Errorf("etcd cluster is unhealthy: hosts [%s] failed to report healthy."+
 			" Check etcd container logs on each host for more information", strings.Join(hosts, ","))
 	}
