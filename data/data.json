@@ -9215,12 +9215,12 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.13+k3s1"
+    "version": "v1.19.15+k3s2"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.9+k3s1"
+    "version": "v1.20.11+k3s2"
    }
   ]
  },
@@ -9234,12 +9234,12 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.14+rke2r1"
+    "version": "v1.19.15+rke2r2"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.10+rke2r1"
+    "version": "v1.20.11+rke2r2"
    }
   ]
  }
