@@ -7530,7 +7530,7 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
-  "v1.19.15-rancher1-3": {
+  "v1.19.16-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
    "alpine": "rancher/rke-tools:v0.1.78",
    "nginxProxy": "rancher/rke-tools:v0.1.78",
@@ -7543,7 +7543,7 @@
    "coredns": "rancher/mirrored-coredns-coredns:1.7.0",
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
-   "kubernetes": "rancher/hyperkube:v1.19.15-rancher1",
+   "kubernetes": "rancher/hyperkube:v1.19.16-rancher1",
    "flannel": "rancher/mirrored-coreos-flannel:v0.13.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/mirrored-calico-node:v3.16.5",
@@ -7961,7 +7961,7 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
-  "v1.20.11-rancher1-3": {
+  "v1.20.12-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
    "alpine": "rancher/rke-tools:v0.1.78",
    "nginxProxy": "rancher/rke-tools:v0.1.78",
@@ -7974,7 +7974,7 @@
    "coredns": "rancher/mirrored-coredns-coredns:1.8.0",
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
-   "kubernetes": "rancher/hyperkube:v1.20.11-rancher1",
+   "kubernetes": "rancher/hyperkube:v1.20.12-rancher1",
    "flannel": "rancher/mirrored-coreos-flannel:v0.13.0",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/mirrored-calico-node:v3.17.2",
@@ -8749,7 +8749,7 @@
    "minRKEVersion": "1.2.0-rc0",
    "minRancherVersion": "2.5.0-rc0"
   },
-  "v1.19.15-rancher1-3": {
+  "v1.19.16-rancher1-1": {
    "minRKEVersion": "1.2.14-rc0",
    "minRancherVersion": "2.5.11-rc0"
   },
@@ -8765,7 +8765,7 @@
    "minRKEVersion": "1.2.0-rc0",
    "minRancherVersion": "2.5.6-rc0"
   },
-  "v1.20.11-rancher1-3": {
+  "v1.20.12-rancher1-1": {
    "minRKEVersion": "1.2.14-rc0",
    "minRancherVersion": "2.5.11-rc0"
   },
@@ -8819,7 +8819,7 @@
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.20.11-rancher1-3"
+  "default": "v1.20.12-rancher1-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
