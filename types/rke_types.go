@@ -556,6 +556,8 @@ type CloudProvider struct {
 	OpenstackCloudProvider *OpenstackCloudProvider `yaml:"openstackCloudProvider,omitempty" json:"openstackCloudProvider,omitempty"`
 	// VsphereCloudProvider
 	VsphereCloudProvider *VsphereCloudProvider `yaml:"vsphereCloudProvider,omitempty" json:"vsphereCloudProvider,omitempty"`
+	// HarvesterCloudProvider
+	HarvesterCloudProvider *HarvesterCloudProvider `yaml:"harvesterCloudProvider,omitempty" json:"harvesterCloudProvider,omitempty"`
 	// CustomCloudProvider is a multiline string that represent a custom cloud config file
 	CustomCloudProvider string `yaml:"customCloudProvider,omitempty" json:"customCloudProvider,omitempty"`
 }
@@ -848,6 +850,9 @@ type AWSCloudProvider struct {
 	ServiceOverride map[string]ServiceOverride `json:"serviceOverride,omitempty" yaml:"service_override,omitempty" ini:"ServiceOverride,omitempty"`
 }
 
+type HarvesterCloudProvider struct {
+	CloudConfig string `json:"cloudConfig" yaml:"cloud_config"`
+}
 type ServiceOverride struct {
 	Service       string `json:"service" yaml:"service" ini:"Service,omitempty"`
 	Region        string `json:"region" yaml:"region" ini:"Region,omitempty"`

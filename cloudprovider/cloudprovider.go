@@ -4,6 +4,7 @@ import (
 	"github.com/rancher/rke/cloudprovider/aws"
 	"github.com/rancher/rke/cloudprovider/azure"
 	"github.com/rancher/rke/cloudprovider/custom"
+	"github.com/rancher/rke/cloudprovider/harvester"
 	"github.com/rancher/rke/cloudprovider/openstack"
 	"github.com/rancher/rke/cloudprovider/vsphere"
 	v3 "github.com/rancher/rke/types"
@@ -28,6 +29,9 @@ func InitCloudProvider(cloudProviderConfig v3.CloudProvider) (CloudProvider, err
 	}
 	if cloudProviderConfig.VsphereCloudProvider != nil || cloudProviderConfig.Name == vsphere.VsphereCloudProviderName {
 		p = vsphere.GetInstance()
+	}
+	if cloudProviderConfig.HarvesterCloudProvider != nil || cloudProviderConfig.Name == harvester.HarvesterCloudProviderName {
+		p = harvester.GetInstance()
 	}
 	if cloudProviderConfig.CustomCloudProvider != "" {
 		p = custom.GetInstance()
