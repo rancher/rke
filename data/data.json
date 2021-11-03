@@ -9332,12 +9332,12 @@
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.0-rc1",
-    "version": "v1.19.15+rke2r2"
+    "version": "v1.19.16+rke2r1"
    },
    {
     "maxChannelServerVersion": "v2.5.99",
     "minChannelServerVersion": "v2.5.6-rc1",
-    "version": "v1.20.11+rke2r2"
+    "version": "v1.20.12+rke2r1"
    }
   ]
  }
