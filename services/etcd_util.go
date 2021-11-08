@@ -11,12 +11,14 @@ import (
 	"strings"
 	"time"
 
-	etcdclient "github.com/coreos/etcd/client"
 	"github.com/rancher/rke/hosts"
 	"github.com/sirupsen/logrus"
+	etcdclientv2 "go.etcd.io/etcd/client/v2"
+	etcdclientv3 "go.etcd.io/etcd/client/v3"
+	"google.golang.org/grpc"
 )
 
-func getEtcdClient(ctx context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (etcdclient.Client, error) {
+func getEtcdClientV2(ctx context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (etcdclientv2.Client, error) {
 	dialer, err := getEtcdDialer(localConnDialerFactory, etcdHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a dialer for host [%s]: %v", etcdHost.Address, err)
@@ -26,18 +28,44 @@ func getEtcdClient(ctx context.Context, etcdHost *hosts.Host, localConnDialerFac
 		return nil, err
 	}
 
-	var DefaultEtcdTransport etcdclient.CancelableTransport = &http.Transport{
+	var defaultEtcdTransport etcdclientv2.CancelableTransport = &http.Transport{
 		Dial:                dialer,
 		TLSClientConfig:     tlsConfig,
 		TLSHandshakeTimeout: 10 * time.Second,
 	}
 
-	cfg := etcdclient.Config{
+	cfg := etcdclientv2.Config{
 		Endpoints: []string{"https://" + etcdHost.InternalAddress + ":2379"},
-		Transport: DefaultEtcdTransport,
+		Transport: defaultEtcdTransport,
 	}
 
-	return etcdclient.New(cfg)
+	return etcdclientv2.New(cfg)
+}
+
+func getEtcdClientV3(ctx context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (*etcdclientv3.Client, error) {
+	dialer, err := getEtcdDialer(localConnDialerFactory, etcdHost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a dialer for host [%s]: %v", etcdHost.Address, err)
+	}
+	tlsConfig, err := getEtcdTLSConfig(cert, key)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := etcdclientv3.Config{
+		Endpoints:   []string{"https://" + etcdHost.InternalAddress + ":2379"},
+		TLS:         tlsConfig,
+		DialOptions: []grpc.DialOption{grpc.WithContextDialer(wrapper(dialer))},
+	}
+
+	return etcdclientv3.New(cfg)
+
+}
+
+func wrapper(f func(network, address string) (net.Conn, error)) func(context.Context, string) (net.Conn, error) {
+	return func(_ context.Context, address string) (net.Conn, error) {
+		return f("tcp", address)
+	}
 }
 
 func isEtcdHealthy(localConnDialerFactory hosts.DialerFactory, host *hosts.Host, cert, key []byte, url string) error {

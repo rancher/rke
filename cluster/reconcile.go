@@ -203,12 +203,14 @@ func addEtcdMembers(ctx context.Context, currentCluster, kubeCluster *Cluster, k
 	}
 	for _, etcdHost := range etcdToAdd {
 		// Check if the host already part of the cluster -- this will cover cluster with lost quorum
-		isEtcdMember, err := services.IsEtcdMember(ctx, etcdHost, kubeCluster.EtcdHosts, currentCluster.LocalConnDialerFactory, clientCert, clientKey)
+		isEtcdMember, err := services.IsEtcdMember(ctx, etcdHost, kubeCluster.EtcdHosts, currentCluster.LocalConnDialerFactory,
+			currentCluster.Version, clientCert, clientKey)
 		if err != nil {
 			return err
 		}
 		if !isEtcdMember {
-			if err := services.AddEtcdMember(ctx, etcdHost, kubeCluster.EtcdHosts, currentCluster.LocalConnDialerFactory, clientCert, clientKey); err != nil {
+			if err := services.AddEtcdMember(ctx, etcdHost, kubeCluster.EtcdHosts, currentCluster.LocalConnDialerFactory,
+				currentCluster.Version, clientCert, clientKey); err != nil {
 				return err
 			}
 		}
@@ -245,7 +247,8 @@ func deleteEtcdMembers(ctx context.Context, currentCluster, kubeCluster *Cluster
 
 	for _, etcdHost := range etcdToDelete {
 		etcdHost.IsEtcd = false
-		if err := services.RemoveEtcdMember(ctx, etcdHost, kubeCluster.EtcdHosts, currentCluster.LocalConnDialerFactory, clientCert, clientKey, etcdNodePlanMap); err != nil {
+		if err := services.RemoveEtcdMember(ctx, etcdHost, kubeCluster.EtcdHosts, currentCluster.LocalConnDialerFactory,
+			currentCluster.Version, clientCert, clientKey, etcdNodePlanMap); err != nil {
 			log.Warnf(ctx, "[reconcile] %v", err)
 			continue
 		}
