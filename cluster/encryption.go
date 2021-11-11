@@ -23,8 +23,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	apiserverconfig "k8s.io/apiserver/pkg/apis/config"
 	apiserverconfigv1 "k8s.io/apiserver/pkg/apis/config/v1"
 	"k8s.io/client-go/kubernetes"
@@ -556,26 +554,12 @@ func parseCustomConfig(customConfig map[string]interface{}) (*apiserverconfigv1.
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling: %v", err)
 	}
-	scheme := runtime.NewScheme()
-	err = apiserverconfig.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("error adding to scheme: %v", err)
-	}
-	err = apiserverconfigv1.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("error adding to scheme: %v", err)
-	}
-	codecs := serializer.NewCodecFactory(scheme)
-	decoder := codecs.UniversalDecoder()
-	decodedObj, objType, err := decoder.Decode(data, nil, nil)
 
+	// apiserverconfigv1.EncryptionConfiguration struct has json tags defined, using JSON Unmarshal instead of runtime serializer
+	decodedConfig := &apiserverconfigv1.EncryptionConfiguration{}
+	err = json.Unmarshal(data, decodedConfig)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding data: %v", err)
-	}
-
-	decodedConfig, ok := decodedObj.(*apiserverconfigv1.EncryptionConfiguration)
-	if !ok {
-		return nil, fmt.Errorf("unexpected type: %T", objType)
+		return nil, fmt.Errorf("error unmarshalling: %v", err)
 	}
 	return decodedConfig, nil
 }
