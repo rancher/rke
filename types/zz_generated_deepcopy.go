@@ -886,6 +886,11 @@ func (in *IngressConfig) DeepCopyInto(out *IngressConfig) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.DefaultIngressClass != nil {
+		in, out := &in.DefaultIngressClass, &out.DefaultIngressClass
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

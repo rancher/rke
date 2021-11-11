@@ -4,6 +4,7 @@ const AddonJobTemplate = `
 {{- $addonName := .AddonName }}
 {{- $nodeName := .NodeName }}
 {{- $image := .Image }}
+{{- $OSLabel := .OSLabel }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -24,7 +25,7 @@ spec:
             requiredDuringSchedulingIgnoredDuringExecution:
               nodeSelectorTerms:
                 - matchExpressions:
-                  - key: beta.kubernetes.io/os
+                  - key: {{$OSLabel}}
                     operator: NotIn
                     values:
                       - windows

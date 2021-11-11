@@ -84,6 +84,7 @@ type ingressOptions struct {
 	Tolerations                             []v1.Toleration
 	NginxIngressControllerPriorityClassName string
 	DefaultHTTPBackendPriorityClassName     string
+	DefaultIngressClass                     bool
 }
 
 type MetricsServerOptions struct {
@@ -493,7 +494,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}
-	addonJob, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
+	addonJob, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image, c.Version)
 
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to generate addon execute job: %v", err), isCritical}
@@ -514,7 +515,7 @@ func (c *Cluster) doAddonDelete(ctx context.Context, resourceName string, isCrit
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}
-	deleteJob, err := addons.GetAddonsDeleteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
+	deleteJob, err := addons.GetAddonsDeleteJob(resourceName, node.Name, c.Services.KubeAPI.Image, c.Version)
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to generate addon delete job: %v", err), isCritical}
 	}
@@ -522,7 +523,7 @@ func (c *Cluster) doAddonDelete(ctx context.Context, resourceName string, isCrit
 		return &addonError{fmt.Sprintf("%v", err), isCritical}
 	}
 	// At this point, the addon should be deleted. We need to clean up by deleting the deploy and delete jobs.
-	tmpJobYaml, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image)
+	tmpJobYaml, err := addons.GetAddonsExecuteJob(resourceName, node.Name, c.Services.KubeAPI.Image, c.Version)
 	if err != nil {
 		return err
 	}
@@ -608,6 +609,7 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 		Tolerations:                             c.Ingress.Tolerations,
 		NginxIngressControllerPriorityClassName: c.Ingress.NginxIngressControllerPriorityClassName,
 		DefaultHTTPBackendPriorityClassName:     c.Ingress.DefaultHTTPBackendPriorityClassName,
+		DefaultIngressClass:                     *c.Ingress.DefaultIngressClass,
 	}
 	// since nginx ingress controller 0.16.0, it can be run as non-root and doesn't require privileged anymore.
 	// So we can use securityContext instead of setting privileges via initContainer.

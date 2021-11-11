@@ -849,6 +849,10 @@ func (c *Cluster) setAddonsDefaults() {
 		}
 		c.Ingress.DefaultBackend = &defaultBackend
 	}
+	if c.Ingress.DefaultIngressClass == nil {
+		defaultIngressClass := true
+		c.Ingress.DefaultIngressClass = &defaultIngressClass
+	}
 }
 
 func setDaemonsetAddonDefaults(updateStrategy *v3.DaemonSetUpdateStrategy) *v3.DaemonSetUpdateStrategy {

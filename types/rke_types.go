@@ -460,6 +460,8 @@ type IngressConfig struct {
 	DefaultHTTPBackendPriorityClassName string `yaml:"default_http_backend_priority_class_name" json:"defaultHttpBackendPriorityClassName,omitempty"`
 	// Priority class name for Nginx-Ingress's "nginx-ingress-controller" daemonset
 	NginxIngressControllerPriorityClassName string `yaml:"nginx_ingress_controller_priority_class_name" json:"nginxIngressControllerPriorityClassName,omitempty"`
+	// Enable or disable nginx default-http-backend
+	DefaultIngressClass *bool `yaml:"default_ingress_class" json:"defaultIngressClass,omitempty" norman:"default=true"`
 }
 
 type ExtraEnv struct {

@@ -42,11 +42,12 @@ const (
 	LogLinkContainerName                        = "rke-log-linker"
 	LogCleanerContainerName                     = "rke-log-cleaner"
 
-	KubeAPIPort        = 6443
-	SchedulerPort      = 10251
-	KubeControllerPort = 10252
-	KubeletPort        = 10248
-	KubeproxyPort      = 10256
+	KubeAPIPort               = 6443
+	SchedulerPort             = 10251
+	KubeControllerPortMaxV121 = 10252
+	KubeControllerPort        = 10257
+	KubeletPort               = 10248
+	KubeproxyPort             = 10256
 
 	WorkerThreads = util.WorkerThreads
 
