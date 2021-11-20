@@ -586,6 +586,24 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	nodeName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
 	snapshotPath := fmt.Sprintf("%s%s", EtcdSnapshotPath, snapshotName)
 
+	// Check if there is a custom --data-dir set in etcd extra args
+	containerDataDir, ok := es.BaseService.ExtraArgs["data-dir"]
+	if !ok {
+		containerDataDir = EtcdDataDir
+	}
+
+	// Check if there is a custom --wal-dir set in etcd extra args
+	// In this case wal files should be moved separately
+	restoreWalFilesCmd := ""
+	containerWalDir, ok := es.BaseService.ExtraArgs["wal-dir"]
+	if ok && containerWalDir != "" {
+		restoreWalFilesCmd = strings.Join([]string{
+			// Cleanup old WAL files first
+			"&& rm -rf", containerWalDir + "*",
+			"&& mv", EtcdRestorePath + "member/wal/*", containerWalDir,
+		}, " ")
+	}
+
 	// make sure that restore path is empty otherwise etcd restore will fail
 	imageCfg := &container.Config{
 		Cmd: []string{
@@ -602,7 +620,9 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 				"--initial-cluster=" + initCluster,
 				"--initial-cluster-token=etcd-cluster-1",
 				"--initial-advertise-peer-urls=https://" + etcdHost.InternalAddress + ":2380",
-				"&& mv", EtcdRestorePath + "*", EtcdDataDir,
+				restoreWalFilesCmd,
+				"&& rm -rf", containerDataDir + "*",
+				"&& mv", EtcdRestorePath + "*", containerDataDir,
 				"&& rm -rf", EtcdRestorePath,
 			}, " "),
 		},
@@ -610,10 +630,11 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 		Image: etcdRestoreImage,
 	}
 	hostCfg := &container.HostConfig{
-		Binds: []string{
+		Binds: append([]string{
 			"/opt/rke/:/opt/rke/:z",
 			fmt.Sprintf("%s:/var/lib/rancher/etcd:z", path.Join(etcdHost.PrefixPath, "/var/lib/etcd")),
 			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(etcdHost.PrefixPath, "/etc/kubernetes"))},
+			es.BaseService.ExtraBinds...),
 		NetworkMode: container.NetworkMode("host"),
 	}
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdRestoreContainerName, etcdHost.Address); err != nil {
