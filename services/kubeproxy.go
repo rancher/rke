@@ -8,8 +8,8 @@ import (
 	v3 "github.com/rancher/rke/types"
 )
 
-func runKubeproxy(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, kubeProxyProcess v3.Process, alpineImage string) error {
-	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(kubeProxyProcess, host)
+func runKubeproxy(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, kubeProxyProcess v3.Process, alpineImage, k8sVersion string) error {
+	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(kubeProxyProcess, host, k8sVersion)
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, KubeproxyContainerName, host.Address, WorkerRole, prsMap); err != nil {
 		return err
 	}

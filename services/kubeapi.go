@@ -11,8 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func runKubeAPI(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, kubeAPIProcess v3.Process, alpineImage string, certMap map[string]pki.CertificatePKI) error {
-	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(kubeAPIProcess, host)
+func runKubeAPI(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, kubeAPIProcess v3.Process, alpineImage string, certMap map[string]pki.CertificatePKI, k8sVersion string) error {
+	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(kubeAPIProcess, host, k8sVersion)
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, KubeAPIContainerName, host.Address, ControlRole, prsMap); err != nil {
 		return err
 	}

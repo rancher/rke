@@ -8,8 +8,8 @@ import (
 	v3 "github.com/rancher/rke/types"
 )
 
-func runScheduler(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, schedulerProcess v3.Process, alpineImage string) error {
-	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(schedulerProcess, host)
+func runScheduler(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, schedulerProcess v3.Process, alpineImage, k8sVersion string) error {
+	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(schedulerProcess, host, k8sVersion)
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.Address, ControlRole, prsMap); err != nil {
 		return err
 	}

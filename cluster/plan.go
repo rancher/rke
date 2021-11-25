@@ -266,11 +266,13 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	VolumesFrom := []string{
 		services.SidekickContainerName,
 	}
+
 	Binds := []string{
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
+
 	if c.Services.KubeAPI.AuditLog != nil && c.Services.KubeAPI.AuditLog.Enabled {
-		Binds = append(Binds, fmt.Sprintf("%s:/var/log/kube-audit:z", path.Join(host.PrefixPath, "/var/log/kube-audit")))
+		Binds = append(Binds, fmt.Sprintf("%s:/var/log/kube-audit", path.Join(host.PrefixPath, "/var/log/kube-audit")))
 		bytes, err := yaml.Marshal(c.Services.KubeAPI.AuditLog.Configuration.Policy)
 		if err != nil {
 			logrus.Warnf("Error while marshalling auditlog policy: %v", err)
@@ -279,6 +281,15 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		c.Services.KubeAPI.ExtraEnv = append(
 			c.Services.KubeAPI.ExtraEnv,
 			fmt.Sprintf("%s=%s", AuditLogConfigSumEnv, getStringChecksum(string(bytes))))
+	}
+
+	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
 	}
 
 	// Override args if they exist, add additional args
@@ -358,8 +369,18 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 	VolumesFrom := []string{
 		services.SidekickContainerName,
 	}
+
 	Binds := []string{
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
 	}
 
 	for arg, value := range c.Services.KubeController.ExtraArgs {
@@ -526,6 +547,16 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 			Binds = append(Binds, "/var/lib/kubelet/volumeplugins:/var/lib/kubelet/volumeplugins:shared,z")
 		}
 	}
+
+	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
+	}
+
 	Binds = append(Binds, host.GetExtraBinds(kubelet.BaseService)...)
 
 	Env := host.GetExtraEnv(kubelet.BaseService)
@@ -645,6 +676,16 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		BindModules := "/lib/modules:/lib/modules:ro"
 		Binds = append(Binds, BindModules)
 	}
+
+	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
+	}
+
 	Binds = append(Binds, host.GetExtraBinds(kubeproxy.BaseService)...)
 
 	Env := host.GetExtraEnv(kubeproxy.BaseService)
@@ -768,6 +809,15 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 	for arg, value := range CommandArgs {
 		cmd := fmt.Sprintf("--%s=%s", arg, value)
 		Command = append(Command, cmd)
+	}
+
+	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
 	}
 
 	Binds = append(Binds, c.Services.Scheduler.ExtraBinds...)
@@ -928,6 +978,15 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	Binds := []string{
 		fmt.Sprintf("%s:%s:z", path.Join(host.PrefixPath, "/var/lib/etcd"), services.EtcdDataDir),
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
 	}
 
 	if serviceOptions.Etcd != nil {

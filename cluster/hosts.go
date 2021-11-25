@@ -234,7 +234,8 @@ func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 						c.SystemImages.CertDownloader,
 						c.PrivateRegistriesMap,
 						c.ForceDeployCerts,
-						env); err != nil {
+						env,
+						c.Version); err != nil {
 						errList = append(errList, err)
 					}
 				}
@@ -250,14 +251,14 @@ func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 		}
 		log.Infof(ctx, "[certificates] Successfully deployed kubernetes certificates to Cluster nodes")
 		if c.CloudProvider.Name != "" {
-			if err := deployFile(ctx, hostList, c.SystemImages.Alpine, c.PrivateRegistriesMap, cloudConfigFileName, c.CloudConfigFile); err != nil {
+			if err := deployFile(ctx, hostList, c.SystemImages.Alpine, c.PrivateRegistriesMap, cloudConfigFileName, c.CloudConfigFile, c.Version); err != nil {
 				return err
 			}
 			log.Infof(ctx, "[%s] Successfully deployed kubernetes cloud config to Cluster nodes", cloudConfigFileName)
 		}
 
 		if c.Authentication.Webhook != nil {
-			if err := deployFile(ctx, hostList, c.SystemImages.Alpine, c.PrivateRegistriesMap, authnWebhookFileName, c.Authentication.Webhook.ConfigFile); err != nil {
+			if err := deployFile(ctx, hostList, c.SystemImages.Alpine, c.PrivateRegistriesMap, authnWebhookFileName, c.Authentication.Webhook.ConfigFile, c.Version); err != nil {
 				return err
 			}
 			log.Infof(ctx, "[%s] Successfully deployed authentication webhook config Cluster nodes", authnWebhookFileName)
@@ -279,7 +280,7 @@ func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 				if err != nil {
 					return err
 				}
-				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAdmissionControlConfigFileValue, string(bytes)); err != nil {
+				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAdmissionControlConfigFileValue, string(bytes), c.Version); err != nil {
 					return err
 				}
 				log.Infof(ctx, "[%s] Successfully deployed admission control config to Cluster control nodes", DefaultKubeAPIArgAdmissionControlConfigFileValue)
@@ -293,7 +294,7 @@ func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 				if err != nil {
 					return err
 				}
-				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAuditPolicyFileValue, string(bytes)); err != nil {
+				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAuditPolicyFileValue, string(bytes), c.Version); err != nil {
 					return err
 				}
 				log.Infof(ctx, "[%s] Successfully deployed audit policy file to Cluster control nodes", DefaultKubeAPIArgAuditPolicyFileValue)

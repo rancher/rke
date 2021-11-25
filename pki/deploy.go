@@ -17,6 +17,7 @@ import (
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki/cert"
 	v3 "github.com/rancher/rke/types"
+	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,7 +33,8 @@ func DeployCertificatesOnPlaneHost(
 	certDownloaderImage string,
 	prsMap map[string]v3.PrivateRegistry,
 	forceDeploy bool,
-	env []string) error {
+	env []string,
+	k8sVersion string) error {
 	crtBundle := GenerateRKENodeCerts(ctx, rkeConfig, host.Address, crtMap)
 
 	// Strip CA key as its sensitive and unneeded on nodes without controlplane role
@@ -58,10 +60,10 @@ func DeployCertificatesOnPlaneHost(
 				fmt.Sprintf("ETCD_GID=%d", rkeConfig.Services.Etcd.GID)}...)
 	}
 
-	return doRunDeployer(ctx, host, env, certDownloaderImage, prsMap)
+	return doRunDeployer(ctx, host, env, certDownloaderImage, prsMap, k8sVersion)
 }
 
-func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownloaderImage string, prsMap map[string]v3.PrivateRegistry, stateFilePath, snapshotName string) error {
+func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownloaderImage string, prsMap map[string]v3.PrivateRegistry, stateFilePath, snapshotName, k8sVersion string) error {
 	// remove existing container. Only way it's still here is if previous deployment failed
 	if err := docker.DoRemoveContainer(ctx, host.DClient, StateDeployerContainerName, host.Address); err != nil {
 		return err
@@ -84,10 +86,21 @@ func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownload
 			fmt.Sprintf("for i in $(seq 1 12); do if [ -f \"%[1]s\" ]; then echo \"File [%[1]s] present in this container\"; echo \"Moving [%[1]s] to [%[2]s]\"; mv %[1]s %[2]s; echo \"State file successfully moved to [%[2]s]\"; echo \"Changing permissions to 0400\"; chmod 400 %[2]s; break; else echo \"Waiting for file [%[1]s] to be successfully copied to this container, retry count $i\"; sleep 5; fi; done", SourceClusterStateFilePath, DestinationClusterStateFilePath),
 		},
 	}
+	Binds := []string{
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
+	}
+
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
-		},
+		Binds:      Binds,
 		Privileged: true,
 	}
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, StateDeployerContainerName, host.Address, "state", prsMap); err != nil {
@@ -110,7 +123,7 @@ func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownload
 	return docker.DoRemoveContainer(ctx, host.DClient, StateDeployerContainerName, host.Address)
 }
 
-func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string, certDownloaderImage string, prsMap map[string]v3.PrivateRegistry) error {
+func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string, certDownloaderImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	// remove existing container. Only way it's still here is if previous deployment failed
 	isRunning := false
 	isRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, CrtDownloaderContainer, true)
@@ -140,10 +153,22 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 			Env: containerEnv,
 		}
 	}
+
+	Binds := []string{
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return err
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
+	}
+
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
-		},
+		Binds:      Binds,
 		Privileged: true,
 	}
 	if host.IsWindows() { // compatible with Windows
@@ -202,17 +227,7 @@ func RemoveAdminConfig(ctx context.Context, localConfigPath string) {
 	log.Infof(ctx, "Local admin Kubeconfig removed successfully")
 }
 
-func DeployCertificatesOnHost(ctx context.Context, host *hosts.Host, crtMap map[string]CertificatePKI, certDownloaderImage, certPath string, prsMap map[string]v3.PrivateRegistry) error {
-	env := []string{
-		"CRTS_DEPLOY_PATH=" + certPath,
-	}
-	for _, crt := range crtMap {
-		env = append(env, crt.ToEnv()...)
-	}
-	return doRunDeployer(ctx, host, env, certDownloaderImage, prsMap)
-}
-
-func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, host *hosts.Host, image, localConfigPath string, prsMap map[string]v3.PrivateRegistry) (map[string]CertificatePKI, error) {
+func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, host *hosts.Host, image, localConfigPath string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) (map[string]CertificatePKI, error) {
 	// rebuilding the certificates. This should look better after refactoring pki
 	tmpCerts := make(map[string]CertificatePKI)
 
@@ -235,7 +250,7 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 
 	for certName, config := range crtList {
 		certificate := CertificatePKI{}
-		crt, err := FetchFileFromHost(ctx, GetCertTempPath(certName), image, host, prsMap, CertFetcherContainer, "certificates")
+		crt, err := FetchFileFromHost(ctx, GetCertTempPath(certName), image, host, prsMap, CertFetcherContainer, "certificates", k8sVersion)
 		// Return error if the certificate file is not found but only if its not etcd or request header certificate
 		if err != nil && !strings.HasPrefix(certName, "kube-etcd") &&
 			certName != RequestHeaderCACertName &&
@@ -256,7 +271,7 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 			tmpCerts[certName] = CertificatePKI{}
 			continue
 		}
-		key, err := FetchFileFromHost(ctx, GetKeyTempPath(certName), image, host, prsMap, CertFetcherContainer, "certificate")
+		key, err := FetchFileFromHost(ctx, GetKeyTempPath(certName), image, host, prsMap, CertFetcherContainer, "certificate", k8sVersion)
 		if err != nil {
 			if isFileNotFoundErr(err) {
 				return nil, fmt.Errorf("Key %s is not found", GetKeyTempPath(certName))
@@ -264,7 +279,7 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 			return nil, err
 		}
 		if config {
-			config, err := FetchFileFromHost(ctx, GetConfigTempPath(certName), image, host, prsMap, CertFetcherContainer, "certificate")
+			config, err := FetchFileFromHost(ctx, GetConfigTempPath(certName), image, host, prsMap, CertFetcherContainer, "certificate", k8sVersion)
 			if err != nil {
 				if isFileNotFoundErr(err) {
 					return nil, fmt.Errorf("Config %s is not found", GetConfigTempPath(certName))
@@ -294,14 +309,26 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 
 }
 
-func FetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.Host, prsMap map[string]v3.PrivateRegistry, containerName, state string) (string, error) {
+func FetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.Host, prsMap map[string]v3.PrivateRegistry, containerName, state, k8sVersion string) (string, error) {
 	imageCfg := &container.Config{
 		Image: image,
 	}
+
+	Binds := []string{
+		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
+	}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return "", err
+	}
+
+	if matchedRange {
+		Binds = util.RemoveZFromBinds(Binds)
+	}
+
 	hostCfg := &container.HostConfig{
-		Binds: []string{
-			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
-		},
+		Binds:      Binds,
 		Privileged: true,
 	}
 	isRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, containerName, true)

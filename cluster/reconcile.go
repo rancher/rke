@@ -147,21 +147,21 @@ func reconcileHost(ctx context.Context, toDeleteHost *hosts.Host, worker, etcd b
 		if err := services.RemoveWorkerPlane(ctx, []*hosts.Host{toDeleteHost}, false); err != nil {
 			return fmt.Errorf("Couldn't remove worker plane: %v", err)
 		}
-		if err := toDeleteHost.CleanUpWorkerHost(ctx, cluster.SystemImages.Alpine, cluster.PrivateRegistriesMap); err != nil {
+		if err := toDeleteHost.CleanUpWorkerHost(ctx, cluster.SystemImages.Alpine, cluster.PrivateRegistriesMap, cluster.Version); err != nil {
 			return fmt.Errorf("Not able to clean the host: %v", err)
 		}
 	} else if etcd {
 		if err := services.RemoveEtcdPlane(ctx, []*hosts.Host{toDeleteHost}, false); err != nil {
 			return fmt.Errorf("Couldn't remove etcd plane: %v", err)
 		}
-		if err := toDeleteHost.CleanUpEtcdHost(ctx, cluster.SystemImages.Alpine, cluster.PrivateRegistriesMap); err != nil {
+		if err := toDeleteHost.CleanUpEtcdHost(ctx, cluster.SystemImages.Alpine, cluster.PrivateRegistriesMap, cluster.Version); err != nil {
 			return fmt.Errorf("Not able to clean the host: %v", err)
 		}
 	} else {
 		if err := services.RemoveControlPlane(ctx, []*hosts.Host{toDeleteHost}, false); err != nil {
 			return fmt.Errorf("Couldn't remove control plane: %v", err)
 		}
-		if err := toDeleteHost.CleanUpControlHost(ctx, cluster.SystemImages.Alpine, cluster.PrivateRegistriesMap); err != nil {
+		if err := toDeleteHost.CleanUpControlHost(ctx, cluster.SystemImages.Alpine, cluster.PrivateRegistriesMap, cluster.Version); err != nil {
 			return fmt.Errorf("Not able to clean the host: %v", err)
 		}
 	}
@@ -227,7 +227,7 @@ func addEtcdMembers(ctx context.Context, currentCluster, kubeCluster *Cluster, k
 		}
 		// this will start the newly added etcd node and make sure it started correctly before restarting other node
 		// https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/runtime-configuration.md#add-a-new-member
-		if err := services.ReloadEtcdCluster(ctx, kubeCluster.EtcdReadyHosts, etcdHost, currentCluster.LocalConnDialerFactory, clientCert, clientKey, currentCluster.PrivateRegistriesMap, etcdNodePlanMap, kubeCluster.SystemImages.Alpine); err != nil {
+		if err := services.ReloadEtcdCluster(ctx, kubeCluster.EtcdReadyHosts, etcdHost, currentCluster.LocalConnDialerFactory, clientCert, clientKey, currentCluster.PrivateRegistriesMap, etcdNodePlanMap, kubeCluster.SystemImages.Alpine, kubeCluster.Version); err != nil {
 			return err
 		}
 	}

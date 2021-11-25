@@ -72,7 +72,7 @@ func (c *Cluster) GetClusterState(ctx context.Context, fullState *FullState) (*C
 func (c *Cluster) GetStateFileFromConfigMap(ctx context.Context) (string, error) {
 	kubeletImage := c.Services.Kubelet.Image
 	for _, host := range c.ControlPlaneHosts {
-		stateFile, err := services.RunGetStateFileFromConfigMap(ctx, host, c.PrivateRegistriesMap, kubeletImage)
+		stateFile, err := services.RunGetStateFileFromConfigMap(ctx, host, c.PrivateRegistriesMap, kubeletImage, c.Version)
 		if err != nil || stateFile == "" {
 			logrus.Infof("Could not get ConfigMap with cluster state from host [%s]", host.Address)
 			continue
@@ -300,7 +300,7 @@ func GetStateFromNodes(ctx context.Context, kubeCluster *Cluster) *Cluster {
 	uniqueHosts := hosts.GetUniqueHostList(kubeCluster.EtcdHosts, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
 	for _, host := range uniqueHosts {
 		filePath := path.Join(pki.TempCertPath, pki.ClusterStateFile)
-		clusterFile, err = pki.FetchFileFromHost(ctx, filePath, kubeCluster.SystemImages.Alpine, host, kubeCluster.PrivateRegistriesMap, pki.StateDeployerContainerName, "state")
+		clusterFile, err = pki.FetchFileFromHost(ctx, filePath, kubeCluster.SystemImages.Alpine, host, kubeCluster.PrivateRegistriesMap, pki.StateDeployerContainerName, "state", kubeCluster.Version)
 		if err == nil {
 			break
 		}

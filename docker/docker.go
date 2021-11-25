@@ -421,7 +421,7 @@ func StartContainer(ctx context.Context, dClient *client.Client, hostname string
 		logrus.Infof("Starting container [%s] on host [%s], try #%d", containerName, hostname, i)
 		err = dClient.ContainerStart(ctx, containerName, types.ContainerStartOptions{})
 		if err != nil {
-			if strings.Contains(err.Error(), "bind: address already in use") {
+			if strings.Contains(err.Error(), "bind: address already in use") || strings.Contains(err.Error(), "invalid argument") {
 				return err
 			}
 			logrus.Warningf("Can't start Docker container [%s] on host [%s]: %v", containerName, hostname, err)

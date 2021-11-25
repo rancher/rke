@@ -15,6 +15,7 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	v3 "github.com/rancher/rke/types"
+	"github.com/rancher/rke/util"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 )
@@ -51,6 +52,7 @@ const (
 	CleanerContainerName    = "kube-cleaner"
 	LogCleanerContainerName = "rke-log-cleaner"
 	RKELogsPath             = "/var/lib/rancher/rke/log"
+	SELinuxLabel            = "label=type:rke_container_t"
 
 	B2DOS               = "Boot2Docker"
 	B2DPrefixPath       = "/mnt/sda1/rke"
@@ -64,7 +66,7 @@ const (
 	WindowsPrefixPath   = "c:/"
 )
 
-func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, externalEtcd bool) error {
+func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, externalEtcd bool, k8sVersion string) error {
 	log.Infof(ctx, "[hosts] Cleaning up host [%s]", h.Address)
 	toCleanPaths := []string{
 		path.Join(h.PrefixPath, ToCleanSSLDir),
@@ -78,10 +80,10 @@ func (h *Host) CleanUpAll(ctx context.Context, cleanerImage string, prsMap map[s
 	if !externalEtcd {
 		toCleanPaths = append(toCleanPaths, path.Join(h.PrefixPath, ToCleanEtcdDir))
 	}
-	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
+	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap, k8sVersion)
 }
 
-func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
+func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	if h.IsControl || h.IsEtcd {
 		log.Infof(ctx, "[hosts] Host [%s] is already a controlplane or etcd host, skipping cleanup.", h.Address)
 		return nil
@@ -93,10 +95,10 @@ func (h *Host) CleanUpWorkerHost(ctx context.Context, cleanerImage string, prsMa
 		ToCleanCalicoRun,
 		path.Join(h.PrefixPath, ToCleanCNILib),
 	}
-	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
+	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap, k8sVersion)
 }
 
-func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
+func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	if h.IsWorker || h.IsEtcd {
 		log.Infof(ctx, "[hosts] Host [%s] is already a worker or etcd host, skipping cleanup.", h.Address)
 		return nil
@@ -108,10 +110,10 @@ func (h *Host) CleanUpControlHost(ctx context.Context, cleanerImage string, prsM
 		ToCleanCalicoRun,
 		path.Join(h.PrefixPath, ToCleanCNILib),
 	}
-	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
+	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap, k8sVersion)
 }
 
-func (h *Host) CleanUpEtcdHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
+func (h *Host) CleanUpEtcdHost(ctx context.Context, cleanerImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	toCleanPaths := []string{
 		path.Join(h.PrefixPath, ToCleanEtcdDir),
 		path.Join(h.PrefixPath, ToCleanSSLDir),
@@ -122,12 +124,12 @@ func (h *Host) CleanUpEtcdHost(ctx context.Context, cleanerImage string, prsMap 
 			path.Join(h.PrefixPath, ToCleanEtcdDir),
 		}
 	}
-	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap)
+	return h.CleanUp(ctx, toCleanPaths, cleanerImage, prsMap, k8sVersion)
 }
 
-func (h *Host) CleanUp(ctx context.Context, toCleanPaths []string, cleanerImage string, prsMap map[string]v3.PrivateRegistry) error {
+func (h *Host) CleanUp(ctx context.Context, toCleanPaths []string, cleanerImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	log.Infof(ctx, "[hosts] Cleaning up host [%s]", h.Address)
-	imageCfg, hostCfg := buildCleanerConfig(h, toCleanPaths, cleanerImage)
+	imageCfg, hostCfg := buildCleanerConfig(h, toCleanPaths, cleanerImage, k8sVersion)
 	log.Infof(ctx, "[hosts] Running cleaner container on host [%s]", h.Address)
 	if err := docker.DoRunContainer(ctx, h.DClient, imageCfg, hostCfg, CleanerContainerName, h.Address, CleanerContainerName, prsMap); err != nil {
 		return err
@@ -294,7 +296,7 @@ func IsHostListChanged(currentHosts, configHosts []*Host) bool {
 	return changed
 }
 
-func buildCleanerConfig(host *Host, toCleanDirs []string, cleanerImage string) (*container.Config, *container.HostConfig) {
+func buildCleanerConfig(host *Host, toCleanDirs []string, cleanerImage, k8sVersion string) (*container.Config, *container.HostConfig) {
 	cmd := []string{
 		"sh",
 		"-c",
@@ -304,13 +306,26 @@ func buildCleanerConfig(host *Host, toCleanDirs []string, cleanerImage string) (
 		Image: cleanerImage,
 		Cmd:   cmd,
 	}
-	bindMounts := []string{}
+	binds := []string{}
 	for _, vol := range toCleanDirs {
-		bindMounts = append(bindMounts, fmt.Sprintf("%s:%s:z", vol, vol))
+		binds = append(binds, fmt.Sprintf("%s:%s:z", vol, vol))
 	}
-	hostCfg := &container.HostConfig{
-		Binds: bindMounts,
+	hostCfg := &container.HostConfig{}
+
+	matchedRange, err := util.SemVerMatchRange(k8sVersion, util.SemVerK8sVersion122OrHigher)
+	if err != nil {
+		return nil, nil
 	}
+
+	if matchedRange {
+		binds = util.RemoveZFromBinds(binds)
+
+		if IsDockerSELinuxEnabled(host) {
+			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
+		}
+	}
+
+	hostCfg.Binds = binds
 	return imageCfg, hostCfg
 }
 
