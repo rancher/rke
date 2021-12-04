@@ -381,6 +381,8 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 
 	if matchedRange {
 		Binds = util.RemoveZFromBinds(Binds)
+		CommandArgs["authentication-kubeconfig"] = CommandArgs["kubeconfig"]
+		CommandArgs["authorization-kubeconfig"] = CommandArgs["kubeconfig"]
 	}
 
 	for arg, value := range c.Services.KubeController.ExtraArgs {
@@ -818,6 +820,8 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 
 	if matchedRange {
 		Binds = util.RemoveZFromBinds(Binds)
+		CommandArgs["authentication-kubeconfig"] = CommandArgs["kubeconfig"]
+		CommandArgs["authorization-kubeconfig"] = CommandArgs["kubeconfig"]
 	}
 
 	Binds = append(Binds, c.Services.Scheduler.ExtraBinds...)
