@@ -10237,6 +10237,12 @@
   }
  },
  "k3s": {
+  "channels": [
+   {
+    "latest": "v1.21.7+k3s1",
+    "name": "default"
+   }
+  ],
   "releases": [
    {
     "maxChannelServerVersion": "v2.6.99",
@@ -11102,6 +11108,12 @@
   ]
  },
  "rke2": {
+  "channels": [
+   {
+    "latest": "v1.21.7+rke2r2",
+    "name": "default"
+   }
+  ],
   "releases": [
    {
     "maxChannelServerVersion": "v2.6.99",
