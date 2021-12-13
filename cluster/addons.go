@@ -613,9 +613,21 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 	}
 	// since nginx ingress controller 0.16.0, it can be run as non-root and doesn't require privileged anymore.
 	// So we can use securityContext instead of setting privileges via initContainer.
-	ingressSplits := strings.SplitN(c.SystemImages.Ingress, ":", 2)
-	if len(ingressSplits) == 2 {
-		version := strings.Split(ingressSplits[1], "-")[0]
+	// There are two formats currently in use:
+	// rancher/nginx-ingress-controller:0.21.0-rancher3
+	// rancher/nginx-ingress-controller:nginx-0.43.0-rancher1
+	// This code was adjusted to match both and look at the tag (last element)
+	ingressSplits := strings.Split(c.SystemImages.Ingress, ":")
+	if len(ingressSplits) >= 2 {
+		var version string
+		ingressTag := ingressSplits[len(ingressSplits)-1]
+		ingressTagSplits := strings.Split(ingressTag, "-")
+		// both formats are caught here, either first or second element based on count of elements
+		if len(ingressTagSplits) == 2 {
+			version = ingressTagSplits[0]
+		} else {
+			version = ingressTagSplits[1]
+		}
 		if version < "0.16.0" {
 			ingressConfig.AlpineImage = c.SystemImages.Alpine
 		}
@@ -631,6 +643,21 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 				if err = k8s.DeleteK8sJobIfExists(kubeClient, jobName, NginxIngressAddonAppNamespace); err != nil {
 					return err
 				}
+			}
+		}
+		// This ensures ingresses created before upgrade are watched else they would all stop working
+		// This is because ingressClass is required on the ingress
+		// User can disable it by configuring watch-ingress-without-class: "false" in extra_args for ingress
+		if version >= "1.1.0" {
+			if c.Ingress.ExtraArgs != nil {
+				if _, ok := c.Ingress.ExtraArgs["watch-ingress-without-class"]; !ok {
+					ingressConfig.ExtraArgs["watch-ingress-without-class"] = "true"
+				}
+			} else {
+				extraArgs := map[string]string{
+					"watch-ingress-without-class": "true",
+				}
+				ingressConfig.ExtraArgs = extraArgs
 			}
 		}
 	}
