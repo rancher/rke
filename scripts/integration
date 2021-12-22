@@ -113,7 +113,7 @@ for pid in "${!pid_results[@]}"; do
     if [ "${pid_results["${pid}"]}" == "0" ]; then
         rkeup_results["${pid}"]="0"
         echo_with_time "[OK] rke up successful for ${pid_to_version}"
-        echo_with_time "Checking rollout status of all deployments/daemonsets for ${pid_to_version}"
+        echo_with_time "Checking rollout status/job complete of all deployments/daemonsets/jobs for ${pid_to_version}"
         for namespace in $(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get namespace -o custom-columns=NAME:.metadata.name --no-headers); do
             if [ "${rollout_results["${pid}"]}" = "1" ]; then
                 continue
@@ -125,16 +125,29 @@ for pid in "${!pid_results[@]}"; do
                 if [ "${rollout_results["${pid}"]}" = "1" ]; then
                     continue
                 fi
-                echo_with_time "Checking rollout status of $kind $name in namespace $namespace for ${pid_to_version}"
-                /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
-                if [ $? -ne 0 ]; then
-                    echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for ${pid_to_version} did not complete in 5 minutes"
-                    rollout_results["${pid}"]="1"
+                if [ "$kind" = "Job" ]; then
+                    echo_with_time "Checking job complete status of $kind $name in namespace $namespace for ${pid_to_version}"
+                    /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace wait --for=condition=complete $kind $name --timeout=5m >/dev/null 2>&1
+                    if [ $? -ne 0 ]; then
+                        echo_with_time "[FAIL] Job complete of $kind $name in namespace $namespace for ${pid_to_version} did not complete in 5 minutes"
+                        rollout_results["${pid}"]="1"
+                        continue
+                    else
+                        echo_with_time "[OK] Job complete of $kind $name in namespace $namespace for ${pid_to_version} complete"
+                        rollout_results["${pid}"]="0"
+                    fi
                 else
-                    echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for ${pid_to_version} complete"
-                    rollout_results["${pid}"]="0"
+                    echo_with_time "Checking rollout status of $kind $name in namespace $namespace for ${pid_to_version}"
+                    /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
+                    if [ $? -ne 0 ]; then
+                        echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for ${pid_to_version} did not complete in 5 minutes"
+                        rollout_results["${pid}"]="1"
+                    else
+                        echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for ${pid_to_version} complete"
+                        rollout_results["${pid}"]="0"
+                    fi
                 fi
-            done <<<$(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
+            done <<<$(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace get deploy,daemonset,job --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
         done
         /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
         /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get pods --all-namespaces
@@ -222,7 +235,7 @@ for pid in "${!pid_upgrade_results[@]}"; do
     if [ "${pid_upgrade_results["${pid}"]}" == "0" ]; then
         rkeup_upgrade_results["${pid}"]="0"
         echo_with_time "[OK] rke up successful for upgrade of ${pid_upgrade_to_version}"
-        echo_with_time "Checking rollout status of all deployments/daemonsets for upgrade of ${pid_upgrade_to_version} to "${upgraded_version}""
+        echo_with_time "Checking rollout status/job complete of all deployments/daemonsets/jobs for upgrade of ${pid_upgrade_to_version} to "${upgraded_version}""
         for namespace in $(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get namespace -o custom-columns=NAME:.metadata.name --no-headers); do
             if [ "${rollout_upgrade_results["${pid}"]}" = "1" ]; then
                 continue
@@ -234,16 +247,29 @@ for pid in "${!pid_upgrade_results[@]}"; do
                 if [ "${rollout_upgrade_results["${pid}"]}" = "1" ]; then
                     continue
                 fi
-                echo_with_time "Checking rollout status of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}""
-                /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
-                if [ $? -ne 0 ]; then
-                    echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" did not complete in 5 minutes"
-                    rollout_upgrade_results["${pid}"]="1"
+                if [ "$kind" = "Job" ]; then
+                    echo_with_time "Checking job complete status of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}""
+                    /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace wait --for=condition=complete $kind $name --timeout=5m >/dev/null 2>&1
+                    if [ $? -ne 0 ]; then
+                        echo_with_time "[FAIL] Job complete of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" did not complete in 5 minutes"
+                        rollout_upgrade_results["${pid}"]="1"
+                        continue
+                    else
+                        echo_with_time "[OK] Job complete of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" complete"
+                        rollout_upgrade_results["${pid}"]="0"
+                    fi
                 else
-                    echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" complete"
-                    rollout_upgrade_results["${pid}"]="0"
+                    echo_with_time "Checking rollout status of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}""
+                    /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
+                    if [ $? -ne 0 ]; then
+                        echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" did not complete in 5 minutes"
+                        rollout_upgrade_results["${pid}"]="1"
+                    else
+                        echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" complete"
+                        rollout_upgrade_results["${pid}"]="0"
+                    fi
                 fi
-            done <<<$(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
+            done <<<$(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" -n $namespace get deploy,daemonset,job --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
         done
         /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
         /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get pods --all-namespaces
