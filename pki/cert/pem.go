@@ -18,6 +18,7 @@ package cert
 
 import (
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -41,7 +42,7 @@ const (
 )
 
 // EncodePublicKeyPEM returns PEM-encoded public data
-func EncodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
+func EncodePublicKeyPEM(key *PublicKey) ([]byte, error) {
 	der, err := x509.MarshalPKIXPublicKey(key)
 	if err != nil {
 		return []byte{}, err
@@ -54,10 +55,32 @@ func EncodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
 }
 
 // EncodePrivateKeyPEM returns PEM-encoded private key data
-func EncodePrivateKeyPEM(key *rsa.PrivateKey) []byte {
-	block := pem.Block{
-		Type:  RSAPrivateKeyBlockType,
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
+func EncodePrivateKeyPEM(privateKey interface{}) []byte {
+	var block pem.Block
+	if key, ok := privateKey.(*rsa.PrivateKey); ok {
+		block = pem.Block{
+			Type:  RSAPrivateKeyBlockType,
+			Bytes: x509.MarshalPKCS1PrivateKey(key),
+		}
+	} else if key, ok := privateKey.(*ecdsa.PrivateKey); ok {
+		ecKey, _ := x509.MarshalECPrivateKey(key)
+		block = pem.Block{
+			Type:  ECPrivateKeyBlockType,
+			Bytes: ecKey,
+		}
+	} else if key, ok := privateKey.(ed25519.PrivateKey); ok {
+		ed25519Key, _ := x509.MarshalPKCS8PrivateKey(key)
+		block = pem.Block{
+			Type:  PrivateKeyBlockType,
+			Bytes: ed25519Key,
+		}
+	} else {
+		// fall back to a generick pkcs8 format
+		key, _ := x509.MarshalPKCS8PrivateKey(privateKey)
+		block = pem.Block{
+			Type:  PrivateKeyBlockType,
+			Bytes: key,
+		}
 	}
 	return pem.EncodeToMemory(&block)
 }
@@ -121,7 +144,7 @@ func ParsePublicKeysPEM(keyData []byte) ([]interface{}, error) {
 
 		// test block against parsing functions
 		if privateKey, err := parseRSAPrivateKey(block.Bytes); err == nil {
-			keys = append(keys, &privateKey.PublicKey)
+			keys = append(keys, privateKey.Public())
 			continue
 		}
 		if publicKey, err := parseRSAPublicKey(block.Bytes); err == nil {
@@ -129,10 +152,18 @@ func ParsePublicKeysPEM(keyData []byte) ([]interface{}, error) {
 			continue
 		}
 		if privateKey, err := parseECPrivateKey(block.Bytes); err == nil {
-			keys = append(keys, &privateKey.PublicKey)
+			keys = append(keys, privateKey.Public())
 			continue
 		}
 		if publicKey, err := parseECPublicKey(block.Bytes); err == nil {
+			keys = append(keys, publicKey)
+			continue
+		}
+		if privateKey, err := parseEd25519PrivateKey(block.Bytes); err == nil {
+			keys = append(keys, privateKey.Public())
+			continue
+		}
+		if publicKey, err := parseEd25519PublicKey(block.Bytes); err == nil {
 			keys = append(keys, publicKey)
 			continue
 		}
@@ -263,6 +294,50 @@ func parseECPrivateKey(data []byte) (*ecdsa.PrivateKey, error) {
 	var ok bool
 	if privKey, ok = parsedKey.(*ecdsa.PrivateKey); !ok {
 		return nil, fmt.Errorf("data doesn't contain valid ECDSA Private Key")
+	}
+
+	return privKey, nil
+}
+
+// parseEd25519PublicKey parses a single Ed25519 public key from the provided data
+func parseEd25519PublicKey(data []byte) (*ed25519.PublicKey, error) {
+	var err error
+
+	// Parse the key
+	var parsedKey interface{}
+	if parsedKey, err = x509.ParsePKIXPublicKey(data); err != nil {
+		if cert, err := x509.ParseCertificate(data); err == nil {
+			parsedKey = cert.PublicKey
+		} else {
+			return nil, err
+		}
+	}
+
+	// Test if parsed key is an Ed25519 Public Key
+	var pubKey *ed25519.PublicKey
+	var ok bool
+	if pubKey, ok = parsedKey.(*ed25519.PublicKey); !ok {
+		return nil, fmt.Errorf("data doesn't contain valid Ed25519 Public Key")
+	}
+
+	return pubKey, nil
+}
+
+// parseEd25519PrivateKey parses a single Ed25519 private key from the provided data
+func parseEd25519PrivateKey(data []byte) (ed25519.PrivateKey, error) {
+	var err error
+
+	// Parse the key
+	var parsedKey interface{}
+	if parsedKey, err = x509.ParsePKCS8PrivateKey(data); err != nil {
+		return nil, err
+	}
+
+	// Test if parsed key is an Ed25519 Private Key
+	var privKey ed25519.PrivateKey
+	var ok bool
+	if privKey, ok = parsedKey.(ed25519.PrivateKey); !ok {
+		return nil, fmt.Errorf("data doesn't contain valid Ed25519 Private Key")
 	}
 
 	return privKey, nil

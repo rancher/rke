@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"context"
-	"crypto/rsa"
 	"fmt"
 	"strings"
 
@@ -79,12 +78,16 @@ func GetClusterCertsFromKubernetes(ctx context.Context, kubeCluster *Cluster) (m
 		if len(secretCert) == 0 || secretKey == nil {
 			return nil, fmt.Errorf("certificate or key of %s is not found", certName)
 		}
-		certificatePEM := string(cert.EncodeCertPEM(secretCert[0]))
-		keyPEM := string(cert.EncodePrivateKeyPEM(secretKey.(*rsa.PrivateKey)))
+		var certificatePEM string
+		for _, certificate := range secretCert {
+			certificatePEM += string(cert.EncodeCertPEM(certificate))
+		}
+		keyPEM := string(cert.EncodePrivateKeyPEM(secretKey.(cert.PrivateKey)))
 
 		certMap[certName] = pki.CertificatePKI{
 			Certificate:    secretCert[0],
-			Key:            secretKey.(*rsa.PrivateKey),
+			Chain:          secretCert,
+			Key:            secretKey.(cert.PrivateKey),
 			CertificatePEM: certificatePEM,
 			KeyPEM:         keyPEM,
 			Config:         secretConfig,
@@ -100,7 +103,7 @@ func GetClusterCertsFromKubernetes(ctx context.Context, kubeCluster *Cluster) (m
 	kubeAPICert := certMap[pki.KubeAPICertName]
 	if certMap[pki.ServiceAccountTokenKeyName].Key == nil {
 		log.Infof(ctx, "[certificates] Creating service account token key")
-		certMap[pki.ServiceAccountTokenKeyName] = pki.ToCertObject(pki.ServiceAccountTokenKeyName, pki.ServiceAccountTokenKeyName, "", kubeAPICert.Certificate, kubeAPICert.Key, nil)
+		certMap[pki.ServiceAccountTokenKeyName] = pki.ToCertObject(pki.ServiceAccountTokenKeyName, pki.ServiceAccountTokenKeyName, "", kubeAPICert.Chain, kubeAPICert.Key, nil)
 	}
 	log.Infof(ctx, "[certificates] Successfully fetched Cluster certificates from Kubernetes")
 	return certMap, nil
@@ -174,8 +177,8 @@ func RotateRKECertificates(ctx context.Context, c *Cluster, flags ExternalFlags,
 				pki.ServiceAccountTokenKeyName,
 				pki.ServiceAccountTokenKeyName,
 				"",
-				c.Certificates[pki.ServiceAccountTokenKeyName].Certificate,
-				privateKey.(*rsa.PrivateKey), nil)
+				c.Certificates[pki.ServiceAccountTokenKeyName].Chain,
+				privateKey.(cert.PrivateKey), nil)
 		}
 	}
 	clusterState.DesiredState.CertificatesBundle = c.Certificates
@@ -194,7 +197,7 @@ func GetClusterCertsFromNodes(ctx context.Context, kubeCluster *Cluster) (map[st
 			kubeAPICert := certificates[pki.KubeAPICertName]
 			if certificates[pki.ServiceAccountTokenKeyName].Key == nil {
 				log.Infof(ctx, "[certificates] Creating service account token key")
-				certificates[pki.ServiceAccountTokenKeyName] = pki.ToCertObject(pki.ServiceAccountTokenKeyName, pki.ServiceAccountTokenKeyName, "", kubeAPICert.Certificate, kubeAPICert.Key, nil)
+				certificates[pki.ServiceAccountTokenKeyName] = pki.ToCertObject(pki.ServiceAccountTokenKeyName, pki.ServiceAccountTokenKeyName, "", kubeAPICert.Chain, kubeAPICert.Key, nil)
 			}
 			return certificates, nil
 		}

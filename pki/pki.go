@@ -2,7 +2,6 @@ package pki
 
 import (
 	"context"
-	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
 	"net"
@@ -12,13 +11,15 @@ import (
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
+	"github.com/rancher/rke/pki/cert"
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
 )
 
 type CertificatePKI struct {
 	Certificate    *x509.Certificate        `json:"-"`
-	Key            *rsa.PrivateKey          `json:"-"`
+	Chain          []*x509.Certificate      `json:"-"`
+	Key            cert.PrivateKey          `json:"-"`
 	CSR            *x509.CertificateRequest `json:"-"`
 	CertificatePEM string                   `json:"certificatePEM"`
 	KeyPEM         string                   `json:"keyPEM"`
@@ -86,15 +87,17 @@ func RegenerateEtcdCertificate(
 
 	etcdName := GetCrtNameForHost(etcdHost, EtcdCertName)
 	log.Infof(ctx, "[certificates] Regenerating new %s certificate and key", etcdName)
-	caCrt := crtMap[CACertName].Certificate
+	caChain := crtMap[CACertName].Chain
 	caKey := crtMap[CACertName].Key
 	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, KubernetesServiceIP, []string{})
 
-	etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, nil, nil)
+	etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caChain[0], caKey, true, EtcdCertName, etcdAltNames, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	crtMap[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey, nil)
+	etcdChain := []*x509.Certificate{etcdCrt}
+	etcdChain = append(etcdChain, caChain...)
+	crtMap[etcdName] = ToCertObject(etcdName, "", "", etcdChain, etcdKey, nil)
 	log.Infof(ctx, "[certificates] Successfully generated new %s certificate and key", etcdName)
 	return crtMap, nil
 }

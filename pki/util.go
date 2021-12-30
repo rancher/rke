@@ -2,7 +2,6 @@ package pki
 
 import (
 	cryptorand "crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -33,18 +32,18 @@ var (
 
 func GenerateSignedCertAndKey(
 	caCrt *x509.Certificate,
-	caKey *rsa.PrivateKey,
+	caKey cert.PrivateKey,
 	serverCrt bool,
 	commonName string,
 	altNames *cert.AltNames,
-	reusedKey *rsa.PrivateKey,
-	orgs []string) (*x509.Certificate, *rsa.PrivateKey, error) {
+	reusedKey cert.PrivateKey,
+	orgs []string) (*x509.Certificate, cert.PrivateKey, error) {
 	// Generate a generic signed certificate
-	var rootKey *rsa.PrivateKey
+	var rootKey cert.PrivateKey
 	var err error
 	rootKey = reusedKey
 	if reusedKey == nil {
-		rootKey, err = cert.NewPrivateKey()
+		rootKey, err = cert.NewPrivateKey(cert.KeyTypeRSA) // TODO: allow choice
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to generate private key for %s certificate: %v", commonName, err)
 		}
@@ -73,14 +72,14 @@ func GenerateCertSigningRequestAndKey(
 	serverCrt bool,
 	commonName string,
 	altNames *cert.AltNames,
-	reusedKey *rsa.PrivateKey,
-	orgs []string) ([]byte, *rsa.PrivateKey, error) {
+	reusedKey cert.PrivateKey,
+	orgs []string) ([]byte, cert.PrivateKey, error) {
 	// Generate a generic signed certificate
-	var rootKey *rsa.PrivateKey
+	var rootKey cert.PrivateKey
 	var err error
 	rootKey = reusedKey
 	if reusedKey == nil {
-		rootKey, err = cert.NewPrivateKey()
+		rootKey, err = cert.NewPrivateKey(cert.KeyTypeRSA) // TODO: allow choice
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to generate private key for %s certificate: %v", commonName, err)
 		}
@@ -115,11 +114,11 @@ func GenerateCertSigningRequestAndKey(
 	return clientCSR, rootKey, nil
 }
 
-func GenerateCACertAndKey(commonName string, privateKey *rsa.PrivateKey) (*x509.Certificate, *rsa.PrivateKey, error) {
+func GenerateCACertAndKey(commonName string, privateKey cert.PrivateKey) (*x509.Certificate, cert.PrivateKey, error) {
 	var err error
 	rootKey := privateKey
 	if rootKey == nil {
-		rootKey, err = cert.NewPrivateKey()
+		rootKey, err = cert.NewPrivateKey(cert.KeyTypeRSA) // TODO: allow choice
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to generate private key for CA certificate: %v", err)
 		}
@@ -227,8 +226,11 @@ func (c *CertificatePKI) ToEnv() []string {
 }
 
 func (c *CertificatePKI) CertToEnv() string {
-	encodedCrt := cert.EncodeCertPEM(c.Certificate)
-	return fmt.Sprintf("%s=%s", c.EnvName, string(encodedCrt))
+	var encodedCrt string
+	for _, certificate := range c.Chain {
+		encodedCrt += string(cert.EncodeCertPEM(certificate))
+	}
+	return fmt.Sprintf("%s=%s", c.EnvName, encodedCrt)
 }
 
 func (c *CertificatePKI) KeyToEnv() string {
@@ -286,7 +288,7 @@ func GetConfigTempPath(name string) string {
 	return TempCertPath + "kubecfg-" + name + ".yaml"
 }
 
-func ToCertObject(componentName, commonName, ouName string, certificate *x509.Certificate, key *rsa.PrivateKey, csrASN1 []byte) CertificatePKI {
+func ToCertObject(componentName, commonName, ouName string, chain []*x509.Certificate, key cert.PrivateKey, csrASN1 []byte) CertificatePKI {
 	var config, configPath, configEnvName, certificatePEM, keyPEM string
 	var csr *x509.CertificateRequest
 	var csrPEM []byte
@@ -299,8 +301,10 @@ func ToCertObject(componentName, commonName, ouName string, certificate *x509.Ce
 	caCertPath := GetCertPath(CACertName)
 	path := GetCertPath(componentName)
 	keyPath := GetKeyPath(componentName)
-	if certificate != nil {
-		certificatePEM = string(cert.EncodeCertPEM(certificate))
+	if chain != nil {
+		for _, certificate := range chain {
+			certificatePEM += string(cert.EncodeCertPEM(certificate))
+		}
 	}
 	if key != nil {
 		keyPEM = string(cert.EncodePrivateKeyPEM(key))
@@ -319,7 +323,8 @@ func ToCertObject(componentName, commonName, ouName string, certificate *x509.Ce
 	}
 
 	return CertificatePKI{
-		Certificate:    certificate,
+		Certificate:    chain[0],
+		Chain:          chain,
 		Key:            key,
 		CSR:            csr,
 		CertificatePEM: certificatePEM,
@@ -412,37 +417,37 @@ func GetLocalKubeConfig(configPath, configDir string) string {
 func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string, extraHosts []*hosts.Host) map[string]CertificatePKI {
 	certs := make(map[string]CertificatePKI)
 	// CACert
-	certs[CACertName] = ToCertObject(CACertName, "", "", tmpCerts[CACertName].Certificate, tmpCerts[CACertName].Key, nil)
+	certs[CACertName] = ToCertObject(CACertName, "", "", tmpCerts[CACertName].Chain, tmpCerts[CACertName].Key, nil)
 	// KubeAPI
-	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", tmpCerts[KubeAPICertName].Certificate, tmpCerts[KubeAPICertName].Key, nil)
+	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", tmpCerts[KubeAPICertName].Chain, tmpCerts[KubeAPICertName].Key, nil)
 	// kubeController
-	certs[KubeControllerCertName] = ToCertObject(KubeControllerCertName, "", "", tmpCerts[KubeControllerCertName].Certificate, tmpCerts[KubeControllerCertName].Key, nil)
+	certs[KubeControllerCertName] = ToCertObject(KubeControllerCertName, "", "", tmpCerts[KubeControllerCertName].Chain, tmpCerts[KubeControllerCertName].Key, nil)
 	// KubeScheduler
-	certs[KubeSchedulerCertName] = ToCertObject(KubeSchedulerCertName, "", "", tmpCerts[KubeSchedulerCertName].Certificate, tmpCerts[KubeSchedulerCertName].Key, nil)
+	certs[KubeSchedulerCertName] = ToCertObject(KubeSchedulerCertName, "", "", tmpCerts[KubeSchedulerCertName].Chain, tmpCerts[KubeSchedulerCertName].Key, nil)
 	// KubeProxy
-	certs[KubeProxyCertName] = ToCertObject(KubeProxyCertName, "", "", tmpCerts[KubeProxyCertName].Certificate, tmpCerts[KubeProxyCertName].Key, nil)
+	certs[KubeProxyCertName] = ToCertObject(KubeProxyCertName, "", "", tmpCerts[KubeProxyCertName].Chain, tmpCerts[KubeProxyCertName].Key, nil)
 	// KubeNode
-	certs[KubeNodeCertName] = ToCertObject(KubeNodeCertName, KubeNodeCommonName, KubeNodeOrganizationName, tmpCerts[KubeNodeCertName].Certificate, tmpCerts[KubeNodeCertName].Key, nil)
+	certs[KubeNodeCertName] = ToCertObject(KubeNodeCertName, KubeNodeCommonName, KubeNodeOrganizationName, tmpCerts[KubeNodeCertName].Chain, tmpCerts[KubeNodeCertName].Key, nil)
 	// KubeAdmin
-	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, tmpCerts[KubeAdminCertName].Certificate, tmpCerts[KubeAdminCertName].Key, nil)
+	kubeAdminCertObj := ToCertObject(KubeAdminCertName, KubeAdminCertName, KubeAdminOrganizationName, tmpCerts[KubeAdminCertName].Chain, tmpCerts[KubeAdminCertName].Key, nil)
 	kubeAdminCertObj.Config = tmpCerts[KubeAdminCertName].Config
 	kubeAdminCertObj.ConfigPath = localConfigPath
 	certs[KubeAdminCertName] = kubeAdminCertObj
 	// etcd
 	for _, host := range extraHosts {
 		etcdName := GetCrtNameForHost(host, EtcdCertName)
-		etcdCrt, etcdKey := tmpCerts[etcdName].Certificate, tmpCerts[etcdName].Key
-		certs[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey, nil)
+		etcdChain, etcdKey := tmpCerts[etcdName].Chain, tmpCerts[etcdName].Key
+		certs[etcdName] = ToCertObject(etcdName, "", "", etcdChain, etcdKey, nil)
 	}
 	// Request header ca
-	certs[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, "", "", tmpCerts[RequestHeaderCACertName].Certificate, tmpCerts[RequestHeaderCACertName].Key, nil)
+	certs[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, "", "", tmpCerts[RequestHeaderCACertName].Chain, tmpCerts[RequestHeaderCACertName].Key, nil)
 	// Api proxy client
-	certs[APIProxyClientCertName] = ToCertObject(APIProxyClientCertName, "", "", tmpCerts[APIProxyClientCertName].Certificate, tmpCerts[APIProxyClientCertName].Key, nil)
+	certs[APIProxyClientCertName] = ToCertObject(APIProxyClientCertName, "", "", tmpCerts[APIProxyClientCertName].Chain, tmpCerts[APIProxyClientCertName].Key, nil)
 	return certs
 }
 
 // Overriding k8s.io/client-go/util/cert.NewSignedCert function to extend the expiration date to 10 years instead of 1 year
-func newSignedCert(cfg cert.Config, key *rsa.PrivateKey, caCert *x509.Certificate, caKey *rsa.PrivateKey) (*x509.Certificate, error) {
+func newSignedCert(cfg cert.Config, key cert.PrivateKey, caCert *x509.Certificate, caKey cert.PrivateKey) (*x509.Certificate, error) {
 	serial, err := cryptorand.Int(cryptorand.Reader, new(big.Int).SetInt64(math.MaxInt64))
 	if err != nil {
 		return nil, err
@@ -474,7 +479,7 @@ func newSignedCert(cfg cert.Config, key *rsa.PrivateKey, caCert *x509.Certificat
 	return x509.ParseCertificate(certDERBytes)
 }
 
-func newCertSigningRequest(cfg cert.Config, key *rsa.PrivateKey, extensions []pkix.Extension) ([]byte, error) {
+func newCertSigningRequest(cfg cert.Config, key cert.PrivateKey, extensions []pkix.Extension) ([]byte, error) {
 	if len(cfg.CommonName) == 0 {
 		return nil, errors.New("must specify a CommonName")
 	}
@@ -526,7 +531,7 @@ func TransformPEMToObject(in map[string]CertificatePKI) map[string]CertificatePK
 			certificate = certs[0]
 		}
 		if key != nil {
-			key = key.(*rsa.PrivateKey)
+			key = key.(cert.PrivateKey)
 		}
 		o := CertificatePKI{
 			ConfigEnvName:  v.ConfigEnvName,
@@ -540,11 +545,12 @@ func TransformPEMToObject(in map[string]CertificatePKI) map[string]CertificatePK
 			KeyPath:        v.KeyPath,
 			ConfigPath:     v.ConfigPath,
 			Certificate:    certificate,
+			Chain:          certs,
 			CertificatePEM: v.CertificatePEM,
 			KeyPEM:         v.KeyPEM,
 		}
 		if key != nil {
-			o.Key = key.(*rsa.PrivateKey)
+			o.Key = key.(cert.PrivateKey)
 		}
 
 		out[k] = o
@@ -599,7 +605,7 @@ func ReadCertsAndKeysFromDir(certDir string) (map[string]CertificatePKI, error) 
 		logrus.Debugf("[certificates] reading file %s from directory [%s]", file.Name(), certDir)
 		if strings.HasSuffix(file.Name(), ".pem") && !strings.HasSuffix(file.Name(), "-key.pem") && !strings.HasSuffix(file.Name(), "-csr.pem") {
 			// fetching cert
-			cert, err := getCertFromFile(certDir, file.Name())
+			chain, err := getCertsFromFile(certDir, file.Name())
 			if err != nil {
 				return nil, err
 			}
@@ -609,7 +615,7 @@ func ReadCertsAndKeysFromDir(certDir string) (map[string]CertificatePKI, error) 
 			if err != nil {
 				return nil, err
 			}
-			certMap[certName] = ToCertObject(certName, getCommonName(certName), getOUName(certName), cert, key, nil)
+			certMap[certName] = ToCertObject(certName, getCommonName(certName), getOUName(certName), chain, key, nil)
 		}
 	}
 
@@ -636,29 +642,29 @@ func getOUName(certName string) string {
 	}
 }
 
-func getCertFromFile(certDir string, fileName string) (*x509.Certificate, error) {
-	var certificate *x509.Certificate
+func getCertsFromFile(certDir string, fileName string) ([]*x509.Certificate, error) {
+	var certificates []*x509.Certificate
+	var err error
 	certPEM, _ := ioutil.ReadFile(filepath.Join(certDir, fileName))
 	if len(certPEM) > 0 {
 		logrus.Debugf("Certificate file [%s/%s] content is greater than 0", certDir, fileName)
-		certificates, err := cert.ParseCertsPEM(certPEM)
+		certificates, err = cert.ParseCertsPEM(certPEM)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read certificate [%s]: %v", fileName, err)
 		}
-		certificate = certificates[0]
 	}
-	return certificate, nil
+	return certificates, nil
 }
 
-func getKeyFromFile(certDir string, fileName string) (*rsa.PrivateKey, error) {
-	var key *rsa.PrivateKey
+func getKeyFromFile(certDir string, fileName string) (cert.PrivateKey, error) {
+	var key cert.PrivateKey
 	keyPEM, _ := ioutil.ReadFile(filepath.Join(certDir, fileName))
 	if len(keyPEM) > 0 {
 		keyInterface, err := cert.ParsePrivateKeyPEM(keyPEM)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read key [%s], make sure it is not encrypted: %v", fileName, err)
 		}
-		key = keyInterface.(*rsa.PrivateKey)
+		key = keyInterface.(cert.PrivateKey)
 	}
 	return key, nil
 }
@@ -717,7 +723,7 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 	}
 	if certBundle[RequestHeaderCACertName].Certificate == nil {
 		logrus.Warnf("Failed to find RequestHeader CA certificate, using master CA certificate")
-		certBundle[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, RequestHeaderCACertName, "", certBundle[CACertName].Certificate, nil, nil)
+		certBundle[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, RequestHeaderCACertName, "", certBundle[CACertName].Chain, nil, nil)
 	}
 	// make sure all components exists
 	ComponentsCerts := []string{

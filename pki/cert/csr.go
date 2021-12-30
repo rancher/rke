@@ -17,6 +17,8 @@ limitations under the License.
 package cert
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	cryptorand "crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -26,7 +28,8 @@ import (
 )
 
 // MakeCSR generates a PEM-encoded CSR using the supplied private key, subject, and SANs.
-// All key types that are implemented via crypto.Signer are supported (This includes *rsa.PrivateKey and *ecdsa.PrivateKey.)
+// All key types that are implemented via crypto.Signer are supported (This includes
+// *rsa.PrivateKey, *ecdsa.PrivateKey and ed25519.PrivateKey).
 func MakeCSR(privateKey interface{}, subject *pkix.Name, dnsSANs []string, ipSANs []net.IP) (csr []byte, err error) {
 	template := &x509.CertificateRequest{
 		Subject:     *subject,
@@ -39,8 +42,8 @@ func MakeCSR(privateKey interface{}, subject *pkix.Name, dnsSANs []string, ipSAN
 
 // MakeCSRFromTemplate generates a PEM-encoded CSR using the supplied private
 // key and certificate request as a template. All key types that are
-// implemented via crypto.Signer are supported (This includes *rsa.PrivateKey
-// and *ecdsa.PrivateKey.)
+// implemented via crypto.Signer are supported (This includes *rsa.PrivateKey,
+// *ecdsa.PrivateKey and ed25519.PrivateKey)
 func MakeCSRFromTemplate(privateKey interface{}, template *x509.CertificateRequest) ([]byte, error) {
 	t := *template
 	t.SignatureAlgorithm = sigType(privateKey)
@@ -59,9 +62,9 @@ func MakeCSRFromTemplate(privateKey interface{}, template *x509.CertificateReque
 }
 
 func sigType(privateKey interface{}) x509.SignatureAlgorithm {
-	// Customize the signature for RSA keys, depending on the key size
-	if privateKey, ok := privateKey.(*rsa.PrivateKey); ok {
-		keySize := privateKey.N.BitLen()
+	if key, ok := privateKey.(*rsa.PrivateKey); ok {
+		// Customize the signature for RSA keys, depending on the key size
+		keySize := key.N.BitLen()
 		switch {
 		case keySize >= 4096:
 			return x509.SHA512WithRSA
@@ -70,6 +73,20 @@ func sigType(privateKey interface{}) x509.SignatureAlgorithm {
 		default:
 			return x509.SHA256WithRSA
 		}
+	} else if key, ok := privateKey.(*ecdsa.PrivateKey); ok {
+		// Customize the signature for ECDSA keys, depending on the curve used
+		switch key.Params().Name {
+		case "P-512":
+			return x509.ECDSAWithSHA512
+		case "P-384":
+			return x509.ECDSAWithSHA384
+		case "P-256":
+			return x509.ECDSAWithSHA256
+		case "P-224":
+			return x509.ECDSAWithSHA1
+		}
+	} else if _, ok := privateKey.(ed25519.PrivateKey); ok {
+		return x509.PureEd25519
 	}
 	return x509.UnknownSignatureAlgorithm
 }

@@ -808,17 +808,23 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 	log.Infof(ctx, "[reconcile] Rebuilding and updating local kube config")
 	var workingConfig, newConfig string
 	currentKubeConfig := kubeCluster.Certificates[pki.KubeAdminCertName]
-	caCrt := kubeCluster.Certificates[pki.CACertName].Certificate
+	caChain := kubeCluster.Certificates[pki.CACertName].Chain
 	for _, cpHost := range kubeCluster.ControlPlaneHosts {
-		if (currentKubeConfig == pki.CertificatePKI{}) {
+		if reflect.DeepEqual(currentKubeConfig, pki.CertificatePKI{}) {
 			log.Debugf(ctx, "[reconcile] Rebuilding and updating local kube config, creating new address")
 			kubeCluster.Certificates = make(map[string]pki.CertificatePKI)
 			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHost.Address, kubeCluster.ClusterName)
 		} else {
 			log.Debugf(ctx, "[reconcile] Rebuilding and updating local kube config, creating new kubeconfig")
 			kubeURL := fmt.Sprintf("https://%s:6443", cpHost.Address)
-			caData := string(cert.EncodeCertPEM(caCrt))
-			crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
+			var caData string
+			var crtData string
+			for _, certificate := range caChain {
+				caData += string(cert.EncodeCertPEM(certificate))
+			}
+			for _, certificate := range currentKubeConfig.Chain {
+				crtData += string(cert.EncodeCertPEM(certificate))
+			}
 			keyData := string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key))
 			newConfig = pki.GetKubeConfigX509WithData(kubeURL, kubeCluster.ClusterName, pki.KubeAdminCertName, caData, crtData, keyData)
 		}

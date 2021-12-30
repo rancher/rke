@@ -2,7 +2,6 @@ package pki
 
 import (
 	"context"
-	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -297,7 +296,8 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 			return nil, err
 		}
 		certificate.Certificate = parsedCert[0]
-		certificate.Key = parsedKey.(*rsa.PrivateKey)
+		certificate.Chain = parsedCert
+		certificate.Key = parsedKey.(cert.PrivateKey)
 		tmpCerts[certName] = certificate
 		logrus.Debugf("[certificates] Recovered certificate: %s", certName)
 	}

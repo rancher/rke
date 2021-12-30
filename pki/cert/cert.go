@@ -18,7 +18,9 @@ package cert
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	cryptorand "crypto/rand"
 	"crypto/rsa"
@@ -34,8 +36,11 @@ import (
 )
 
 const (
-	rsaKeySize   = 2048
-	duration365d = time.Hour * 24 * 365
+	rsaKeySize     = 4096
+	duration365d   = time.Hour * 24 * 365
+	KeyTypeRSA     = "rsa"
+	KeyTypeEC      = "ecdsa"
+	KeyTypeEd25519 = "ed25519"
 )
 
 // Config contains the basic fields required for creating a certificate
@@ -54,13 +59,51 @@ type AltNames struct {
 	IPs      []net.IP
 }
 
+// PrivateKey interface supporting both RSA and ECDSA key types.
+type PrivateKey interface {
+	crypto.PrivateKey
+	crypto.Signer
+	Equal(x crypto.PrivateKey) bool
+	Public() crypto.PublicKey
+}
+
+// PublicKey interface for use with public keys supplied by object types
+// implementing the PrivateKey interface.
+type PublicKey interface {
+	crypto.PublicKey
+	Equal(x crypto.PublicKey) bool
+}
+
 // NewPrivateKey creates an RSA private key
-func NewPrivateKey() (*rsa.PrivateKey, error) {
-	return rsa.GenerateKey(cryptorand.Reader, rsaKeySize)
+func NewPrivateKey(keyType string) (PrivateKey, error) {
+	switch keyType {
+	case KeyTypeRSA:
+		return NewRsaPrivateKey()
+	case KeyTypeEC:
+		return NewEcPrivateKey()
+	case KeyTypeEd25519:
+		return NewEd25519PrivateKey()
+	}
+	return nil, fmt.Errorf("Unknown private key type: %s (should be one of: rsa, ecdsa)", keyType)
+}
+
+func NewRsaPrivateKey() (PrivateKey, error) {
+	rsaKey, err := rsa.GenerateKey(cryptorand.Reader, rsaKeySize)
+	return rsaKey, err
+}
+
+func NewEcPrivateKey() (PrivateKey, error) {
+	ecKey, err := ecdsa.GenerateKey(elliptic.P521(), cryptorand.Reader)
+	return ecKey, err
+}
+
+func NewEd25519PrivateKey() (PrivateKey, error) {
+	_, ed25519Key, err := ed25519.GenerateKey(cryptorand.Reader)
+	return ed25519Key, err
 }
 
 // NewSelfSignedCACert creates a CA certificate
-func NewSelfSignedCACert(cfg Config, key *rsa.PrivateKey) (*x509.Certificate, error) {
+func NewSelfSignedCACert(cfg Config, key PrivateKey) (*x509.Certificate, error) {
 	now := time.Now()
 	tmpl := x509.Certificate{
 		SerialNumber: new(big.Int).SetInt64(0),
@@ -83,7 +126,7 @@ func NewSelfSignedCACert(cfg Config, key *rsa.PrivateKey) (*x509.Certificate, er
 }
 
 // NewSignedCert creates a signed certificate using the given CA certificate and key
-func NewSignedCert(cfg Config, key *rsa.PrivateKey, caCert *x509.Certificate, caKey *rsa.PrivateKey) (*x509.Certificate, error) {
+func NewSignedCert(cfg Config, key PrivateKey, caCert *x509.Certificate, caKey PrivateKey) (*x509.Certificate, error) {
 	serial, err := cryptorand.Int(cryptorand.Reader, new(big.Int).SetInt64(math.MaxInt64))
 	if err != nil {
 		return nil, err
@@ -117,12 +160,12 @@ func NewSignedCert(cfg Config, key *rsa.PrivateKey, caCert *x509.Certificate, ca
 
 // MakeEllipticPrivateKeyPEM creates an ECDSA private key
 func MakeEllipticPrivateKeyPEM() ([]byte, error) {
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), cryptorand.Reader)
+	privateKey, err := NewEcPrivateKey()
 	if err != nil {
 		return nil, err
 	}
 
-	derBytes, err := x509.MarshalECPrivateKey(privateKey)
+	derBytes, err := x509.MarshalECPrivateKey(privateKey.(*ecdsa.PrivateKey))
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +181,7 @@ func MakeEllipticPrivateKeyPEM() ([]byte, error) {
 // Host may be an IP or a DNS name
 // You may also specify additional subject alt names (either ip or dns names) for the certificate
 func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS []string) ([]byte, []byte, error) {
-	caKey, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	caKey, err := NewRsaPrivateKey()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -156,7 +199,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 		IsCA:                  true,
 	}
 
-	caDERBytes, err := x509.CreateCertificate(cryptorand.Reader, &caTemplate, &caTemplate, &caKey.PublicKey, caKey)
+	caDERBytes, err := x509.CreateCertificate(cryptorand.Reader, &caTemplate, &caTemplate, caKey.Public(), caKey)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -166,7 +209,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 		return nil, nil, err
 	}
 
-	priv, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	priv, err := NewRsaPrivateKey()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -193,7 +236,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 	template.IPAddresses = append(template.IPAddresses, alternateIPs...)
 	template.DNSNames = append(template.DNSNames, alternateDNS...)
 
-	derBytes, err := x509.CreateCertificate(cryptorand.Reader, &template, caCertificate, &priv.PublicKey, caKey)
+	derBytes, err := x509.CreateCertificate(cryptorand.Reader, &template, caCertificate, priv.Public(), caKey)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -209,7 +252,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 
 	// Generate key
 	keyBuffer := bytes.Buffer{}
-	if err := pem.Encode(&keyBuffer, &pem.Block{Type: RSAPrivateKeyBlockType, Bytes: x509.MarshalPKCS1PrivateKey(priv)}); err != nil {
+	if err := pem.Encode(&keyBuffer, &pem.Block{Type: RSAPrivateKeyBlockType, Bytes: x509.MarshalPKCS1PrivateKey(priv.(*rsa.PrivateKey))}); err != nil {
 		return nil, nil, err
 	}
 
