@@ -16,6 +16,7 @@ import (
 type JobStatus struct {
 	Completed bool
 	Created   bool
+	Removing  bool
 }
 
 func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transport.WrapperFunc, timeout int, addonUpdated bool) error {
@@ -30,10 +31,24 @@ func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transpor
 	if err != nil {
 		return err
 	}
-	jobStatus, err := GetK8sJobStatus(k8sClient, job.Name, job.Namespace)
-	if err != nil {
+
+	var jobStatus JobStatus
+
+	// If the job is still removing, attempt to wait until it has been deleted
+	// If the job is "stuck", apply will never succeed and requires outside intervention
+	if err := retryToWithTimeout(func(clientset *kubernetes.Clientset, i interface{}) error {
+		if jobStatus, err = GetK8sJobStatus(k8sClient, job.Name, job.Namespace); err != nil {
+			return err
+		}
+		if !jobStatus.Removing {
+			return nil
+		}
+		logrus.Debugf("[k8s] waiting for job %s to delete..", job.Name)
+		return fmt.Errorf("[k8s] Job [%s] deletion timed out. Consider increasing addon_job_timeout value", job.Name)
+	}, k8sClient, job, timeout); err != nil {
 		return err
 	}
+
 	// if the addon configMap is updated, or the previous job is not completed,
 	// I will remove the existing job first, if any
 	if addonUpdated || (jobStatus.Created && !jobStatus.Completed) {
@@ -132,11 +147,13 @@ func GetK8sJobStatus(k8sClient *kubernetes.Clientset, name, namespace string) (J
 			return JobStatus{
 				Created:   true,
 				Completed: true,
+				Removing:  existingJob.DeletionTimestamp != nil,
 			}, err
 		}
 	}
 	return JobStatus{
 		Created:   true,
 		Completed: false,
+		Removing:  existingJob.DeletionTimestamp != nil,
 	}, nil
 }
