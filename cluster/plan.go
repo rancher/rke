@@ -472,7 +472,11 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		if host.IsWindows() { // compatible with Windows
 			CommandArgs["cloud-config"] = path.Join(host.PrefixPath, cloudConfigFileName)
 		}
+		if c.CloudProvider.Name == k8s.AWSCloudProvider {
+			delete(CommandArgs, "hostname-override")
+		}
 	}
+
 	if c.IsKubeletGenerateServingCertificateEnabled() {
 		CommandArgs["tls-cert-file"] = pki.GetCertPath(pki.GetCrtNameForHost(host, pki.KubeletCertName))
 		CommandArgs["tls-private-key-file"] = pki.GetCertPath(fmt.Sprintf("%s-key", pki.GetCrtNameForHost(host, pki.KubeletCertName)))
@@ -648,6 +652,9 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 			CommandArgs["bind-address"] = host.InternalAddress
 		} else {
 			CommandArgs["bind-address"] = host.Address
+		}
+		if c.CloudProvider.Name == k8s.AWSCloudProvider {
+			delete(CommandArgs, "hostname-override")
 		}
 	}
 
