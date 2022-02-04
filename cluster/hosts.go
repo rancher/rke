@@ -1,20 +1,21 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"strings"
-
-	"context"
 
 	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -38,7 +39,7 @@ func (c *Cluster) TunnelHosts(ctx context.Context, flags ExternalFlags) error {
 	for _, uniqueHost := range uniqueHosts {
 		runHost := uniqueHost
 		errgrp.Go(func() error {
-			if err := runHost.TunnelUp(ctx, c.DockerDialerFactory, c.PrefixPath, c.Version); err != nil {
+			if err := runHost.TunnelUp(ctx, c.DockerDialerFactory, c.getPrefixPath(runHost.OS()), c.Version); err != nil {
 				// Unsupported Docker version is NOT a connectivity problem that we can recover! So we bail out on it
 				if strings.Contains(err.Error(), "Unsupported Docker version found") {
 					return err
@@ -60,7 +61,6 @@ func (c *Cluster) TunnelHosts(ctx context.Context, flags ExternalFlags) error {
 		c.RancherKubernetesEngineConfig.Nodes = removeFromRKENodes(host.RKEConfigNode, c.RancherKubernetesEngineConfig.Nodes)
 	}
 	return ValidateHostCount(c)
-
 }
 
 func (c *Cluster) InvertIndexHosts() error {
@@ -81,7 +81,9 @@ func (c *Cluster) InvertIndexHosts() error {
 		for k, v := range host.Labels {
 			newHost.ToAddLabels[k] = v
 		}
-		newHost.IgnoreDockerVersion = c.IgnoreDockerVersion
+		if c.IgnoreDockerVersion != nil {
+			newHost.IgnoreDockerVersion = *c.IgnoreDockerVersion
+		}
 		if c.BastionHost.Address != "" {
 			// Add the bastion host information to each host object
 			newHost.BastionHost = c.BastionHost
@@ -118,23 +120,121 @@ func (c *Cluster) InvertIndexHosts() error {
 	return nil
 }
 
+func (c *Cluster) CalculateMaxUnavailable() (int, int, error) {
+	var inactiveControlPlaneHosts, inactiveWorkerHosts []string
+	var workerHosts, controlHosts, maxUnavailableWorker, maxUnavailableControl int
+
+	for _, host := range c.InactiveHosts {
+		if host.IsControl {
+			inactiveControlPlaneHosts = append(inactiveControlPlaneHosts, host.HostnameOverride)
+		}
+		if !host.IsWorker {
+			inactiveWorkerHosts = append(inactiveWorkerHosts, host.HostnameOverride)
+		}
+		// not breaking out of the loop so we can log all of the inactive hosts
+	}
+
+	// maxUnavailable should be calculated against all hosts provided in cluster.yml
+	workerHosts = len(c.WorkerHosts) + len(inactiveWorkerHosts)
+	maxUnavailableWorker, err := services.CalculateMaxUnavailable(c.UpgradeStrategy.MaxUnavailableWorker, workerHosts, services.WorkerRole)
+	if err != nil {
+		return maxUnavailableWorker, maxUnavailableControl, err
+	}
+	controlHosts = len(c.ControlPlaneHosts) + len(inactiveControlPlaneHosts)
+	maxUnavailableControl, err = services.CalculateMaxUnavailable(c.UpgradeStrategy.MaxUnavailableControlplane, controlHosts, services.ControlRole)
+	if err != nil {
+		return maxUnavailableWorker, maxUnavailableControl, err
+	}
+	return maxUnavailableWorker, maxUnavailableControl, nil
+}
+
+func (c *Cluster) getConsolidatedAdmissionConfiguration() (*v1alpha1.AdmissionConfiguration, error) {
+	var err error
+	var admissionConfig *v1alpha1.AdmissionConfiguration
+
+	if c.Services.KubeAPI.EventRateLimit == nil ||
+		!c.Services.KubeAPI.EventRateLimit.Enabled {
+		return c.Services.KubeAPI.AdmissionConfiguration, nil
+	}
+
+	logrus.Debugf("EventRateLimit is enabled")
+	found := false
+	if c.Services.KubeAPI.AdmissionConfiguration != nil {
+		plugins := c.Services.KubeAPI.AdmissionConfiguration.Plugins
+		for _, plugin := range plugins {
+			if plugin.Name == EventRateLimitPluginName {
+				found = true
+				break
+			}
+		}
+	}
+	if found {
+		logrus.Debugf("EventRateLimit Plugin configuration found in admission config")
+		if c.Services.KubeAPI.EventRateLimit.Configuration != nil {
+			logrus.Warnf("conflicting EventRateLimit configuration found, using the one from Admission Configuration")
+			return c.Services.KubeAPI.AdmissionConfiguration, nil
+		}
+	}
+
+	logrus.Debugf("EventRateLimit Plugin configuration not found in admission config")
+	if c.Services.KubeAPI.AdmissionConfiguration == nil {
+		logrus.Debugf("no user specified admission configuration found")
+		admissionConfig, err = newDefaultAdmissionConfiguration()
+		if err != nil {
+			logrus.Errorf("error getting default admission configuration: %v", err)
+			return nil, err
+		}
+	} else {
+		admissionConfig, err = newDefaultAdmissionConfiguration()
+		if err != nil {
+			logrus.Errorf("error getting default admission configuration: %v", err)
+			return nil, err
+		}
+		copy(admissionConfig.Plugins, c.Services.KubeAPI.AdmissionConfiguration.Plugins)
+	}
+	if c.Services.KubeAPI.EventRateLimit.Configuration != nil {
+		logrus.Debugf("user specified EventRateLimit configuration found")
+		p, err := getEventRateLimitPluginFromConfig(c.Services.KubeAPI.EventRateLimit.Configuration)
+		if err != nil {
+			logrus.Errorf("error getting eventratelimit plugin from config: %v", err)
+		}
+		admissionConfig.Plugins = append(admissionConfig.Plugins, p)
+	} else {
+		logrus.Debugf("using default EventRateLimit configuration")
+		p, err := newDefaultEventRateLimitPlugin()
+		if err != nil {
+			logrus.Errorf("error getting default eventratelimit plugin: %v", err)
+		}
+		admissionConfig.Plugins = append(admissionConfig.Plugins, p)
+	}
+
+	return admissionConfig, nil
+}
+
 func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 	if c.AuthnStrategies[AuthnX509Provider] {
 		log.Infof(ctx, "[certificates] Deploying kubernetes certificates to Cluster nodes")
-		forceDeploy := false
-		if flags.CustomCerts || c.RancherKubernetesEngineConfig.RotateCertificates != nil {
-			forceDeploy = true
-		}
 		hostList := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 		var errgrp errgroup.Group
-
 		hostsQueue := util.GetObjectQueue(hostList)
 		for w := 0; w < WorkerThreads; w++ {
 			errgrp.Go(func() error {
 				var errList []error
 				for host := range hostsQueue {
-					err := pki.DeployCertificatesOnPlaneHost(ctx, host.(*hosts.Host), c.RancherKubernetesEngineConfig, c.Certificates, c.SystemImages.CertDownloader, c.PrivateRegistriesMap, forceDeploy)
-					if err != nil {
+					h := host.(*hosts.Host)
+					var env []string
+					if h.IsWindows() {
+						env = c.getWindowsEnv(h)
+					}
+					if err := pki.DeployCertificatesOnPlaneHost(
+						ctx,
+						h,
+						c.RancherKubernetesEngineConfig,
+						c.Certificates,
+						c.SystemImages.CertDownloader,
+						c.PrivateRegistriesMap,
+						c.ForceDeployCerts,
+						env); err != nil {
 						errList = append(errList, err)
 					}
 				}
@@ -160,7 +260,44 @@ func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 			if err := deployFile(ctx, hostList, c.SystemImages.Alpine, c.PrivateRegistriesMap, authnWebhookFileName, c.Authentication.Webhook.ConfigFile); err != nil {
 				return err
 			}
-			log.Infof(ctx, "[%s] Successfully deployed authentication webhook config Cluster nodes", cloudConfigFileName)
+			log.Infof(ctx, "[%s] Successfully deployed authentication webhook config Cluster nodes", authnWebhookFileName)
+		}
+		if c.EncryptionConfig.EncryptionProviderFile != "" {
+			if err := c.DeployEncryptionProviderFile(ctx); err != nil {
+				return err
+			}
+		}
+
+		if _, ok := c.Services.KubeAPI.ExtraArgs[KubeAPIArgAdmissionControlConfigFile]; !ok {
+			if c.Services.KubeAPI.EventRateLimit != nil && c.Services.KubeAPI.EventRateLimit.Enabled {
+				controlPlaneHosts := hosts.GetUniqueHostList(nil, c.ControlPlaneHosts, nil)
+				ac, err := c.getConsolidatedAdmissionConfiguration()
+				if err != nil {
+					return fmt.Errorf("error getting consolidated admission configuration: %v", err)
+				}
+				bytes, err := yaml.Marshal(ac)
+				if err != nil {
+					return err
+				}
+				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAdmissionControlConfigFileValue, string(bytes)); err != nil {
+					return err
+				}
+				log.Infof(ctx, "[%s] Successfully deployed admission control config to Cluster control nodes", DefaultKubeAPIArgAdmissionControlConfigFileValue)
+			}
+		}
+
+		if _, ok := c.Services.KubeAPI.ExtraArgs[KubeAPIArgAuditPolicyFile]; !ok {
+			if c.Services.KubeAPI.AuditLog != nil && c.Services.KubeAPI.AuditLog.Enabled {
+				controlPlaneHosts := hosts.GetUniqueHostList(nil, c.ControlPlaneHosts, nil)
+				bytes, err := yaml.Marshal(c.Services.KubeAPI.AuditLog.Configuration.Policy)
+				if err != nil {
+					return err
+				}
+				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAuditPolicyFileValue, string(bytes)); err != nil {
+					return err
+				}
+				log.Infof(ctx, "[%s] Successfully deployed audit policy file to Cluster control nodes", DefaultKubeAPIArgAuditPolicyFileValue)
+			}
 		}
 	}
 	return nil
@@ -186,10 +323,11 @@ func removeFromHosts(hostToRemove *hosts.Host, hostList []*hosts.Host) []*hosts.
 }
 
 func removeFromRKENodes(nodeToRemove v3.RKEConfigNode, nodeList []v3.RKEConfigNode) []v3.RKEConfigNode {
-	for i := range nodeList {
-		if nodeToRemove.Address == nodeList[i].Address {
-			return append(nodeList[:i], nodeList[i+1:]...)
+	l := []v3.RKEConfigNode{}
+	for _, node := range nodeList {
+		if nodeToRemove.Address != node.Address {
+			l = append(l, node)
 		}
 	}
-	return nodeList
+	return l
 }

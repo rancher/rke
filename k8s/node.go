@@ -1,12 +1,13 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -18,55 +19,69 @@ const (
 	InternalAddressAnnotation = "rke.cattle.io/internal-ip"
 	ExternalAddressAnnotation = "rke.cattle.io/external-ip"
 	AWSCloudProvider          = "aws"
+	MaxRetries                = 5
+	RetryInterval             = 5
 )
 
 func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProvider string) error {
-
-	if cloudProvider == AWSCloudProvider {
+	// If cloud provider is configured, the node name can be set by the cloud provider, which can be different from the original node name
+	if cloudProvider != "" {
 		node, err := GetNode(k8sClient, nodeName)
 		if err != nil {
 			return err
 		}
 		nodeName = node.Name
 	}
-	return k8sClient.CoreV1().Nodes().Delete(nodeName, &metav1.DeleteOptions{})
+	return k8sClient.CoreV1().Nodes().Delete(context.TODO(), nodeName, metav1.DeleteOptions{})
 }
 
 func GetNodeList(k8sClient *kubernetes.Clientset) (*v1.NodeList, error) {
-	return k8sClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	return k8sClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 }
 
 func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error) {
-	nodes, err := GetNodeList(k8sClient)
-	if err != nil {
-		return nil, err
-	}
-	for _, node := range nodes.Items {
-		if strings.ToLower(node.Labels[HostnameLabel]) == strings.ToLower(nodeName) {
-			return &node, nil
+	var listErr error
+	for retries := 0; retries < MaxRetries; retries++ {
+		logrus.Debugf("Checking node list for node [%v], try #%v", nodeName, retries+1)
+		nodes, err := GetNodeList(k8sClient)
+		if err != nil {
+			listErr = err
+			time.Sleep(time.Second * RetryInterval)
+			continue
 		}
+		// reset listErr back to nil
+		listErr = nil
+		for _, node := range nodes.Items {
+			if strings.ToLower(node.Labels[HostnameLabel]) == strings.ToLower(nodeName) {
+				return &node, nil
+			}
+		}
+		time.Sleep(time.Second * RetryInterval)
+	}
+	if listErr != nil {
+		return nil, listErr
 	}
 	return nil, apierrors.NewNotFound(schema.GroupResource{}, nodeName)
 }
 
 func CordonUncordon(k8sClient *kubernetes.Clientset, nodeName string, cordoned bool) error {
 	updated := false
-	for retries := 0; retries <= 5; retries++ {
+	for retries := 0; retries < MaxRetries; retries++ {
 		node, err := GetNode(k8sClient, nodeName)
 		if err != nil {
 			logrus.Debugf("Error getting node %s: %v", nodeName, err)
-			time.Sleep(time.Second * 5)
-			continue
+			// no need to retry here since GetNode already retries
+			return err
 		}
 		if node.Spec.Unschedulable == cordoned {
 			logrus.Debugf("Node %s is already cordoned: %v", nodeName, cordoned)
 			return nil
 		}
 		node.Spec.Unschedulable = cordoned
-		_, err = k8sClient.CoreV1().Nodes().Update(node)
+		_, err = k8sClient.CoreV1().Nodes().Update(context.TODO(), node, metav1.UpdateOptions{})
 		if err != nil {
 			logrus.Debugf("Error setting cordoned state for node %s: %v", nodeName, err)
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * RetryInterval)
 			continue
 		}
 		updated = true
@@ -80,7 +95,7 @@ func CordonUncordon(k8sClient *kubernetes.Clientset, nodeName string, cordoned b
 func IsNodeReady(node v1.Node) bool {
 	nodeConditions := node.Status.Conditions
 	for _, condition := range nodeConditions {
-		if condition.Type == "Ready" && condition.Status == v1.ConditionTrue {
+		if condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue {
 			return true
 		}
 	}
@@ -111,7 +126,7 @@ func RemoveTaintFromNodeByKey(k8sClient *kubernetes.Clientset, nodeName, taintKe
 		if !foundTaint {
 			return nil
 		}
-		_, err = k8sClient.CoreV1().Nodes().Update(node)
+		_, err = k8sClient.CoreV1().Nodes().Update(context.TODO(), node, metav1.UpdateOptions{})
 		if err != nil {
 			logrus.Debugf("Error updating node [%s] with new set of taints: %v", node.Name, err)
 			time.Sleep(time.Second * 5)

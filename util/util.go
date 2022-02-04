@@ -2,19 +2,25 @@ package util
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
 
+	"github.com/rancher/rke/metadata"
+
 	"github.com/coreos/go-semver/semver"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	ref "github.com/docker/distribution/reference"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	WorkerThreads = 50
-
-	SupportedSyncToolsVersion = "0.1.22"
 )
+
+var ProxyEnvVars = [3]string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}
 
 func StrToSemVer(version string) (*semver.Version, error) {
 	v, err := semver.NewVersion(strings.TrimPrefix(version, "v"))
@@ -67,69 +73,174 @@ func IsSymlink(file string) (bool, error) {
 	return false, nil
 }
 
-// ValidateVersion - Return error if version is not valid
-// Is version major.minor >= oldest major.minor supported
-// Is version in the AllK8sVersions list
-// Is version not in the "bad" list
-func ValidateVersion(version string) error {
-	// Create target version and current versions list
-	targetVersion, err := StrToSemVer(version)
+func GetTagMajorVersion(tag string) string {
+	splitTag := strings.Split(tag, ".")
+	if len(splitTag) < 2 {
+		return ""
+	}
+	return strings.Join(splitTag[:2], ".")
+}
+
+func IsFileExists(filePath string) (bool, error) {
+	if _, err := os.Stat(filePath); err == nil {
+		return true, nil
+	} else if os.IsNotExist(err) {
+		return false, nil
+	} else {
+		return false, err
+	}
+}
+
+func GetDefaultRKETools(image string) (string, error) {
+	// don't override tag of custom system images
+	if !strings.Contains(image, "rancher/rke-tools") {
+		return image, nil
+	}
+	tag, err := GetImageTagFromImage(image)
+	if err != nil || tag == "" {
+		return "", fmt.Errorf("defaultRKETools: no tag %s", image)
+	}
+	defaultImage := metadata.K8sVersionToRKESystemImages[metadata.DefaultK8sVersion].Alpine
+	toReplaceTag, err := GetImageTagFromImage(defaultImage)
+	if err != nil || toReplaceTag == "" {
+		return "", fmt.Errorf("defaultRKETools: no replace tag %s", defaultImage)
+	}
+	image = strings.Replace(image, tag, toReplaceTag, 1)
+	return image, nil
+}
+
+func GetImageTagFromImage(image string) (string, error) {
+	parsedImage, err := ref.ParseNormalizedNamed(image)
 	if err != nil {
-		return fmt.Errorf("%s is not valid semver", version)
+		return "", err
 	}
-	currentVersionsList := []*semver.Version{}
-	for _, ver := range v3.K8sVersionsCurrent {
-		v, err := StrToSemVer(ver)
-		if err != nil {
-			return fmt.Errorf("%s in Current Versions list is not valid semver", ver)
+	imageTag := parsedImage.(ref.Tagged).Tag()
+	logrus.Debugf("Extracted version [%s] from image [%s]", imageTag, image)
+	return imageTag, nil
+}
+
+func StripPasswordFromURL(URL string) (string, error) {
+	u, err := url.Parse(URL)
+	if err != nil {
+		return "", err
+	}
+	_, passSet := u.User.Password()
+	if passSet {
+		return strings.Replace(u.String(), u.User.String()+"@", u.User.Username()+":***@", 1), nil
+	}
+	return u.String(), nil
+}
+
+// GetEnvVar will lookup a given environment variable by key and return the key and value (to show what case got matched) with uppercase key being preferred
+func GetEnvVar(key string) (string, string, bool) {
+	// Uppercase (has precedence over lowercase)
+	if value, ok := os.LookupEnv(strings.ToUpper(key)); ok {
+		return strings.ToUpper(key), value, true
+	}
+	// Lowercase
+	if value, ok := os.LookupEnv(strings.ToLower(key)); ok {
+		return strings.ToLower(key), value, true
+	}
+	return "", "", false
+}
+
+func PrintProxyEnvVars() {
+	// Print proxy related environment variables
+	for _, proxyEnvVar := range ProxyEnvVars {
+		var err error
+		// Lookup environment variable
+		if key, value, ok := GetEnvVar(proxyEnvVar); ok {
+			// If it can contain a password, strip it (HTTP_PROXY or HTTPS_PROXY)
+			if strings.HasPrefix(strings.ToUpper(proxyEnvVar), "HTTP") {
+				value, err = StripPasswordFromURL(value)
+				if err != nil {
+					// Don't error out of provisioning when parsing of environment variable fails
+					logrus.Warnf("Error parsing proxy environment variable %s", key)
+					continue
+				}
+			}
+			logrus.Infof("Using proxy environment variable %s with value [%s]", key, value)
 		}
-
-		currentVersionsList = append(currentVersionsList, v)
 	}
+}
 
-	// Make sure Target version is greater than or equal to oldest major.minor supported.
-	semver.Sort(currentVersionsList)
-	if targetVersion.Major < currentVersionsList[0].Major {
-		return fmt.Errorf("%s is an unsupported Kubernetes version - see 'rke config --system-images --all' for versions supported with this release", version)
-	}
-	if targetVersion.Major == currentVersionsList[0].Major {
-		if targetVersion.Minor < currentVersionsList[0].Minor {
-			return fmt.Errorf("%s is an unsupported Kubernetes version - see 'rke config --system-images --all' for versions supported with this release", version)
+func CleanWindowsPath(s string) string {
+	// clean backslashes added from encoding
+	var new []string
+
+	// squash multi backslashes
+	sp := strings.Split(s, "\\")
+	for _, v := range sp {
+		if v != "" {
+			new = append(new, v)
 		}
 	}
-	// Make sure Target version is in the AllK8sVersions list.
-	_, ok := v3.AllK8sVersions[version]
-	if !ok {
-		return fmt.Errorf("%s is an unsupported Kubernetes version - see 'rke config --system-images --all' for versions supported with this release", version)
-	}
-	// Make sure Target version is not "bad".
-	_, ok = v3.K8sBadVersions[version]
-	if ok {
-		return fmt.Errorf("%s is an unsupported Kubernetes version - see 'rke config --system-images --all' for versions supported with this release", version)
-	}
 
+	// drive letter only, add a trailing slash
+	if len(new) == 1 {
+		new = append(new, "")
+	}
+	return strings.Join(new, "\\")
+}
+
+func ReplaceFileWithBackup(originalFile, prefixBackupFile string) error {
+	fileExists, err := IsFileExists(originalFile)
+	if err != nil {
+		return err
+	}
+	if !fileExists {
+		return nil
+	}
+	tmpfile, err := ioutil.TempFile(".", prefixBackupFile)
+	if err != nil {
+		return err
+	}
+	err = os.Rename(originalFile, tmpfile.Name())
+	if err != nil {
+		return err
+	}
+	logrus.Infof("Moved file [%s] to new location [%s] as back-up", originalFile, tmpfile.Name())
 	return nil
 }
 
-func GetDefaultRKETools() string {
-	return v3.AllK8sVersions[v3.DefaultK8s].Alpine
-}
-
-func IsRancherBackupSupported(image string) bool {
-	v := strings.Split(image, ":")
-	last := v[len(v)-1]
-
-	sv, err := StrToSemVer(last)
+func CopyFileWithPrefix(originalFile, prefixDestFile string) error {
+	fileExists, err := IsFileExists(originalFile)
 	if err != nil {
-		return false
+		return err
+	}
+	if !fileExists {
+		return nil
 	}
 
-	supported, err := StrToSemVer(SupportedSyncToolsVersion)
+	sourceFileStat, err := os.Stat(originalFile)
 	if err != nil {
-		return false
+		return err
 	}
-	if sv.LessThan(*supported) {
-		return false
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", originalFile)
 	}
-	return true
+
+	source, err := os.Open(originalFile)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destFile, err := ioutil.TempFile(".", prefixDestFile)
+	if err != nil {
+		return err
+	}
+
+	destination, err := os.Create(destFile.Name())
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("Copied file [%s] to new location [%s] as back-up", originalFile, destFile.Name())
+	return nil
 }

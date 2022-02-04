@@ -1,32 +1,27 @@
 package k8s
 
 import (
-	"k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"context"
+
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
-func GetSecret(k8sClient *kubernetes.Clientset, secretName string) (*v1.Secret, error) {
-	return k8sClient.CoreV1().Secrets(metav1.NamespaceSystem).Get(secretName, metav1.GetOptions{})
+func GetSystemSecret(k8sClient *kubernetes.Clientset, secretName string) (*v1.Secret, error) {
+	return GetSecret(k8sClient, secretName, metav1.NamespaceSystem)
 }
 
-func UpdateSecret(k8sClient *kubernetes.Clientset, secretDataMap map[string][]byte, secretName string) error {
-	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: metav1.NamespaceSystem,
-		},
-		Data: secretDataMap,
-	}
-	if _, err := k8sClient.CoreV1().Secrets(metav1.NamespaceSystem).Create(secret); err != nil {
-		if !apierrors.IsAlreadyExists(err) {
-			return err
-		}
-		// update secret if its already exist
-		if _, err := k8sClient.CoreV1().Secrets(metav1.NamespaceSystem).Update(secret); err != nil {
-			return err
-		}
-	}
-	return nil
+func GetSecret(k8sClient *kubernetes.Clientset, secretName, namespace string) (*v1.Secret, error) {
+	return k8sClient.CoreV1().Secrets(namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
+}
+
+func GetSecretsList(k8sClient *kubernetes.Clientset, namespace string) (*v1.SecretList, error) {
+	return k8sClient.CoreV1().Secrets("").List(context.TODO(), metav1.ListOptions{})
+}
+
+func UpdateSecret(k8sClient *kubernetes.Clientset, secret *v1.Secret) error {
+	var err error
+	_, err = k8sClient.CoreV1().Secrets(secret.Namespace).Update(context.TODO(), secret, metav1.UpdateOptions{})
+	return err
 }

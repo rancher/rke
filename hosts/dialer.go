@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rancher/rke/k8s"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	"k8s.io/client-go/transport"
+
+	v3 "github.com/rancher/rke/types"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -33,10 +34,10 @@ type dialer struct {
 type DialersOptions struct {
 	DockerDialerFactory    DialerFactory
 	LocalConnDialerFactory DialerFactory
-	K8sWrapTransport       k8s.WrapTransport
+	K8sWrapTransport       transport.WrapperFunc
 }
 
-func GetDialerOptions(d, l DialerFactory, w k8s.WrapTransport) DialersOptions {
+func GetDialerOptions(d, l DialerFactory, w transport.WrapperFunc) DialersOptions {
 	return DialersOptions{
 		DockerDialerFactory:    d,
 		LocalConnDialerFactory: l,
@@ -221,7 +222,7 @@ func (d *dialer) getBastionHostTunnelConn() (*ssh.Client, error) {
 	return ssh.NewClient(newClientConn, channels, sshRequest), nil
 }
 
-func BastionHostWrapTransport(bastionHost v3.BastionHost) (k8s.WrapTransport, error) {
+func BastionHostWrapTransport(bastionHost v3.BastionHost) (transport.WrapperFunc, error) {
 
 	bastionDialer := &dialer{
 		sshAddress:      fmt.Sprintf("%s:%s", bastionHost.Address, bastionHost.Port),
@@ -232,7 +233,7 @@ func BastionHostWrapTransport(bastionHost v3.BastionHost) (k8s.WrapTransport, er
 		useSSHAgentAuth: bastionHost.SSHAgentAuth,
 	}
 
-	if bastionDialer.sshKeyString == "" {
+	if bastionDialer.sshKeyString == "" && !bastionDialer.useSSHAgentAuth {
 		var err error
 		bastionDialer.sshKeyString, err = privateKeyPath(bastionHost.SSHKeyPath)
 		if err != nil {

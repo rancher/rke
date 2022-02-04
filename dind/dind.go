@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DINDImage           = "docker:17.03-dind"
+	DINDImage           = "docker:19.03.12-dind"
 	DINDContainerPrefix = "rke-dind"
 	DINDPlane           = "dind"
 	DINDNetwork         = "dind-network"
@@ -47,6 +47,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 		}
 		binds := []string{
 			fmt.Sprintf("/var/lib/kubelet-%s:/var/lib/kubelet:shared", containerName),
+			"/etc/machine-id:/etc/machine-id:ro",
 		}
 		isLink, err := util.IsSymlink("/etc/resolv.conf")
 		if err != nil {
@@ -63,10 +64,12 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 				"sh",
 				"-c",
 				"mount --make-shared / && " +
+					"mount --make-shared /sys && " +
 					"mount --make-shared /var/lib/docker && " +
 					"dockerd-entrypoint.sh --storage-driver=" + storageDriver,
 			},
 			Hostname: dindAddress,
+			Env:      []string{"DOCKER_TLS_CERTDIR="},
 		}
 		hostCfg := &container.HostConfig{
 			Privileged: true,
@@ -78,7 +81,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 				"net.ipv4.conf.all.rp_filter": "1",
 			},
 		}
-		resp, err := cli.ContainerCreate(ctx, imageCfg, hostCfg, nil, containerName)
+		resp, err := cli.ContainerCreate(ctx, imageCfg, hostCfg, nil, nil, containerName)
 		if err != nil {
 			return "", fmt.Errorf("Failed to create [%s] container on host [%s]: %v", containerName, cli.DaemonHost(), err)
 		}
@@ -120,6 +123,10 @@ func RmoveDindContainer(ctx context.Context, dindAddress string) error {
 	if err := cli.ContainerRemove(ctx, containerName, types.ContainerRemoveOptions{
 		Force:         true,
 		RemoveVolumes: true}); err != nil {
+		if client.IsErrNotFound(err) {
+			logrus.Debugf("[remove/%s] Container doesn't exist on host [%s]", containerName, cli.DaemonHost())
+			return nil
+		}
 		return fmt.Errorf("Failed to remove dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
 	}
 	logrus.Infof("[%s] Successfully Removed dind container [%s] on host [%s]", DINDPlane, containerName, cli.DaemonHost())

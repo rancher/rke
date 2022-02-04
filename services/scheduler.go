@@ -5,11 +5,11 @@ import (
 
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/rke/types"
 )
 
 func runScheduler(ctx context.Context, host *hosts.Host, df hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, schedulerProcess v3.Process, alpineImage string) error {
-	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(schedulerProcess)
+	imageCfg, hostCfg, healthCheckURL := GetProcessConfig(schedulerProcess, host)
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, SchedulerContainerName, host.Address, ControlRole, prsMap); err != nil {
 		return err
 	}

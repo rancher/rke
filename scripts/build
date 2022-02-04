@@ -5,10 +5,9 @@ source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
-OS_PLATFORM_ARG=(linux darwin windows)
-OS_ARCH_ARG[linux]="amd64 arm"
-OS_ARCH_ARG[windows]="386 amd64"
-OS_ARCH_ARG[darwin]="amd64"
+OS_ARCH_ARG_LINUX="amd64 arm arm64"
+OS_ARCH_ARG_WINDOWS="386 amd64"
+OS_ARCH_ARG_DARWIN="amd64"
 
 mkdir -p bin
 [ "$(uname)" != "Darwin" ] && LINKFLAGS="-extldflags -static -s"
@@ -17,16 +16,28 @@ CGO_ENABLED=0 go build -ldflags "-X main.VERSION=$VERSION $LINKFLAGS" -o bin/rke
 if [ -n "$CROSS" ]; then
     rm -rf build/bin
     mkdir -p build/bin
-    for OS in ${OS_PLATFORM_ARG[@]}; do
-        for ARCH in ${OS_ARCH_ARG[${OS}]}; do
-            OUTPUT_BIN="build/bin/rke_$OS-$ARCH"
-            if test "$OS" = "windows"; then
-                OUTPUT_BIN="${OUTPUT_BIN}.exe"
-            fi
-            echo "Building binary for $OS/$ARCH..."
-            GOARCH=$ARCH GOOS=$OS CGO_ENABLED=0 go build \
-                  -ldflags="-w -X main.VERSION=$VERSION" \
-                  -o ${OUTPUT_BIN} ./
-        done
+
+    for ARCH in ${OS_ARCH_ARG_LINUX}; do
+        OUTPUT_BIN="build/bin/rke_linux-$ARCH"
+        echo "Building binary for linux/$ARCH..."
+        GOARCH=$ARCH GOOS=linux CGO_ENABLED=0 go build \
+                -ldflags="-w -X main.VERSION=$VERSION" \
+                -o ${OUTPUT_BIN} ./
+    done
+
+    for ARCH in ${OS_ARCH_ARG_WINDOWS}; do
+        OUTPUT_BIN="build/bin/rke_windows-$ARCH.exe"
+        echo "Building binary for windows/$ARCH..."
+        GOARCH=$ARCH GOOS=windows CGO_ENABLED=0 go build \
+                -ldflags="-w -X main.VERSION=$VERSION" \
+                -o ${OUTPUT_BIN} ./
+    done
+
+    for ARCH in ${OS_ARCH_ARG_DARWIN}; do
+        OUTPUT_BIN="build/bin/rke_darwin-$ARCH"
+        echo "Building binary for darwin/$ARCH..."
+        GOARCH=$ARCH GOOS=darwin CGO_ENABLED=0 go build \
+                -ldflags="-w -X main.VERSION=$VERSION" \
+                -o ${OUTPUT_BIN} ./
     done
 fi

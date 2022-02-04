@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-ini/ini"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/rke/types"
 )
 
 const (
@@ -40,7 +40,7 @@ func (p *CloudProvider) GetName() string {
 func (p *CloudProvider) GenerateCloudConfigFile() (string, error) {
 	// Generate INI style configuration
 	buf := new(bytes.Buffer)
-	cloudConfig := ini.Empty()
+	cloudConfig, _ := ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, []byte(""))
 	if err := ini.ReflectFrom(cloudConfig, p.Config); err != nil {
 		return "", fmt.Errorf("Failed to parse Openstack cloud config")
 	}

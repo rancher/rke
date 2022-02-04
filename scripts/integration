@@ -1,8 +1,22 @@
 #!/bin/bash
+NETWORK_PLUGIN=$1
+
+function kubectlinstall {
+    k8sversion=$1
+    if [ ! -f "/usr/local/bin/kubectl-${k8sversion}" ]; then
+        echo_with_time "Downloading kubectl ${k8sversion}"
+        curl -sL -o "/usr/local/bin/kubectl-${k8sversion}" "https://storage.googleapis.com/kubernetes-release/release/${k8sversion}/bin/linux/amd64/kubectl"
+        chmod +x "/usr/local/bin/kubectl-${k8sversion}"
+    fi
+}
+
+function echo_with_time {
+    echo "$(date --utc +%Y-%m-%dT%H:%M:%SZ) "$@""
+}
 
 function cleanup {
     echo ""
-    echo "---- Clean Up RKE ----"
+    echo_with_time "---- Clean Up RKE ----"
     for i in ./bin/cluster-*.yml; do
         ./bin/rke remove --dind --force --config $i 2>&1 >/dev/null
     done
@@ -12,19 +26,29 @@ trap cleanup TERM EXIT
 
 pids=""
 tail_pids=""
+pids_upgrade=""
+tail_pids_upgrade=""
 RESULT="0"
+UPGRADE_RESULT="0"
 declare -A versions_to_test
 declare -A pids_to_version
+declare -A pids_upgrade_to_version
 declare -A pids_results
+declare -A rollout_results
+declare -A rkeup_results
+declare -A pids_upgrade_results
+declare -A rollout_upgrade_results
+declare -A rkeup_upgrade_results
+declare -A version_to_upgraded_version
 
-echo "INFO - Running $0"
+
+echo_with_time "INFO - Running $0"
 source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
-
 # Get latest version from rke
-all_versions=$(./bin/rke config --all --system-images 2>&1 | grep "Generating images list for version" | sed -E 's/.*\[(.*)\].*/\1/' | sort -V)
+all_versions=$(./bin/rke --quiet config --all --list-version | sort -V)
 
 # Get the latest of the major.minor versions.
 for ver in $all_versions; do
@@ -41,26 +65,32 @@ for ver in $all_versions; do
 done
 
 for ver in "${!versions_to_test[@]}"; do
-    echo "testing ${versions_to_test["${ver}"]}"
+    version_to_test=${versions_to_test["${ver}"]}
+    echo_with_time "Testing version ${version_to_test}"
 
     # Create cluster yaml with random node names
-    node=$(cat /dev/urandom | tr -dc a-z | head -c${1:-8})
-    cat << EOF > "./bin/cluster-${versions_to_test["${ver}"]}.yml"
-kubernetes_version: ${versions_to_test["${ver}"]}
+    node=$(cat /dev/urandom | tr -dc a-z | head -c8)
+    cat << EOF > "./bin/cluster-${version_to_test}.yml"
+kubernetes_version: ${version_to_test}
 nodes:
 - address: rke-node-${node}
   role: [etcd, controlplane, worker]
   user: ubuntu
 EOF
 
+    if [ "x${NETWORK_PLUGIN}" != "x" ]; then
+        echo_with_time "Network plugin specified: ${NETWORK_PLUGIN}"
+        echo -e "network:\n  plugin: ${NETWORK_PLUGIN}" >> ./bin/cluster-${version_to_test}.yml
+    fi
+
     # Run rke - output to logs and track results.
-    ./bin/rke up --dind --config "./bin/cluster-${versions_to_test["${ver}"]}.yml" 2>&1 >"./bin/cluster-${versions_to_test["${ver}"]}.log" &
+    ./bin/rke up --dind --config "./bin/cluster-${version_to_test}.yml" 2>&1 >"./bin/cluster-${version_to_test}.log" &
     pids="$pids $!"
-    pid_to_version["$!"]="${versions_to_test["${ver}"]}"
+    pids_to_version["$!"]="${version_to_test}"
 
     # Tail logs.
     sleep 1
-    tail -f "./bin/cluster-${versions_to_test["${ver}"]}.log" &
+    tail -f "./bin/cluster-${version_to_test}.log" &
     tail_pids="$tail_pids $!"
 done
 
@@ -68,6 +98,7 @@ done
 for pid in $pids; do
     wait $pid
     pid_results["${pid}"]="$?"
+    echo_with_time "PID ${pid} for ${pids_to_version["${pid}"]} is done"
 done
 
 # Stop tailing the logs
@@ -75,17 +106,173 @@ for pid in $tail_pids; do
     kill $pid 2>&1 >/dev/null
 done
 
-echo ""
-echo "---- TEST RESULTS ----"
 for pid in "${!pid_results[@]}"; do
+    pid_to_version=${pids_to_version["${pid}"]}
+    clusterk8sversion=$(echo "${pid_to_version}" | awk -F'-' '{ print $1 }')
+    kubectlinstall $clusterk8sversion
     if [ "${pid_results["${pid}"]}" == "0" ]; then
-        echo "[PASS] ${pid_to_version["${pid}"]}"
+        rkeup_results["${pid}"]="0"
+        echo_with_time "[OK] rke up successful for ${pid_to_version}"
+        echo_with_time "Checking rollout status of all deployments/daemonsets for ${pid_to_version}"
+        for namespace in $(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get namespace -o custom-columns=NAME:.metadata.name --no-headers); do
+            if [ "${rollout_results["${pid}"]}" = "1" ]; then
+                continue
+            fi
+            while read name kind; do
+                if [ "$name" = "" ] || [ "$kind" = "" ]; then
+                    continue
+                fi
+                if [ "${rollout_results["${pid}"]}" = "1" ]; then
+                    continue
+                fi
+                echo_with_time "Checking rollout status of $kind $name in namespace $namespace for ${pid_to_version}"
+                /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
+                if [ $? -ne 0 ]; then
+                    echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for ${pid_to_version} did not complete in 5 minutes"
+                    rollout_results["${pid}"]="1"
+                else
+                    echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for ${pid_to_version} complete"
+                    rollout_results["${pid}"]="0"
+                fi
+            done <<<$(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
+        done
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get pods --all-namespaces
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].image}" | tr -s '[[:space:]]' '\n' | sort -u
     else
-        echo "[FAIL] ${pid_to_version["${pid}"]}"
-        RESULT="1"
+        rkeup_results["${pid}"]="1"
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get pods --all-namespaces
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].image}" | tr -s '[[:space:]]' '\n' | sort -u
     fi
 done
 
-if [ "$RESULT" == "1" ]; then
+echo ""
+echo_with_time "---- TEST RESULTS ----"
+for pid in "${!pid_results[@]}"; do
+    if [ "${rkeup_results["${pid}"]}" != "0" ]; then
+        echo_with_time "[FAIL] ${pids_to_version["${pid}"]} (rke up)"
+        RESULT=1
+        continue
+    fi
+    if [ "${rollout_results["${pid}"]}" != "0" ]; then
+        echo_with_time "[FAIL] ${pids_to_version["${pid}"]} (rollout status)"
+        RESULT=1
+        continue
+    fi
+    echo_with_time "[PASS] ${pids_to_version["${pid}"]}"
+done
+
+if [ "$RESULT" = "1" ]; then
+    echo_with_time "[FAIL] One or more clusters failed to provision"
+    exit 1
+fi
+
+echo ""
+echo_with_time "Testing upgrading clusters"
+for ver in "${!versions_to_test[@]}"; do
+    echo_with_time "Checking if we can upgrade cluster with version ${versions_to_test["${ver}"]}"
+    
+    # This gets the next version in the list
+    # Example $all_versions: "v1.16.15-rancher1-2 v1.17.12-rancher1-1 v1.18.9-rancher1-1 v1.19.2-rancher1-1"
+    upgrade_to_version=$(echo $all_versions | grep -oP '(?<='"${versions_to_test["${ver}"]}"' )[^ ]*')
+
+    if [ "${upgrade_to_version}" = "" ]; then
+        echo_with_time "No newer version found for ${versions_to_test["${ver}"]} to upgrade to"
+        continue
+    fi
+
+    # Saving the original version -> upgrade version to print in the logs
+    version_to_upgraded_version[${versions_to_test["${ver}"]}]="${upgrade_to_version}"
+    
+    # Change original cluster yaml with new version to upgrade to
+    sed -i 's/'"${versions_to_test["${ver}"]}"'/'"${upgrade_to_version}"'/g' "./bin/cluster-${versions_to_test["${ver}"]}.yml"
+
+    echo_with_time "Upgrading cluster version ${versions_to_test["${ver}"]} to version ${upgrade_to_version}"
+    # Run rke - output to logs and track results.
+    ./bin/rke up --dind --config "./bin/cluster-${versions_to_test["${ver}"]}.yml" 2>&1 >"./bin/cluster-upgrade-${versions_to_test["${ver}"]}-${upgrade_to_version}.log" &
+    pids_upgrade="$pids_upgrade $!"
+    pids_upgrade_to_version["$!"]="${versions_to_test["${ver}"]}"
+
+    # Tail logs.
+    sleep 1
+    tail -f "./bin/cluster-upgrade-${versions_to_test["${ver}"]}-${upgrade_to_version}.log" &
+    tail_pids_upgrade="$tail_pids_upgrade $!"
+done
+
+# Wait for rke to finish
+for pid_upgrade in $pids_upgrade; do
+    wait $pid_upgrade
+    pid_upgrade_results["${pid_upgrade}"]="$?"
+    echo_with_time "PID ${pid_upgrade} for upgrade of ${pids_upgrade_to_version["${pid_upgrade}"]} to "${version_to_upgraded_version["${pids_upgrade_to_version["${pid_upgrade}"]}"]}" is done"
+done
+
+# Stop tailing the logs
+for pid_upgrade in $tail_pids_upgrade; do
+    kill $pid_upgrade 2>&1 >/dev/null
+done
+
+for pid in "${!pid_upgrade_results[@]}"; do
+    # This is the initially provisioned version of the cluster, retrieved from the pid
+    pid_upgrade_to_version=${pids_upgrade_to_version["${pid}"]}
+    # This is the version the cluster was upgraded to
+    upgraded_version=${version_to_upgraded_version["${pid_upgrade_to_version}"]}
+    clusterk8sversion=$(echo "${pid_upgrade_to_version}" | awk -F'-' '{ print $1 }')
+    kubectlinstall $clusterk8sversion
+    if [ "${pid_upgrade_results["${pid}"]}" == "0" ]; then
+        rkeup_upgrade_results["${pid}"]="0"
+        echo_with_time "[OK] rke up successful for upgrade of ${pid_upgrade_to_version}"
+        echo_with_time "Checking rollout status of all deployments/daemonsets for upgrade of ${pid_upgrade_to_version} to "${upgraded_version}""
+        for namespace in $(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get namespace -o custom-columns=NAME:.metadata.name --no-headers); do
+            if [ "${rollout_upgrade_results["${pid}"]}" = "1" ]; then
+                continue
+            fi
+            while read name kind; do
+                if [ "$name" = "" ] || [ "$kind" = "" ]; then
+                    continue
+                fi
+                if [ "${rollout_upgrade_results["${pid}"]}" = "1" ]; then
+                    continue
+                fi
+                echo_with_time "Checking rollout status of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}""
+                /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" -n $namespace rollout status $kind $name -w --timeout=5m >/dev/null 2>&1
+                if [ $? -ne 0 ]; then
+                    echo_with_time "[FAIL] Rollout of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" did not complete in 5 minutes"
+                    rollout_upgrade_results["${pid}"]="1"
+                else
+                    echo_with_time "[OK] Rollout of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" complete"
+                    rollout_upgrade_results["${pid}"]="0"
+                fi
+            done <<<$(/usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" -n $namespace get deploy,daemonset --no-headers -o custom-columns=NAME:.metadata.name,KIND:.kind --no-headers)
+        done
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get pods --all-namespaces
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_upgrade_to_version}.yml" get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].image}" | tr -s '[[:space:]]' '\n' | sort -u
+    else
+        rkeup_upgrade_results["${pid}"]="1"
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pids_to_version["${pid}"]}.yml" get nodes -o go-template='{{range .items}}{{$node := .}}{{range .status.conditions}}{{$node.metadata.name}}{{": "}}{{.type}}{{":"}}{{.status}}{{"\n"}}{{end}}{{end}}'
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pids_to_version["${pid}"]}.yml" get pods --all-namespaces
+        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pids_to_version["${pid}"]}.yml" get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].image}" | tr -s '[[:space:]]' '\n' | sort -u
+    fi
+done
+
+echo ""
+echo_with_time "---- UPGRADE TEST RESULTS ----"
+for pid in "${!pid_upgrade_results[@]}"; do
+    if [ "${rkeup_upgrade_results["${pid}"]}" != "0" ]; then
+        echo_with_time "[FAIL] upgrade ${pids_upgrade_to_version["${pid}"]} to "${version_to_upgraded_version["${pids_upgrade_to_version["${pid}"]}"]}" (rke up)"
+        UPGRADE_RESULT=1
+        continue
+    fi
+    if [ "${rollout_upgrade_results["${pid}"]}" != "0" ]; then
+        echo_with_time "[FAIL] upgrade ${pids_upgrade_to_version["${pid}"]} to "${version_to_upgraded_version["${pids_upgrade_to_version["${pid}"]}"]}" (rollout status)"
+        UPGRADE_RESULT=1
+        continue
+    fi
+    echo_with_time "[PASS] upgrade ${pids_upgrade_to_version["${pid}"]} to "${version_to_upgraded_version["${pids_upgrade_to_version["${pid}"]}"]}""
+done
+
+if [ "$UPGRADE_RESULT" = "1" ]; then
+    echo_with_time "[FAIL] One or more clusters failed to upgrade"
     exit 1
 fi

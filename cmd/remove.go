@@ -12,7 +12,7 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -56,7 +56,8 @@ func ClusterRemove(
 	flags cluster.ExternalFlags) error {
 
 	log.Infof(ctx, "Tearing down Kubernetes cluster")
-	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
+
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags, "")
 	if err != nil {
 		return err
 	}
@@ -80,6 +81,7 @@ func ClusterRemove(
 }
 
 func clusterRemoveFromCli(ctx *cli.Context) error {
+	logrus.Infof("Running RKE version: %v", ctx.App.Version)
 	if ctx.Bool("local") {
 		return clusterRemoveLocal(ctx)
 	}
@@ -114,7 +116,7 @@ func clusterRemoveFromCli(ctx *cli.Context) error {
 	}
 
 	// setting up the flags
-	flags := cluster.GetExternalFlags(false, false, false, "", filePath)
+	flags := cluster.GetExternalFlags(false, false, false, false, "", filePath)
 
 	return ClusterRemove(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
 }
@@ -138,7 +140,7 @@ func clusterRemoveLocal(ctx *cli.Context) error {
 		return err
 	}
 	// setting up the flags
-	flags := cluster.GetExternalFlags(true, false, false, "", filePath)
+	flags := cluster.GetExternalFlags(true, false, false, false, "", filePath)
 
 	return ClusterRemove(context.Background(), rkeConfig, hosts.DialersOptions{}, flags)
 }
@@ -164,8 +166,12 @@ func clusterRemoveDind(ctx *cli.Context) error {
 			return err
 		}
 	}
-	localKubeConfigPath := pki.GetLocalKubeConfig(filePath, "")
 	// remove the kube config file
+	localKubeConfigPath := pki.GetLocalKubeConfig(filePath, "")
 	pki.RemoveAdminConfig(context.Background(), localKubeConfigPath)
+
+	// remove cluster state file
+	stateFilePath := cluster.GetStateFilePath(filePath, "")
+	cluster.RemoveStateFile(context.Background(), stateFilePath)
 	return err
 }

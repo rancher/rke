@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	etcdclient "github.com/coreos/etcd/client"
@@ -18,7 +19,7 @@ import (
 func getEtcdClient(ctx context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (etcdclient.Client, error) {
 	dialer, err := getEtcdDialer(localConnDialerFactory, etcdHost)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create a dialer for host [%s]: %v", etcdHost.Address, err)
+		return nil, fmt.Errorf("failed to create a dialer for host [%s]: %v", etcdHost.Address, err)
 	}
 	tlsConfig, err := getEtcdTLSConfig(cert, key)
 	if err != nil {
@@ -39,17 +40,20 @@ func getEtcdClient(ctx context.Context, etcdHost *hosts.Host, localConnDialerFac
 	return etcdclient.New(cfg)
 }
 
-func isEtcdHealthy(ctx context.Context, localConnDialerFactory hosts.DialerFactory, host *hosts.Host, cert, key []byte, url string) bool {
-	logrus.Debugf("[etcd] Check etcd cluster health")
-	for i := 0; i < 3; i++ {
+func isEtcdHealthy(localConnDialerFactory hosts.DialerFactory, host *hosts.Host, cert, key []byte, url string) error {
+	logrus.Debugf("[etcd] check etcd cluster health on host [%s]", host.Address)
+	var finalErr error
+	var healthy string
+	// given a max election timeout of 50000ms (50s), max re-election of 77 seconds was seen
+	// this allows for 18 * 5 seconds = 90 seconds of re-election
+	for i := 0; i < 18; i++ {
 		dialer, err := getEtcdDialer(localConnDialerFactory, host)
 		if err != nil {
-			return false
+			return err
 		}
 		tlsConfig, err := getEtcdTLSConfig(cert, key)
 		if err != nil {
-			logrus.Debugf("[etcd] Failed to create etcd tls config for host [%s]: %v", host.Address, err)
-			return false
+			return fmt.Errorf("[etcd] failed to create etcd tls config for host [%s]: %v", host.Address, err)
 		}
 
 		hc := http.Client{
@@ -59,33 +63,38 @@ func isEtcdHealthy(ctx context.Context, localConnDialerFactory hosts.DialerFacto
 				TLSHandshakeTimeout: 10 * time.Second,
 			},
 		}
-		healthy, err := getHealthEtcd(hc, host, url)
-		if err != nil {
-			logrus.Debug(err)
+		healthy, finalErr = getHealthEtcd(hc, host, url)
+		if finalErr != nil {
+			logrus.Debugf("[etcd] failed to check health for etcd host [%s]: %v", host.Address, finalErr)
 			time.Sleep(5 * time.Second)
 			continue
 		}
+		// Changed this from Debug to Info to inform user on what is happening
+		logrus.Infof("[etcd] etcd host [%s] reported healthy=%s", host.Address, healthy)
 		if healthy == "true" {
-			logrus.Debugf("[etcd] etcd cluster is healthy")
-			return true
+			return nil
 		}
+		time.Sleep(5 * time.Second)
 	}
-	return false
+	if finalErr != nil {
+		return fmt.Errorf("[etcd] host [%s] failed to check etcd health: %v", host.Address, finalErr)
+	}
+	return fmt.Errorf("[etcd] host [%s] reported healthy=%s", host.Address, healthy)
 }
 
 func getHealthEtcd(hc http.Client, host *hosts.Host, url string) (string, error) {
 	healthy := struct{ Health string }{}
 	resp, err := hc.Get(url)
 	if err != nil {
-		return healthy.Health, fmt.Errorf("Failed to get /health for host [%s]: %v", host.Address, err)
+		return healthy.Health, fmt.Errorf("failed to get /health for host [%s]: %v", host.Address, err)
 	}
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return healthy.Health, fmt.Errorf("Failed to read response of /health for host [%s]: %v", host.Address, err)
+		return healthy.Health, fmt.Errorf("failed to read response of /health for host [%s]: %v", host.Address, err)
 	}
 	resp.Body.Close()
 	if err := json.Unmarshal(bytes, &healthy); err != nil {
-		return healthy.Health, fmt.Errorf("Failed to unmarshal response of /health for host [%s]: %v", host.Address, err)
+		return healthy.Health, fmt.Errorf("failed to unmarshal response of /health for host [%s]: %v", host.Address, err)
 	}
 	return healthy.Health, nil
 }
@@ -112,15 +121,20 @@ func getEtcdDialer(localConnDialerFactory hosts.DialerFactory, etcdHost *hosts.H
 	return etcdFactory(etcdHost)
 }
 
-func GetEtcdConnString(hosts []*hosts.Host) string {
-	connString := ""
-	for i, host := range hosts {
-		connString += "https://" + host.InternalAddress + ":2379"
-		if i < (len(hosts) - 1) {
-			connString += ","
+func GetEtcdConnString(hosts []*hosts.Host, hostAddress string) string {
+	connHosts := []string{}
+	containsHostAddress := false
+	for _, host := range hosts {
+		if host.InternalAddress == hostAddress {
+			containsHostAddress = true
+			continue
 		}
+		connHosts = append(connHosts, "https://"+host.InternalAddress+":2379")
 	}
-	return connString
+	if containsHostAddress {
+		connHosts = append([]string{"https://" + hostAddress + ":2379"}, connHosts...)
+	}
+	return strings.Join(connHosts, ",")
 }
 
 func getEtcdTLSConfig(certificate, key []byte) (*tls.Config, error) {
@@ -133,9 +147,6 @@ func getEtcdTLSConfig(certificate, key []byte) (*tls.Config, error) {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		Certificates:       []tls.Certificate{x509Pair},
-	}
-	if err != nil {
-		return nil, err
 	}
 	return tlsConfig, nil
 }

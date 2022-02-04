@@ -19,13 +19,17 @@ spec:
     metadata:
        name: rke-deploy
     spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: NotIn
+                    values:
+                      - windows
         tolerations:
-        - key: node-role.kubernetes.io/controlplane
-          operator: Exists
-          effect: NoSchedule
-        - key: node-role.kubernetes.io/etcd
-          operator: Exists
-          effect: NoExecute
+        - operator: Exists
         hostNetwork: true
         serviceAccountName: rke-job-deployer
         nodeName: {{$nodeName}}
@@ -38,7 +42,7 @@ spec:
             image: {{$image}}
             {{- if eq .DeleteJob "true" }}
             command: ["/bin/sh"]
-            args: ["-c" ,"kubectl get --ignore-not-found=true -f /etc/config/{{$addonName}}.yaml -o name | xargs kubectl delete --ignore-not-found=true"]
+            args: ["-c" ,"kubectl get --ignore-not-found=true -f /etc/config/{{$addonName}}.yaml -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,KIND:.kind --no-headers | while read name namespace kind; do if [ \"x${namespace}\" = \"x<none>\" ]; then kubectl delete $kind $name; else kubectl -n $namespace delete $kind $name; fi; done"]
             {{- else }}
             command: [ "kubectl", "apply", "-f" , "/etc/config/{{$addonName}}.yaml"]
             {{- end }}

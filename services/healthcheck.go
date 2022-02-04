@@ -14,8 +14,8 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
+	"github.com/rancher/rke/pki/cert"
 	"github.com/sirupsen/logrus"
-	"k8s.io/client-go/util/cert"
 )
 
 const (
@@ -33,14 +33,6 @@ func runHealthcheck(ctx context.Context, host *hosts.Host, serviceName string, l
 	if err != nil {
 		return err
 	}
-	if serviceName == KubeletContainerName {
-		certificate := cert.EncodeCertPEM(certMap[pki.KubeNodeCertName].Certificate)
-		key := cert.EncodePrivateKeyPEM(certMap[pki.KubeNodeCertName].Key)
-		x509Pair, err = tls.X509KeyPair(certificate, key)
-		if err != nil {
-			return err
-		}
-	}
 	if serviceName == KubeAPIContainerName {
 		certificate := cert.EncodeCertPEM(certMap[pki.KubeAPICertName].Certificate)
 		key := cert.EncodePrivateKeyPEM(certMap[pki.KubeAPICertName].Key)
@@ -55,7 +47,7 @@ func runHealthcheck(ctx context.Context, host *hosts.Host, serviceName string, l
 	}
 	for retries := 0; retries < 10; retries++ {
 		if err = getHealthz(client, serviceName, host.Address, url); err != nil {
-			logrus.Debugf("[healthcheck] %v", err)
+			logrus.Debugf("[healthcheck] %v, try #%v", err, retries+1)
 			time.Sleep(5 * time.Second)
 			continue
 		}

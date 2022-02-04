@@ -1,14 +1,29 @@
 package cluster
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
+	"github.com/rancher/rke/log"
+	"github.com/rancher/rke/metadata"
+	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
+	"github.com/rancher/rke/util"
+	"github.com/sirupsen/logrus"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
-func (c *Cluster) ValidateCluster() error {
+func (c *Cluster) ValidateCluster(ctx context.Context) error {
+	// validate kubernetes version
+	// Version Check
+	if err := validateVersion(ctx, c); err != nil {
+		return err
+	}
+
 	// validate duplicate nodes
 	if err := validateDuplicateNodes(c); err != nil {
 		return err
@@ -34,6 +49,11 @@ func (c *Cluster) ValidateCluster() error {
 		return err
 	}
 
+	// validate enabling CRIDockerd
+	if err := validateCRIDockerdOption(c); err != nil {
+		return err
+	}
+
 	// validate services options
 	return validateServicesOptions(c)
 }
@@ -54,9 +74,208 @@ func validateAuthOptions(c *Cluster) error {
 	return nil
 }
 
+func transformAciNetworkOption(option string) (string, string) {
+	var description string
+	switch option {
+	case AciSystemIdentifier:
+		option = "system_id"
+		description = "unique suffix for all cluster related objects in aci"
+	case AciServiceGraphSubnet:
+		option = "node_svc_subnet"
+		description = "Subnet to use for service graph endpoints on aci"
+	case AciStaticExternalSubnet:
+		option = "extern_static"
+		description = "Subnet to use for static external IPs on aci"
+	case AciDynamicExternalSubnet:
+		option = "extern_dynamic"
+		description = "Subnet to use for dynamic external IPs on aci"
+	case AciToken:
+		description = "UUID for this version of the input configuration"
+	case AciApicUserName:
+		description = "User name for aci apic"
+	case AciApicUserKey:
+		description = "Base64 encoded private key for aci apic user"
+	case AciApicUserCrt:
+		description = "Base64 encoded certificate for aci apic user"
+	case AciEncapType:
+		description = "One of the supported encap types for aci(vlan/vxlan)"
+	case AciMcastRangeStart:
+		description = "Mcast range start address for endpoint groups on aci"
+	case AciMcastRangeEnd:
+		description = "Mcast range end address for endpoint groups on aci"
+	case AciNodeSubnet:
+		description = "Kubernetes node address subnet"
+	case AciAEP:
+		description = "Attachment entity profile name on aci"
+	case AciVRFName:
+		description = "VRF Name on aci"
+	case AciVRFTenant:
+		description = "Tenant for VRF on aci"
+	case AciL3Out:
+		description = "L3Out on aci"
+	case AciKubeAPIVlan:
+		description = "Vlan for node network on aci"
+	case AciServiceVlan:
+		description = "Vlan for service graph nodes on aci"
+	case AciInfraVlan:
+		description = "Vlan for infra network on aci"
+	}
+	return option, description
+}
+
+func validateAciCloudOptionsDisabled(option string, value string) (string, string, bool) {
+	var description string
+	ok := false
+	switch option {
+	case AciUseOpflexServerVolume:
+		if value == DefaultAciUseOpflexServerVolume {
+			ok = true
+		}
+		description = "Use mounted volume for opflex server"
+	case AciUseHostNetnsVolume:
+		if value == DefaultAciUseHostNetnsVolume {
+			ok = true
+		}
+		description = "Mount host netns for opflex server"
+	case AciCApic:
+		if value == DefaultAciCApic {
+			ok = true
+		}
+		description = "Provision cloud apic"
+	case AciUseAciAnywhereCRD:
+		if value == DefaultAciUseAciAnywhereCRD {
+			ok = true
+		}
+		description = "Use Aci anywhere CRD"
+	case AciRunGbpContainer:
+		if value == DefaultAciRunGbpContainer {
+			ok = true
+		}
+		description = "Run Gbp Server"
+	case AciRunOpflexServerContainer:
+		if value == DefaultAciRunOpflexServerContainer {
+			ok = true
+		}
+		description = "Run Opflex Server"
+	case AciEpRegistry:
+		if value == "" {
+			ok = true
+		}
+		description = "Registry for Ep whether CRD or MODB"
+	case AciOpflexMode:
+		if value == "" {
+			ok = true
+		}
+		description = "Opflex overlay mode or on-prem"
+	case AciSubnetDomainName:
+		if value == "" {
+			ok = true
+		}
+		description = "Subnet domain name"
+	case AciKafkaClientCrt:
+		if value == "" {
+			ok = true
+		}
+		description = "CApic Kafka client certificate"
+	case AciKafkaClientKey:
+		if value == "" {
+			ok = true
+		}
+		description = "CApic Kafka client key"
+	case AciOverlayVRFName:
+		if value == "" {
+			ok = true
+		}
+		description = "Overlay VRF name"
+	case AciGbpPodSubnet:
+		if value == "" {
+			ok = true
+		}
+		description = "Gbp pod subnet"
+	case AciOpflexServerPort:
+		if value == "" {
+			ok = true
+		}
+		description = "Opflex server port"
+	}
+	return option, description, ok
+}
+
 func validateNetworkOptions(c *Cluster) error {
-	if c.Network.Plugin != NoNetworkPlugin && c.Network.Plugin != FlannelNetworkPlugin && c.Network.Plugin != CalicoNetworkPlugin && c.Network.Plugin != CanalNetworkPlugin && c.Network.Plugin != WeaveNetworkPlugin {
+	if c.Network.Plugin != NoNetworkPlugin && c.Network.Plugin != FlannelNetworkPlugin && c.Network.Plugin != CalicoNetworkPlugin && c.Network.Plugin != CanalNetworkPlugin && c.Network.Plugin != WeaveNetworkPlugin && c.Network.Plugin != AciNetworkPlugin {
 		return fmt.Errorf("Network plugin [%s] is not supported", c.Network.Plugin)
+	}
+	if c.Network.Plugin == FlannelNetworkPlugin && c.Network.MTU != 0 {
+		return fmt.Errorf("Network plugin [%s] does not support configuring MTU", FlannelNetworkPlugin)
+	}
+	dualStack := false
+	serviceClusterRanges := strings.Split(c.Services.KubeAPI.ServiceClusterIPRange, ",")
+	if len(serviceClusterRanges) > 1 {
+		logrus.Debugf("Found more than 1 service cluster IP range, assuming dual stack")
+		dualStack = true
+	}
+	clusterCIDRs := strings.Split(c.Services.KubeController.ClusterCIDR, ",")
+	if len(clusterCIDRs) > 1 {
+		logrus.Debugf("Found more than 1 cluster CIDR, assuming dual stack")
+		dualStack = true
+	}
+	if dualStack {
+		IPv6CompatibleNetworkPluginFound := false
+		for _, networkPlugin := range IPv6CompatibleNetworkPlugins {
+			if c.Network.Plugin == networkPlugin {
+				logrus.Debugf("Found IPv6 compatible network plugin [%s] == [%s]", c.Network.Plugin, networkPlugin)
+				IPv6CompatibleNetworkPluginFound = true
+				break
+			}
+		}
+		if !IPv6CompatibleNetworkPluginFound {
+			return fmt.Errorf("Network plugin [%s] does not support IPv6 (dualstack)", c.Network.Plugin)
+		}
+	}
+
+	if c.Network.Plugin == AciNetworkPlugin {
+		//Skip cloud options and throw an error.
+		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciUseOpflexServerVolume,
+			AciSubnetDomainName, AciKafkaClientCrt, AciKafkaClientKey, AciCApic, UseAciAnywhereCRD,
+			AciOverlayVRFName, AciGbpPodSubnet, AciRunGbpContainer, AciRunOpflexServerContainer, AciOpflexServerPort}
+		for _, v := range cloudOptionsList {
+			val, ok := c.Network.Options[v]
+			_, _, disabled := validateAciCloudOptionsDisabled(v, val)
+			if ok && !disabled {
+				return fmt.Errorf("Network plugin aci: %s = %s is provided,but cloud options are not allowed in this release", v, val)
+			}
+		}
+
+		networkOptionsList := []string{AciSystemIdentifier, AciToken, AciApicUserName, AciApicUserKey,
+			AciApicUserCrt, AciEncapType, AciMcastRangeStart, AciMcastRangeEnd,
+			AciNodeSubnet, AciAEP, AciVRFName, AciVRFTenant, AciL3Out, AciDynamicExternalSubnet,
+			AciStaticExternalSubnet, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan,
+			AciNodeSubnet}
+		for _, v := range networkOptionsList {
+			val, ok := c.Network.Options[v]
+			if !ok || val == "" {
+				var description string
+				v, description = transformAciNetworkOption(v)
+				return fmt.Errorf("Network plugin aci: %s(%s) under aci_network_provider is not provided", strings.TrimPrefix(v, "aci_"), description)
+			}
+		}
+		if c.Network.AciNetworkProvider != nil {
+			if c.Network.AciNetworkProvider.ApicHosts == nil {
+				return fmt.Errorf("Network plugin aci: %s(address of aci apic hosts) under aci_network_provider is not provided", "apic_hosts")
+			}
+			if c.Network.AciNetworkProvider.L3OutExternalNetworks == nil {
+				return fmt.Errorf("Network plugin aci: %s(external network name/s on aci) under aci_network_provider is not provided", "l3out_external_networks")
+			}
+		} else {
+			var requiredArgs []string
+			for _, v := range networkOptionsList {
+				v, _ = transformAciNetworkOption(v)
+				requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", strings.TrimPrefix("aci_", v)))
+			}
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", ApicHosts))
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", L3OutExternalNetworks))
+			return fmt.Errorf("Network plugin aci: multiple parameters under aci_network_provider are not provided: %s", requiredArgs)
+		}
 	}
 	return nil
 }
@@ -107,35 +326,36 @@ func validateServicesOptions(c *Cluster) error {
 	// Validate external etcd information
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		if len(c.Services.Etcd.CACert) == 0 {
-			return fmt.Errorf("External CA Certificate for etcd can't be empty")
+			return errors.New("External CA Certificate for etcd can't be empty")
 		}
 		if len(c.Services.Etcd.Cert) == 0 {
-			return fmt.Errorf("External Client Certificate for etcd can't be empty")
+			return errors.New("External Client Certificate for etcd can't be empty")
 		}
 		if len(c.Services.Etcd.Key) == 0 {
-			return fmt.Errorf("External Client Key for etcd can't be empty")
+			return errors.New("External Client Key for etcd can't be empty")
 		}
 		if len(c.Services.Etcd.Path) == 0 {
-			return fmt.Errorf("External etcd path can't be empty")
+			return errors.New("External etcd path can't be empty")
 		}
 	}
 
 	// validate etcd s3 backup backend configurations
-	if err := validateEtcdBackupOptions(c); err != nil {
-		return err
-	}
-
-	return nil
+	return validateEtcdBackupOptions(c)
 }
 
 func validateEtcdBackupOptions(c *Cluster) error {
 	if c.Services.Etcd.BackupConfig != nil {
 		if c.Services.Etcd.BackupConfig.S3BackupConfig != nil {
 			if len(c.Services.Etcd.BackupConfig.S3BackupConfig.Endpoint) == 0 {
-				return fmt.Errorf("etcd s3 backup backend endpoint can't be empty")
+				return errors.New("etcd s3 backup backend endpoint can't be empty")
 			}
 			if len(c.Services.Etcd.BackupConfig.S3BackupConfig.BucketName) == 0 {
-				return fmt.Errorf("etcd s3 backup backend bucketName can't be empty")
+				return errors.New("etcd s3 backup backend bucketName can't be empty")
+			}
+			if len(c.Services.Etcd.BackupConfig.S3BackupConfig.CustomCA) != 0 {
+				if isValid, err := pki.IsValidCertStr(c.Services.Etcd.BackupConfig.S3BackupConfig.CustomCA); !isValid {
+					return fmt.Errorf("invalid S3 endpoint CA certificate: %v", err)
+				}
 			}
 		}
 	}
@@ -146,6 +366,33 @@ func validateIngressOptions(c *Cluster) error {
 	// Should be changed when adding more ingress types
 	if c.Ingress.Provider != DefaultIngressController && c.Ingress.Provider != "none" {
 		return fmt.Errorf("Ingress controller %s is incorrect", c.Ingress.Provider)
+	}
+
+	if c.Ingress.DNSPolicy != "" &&
+		!(c.Ingress.DNSPolicy == string(v1.DNSClusterFirst) ||
+			c.Ingress.DNSPolicy == string(v1.DNSClusterFirstWithHostNet) ||
+			c.Ingress.DNSPolicy == string(v1.DNSNone) ||
+			c.Ingress.DNSPolicy == string(v1.DNSDefault)) {
+		return fmt.Errorf("DNSPolicy %s was not a valid DNS Policy", c.Ingress.DNSPolicy)
+	}
+
+	if c.Ingress.NetworkMode == "hostPort" {
+		if !(c.Ingress.HTTPPort >= 0 && c.Ingress.HTTPPort <= 65535) {
+			return fmt.Errorf("https port is invalid. Needs to be within 0 to 65535")
+		}
+		if !(c.Ingress.HTTPPort >= 0 && c.Ingress.HTTPPort <= 65535) {
+			return fmt.Errorf("http port is invalid. Needs to be within 0 to 65535")
+		}
+		if c.Ingress.HTTPPort != 0 && c.Ingress.HTTPSPort != 0 &&
+			(c.Ingress.HTTPPort == c.Ingress.HTTPSPort) {
+			return fmt.Errorf("http and https ports need to be different")
+		}
+	}
+
+	if !(c.Ingress.NetworkMode == "" ||
+		c.Ingress.NetworkMode == "hostNetwork" || c.Ingress.NetworkMode == "hostPort" ||
+		c.Ingress.NetworkMode == "none") {
+		return fmt.Errorf("NetworkMode %s was not a valid network mode", c.Ingress.NetworkMode)
 	}
 	return nil
 }
@@ -159,27 +406,246 @@ func ValidateHostCount(c *Cluster) error {
 			}
 			return fmt.Errorf("Cluster must have at least one etcd plane host: failed to connect to the following etcd host(s) %v", failedEtcdHosts)
 		}
-		return fmt.Errorf("Cluster must have at least one etcd plane host: please specify one or more etcd in cluster config")
+		return errors.New("Cluster must have at least one etcd plane host: please specify one or more etcd in cluster config")
 	}
 	if len(c.EtcdHosts) > 0 && len(c.Services.Etcd.ExternalURLs) > 0 {
-		return fmt.Errorf("Cluster can't have both internal and external etcd")
+		return errors.New("Cluster can't have both internal and external etcd")
 	}
 	return nil
 }
 
 func validateDuplicateNodes(c *Cluster) error {
+	addresses := make(map[string]struct{}, len(c.Nodes))
+	hostnames := make(map[string]struct{}, len(c.Nodes))
 	for i := range c.Nodes {
-		for j := range c.Nodes {
-			if i == j {
-				continue
-			}
-			if c.Nodes[i].Address == c.Nodes[j].Address {
-				return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].Address)
-			}
-			if c.Nodes[i].HostnameOverride == c.Nodes[j].HostnameOverride {
-				return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].HostnameOverride)
-			}
+		if _, ok := addresses[c.Nodes[i].Address]; ok {
+			return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].Address)
 		}
+		addresses[c.Nodes[i].Address] = struct{}{}
+		if _, ok := hostnames[c.Nodes[i].HostnameOverride]; ok {
+			return fmt.Errorf("Cluster can't have duplicate node: %s", c.Nodes[i].HostnameOverride)
+		}
+		hostnames[c.Nodes[i].HostnameOverride] = struct{}{}
+	}
+	return nil
+}
+
+func validateVersion(ctx context.Context, c *Cluster) error {
+	_, err := util.StrToSemVer(c.Version)
+	if err != nil {
+		return fmt.Errorf("%s is not valid semver", c.Version)
+	}
+	_, ok := metadata.K8sVersionToRKESystemImages[c.Version]
+	if !ok {
+		if err := validateSystemImages(c); err != nil {
+			return fmt.Errorf("%s is an unsupported Kubernetes version and system images are not populated: %v", c.Version, err)
+		}
+		return nil
+	}
+
+	if _, ok := metadata.K8sBadVersions[c.Version]; ok {
+		log.Warnf(ctx, "%s version exists but its recommended to install this version - see 'rke config --system-images --all' for versions supported with this release", c.Version)
+		return fmt.Errorf("%s is an unsupported Kubernetes version and system images are not populated: %v", c.Version, err)
+	}
+
+	return nil
+}
+
+func validateSystemImages(c *Cluster) error {
+	if err := validateKubernetesImages(c); err != nil {
+		return err
+	}
+	if err := validateNetworkImages(c); err != nil {
+		return err
+	}
+	if err := validateDNSImages(c); err != nil {
+		return err
+	}
+	if err := validateMetricsImages(c); err != nil {
+		return err
+	}
+	return validateIngressImages(c)
+}
+
+func validateKubernetesImages(c *Cluster) error {
+	if len(c.SystemImages.Etcd) == 0 {
+		return errors.New("etcd image is not populated")
+	}
+	if len(c.SystemImages.Kubernetes) == 0 {
+		return errors.New("kubernetes image is not populated")
+	}
+	if len(c.SystemImages.PodInfraContainer) == 0 {
+		return errors.New("pod infrastructure container image is not populated")
+	}
+	if len(c.SystemImages.Alpine) == 0 {
+		return errors.New("alpine image is not populated")
+	}
+	if len(c.SystemImages.NginxProxy) == 0 {
+		return errors.New("nginx proxy image is not populated")
+	}
+	if len(c.SystemImages.CertDownloader) == 0 {
+		return errors.New("certificate downloader image is not populated")
+	}
+	if len(c.SystemImages.KubernetesServicesSidecar) == 0 {
+		return errors.New("kubernetes sidecar image is not populated")
+	}
+	return nil
+}
+
+func validateNetworkImages(c *Cluster) error {
+	// check network provider images
+	if c.Network.Plugin == FlannelNetworkPlugin {
+		if len(c.SystemImages.Flannel) == 0 {
+			return errors.New("flannel image is not populated")
+		}
+		if len(c.SystemImages.FlannelCNI) == 0 {
+			return errors.New("flannel cni image is not populated")
+		}
+	} else if c.Network.Plugin == CanalNetworkPlugin {
+		if len(c.SystemImages.CanalNode) == 0 {
+			return errors.New("canal image is not populated")
+		}
+		if len(c.SystemImages.CanalCNI) == 0 {
+			return errors.New("canal cni image is not populated")
+		}
+		if len(c.SystemImages.CanalFlannel) == 0 {
+			return errors.New("flannel image is not populated")
+		}
+	} else if c.Network.Plugin == CalicoNetworkPlugin {
+		if len(c.SystemImages.CalicoCNI) == 0 {
+			return errors.New("calico cni image is not populated")
+		}
+		if len(c.SystemImages.CalicoCtl) == 0 {
+			return errors.New("calico ctl image is not populated")
+		}
+		if len(c.SystemImages.CalicoNode) == 0 {
+			return errors.New("calico image is not populated")
+		}
+		if len(c.SystemImages.CalicoControllers) == 0 {
+			return errors.New("calico controllers image is not populated")
+		}
+	} else if c.Network.Plugin == WeaveNetworkPlugin {
+		if len(c.SystemImages.WeaveCNI) == 0 {
+			return errors.New("weave cni image is not populated")
+		}
+		if len(c.SystemImages.WeaveNode) == 0 {
+			return errors.New("weave image is not populated")
+		}
+	} else if c.Network.Plugin == AciNetworkPlugin {
+		if len(c.SystemImages.AciCniDeployContainer) == 0 {
+			return errors.New("aci cnideploy image is not populated")
+		}
+		if len(c.SystemImages.AciHostContainer) == 0 {
+			return errors.New("aci host container image is not populated")
+		}
+		if len(c.SystemImages.AciOpflexContainer) == 0 {
+			return errors.New("aci opflex agent image is not populated")
+		}
+		if len(c.SystemImages.AciMcastContainer) == 0 {
+			return errors.New("aci mcast container image is not populated")
+		}
+		if len(c.SystemImages.AciOpenvSwitchContainer) == 0 {
+			return errors.New("aci openvswitch image is not populated")
+		}
+		if len(c.SystemImages.AciControllerContainer) == 0 {
+			return errors.New("aci controller image is not populated")
+		}
+		//Skipping Cloud image validation.
+		//c.SystemImages.AciOpflexServerContainer
+		//c.SystemImages.AciGbpServerContainer
+	}
+	return nil
+}
+
+func validateDNSImages(c *Cluster) error {
+	// check dns provider images
+	if c.DNS.Provider == "kube-dns" {
+		if len(c.SystemImages.KubeDNS) == 0 {
+			return errors.New("kubedns image is not populated")
+		}
+		if len(c.SystemImages.DNSmasq) == 0 {
+			return errors.New("dnsmasq image is not populated")
+		}
+		if len(c.SystemImages.KubeDNSSidecar) == 0 {
+			return errors.New("kubedns sidecar image is not populated")
+		}
+		if len(c.SystemImages.KubeDNSAutoscaler) == 0 {
+			return errors.New("kubedns autoscaler image is not populated")
+		}
+	} else if c.DNS.Provider == "coredns" {
+		if len(c.SystemImages.CoreDNS) == 0 {
+			return errors.New("coredns image is not populated")
+		}
+		if len(c.SystemImages.CoreDNSAutoscaler) == 0 {
+			return errors.New("coredns autoscaler image is not populated")
+		}
+	}
+	if c.DNS.Nodelocal != nil && len(c.SystemImages.Nodelocal) == 0 {
+		return errors.New("nodelocal image is not populated")
+	}
+	return nil
+}
+
+func validateMetricsImages(c *Cluster) error {
+	// checl metrics server image
+	if c.Monitoring.Provider != "none" {
+		if len(c.SystemImages.MetricsServer) == 0 {
+			return errors.New("metrics server images is not populated")
+		}
+	}
+	return nil
+}
+
+func validateIngressImages(c *Cluster) error {
+	// check ingress images
+	if c.Ingress.Provider != "none" {
+		if len(c.SystemImages.Ingress) == 0 {
+			return errors.New("ingress image is not populated")
+		}
+		if len(c.SystemImages.IngressBackend) == 0 {
+			return errors.New("ingress backend image is not populated")
+		}
+		// Ingress Webhook image is used starting with k8s 1.21
+		k8sVersion := c.RancherKubernetesEngineConfig.Version
+		toMatch, err := semver.Make(k8sVersion[1:])
+		if err != nil {
+			return fmt.Errorf("%s is not valid semver", k8sVersion)
+		}
+		logrus.Debugf("Checking if ingress webhook image is required for cluster version [%s]", k8sVersion)
+
+		IngressWebhookImageRequiredRange, err := semver.ParseRange(">=1.21.0-rancher0")
+		if err != nil {
+			logrus.Warnf("Failed to parse semver range for checking required ingress webhook image")
+		}
+		if IngressWebhookImageRequiredRange(toMatch) {
+			logrus.Debugf("Cluster version [%s] uses ingress webhook image, checking if image is populated", k8sVersion)
+			if len(c.SystemImages.IngressWebhook) == 0 {
+				return errors.New("ingress webhook image is not populated")
+			}
+
+		}
+	}
+	return nil
+}
+
+func validateCRIDockerdOption(c *Cluster) error {
+	if c.EnableCRIDockerd != nil && *c.EnableCRIDockerd {
+		k8sVersion := c.RancherKubernetesEngineConfig.Version
+		toMatch, err := semver.Make(k8sVersion[1:])
+		if err != nil {
+			return fmt.Errorf("%s is not valid semver", k8sVersion)
+		}
+		logrus.Debugf("Checking cri-dockerd for cluster version [%s]", k8sVersion)
+		// cri-dockerd can be enabled for k8s 1.21 and up
+		CRIDockerdAllowedRange, err := semver.ParseRange(">=1.21.0-rancher0")
+		if err != nil {
+			logrus.Warnf("Failed to parse semver range for checking cri-dockerd")
+		}
+		if !CRIDockerdAllowedRange(toMatch) {
+			logrus.Debugf("Cluster version [%s] is not allowed to enable cri-dockerd", k8sVersion)
+			return fmt.Errorf("Enabling cri-dockerd for cluster version [%s] is not supported", k8sVersion)
+		}
+		logrus.Infof("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
 	}
 	return nil
 }

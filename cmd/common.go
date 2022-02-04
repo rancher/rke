@@ -6,11 +6,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/log"
-	"github.com/rancher/types/apis/management.cattle.io/v3"
+	"github.com/rancher/rke/pki"
+	v3 "github.com/rancher/rke/types"
+	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -51,9 +54,8 @@ func setOptionsFromCLI(c *cli.Context, rkeConfig *v3.RancherKubernetesEngineConf
 		rkeConfig.SSHAgentAuth = c.Bool("ssh-agent-auth")
 	}
 
-	if c.Bool("ignore-docker-version") {
-		rkeConfig.IgnoreDockerVersion = c.Bool("ignore-docker-version")
-	}
+	ignoreDockerVersion := c.Bool("ignore-docker-version")
+	rkeConfig.IgnoreDockerVersion = &ignoreDockerVersion
 
 	if c.Bool("s3") {
 		if rkeConfig.Services.Etcd.BackupConfig == nil {
@@ -72,8 +74,7 @@ func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfi
 		flags.CertificateDir = cluster.GetCertificateDirPath(flags.ClusterFilePath, flags.ConfigDir)
 	}
 	rkeFullState, _ := cluster.ReadStateFile(ctx, stateFilePath)
-
-	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags)
+	kubeCluster, err := cluster.InitClusterObject(ctx, rkeConfig, flags, rkeFullState.DesiredState.EncryptionConfig)
 	if err != nil {
 		return err
 	}
@@ -82,18 +83,26 @@ func ClusterInit(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfi
 		return err
 	}
 
-	err = doUpgradeLegacyCluster(ctx, kubeCluster, rkeFullState)
+	err = checkLegacyCluster(ctx, kubeCluster, rkeFullState, flags)
 	if err != nil {
-		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes")
+		if strings.Contains(err.Error(), "aborting upgrade") {
+			return err
+		}
+		log.Warnf(ctx, "[state] can't fetch legacy cluster state from Kubernetes: %v", err)
 	}
+
 	// check if certificate rotate or normal init
 	if kubeCluster.RancherKubernetesEngineConfig.RotateCertificates != nil {
 		fullState, err = rotateRKECertificates(ctx, kubeCluster, flags, rkeFullState)
 	} else {
-		fullState, err = cluster.RebuildState(ctx, &kubeCluster.RancherKubernetesEngineConfig, rkeFullState, flags)
+		fullState, err = cluster.RebuildState(ctx, kubeCluster, rkeFullState, flags)
 	}
 	if err != nil {
 		return err
+	}
+
+	if fullState.DesiredState.EncryptionConfig != "" {
+		kubeCluster.EncryptionConfig.EncryptionProviderFile = fullState.DesiredState.EncryptionConfig
 	}
 
 	rkeState := cluster.FullState{
@@ -109,6 +118,8 @@ func setS3OptionsFromCLI(c *cli.Context) *v3.S3BackupConfig {
 	region := c.String("region")
 	accessKey := c.String("access-key")
 	secretKey := c.String("secret-key")
+	endpointCA := c.String("s3-endpoint-ca")
+	folder := c.String("folder")
 	var s3BackupBackend = &v3.S3BackupConfig{}
 	if len(endpoint) != 0 {
 		s3BackupBackend.Endpoint = endpoint
@@ -125,18 +136,46 @@ func setS3OptionsFromCLI(c *cli.Context) *v3.S3BackupConfig {
 	if len(secretKey) != 0 {
 		s3BackupBackend.SecretKey = secretKey
 	}
+	if len(endpointCA) != 0 {
+		caStr, err := pki.ReadCertToStr(endpointCA)
+		if err != nil {
+			logrus.Warnf("Failed to read s3-endpoint-ca [%s]: %v", endpointCA, err)
+		} else {
+			s3BackupBackend.CustomCA = caStr
+		}
+	}
+	if len(folder) != 0 {
+		s3BackupBackend.Folder = folder
+	}
 	return s3BackupBackend
 }
 
-func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, fullState *cluster.FullState) error {
-	if _, err := os.Stat(kubeCluster.LocalKubeConfigPath); os.IsNotExist(err) {
-		// there is no kubeconfig. This is a new cluster
-		logrus.Debug("[state] local kubeconfig not found, this is a new cluster")
+func checkLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, fullState *cluster.FullState, flags cluster.ExternalFlags) error {
+	stateFileExists, err := util.IsFileExists(kubeCluster.StateFilePath)
+	if err != nil {
+		return err
+	}
+	if stateFileExists {
+		logrus.Debug("[state] previous state found, this is not a legacy cluster")
 		return nil
 	}
-	if _, err := os.Stat(kubeCluster.StateFilePath); err == nil {
-		// this cluster has a previous state, I don't need to upgrade!
-		logrus.Debug("[state] previous state found, this is not a legacy cluster")
+	logrus.Debug("[state] previous state not found, possible legacy cluster")
+	return fetchAndUpdateStateFromLegacyCluster(ctx, kubeCluster, fullState, flags)
+}
+
+func fetchAndUpdateStateFromLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, fullState *cluster.FullState, flags cluster.ExternalFlags) error {
+	kubeConfigExists, err := util.IsFileExists(kubeCluster.LocalKubeConfigPath)
+	if err != nil {
+		return err
+	}
+	if !kubeConfigExists {
+		// if kubeconfig doesn't exist and its a legacy cluster then error out
+		if err := kubeCluster.TunnelHosts(ctx, flags); err != nil {
+			return err
+		}
+		if recoveredCluster := cluster.GetStateFromNodes(ctx, kubeCluster); recoveredCluster != nil {
+			return fmt.Errorf("This is a legacy cluster with no kube config, aborting upgrade. Please re-run rke up with rke 0.1.x to retrieve correct state")
+		}
 		return nil
 	}
 	// We have a kubeconfig and no current state. This is a legacy cluster or a new cluster with old kubeconfig
@@ -147,21 +186,34 @@ func doUpgradeLegacyCluster(ctx context.Context, kubeCluster *cluster.Cluster, f
 	}
 	recoveredCluster, err := cluster.GetStateFromKubernetes(ctx, kubeCluster)
 	if err != nil {
-		return err
-	}
-	// if we found a recovered cluster, we will need override the current state
-	if recoveredCluster != nil {
-		recoveredCerts, err := cluster.GetClusterCertsFromKubernetes(ctx, kubeCluster)
+		log.Warnf(ctx, "Failed to fetch state from kubernetes: %v", err)
+		// try to fetch state from nodes
+		err = kubeCluster.TunnelHosts(ctx, flags)
 		if err != nil {
 			return err
 		}
+		// fetching state/certs from nodes should be removed in rke 0.3.0
+		log.Infof(ctx, "[state] Fetching cluster state from Nodes")
+		recoveredCluster = cluster.GetStateFromNodes(ctx, kubeCluster)
+	}
+	// if we found a recovered cluster, we will need override the current state
+	recoveredCerts, err := cluster.GetClusterCertsFromKubernetes(ctx, kubeCluster)
+	if err != nil {
+		log.Warnf(ctx, "Failed to fetch certs from kubernetes: %v", err)
+		// try to fetch certs from nodes
+		recoveredCerts, err = cluster.GetClusterCertsFromNodes(ctx, kubeCluster)
+		if err != nil {
+			return fmt.Errorf("Failed to fetch cluster certs from nodes, aborting upgrade: %v", err)
+		}
+	}
+	fullState.CurrentState.RancherKubernetesEngineConfig = kubeCluster.RancherKubernetesEngineConfig.DeepCopy()
+	if recoveredCluster != nil {
 		fullState.CurrentState.RancherKubernetesEngineConfig = recoveredCluster.RancherKubernetesEngineConfig.DeepCopy()
-		fullState.CurrentState.CertificatesBundle = recoveredCerts
-
-		// we don't want to regenerate certificates
-		fullState.DesiredState.CertificatesBundle = recoveredCerts
-		return fullState.WriteStateFile(ctx, kubeCluster.StateFilePath)
 	}
 
-	return nil
+	fullState.CurrentState.CertificatesBundle = recoveredCerts
+
+	// we don't want to regenerate certificates
+	fullState.DesiredState.CertificatesBundle = recoveredCerts
+	return fullState.WriteStateFile(ctx, kubeCluster.StateFilePath)
 }
