@@ -7921,6 +7921,49 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
+  "v1.19.16-rancher1-3": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
+   "alpine": "rancher/rke-tools:v0.1.78",
+   "nginxProxy": "rancher/rke-tools:v0.1.78",
+   "certDownloader": "rancher/rke-tools:v0.1.78",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.78",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.15.10",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.15.10",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.15.10",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "coredns": "rancher/mirrored-coredns-coredns:1.7.0",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
+   "kubernetes": "rancher/hyperkube:v1.19.16-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.16.5",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.16.5",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.16.5",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.16.5",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.16.5",
+   "canalNode": "rancher/mirrored-calico-node:v3.16.5",
+   "canalCni": "rancher/mirrored-calico-cni:v3.16.5",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.16.5",
+   "canalFlannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.16.5",
+   "weaveNode": "weaveworks/weave-kube:2.7.0",
+   "weaveCni": "weaveworks/weave-npc:2.7.0",
+   "podInfraContainer": "rancher/mirrored-pause:3.2",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.1.0-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.3.6",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
+   "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
+   "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciMcastContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciOvsContainer": "noiro/openvswitch:5.1.1.0.1ae238a",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.1.1.0.1ae238a",
+   "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
+  },
   "v1.19.2-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.13-rancher1",
    "alpine": "rancher/rke-tools:v0.1.65",
@@ -8610,6 +8653,49 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
+  "v1.20.15-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.4.15-rancher1",
+   "alpine": "rancher/rke-tools:v0.1.78",
+   "nginxProxy": "rancher/rke-tools:v0.1.78",
+   "certDownloader": "rancher/rke-tools:v0.1.78",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.78",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.15.10",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.15.10",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.15.10",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "coredns": "rancher/mirrored-coredns-coredns:1.8.0",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.1",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.15.13",
+   "kubernetes": "rancher/hyperkube:v1.20.15-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.17.2",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.17.2",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.17.2",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.17.2",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.17.2",
+   "canalNode": "rancher/mirrored-calico-node:v3.17.2",
+   "canalCni": "rancher/mirrored-calico-cni:v3.17.2",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.17.2",
+   "canalFlannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.17.2",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.2",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.1.0-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.5.0",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
+   "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
+   "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciMcastContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciOvsContainer": "noiro/openvswitch:5.1.1.0.1ae238a",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.1.1.0.1ae238a",
+   "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
+  },
   "v1.20.4-rancher1-1": {
    "etcd": "rancher/coreos-etcd:v3.4.14-rancher1",
    "alpine": "rancher/rke-tools:v0.1.72",
@@ -9121,6 +9207,49 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
    "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
   },
+  "v1.21.9-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.4.16-rancher1",
+   "alpine": "rancher/rke-tools:v0.1.78",
+   "nginxProxy": "rancher/rke-tools:v0.1.78",
+   "certDownloader": "rancher/rke-tools:v0.1.78",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.78",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.17.4",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.17.4",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.17.4",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.3",
+   "coredns": "rancher/mirrored-coredns-coredns:1.8.4",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.3",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.18.0",
+   "kubernetes": "rancher/hyperkube:v1.21.9-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.19.2",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.19.2",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.19.2",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.19.2",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.19.2",
+   "canalNode": "rancher/mirrored-calico-node:v3.19.2",
+   "canalCni": "rancher/mirrored-calico-cni:v3.19.2",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.19.2",
+   "canalFlannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.19.2",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.4.1",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.1.0-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.5.0",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
+   "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
+   "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciMcastContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciOvsContainer": "noiro/openvswitch:5.1.1.0.1ae238a",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.1.1.0.1ae238a",
+   "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
+  },
   "v1.22.4-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.5.0",
    "alpine": "rancher/rke-tools:v0.1.78",
@@ -9221,6 +9350,49 @@
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
    "kubernetes": "rancher/hyperkube:v1.22.5-rancher2",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.21.1",
+   "calicoCni": "rancher/mirrored-calico-cni:v3.21.1",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.21.1",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.21.1",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.21.1",
+   "canalNode": "rancher/mirrored-calico-node:v3.21.1",
+   "canalCni": "rancher/mirrored-calico-cni:v3.21.1",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.21.1",
+   "canalFlannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.21.1",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.5",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.1.0-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.5.1",
+   "windowsPodInfraContainer": "rancher/kubelet-pause:v0.1.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.1.1.0.1ae238a",
+   "aciHostContainer": "noiro/aci-containers-host:5.1.1.0.1ae238a",
+   "aciOpflexContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciMcastContainer": "noiro/opflex:5.1.1.0.1ae238a",
+   "aciOvsContainer": "noiro/openvswitch:5.1.1.0.1ae238a",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.1.1.0.1ae238a",
+   "aciGbpServerContainer": "noiro/gbp-server:5.1.1.0.1ae238a",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.1.1.0.1ae238a"
+  },
+  "v1.22.6-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.5.0",
+   "alpine": "rancher/rke-tools:v0.1.78",
+   "nginxProxy": "rancher/rke-tools:v0.1.78",
+   "certDownloader": "rancher/rke-tools:v0.1.78",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.78",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.17.4",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.17.4",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.17.4",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.3",
+   "coredns": "rancher/mirrored-coredns-coredns:1.8.6",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
+   "kubernetes": "rancher/hyperkube:v1.22.6-rancher1",
    "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
    "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
    "calicoNode": "rancher/mirrored-calico-node:v3.21.1",
@@ -9426,12 +9598,16 @@
    "\u003e=1.16.10-rancher1-1 \u003c1.17.0-rancher1-1": "nginxingress-v1.15.12",
    "\u003e=1.17.0-rancher1-1 \u003c1.17.6-rancher1-1": "nginxingress-v1.15",
    "\u003e=1.17.6-rancher1-1 \u003c1.19.16-rancher1-1": "nginxingress-v1.15.12",
-   "\u003e=1.19.16-rancher1-1 \u003c1.20.0-rancher0": "nginxingress-v0.49.3",
+   "\u003e=1.19.16-rancher1-1 \u003c1.19.16-rancher1-3": "nginxingress-v0.49.3",
+   "\u003e=1.19.16-rancher1-3 \u003c1.20.0-rancher0": "nginxingress-v1.1.0-rancher2",
    "\u003e=1.20.0-rancher0 \u003c1.20.12-rancher1-1": "nginxingress-v1.15.12",
-   "\u003e=1.20.12-rancher1-1 \u003c1.21.0-rancher0": "nginxingress-v0.49.3",
+   "\u003e=1.20.12-rancher1-1 \u003c1.20.14-rancher2-2": "nginxingress-v0.49.3",
+   "\u003e=1.20.14-rancher2-2 \u003c1.21.0-rancher0": "nginxingress-v1.1.0-rancher2",
    "\u003e=1.21.0-rancher0 \u003c1.21.6-rancher1-1": "nginxingress-v0.48.1",
-   "\u003e=1.21.6-rancher1-1 \u003c1.22.0-rancher1-1": "nginxingress-v0.49.3",
-   "\u003e=1.22.0-rancher1-1": "nginxingress-v1.1.0",
+   "\u003e=1.21.6-rancher1-1 \u003c1.21.8-rancher2-2": "nginxingress-v0.49.3",
+   "\u003e=1.21.8-rancher2-2 \u003c1.22.0-rancher1-1": "nginxingress-v1.1.0-rancher2",
+   "\u003e=1.22.0-rancher1-1 \u003c1.22.5-rancher2-2": "nginxingress-v1.1.0",
+   "\u003e=1.22.5-rancher2-2": "nginxingress-v1.1.0-rancher3",
    "\u003e=1.8.0-rancher0 \u003c1.13.10-rancher1-3": "nginxingress-v1.8"
   },
   "nodelocal": {
@@ -9486,6 +9662,8 @@
    "nginxingress-v0.48.1": "\n# Based on https://github.com/kubernetes/ingress-nginx/blob/controller-v0.48.1/deploy/static/provider/cloud/deploy.yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n\n---\n{{- if eq .RBACConfig \"rbac\" }}\n# Source: ingress-nginx/templates/controller-serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: controller\n  name: nginx-ingress-serviceaccount\n  namespace: ingress-nginx\nautomountServiceAccountToken: true\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: controller\n  name: nginx-configuration\n  namespace: ingress-nginx\n{{- if .Options }}\ndata:\n{{- range $k,$v := .Options }}\n  {{ $k }}: \"{{ $v }}\"\n{{- end }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n  name: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n---\n# Source: ingress-nginx/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n  name: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/controller-role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - endpoints\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    resourceNames:\n    # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n    # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n    # This has to be adapted if you change either parameter\n    # when launching the nginx-ingress-controller.\n      - ingress-controller-leader-nginx\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n---\n# Source: ingress-nginx/templates/controller-rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-service-webhook.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller-admission\n  namespace: ingress-nginx\nspec:\n  type: ClusterIP\n  ports:\n    - name: https-webhook\n      port: 443\n      targetPort: webhook\n  selector:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/component: controller\n---\n# Source: ingress-nginx/templates/controller-deployment.yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: controller\n  name: nginx-ingress-controller\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n{{- if .UpdateStrategy }}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{- end }}\n  revisionHistoryLimit: 10\n  minReadySeconds: 0\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 0.48.1\n        app.kubernetes.io/component: controller\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      {{- if eq .NetworkMode \"hostNetwork\"}}\n      hostNetwork: true\n      {{- end}}\n      {{- if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{- end}}\n      {{- if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: nginx-ingress-serviceaccount\n      {{- end }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      terminationGracePeriodSeconds: 300\n      containers:\n        - name: nginx-ingress-controller\n          image: {{ .IngressImage }}\n          imagePullPolicy: IfNotPresent\n          lifecycle:\n            preStop:\n              exec:\n                command:\n                  - /wait-shutdown\n          args:\n            - /nginx-ingress-controller\n            {{- if .DefaultBackend}}\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            {{- end}}\n            - --election-id=ingress-controller-leader\n            - --ingress-class=nginx\n            - --configmap=$(POD_NAMESPACE)/nginx-configuration\n            - --validating-webhook=:8443\n            - --validating-webhook-certificate=/usr/local/certificates/cert\n            - --validating-webhook-key=/usr/local/certificates/key\n          {{- range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{- end }}\n          securityContext:\n          {{- if ne .NetworkMode \"none\" }}\n            capabilities:\n              drop:\n                - ALL\n              add:\n                - NET_BIND_SERVICE\n          {{- end }}\n            runAsUser: 101\n            allowPrivilegeEscalation: true\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n            - name: LD_PRELOAD\n              value: /usr/local/lib/libmimalloc.so\n{{- if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{- end }}\n          livenessProbe:\n            failureThreshold: 5\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          ports:\n            - name: webhook\n              containerPort: 8443\n              protocol: TCP\n            - name: http\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 80\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"http-port\")}}{{.}}{{else}}80{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPPort}}\n              {{- end }}\n              {{- end }}\n            - name: https\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 443\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"https-port\")}}{{.}}{{else}}443{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPSPort}}\n              {{- end }}\n              {{- end }}\n          volumeMounts:\n            - name: webhook-cert\n              mountPath: /usr/local/certificates/\n              readOnly: true\n{{- if .ExtraVolumeMounts }}\n{{ toYaml .ExtraVolumeMounts | indent 12 }}\n{{- end }}\n{{- if .NodeSelector }}\n      nodeSelector:\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n{{- if .NginxIngressControllerPriorityClassName }}\n      priorityClassName: {{ .NginxIngressControllerPriorityClassName }}\n{{- end }}\n      volumes:\n        - name: webhook-cert\n          secret:\n            secretName: ingress-nginx-admission\n{{- if .ExtraVolumes }}\n{{ toYaml .ExtraVolumes | indent 8}}\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/validating-webhook.yaml\n# before changing this value, check the required kubernetes version\n# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#prerequisites\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingWebhookConfiguration\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\n  name: ingress-nginx-admission\nwebhooks:\n  - name: validate.nginx.ingress.kubernetes.io\n    matchPolicy: Equivalent\n    rules:\n      - apiGroups:\n          - networking.k8s.io\n        apiVersions:\n          - v1beta1\n        operations:\n          - CREATE\n          - UPDATE\n        resources:\n          - ingresses\n    failurePolicy: Fail\n    sideEffects: None\n    admissionReviewVersions:\n      - v1\n      - v1beta1\n    clientConfig:\n      service:\n        namespace: ingress-nginx\n        name: ingress-nginx-controller-admission\n        path: /networking/v1beta1/ingresses\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - admissionregistration.k8s.io\n    resources:\n      - validatingwebhookconfigurations\n    verbs:\n      - get\n      - update\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - secrets\n    verbs:\n      - get\n      - create\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-createSecret.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-create\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-create\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 0.48.1\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      nodeSelector: \n        kubernetes.io/os: linux\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists    \n      containers:\n        - name: create\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - create\n            - --host=ingress-nginx-controller-admission,ingress-nginx-controller-admission.$(POD_NAMESPACE).svc\n            - --namespace=$(POD_NAMESPACE)\n            - --secret-name=ingress-nginx-admission\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-patchWebhook.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-patch\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.48.1\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-patch\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 0.48.1\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      nodeSelector: \n        kubernetes.io/os: linux\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists    \n      containers:\n        - name: patch\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - patch\n            - --webhook-name=ingress-nginx-admission\n            - --namespace=$(POD_NAMESPACE)\n            - --patch-mutating=false\n            - --secret-name=ingress-nginx-admission\n            - --patch-failure-policy=Fail\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n{{- if .DefaultBackend}}\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n{{- if .DefaultHTTPBackendPriorityClassName }}\n      priorityClassName: {{ .DefaultHTTPBackendPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: default-http-backend\n        # Any image is permissible as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{ .IngressBackend }}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n{{- end }}\n",
    "nginxingress-v0.49.3": "\n# Based on https://github.com/kubernetes/ingress-nginx/blob/controller-v0.49.3/deploy/static/provider/cloud/deploy.yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n\n---\n{{- if eq .RBACConfig \"rbac\" }}\n# Source: ingress-nginx/templates/controller-serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nautomountServiceAccountToken: true\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller\n  namespace: ingress-nginx\ndata:\n# Rancher specific: allow-snippet-annotations default value is set to false to address CVE-2021-25742 https://github.com/kubernetes/ingress-nginx/issues/7837\n{{- if $v := (index .Options \"allow-snippet-annotations\") }}\n  allow-snippet-annotations: \"{{ $v }}\"\n{{- else }}\n  allow-snippet-annotations: \"false\"\n{{- end }}\n{{- range $k,$v := .Options }}\n{{- if ne $k \"allow-snippet-annotations\" }}\n  {{ $k }}: \"{{ $v }}\"\n{{- end }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n  name: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n---\n# Source: ingress-nginx/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n  name: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/controller-role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - endpoints\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io   # k8s 1.14+\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    resourceNames:\n    # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n    # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n    # This has to be adapted if you change either parameter\n    # when launching the nginx-ingress-controller.\n      - ingress-controller-leader-nginx\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n---\n# Source: ingress-nginx/templates/controller-rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-service-webhook.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller-admission\n  namespace: ingress-nginx\nspec:\n  type: ClusterIP\n  ports:\n    - name: https-webhook\n      port: 443\n      targetPort: webhook\n  selector:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/component: controller\n---\n# Rancher specific: Intentionally removed the controller's LoadBalancer service\n# Source: ingress-nginx/templates/controller-service.yaml\n---\n# Source: ingress-nginx/templates/controller-deployment.yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: controller\n  name: nginx-ingress-controller\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n      # Rancher specific: Intentionally removed, adding labels will make the ingress deploy job fail during\n      # a k8s upgrade because spec.selector is immutable, so the labels need to match across template versions\n      # app.kubernetes.io/name: ingress-nginx\n      # app.kubernetes.io/instance: ingress-nginx\n      # app.kubernetes.io/component: controller\n{{- if .UpdateStrategy }}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{- end }}\n  revisionHistoryLimit: 10\n  minReadySeconds: 0\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 0.49.3\n        app.kubernetes.io/component: controller\n    spec:\n      {{- if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{- end}}\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      {{- if eq .NetworkMode \"hostNetwork\"}}\n      hostNetwork: true\n      {{- end}}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: controller\n          image: {{ .IngressImage }}\n          imagePullPolicy: IfNotPresent\n          lifecycle:\n            preStop:\n              exec:\n                command:\n                  - /wait-shutdown\n          args:\n            - /nginx-ingress-controller\n            # Rancher specific: Intentionally removed, the load balancer service is also removed\n            # - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller\n            {{- if .DefaultBackend}}\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            {{- end}}\n            - --election-id=ingress-controller-leader\n            - --ingress-class=nginx\n            - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller\n            - --validating-webhook=:8443\n            - --validating-webhook-certificate=/usr/local/certificates/cert\n            - --validating-webhook-key=/usr/local/certificates/key\n          {{- range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{- end }}\n          securityContext:\n          {{- if ne .NetworkMode \"none\" }}\n            capabilities:\n              drop:\n                - ALL\n              add:\n                - NET_BIND_SERVICE\n          {{- end }}\n            runAsUser: 101\n            allowPrivilegeEscalation: true\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n            - name: LD_PRELOAD\n              value: /usr/local/lib/libmimalloc.so\n{{- if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{- end }}\n          livenessProbe:\n            failureThreshold: 5\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          ports:\n            - name: http\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 80\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"http-port\")}}{{.}}{{else}}80{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPPort}}\n              {{- end }}\n              {{- end }}\n            - name: https\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 443\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"https-port\")}}{{.}}{{else}}443{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPSPort}}\n              {{- end }}\n              {{- end }}\n            - name: webhook\n              containerPort: 8443\n              protocol: TCP\n          volumeMounts:\n            - name: webhook-cert\n              mountPath: /usr/local/certificates/\n              readOnly: true\n# Rancher specific: Intentionally removed\n#          resources:\n#            requests:\n#              cpu: 100m\n#              memory: 90Mi\n{{- if .ExtraVolumeMounts }}\n{{ toYaml .ExtraVolumeMounts | indent 12 }}\n{{- end }}\n{{- if .NodeSelector }}\n      nodeSelector:\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n{{- if .NginxIngressControllerPriorityClassName }}\n      priorityClassName: {{ .NginxIngressControllerPriorityClassName }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: ingress-nginx\n{{- end }}\n      terminationGracePeriodSeconds: 300\n      volumes:\n        - name: webhook-cert\n          secret:\n            secretName: ingress-nginx-admission\n{{- if .ExtraVolumes }}\n{{ toYaml .ExtraVolumes | indent 8}}\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/validating-webhook.yaml\n# before changing this value, check the required kubernetes version\n# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#prerequisites\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingWebhookConfiguration\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\n  name: ingress-nginx-admission\nwebhooks:\n  - name: validate.nginx.ingress.kubernetes.io\n    matchPolicy: Equivalent\n    rules:\n      - apiGroups:\n          - networking.k8s.io\n        apiVersions:\n          - v1beta1\n        operations:\n          - CREATE\n          - UPDATE\n        resources:\n          - ingresses\n    failurePolicy: Fail\n    sideEffects: None\n    admissionReviewVersions:\n      - v1\n      - v1beta1\n    clientConfig:\n      service:\n        namespace: ingress-nginx\n        name: ingress-nginx-controller-admission\n        path: /networking/v1beta1/ingresses\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - admissionregistration.k8s.io\n    resources:\n      - validatingwebhookconfigurations\n    verbs:\n      - get\n      - update\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - secrets\n    verbs:\n      - get\n      - create\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-createSecret.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-create\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-create\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 0.49.3\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: create\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - create\n            - --host=ingress-nginx-controller-admission,ingress-nginx-controller-admission.$(POD_NAMESPACE).svc\n            - --namespace=$(POD_NAMESPACE)\n            - --secret-name=ingress-nginx-admission\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-patchWebhook.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-patch\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 0.49.3\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-patch\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 0.49.3\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: patch\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - patch\n            - --webhook-name=ingress-nginx-admission\n            - --namespace=$(POD_NAMESPACE)\n            - --patch-mutating=false\n            - --secret-name=ingress-nginx-admission\n            - --patch-failure-policy=Fail\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n{{- if .DefaultBackend}}\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n{{- if .DefaultHTTPBackendPriorityClassName }}\n      priorityClassName: {{ .DefaultHTTPBackendPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: default-http-backend\n        # Any image is permissible as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{ .IngressBackend }}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n{{- end }}\n",
    "nginxingress-v1.1.0": "\n# Based on https://github.com/kubernetes/ingress-nginx/blob/controller-v1.1.0/deploy/static/provider/cloud/deploy.yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n\n---\n{{- if eq .RBACConfig \"rbac\" }}\n# Source: ingress-nginx/templates/controller-serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nautomountServiceAccountToken: true\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller\n  namespace: ingress-nginx\ndata:\n# Rancher specific: allow-snippet-annotations default value is set to false to address CVE-2021-25742 https://github.com/kubernetes/ingress-nginx/issues/7837\n{{- if $v := (index .Options \"allow-snippet-annotations\") }}\n  allow-snippet-annotations: \"{{ $v }}\"\n{{- else }}\n  allow-snippet-annotations: \"false\"\n{{- end }}\n{{- range $k,$v := .Options }}\n{{- if ne $k \"allow-snippet-annotations\" }}\n  {{ $k }}: \"{{ $v }}\"\n{{- end }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n  name: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n---\n# Source: ingress-nginx/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n  name: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/controller-role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - endpoints\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    resourceNames:\n    # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n    # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n    # This has to be adapted if you change either parameter\n    # when launching the nginx-ingress-controller.\n    {{- if .DefaultIngressClass}}\n      - ingress-controller-leader-nginx\n    {{- else }}\n      - ingress-controller-leader\n    {{- end}}\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n---\n# Source: ingress-nginx/templates/controller-rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-service-webhook.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller-admission\n  namespace: ingress-nginx\nspec:\n  type: ClusterIP\n  ports:\n    - name: https-webhook\n      port: 443\n      targetPort: webhook\n      appProtocol: https\n  selector:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/component: controller\n---\n# Rancher specific: Intentionally removed the controller's LoadBalancer service\n# Source: ingress-nginx/templates/controller-service.yaml\n---\n# Source: ingress-nginx/templates/controller-deployment.yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: nginx-ingress-controller  # Rancher specific: Do NOT change the name, a new workload will be deployed after a k8s upgrade\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n      # Rancher specific: Intentionally removed, adding labels will make the ingress deploy job fail during\n      # a k8s upgrade because spec.selector is immutable, so the labels need to match across template versions\n      # app.kubernetes.io/name: ingress-nginx\n      # app.kubernetes.io/instance: ingress-nginx\n      # app.kubernetes.io/component: controller\n{{- if .UpdateStrategy }}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{- end }}\n  revisionHistoryLimit: 10\n  minReadySeconds: 0\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/component: controller\n    spec:\n      {{- if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{- end}}\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      {{- if eq .NetworkMode \"hostNetwork\"}}\n      hostNetwork: true\n      {{- end}}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: controller\n          image: {{ .IngressImage }}\n          imagePullPolicy: IfNotPresent\n          lifecycle:\n            preStop:\n              exec:\n                command:\n                  - /wait-shutdown\n          args:\n            - /nginx-ingress-controller\n            # Rancher specific: Intentionally removed, the load balancer service is also removed\n            # - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller\n            {{- if .DefaultBackend}}\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            {{- end}}\n            {{- if .DefaultIngressClass}}\n            - --election-id=ingress-controller-leader-nginx\n            {{- else }}\n            - --election-id=ingress-controller-leader\n            {{- end}}\n            - --controller-class=k8s.io/ingress-nginx\n            - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller\n            - --validating-webhook=:8443\n            - --validating-webhook-certificate=/usr/local/certificates/cert\n            - --validating-webhook-key=/usr/local/certificates/key\n          {{- range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{- end }}\n          securityContext:\n          {{- if ne .NetworkMode \"none\" }}\n            capabilities:\n              drop:\n                - ALL\n              add:\n                - NET_BIND_SERVICE\n          {{- end }}\n            runAsUser: 101\n            allowPrivilegeEscalation: true\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n            - name: LD_PRELOAD\n              value: /usr/local/lib/libmimalloc.so\n{{- if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{- end }}\n          livenessProbe:\n            failureThreshold: 5\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          ports:\n            - name: http\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 80\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"http-port\")}}{{.}}{{else}}80{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPPort}}\n              {{- end }}\n              {{- end }}\n              protocol: TCP\n            - name: https\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 443\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"https-port\")}}{{.}}{{else}}443{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPSPort}}\n              {{- end }}\n              {{- end }}\n              protocol: TCP\n            - name: webhook\n              containerPort: 8443\n              protocol: TCP\n          volumeMounts:\n            - name: webhook-cert\n              mountPath: /usr/local/certificates/\n              readOnly: true\n# Rancher specific: Intentionally removed\n#          resources:\n#            requests:\n#              cpu: 100m\n#              memory: 90Mi\n{{- if .ExtraVolumeMounts }}\n{{ toYaml .ExtraVolumeMounts | indent 12 }}\n{{- end }}\n{{- if .NodeSelector }}\n      nodeSelector:\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n{{- if .NginxIngressControllerPriorityClassName }}\n      priorityClassName: {{ .NginxIngressControllerPriorityClassName }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: ingress-nginx\n{{- end }}\n      terminationGracePeriodSeconds: 300\n      volumes:\n        - name: webhook-cert\n          secret:\n            secretName: ingress-nginx-admission\n{{- if .ExtraVolumes }}\n{{ toYaml .ExtraVolumes | indent 8}}\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-ingressclass.yaml\n# We don't support namespaced ingressClass yet\n# So a ClusterRole and a ClusterRoleBinding is required\napiVersion: networking.k8s.io/v1\nkind: IngressClass\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: nginx\n  namespace: ingress-nginx\n  {{- if .DefaultIngressClass}}\n  annotations:\n    ingressclass.kubernetes.io/is-default-class: \"true\"\n  {{- end}}\nspec:\n  controller: k8s.io/ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/validating-webhook.yaml\n# before changing this value, check the required kubernetes version\n# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#prerequisites\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingWebhookConfiguration\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\n  name: ingress-nginx-admission\nwebhooks:\n  - name: validate.nginx.ingress.kubernetes.io\n    matchPolicy: Equivalent\n    rules:\n      - apiGroups:\n          - networking.k8s.io\n        apiVersions:\n          - v1\n        operations:\n          - CREATE\n          - UPDATE\n        resources:\n          - ingresses\n    failurePolicy: Fail\n    sideEffects: None\n    admissionReviewVersions:\n      - v1\n    clientConfig:\n      service:\n        namespace: ingress-nginx\n        name: ingress-nginx-controller-admission\n        path: /networking/v1/ingresses\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - admissionregistration.k8s.io\n    resources:\n      - validatingwebhookconfigurations\n    verbs:\n      - get\n      - update\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - secrets\n    verbs:\n      - get\n      - create\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-createSecret.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-create\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-create\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 1.1.0\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: create\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - create\n            - --host=ingress-nginx-controller-admission,ingress-nginx-controller-admission.$(POD_NAMESPACE).svc\n            - --namespace=$(POD_NAMESPACE)\n            - --secret-name=ingress-nginx-admission\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n          securityContext:\n            allowPrivilegeEscalation: false\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-patchWebhook.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-patch\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-patch\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 1.1.0\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: patch\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - patch\n            - --webhook-name=ingress-nginx-admission\n            - --namespace=$(POD_NAMESPACE)\n            - --patch-mutating=false\n            - --secret-name=ingress-nginx-admission\n            - --patch-failure-policy=Fail\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n          securityContext:\n            allowPrivilegeEscalation: false\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n{{- if .DefaultBackend}}\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n{{- if .DefaultHTTPBackendPriorityClassName }}\n      priorityClassName: {{ .DefaultHTTPBackendPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: default-http-backend\n        # Any image is permissible as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{ .IngressBackend }}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n{{- end }}\n",
+   "nginxingress-v1.1.0-rancher2": "\n# Based on https://github.com/kubernetes/ingress-nginx/blob/controller-v1.1.0/deploy/static/provider/cloud/deploy.yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n\n---\n{{- if eq .RBACConfig \"rbac\" }}\n# Source: ingress-nginx/templates/controller-serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nautomountServiceAccountToken: true\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller\n  namespace: ingress-nginx\ndata:\n{{- range $k,$v := .Options }}\n{{- end }}\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: tcp-services\n  namespace: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: udp-services\n  namespace: ingress-nginx\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n  name: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n---\n# Source: ingress-nginx/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n  name: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/controller-role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - endpoints\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    resourceNames:\n    # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n    # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n    # This has to be adapted if you change either parameter\n    # when launching the nginx-ingress-controller.\n{{- if and ($v := (index .ExtraArgs \"default-ingress-class\")) (eq $v \"false\") }}\n      - ingress-controller-leader\n{{- else }}\n      - ingress-controller-leader-nginx\n{{- end }}\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n---\n# Source: ingress-nginx/templates/controller-rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-service-webhook.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller-admission\n  namespace: ingress-nginx\nspec:\n  type: ClusterIP\n  ports:\n    - name: https-webhook\n      port: 443\n      targetPort: webhook\n      appProtocol: https\n  selector:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/component: controller\n---\n# Rancher specific: Intentionally removed the controller's LoadBalancer service\n# Source: ingress-nginx/templates/controller-service.yaml\n---\n# Source: ingress-nginx/templates/controller-deployment.yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: nginx-ingress-controller  # Rancher specific: Do NOT change the name, a new workload will be deployed after a k8s upgrade\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n      # Rancher specific: Intentionally removed, adding labels will make the ingress deploy job fail during\n      # a k8s upgrade because spec.selector is immutable, so the labels need to match across template versions\n      # app.kubernetes.io/name: ingress-nginx\n      # app.kubernetes.io/instance: ingress-nginx\n      # app.kubernetes.io/component: controller\n{{- if .UpdateStrategy }}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{- end }}\n  revisionHistoryLimit: 10\n  minReadySeconds: 0\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/component: controller\n    spec:\n      {{- if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{- end}}\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      {{- if eq .NetworkMode \"hostNetwork\"}}\n      hostNetwork: true\n      {{- end}}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: controller\n          image: {{ .IngressImage }}\n          imagePullPolicy: IfNotPresent\n          lifecycle:\n            preStop:\n              exec:\n                command:\n                  - /wait-shutdown\n          args:\n            - /nginx-ingress-controller\n            # Rancher specific: Intentionally removed, the load balancer service is also removed\n            # - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller\n            {{- if .DefaultBackend}}\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            {{- end}}\n            {{- if and ($v := (index .ExtraArgs \"default-ingress-class\")) (eq $v \"false\") }}\n            - --election-id=ingress-controller-leader\n            {{- else }}\n            - --election-id=ingress-controller-leader-nginx\n            {{- end }}\n            - --controller-class=k8s.io/ingress-nginx\n            - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller\n            - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services\n            - --udp-services-configmap=$(POD_NAMESPACE)/udp-services\n            - --validating-webhook=:8443\n            - --validating-webhook-certificate=/usr/local/certificates/cert\n            - --validating-webhook-key=/usr/local/certificates/key\n          {{- range $k, $v := .ExtraArgs }}\n          {{- if ne $k \"default-ingress-class\"}}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{- end }}\n          {{- end }}\n          {{with (index .ExtraArgs \"watch-ingress-without-class\")}}\n            - --watch-ingress-without-class={{.}}\n          {{else}}\n            - --watch-ingress-without-class=true\n          {{end}}\n          securityContext:\n          {{- if ne .NetworkMode \"none\" }}\n            capabilities:\n              drop:\n                - ALL\n              add:\n                - NET_BIND_SERVICE\n          {{- end }}\n            runAsUser: 101\n            allowPrivilegeEscalation: true\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n            - name: LD_PRELOAD\n              value: /usr/local/lib/libmimalloc.so\n{{- if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{- end }}\n          livenessProbe:\n            failureThreshold: 5\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          ports:\n            - name: http\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 80\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"http-port\")}}{{.}}{{else}}80{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPPort}}\n              {{- end }}\n              {{- end }}\n              protocol: TCP\n            - name: https\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 443\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"https-port\")}}{{.}}{{else}}443{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPSPort}}\n              {{- end }}\n              {{- end }}\n              protocol: TCP\n            - name: webhook\n              containerPort: 8443\n              protocol: TCP\n          volumeMounts:\n            - name: webhook-cert\n              mountPath: /usr/local/certificates/\n              readOnly: true\n# Rancher specific: Intentionally removed\n#          resources:\n#            requests:\n#              cpu: 100m\n#              memory: 90Mi\n{{- if .ExtraVolumeMounts }}\n{{ toYaml .ExtraVolumeMounts | indent 12 }}\n{{- end }}\n{{- if .NodeSelector }}\n      nodeSelector:\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n{{- if .NginxIngressControllerPriorityClassName }}\n      priorityClassName: {{ .NginxIngressControllerPriorityClassName }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: ingress-nginx\n{{- end }}\n      terminationGracePeriodSeconds: 300\n      volumes:\n        - name: webhook-cert\n          secret:\n            secretName: ingress-nginx-admission\n{{- if .ExtraVolumes }}\n{{ toYaml .ExtraVolumes | indent 8}}\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-ingressclass.yaml\n# We don't support namespaced ingressClass yet\n# So a ClusterRole and a ClusterRoleBinding is required\napiVersion: networking.k8s.io/v1\nkind: IngressClass\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: nginx\n  namespace: ingress-nginx\n{{- if and ($v := (index .ExtraArgs \"default-ingress-class\")) (eq $v \"false\") }}\n{{- else }}\n  annotations:\n    ingressclass.kubernetes.io/is-default-class: \"true\"\n{{- end }}\nspec:\n  controller: k8s.io/ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/validating-webhook.yaml\n# before changing this value, check the required kubernetes version\n# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#prerequisites\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingWebhookConfiguration\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\n  name: ingress-nginx-admission\nwebhooks:\n  - name: validate.nginx.ingress.kubernetes.io\n    matchPolicy: Equivalent\n    rules:\n      - apiGroups:\n          - networking.k8s.io\n        apiVersions:\n          - v1\n        operations:\n          - CREATE\n          - UPDATE\n        resources:\n          - ingresses\n    failurePolicy: Fail\n    sideEffects: None\n    admissionReviewVersions:\n      - v1\n    clientConfig:\n      service:\n        namespace: ingress-nginx\n        name: ingress-nginx-controller-admission\n        path: /networking/v1/ingresses\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - admissionregistration.k8s.io\n    resources:\n      - validatingwebhookconfigurations\n    verbs:\n      - get\n      - update\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - secrets\n    verbs:\n      - get\n      - create\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-createSecret.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-create\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-create\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 1.1.0\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: create\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - create\n            - --host=ingress-nginx-controller-admission,ingress-nginx-controller-admission.$(POD_NAMESPACE).svc\n            - --namespace=$(POD_NAMESPACE)\n            - --secret-name=ingress-nginx-admission\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n          securityContext:\n            allowPrivilegeEscalation: false\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-patchWebhook.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-patch\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-patch\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 1.1.0\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: patch\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - patch\n            - --webhook-name=ingress-nginx-admission\n            - --namespace=$(POD_NAMESPACE)\n            - --patch-mutating=false\n            - --secret-name=ingress-nginx-admission\n            - --patch-failure-policy=Fail\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n          securityContext:\n            allowPrivilegeEscalation: false\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n{{- if .DefaultBackend}}\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n{{- if .DefaultHTTPBackendPriorityClassName }}\n      priorityClassName: {{ .DefaultHTTPBackendPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: default-http-backend\n        # Any image is permissible as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{ .IngressBackend }}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n{{- end }}\n",
+   "nginxingress-v1.1.0-rancher3": "\n# Based on https://github.com/kubernetes/ingress-nginx/blob/controller-v1.1.0/deploy/static/provider/cloud/deploy.yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n\n---\n{{- if eq .RBACConfig \"rbac\" }}\n# Source: ingress-nginx/templates/controller-serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nautomountServiceAccountToken: true\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller\n  namespace: ingress-nginx\ndata:\n{{- range $k,$v := .Options }}\n  {{ $k }}: \"{{ $v }}\"\n{{- end }}\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: tcp-services\n  namespace: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: udp-services\n  namespace: ingress-nginx\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n  name: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n---\n# Source: ingress-nginx/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n  name: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/controller-role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - endpoints\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - networking.k8s.io\n    resources:\n      - ingressclasses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    resourceNames:\n    # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n    # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n    # This has to be adapted if you change either parameter\n    # when launching the nginx-ingress-controller.\n    {{- if .DefaultIngressClass}}\n      - ingress-controller-leader-nginx\n    {{- else }}\n      - ingress-controller-leader\n    {{- end}}\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - ''\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - ''\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n---\n# Source: ingress-nginx/templates/controller-rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-service-webhook.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: ingress-nginx-controller-admission\n  namespace: ingress-nginx\nspec:\n  type: ClusterIP\n  ports:\n    - name: https-webhook\n      port: 443\n      targetPort: webhook\n      appProtocol: https\n  selector:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/component: controller\n---\n# Rancher specific: Intentionally removed the controller's LoadBalancer service\n# Source: ingress-nginx/templates/controller-service.yaml\n---\n# Source: ingress-nginx/templates/controller-deployment.yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: nginx-ingress-controller  # Rancher specific: Do NOT change the name, a new workload will be deployed after a k8s upgrade\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n      # Rancher specific: Intentionally removed, adding labels will make the ingress deploy job fail during\n      # a k8s upgrade because spec.selector is immutable, so the labels need to match across template versions\n      # app.kubernetes.io/name: ingress-nginx\n      # app.kubernetes.io/instance: ingress-nginx\n      # app.kubernetes.io/component: controller\n{{- if .UpdateStrategy }}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{- end }}\n  revisionHistoryLimit: 10\n  minReadySeconds: 0\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/component: controller\n    spec:\n      {{- if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{- end}}\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      {{- if eq .NetworkMode \"hostNetwork\"}}\n      hostNetwork: true\n      {{- end}}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: controller\n          image: {{ .IngressImage }}\n          imagePullPolicy: IfNotPresent\n          lifecycle:\n            preStop:\n              exec:\n                command:\n                  - /wait-shutdown\n          args:\n            - /nginx-ingress-controller\n            # Rancher specific: Intentionally removed, the load balancer service is also removed\n            # - --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller\n            {{- if .DefaultBackend}}\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            {{- end}}\n            {{- if .DefaultIngressClass}}\n            - --election-id=ingress-controller-leader-nginx\n            {{- else }}\n            - --election-id=ingress-controller-leader\n            {{- end}}\n            - --controller-class=k8s.io/ingress-nginx\n            - --configmap=$(POD_NAMESPACE)/ingress-nginx-controller\n            - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services\n            - --udp-services-configmap=$(POD_NAMESPACE)/udp-services\n            - --validating-webhook=:8443\n            - --validating-webhook-certificate=/usr/local/certificates/cert\n            - --validating-webhook-key=/usr/local/certificates/key\n          {{- range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{- end }}\n          securityContext:\n          {{- if ne .NetworkMode \"none\" }}\n            capabilities:\n              drop:\n                - ALL\n              add:\n                - NET_BIND_SERVICE\n          {{- end }}\n            runAsUser: 101\n            allowPrivilegeEscalation: true\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n            - name: LD_PRELOAD\n              value: /usr/local/lib/libmimalloc.so\n{{- if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{- end }}\n          livenessProbe:\n            failureThreshold: 5\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          ports:\n            - name: http\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 80\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"http-port\")}}{{.}}{{else}}80{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPPort}}\n              {{- end }}\n              {{- end }}\n              protocol: TCP\n            - name: https\n              {{- if eq .NetworkMode \"hostNetwork\"}}\n              containerPort: 443\n              {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n              containerPort: {{with (index .ExtraArgs \"https-port\")}}{{.}}{{else}}443{{end}}\n              {{- if eq .NetworkMode \"hostPort\"}}\n              hostPort: {{.HTTPSPort}}\n              {{- end }}\n              {{- end }}\n              protocol: TCP\n            - name: webhook\n              containerPort: 8443\n              protocol: TCP\n          volumeMounts:\n            - name: webhook-cert\n              mountPath: /usr/local/certificates/\n              readOnly: true\n# Rancher specific: Intentionally removed\n#          resources:\n#            requests:\n#              cpu: 100m\n#              memory: 90Mi\n{{- if .ExtraVolumeMounts }}\n{{ toYaml .ExtraVolumeMounts | indent 12 }}\n{{- end }}\n{{- if .NodeSelector }}\n      nodeSelector:\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n{{- if .NginxIngressControllerPriorityClassName }}\n      priorityClassName: {{ .NginxIngressControllerPriorityClassName }}\n{{- end }}\n{{- if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: ingress-nginx\n{{- end }}\n      terminationGracePeriodSeconds: 300\n      volumes:\n        - name: webhook-cert\n          secret:\n            secretName: ingress-nginx-admission\n{{- if .ExtraVolumes }}\n{{ toYaml .ExtraVolumes | indent 8}}\n{{- end }}\n---\n# Source: ingress-nginx/templates/controller-ingressclass.yaml\n# We don't support namespaced ingressClass yet\n# So a ClusterRole and a ClusterRoleBinding is required\napiVersion: networking.k8s.io/v1\nkind: IngressClass\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: controller\n  name: nginx\n  namespace: ingress-nginx\n  {{- if .DefaultIngressClass}}\n  annotations:\n    ingressclass.kubernetes.io/is-default-class: \"true\"\n  {{- end}}\nspec:\n  controller: k8s.io/ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/validating-webhook.yaml\n# before changing this value, check the required kubernetes version\n# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#prerequisites\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingWebhookConfiguration\nmetadata:\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\n  name: ingress-nginx-admission\nwebhooks:\n  - name: validate.nginx.ingress.kubernetes.io\n    matchPolicy: Equivalent\n    rules:\n      - apiGroups:\n          - networking.k8s.io\n        apiVersions:\n          - v1\n        operations:\n          - CREATE\n          - UPDATE\n        resources:\n          - ingresses\n    failurePolicy: Fail\n    sideEffects: None\n    admissionReviewVersions:\n      - v1\n    clientConfig:\n      service:\n        namespace: ingress-nginx\n        name: ingress-nginx-controller-admission\n        path: /networking/v1/ingresses\n{{- if eq .RBACConfig \"rbac\" }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/serviceaccount.yaml\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - admissionregistration.k8s.io\n    resources:\n      - validatingwebhookconfigurations\n    verbs:\n      - get\n      - update\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/role.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nrules:\n  - apiGroups:\n      - ''\n    resources:\n      - secrets\n    verbs:\n      - get\n      - create\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/rolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: ingress-nginx-admission\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: ingress-nginx-admission\nsubjects:\n  - kind: ServiceAccount\n    name: ingress-nginx-admission\n    namespace: ingress-nginx\n{{- end }}\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-createSecret.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-create\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: pre-install,pre-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-create\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 1.1.0\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: create\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - create\n            - --host=ingress-nginx-controller-admission,ingress-nginx-controller-admission.$(POD_NAMESPACE).svc\n            - --namespace=$(POD_NAMESPACE)\n            - --secret-name=ingress-nginx-admission\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n          securityContext:\n            allowPrivilegeEscalation: false\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n---\n# Source: ingress-nginx/templates/admission-webhooks/job-patch/job-patchWebhook.yaml\napiVersion: batch/v1\nkind: Job\nmetadata:\n  name: ingress-nginx-admission-patch\n  namespace: ingress-nginx\n  annotations:\n    helm.sh/hook: post-install,post-upgrade\n    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded\n  labels:\n    app.kubernetes.io/name: ingress-nginx\n    app.kubernetes.io/instance: ingress-nginx\n    app.kubernetes.io/version: 1.1.0\n    app.kubernetes.io/component: admission-webhook\nspec:\n  template:\n    metadata:\n      name: ingress-nginx-admission-patch\n      labels:\n        app.kubernetes.io/name: ingress-nginx\n        app.kubernetes.io/instance: ingress-nginx\n        app.kubernetes.io/version: 1.1.0\n        app.kubernetes.io/component: admission-webhook\n    spec:\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: patch\n          image: {{ .IngressWebhook }}\n          imagePullPolicy: IfNotPresent\n          args:\n            - patch\n            - --webhook-name=ingress-nginx-admission\n            - --namespace=$(POD_NAMESPACE)\n            - --patch-mutating=false\n            - --secret-name=ingress-nginx-admission\n            - --patch-failure-policy=Fail\n          env:\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n          securityContext:\n            allowPrivilegeEscalation: false\n      restartPolicy: OnFailure\n      serviceAccountName: ingress-nginx-admission\n      nodeSelector:\n        kubernetes.io/os: linux\n{{- if .NodeSelector }}\n      {{- range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{- end }}\n{{- end }}\n      securityContext:\n        runAsNonRoot: true\n        runAsUser: 2000\n{{- if .DefaultBackend}}\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n{{- if .DefaultHTTPBackendPriorityClassName }}\n      priorityClassName: {{ .DefaultHTTPBackendPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: default-http-backend\n        # Any image is permissible as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{ .IngressBackend }}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n{{- end }}\n",
    "nginxingress-v1.15": "\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: nginx-configuration\n  namespace: ingress-nginx\n  labels:\n    app: ingress-nginx\ndata:\n{{ range $k,$v := .Options }}\n  {{ $k }}: \"{{ $v }}\"\n{{ end }}\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: tcp-services\n  namespace: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: udp-services\n  namespace: ingress-nginx\n{{if eq .RBACConfig \"rbac\"}}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: nginx-ingress-serviceaccount\n  namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRole\nmetadata:\n  name: nginx-ingress-clusterrole\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - \"extensions\"\n      - \"networking.k8s.io\"\n    resources:\n      - ingresses\n      - daemonsets\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n        - events\n    verbs:\n        - create\n        - patch\n  - apiGroups:\n      - \"extensions\"\n      - \"networking.k8s.io\"\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: Role\nmetadata:\n  name: nginx-ingress-role\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n    resourceNames:\n      # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n      # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n      # This has to be adapted if you change either parameter\n      # when launching the nginx-ingress-controller.\n      - \"ingress-controller-leader-nginx\"\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - \"\"\n    resources:\n      - endpoints\n    verbs:\n      - get\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: RoleBinding\nmetadata:\n  name: nginx-ingress-role-nisa-binding\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: nginx-ingress-role\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRoleBinding\nmetadata:\n  name: nginx-ingress-clusterrole-nisa-binding\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: nginx-ingress-clusterrole\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n{{ end }}\n---\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: nginx-ingress-controller\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n{{if .UpdateStrategy}}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n      annotations:\n        prometheus.io/port: '10254'\n        prometheus.io/scrape: 'true'\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      hostNetwork: true\n      {{if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{end}}\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      {{if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: nginx-ingress-serviceaccount\n      {{ end }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      {{- if ne .AlpineImage \"\"}}\n      initContainers:\n      - command:\n        - sh\n        - -c\n        - sysctl -w net.core.somaxconn=32768; sysctl -w net.ipv4.ip_local_port_range=\"1024 65535\"\n        image: {{.AlpineImage}}\n        imagePullPolicy: IfNotPresent\n        name: sysctl\n        securityContext:\n          privileged: true\n      {{- end }}\n      containers:\n        - name: nginx-ingress-controller\n          image: {{.IngressImage}}\n          args:\n            - /nginx-ingress-controller\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            - --configmap=$(POD_NAMESPACE)/nginx-configuration\n            - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services\n            - --udp-services-configmap=$(POD_NAMESPACE)/udp-services\n            - --annotations-prefix=nginx.ingress.kubernetes.io\n          {{ range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{ end }}\n          {{- if eq .AlpineImage \"\"}}\n          securityContext:\n            capabilities:\n                drop:\n                - ALL\n                add:\n                - NET_BIND_SERVICE\n            runAsUser: 33\n          {{- end }}\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n{{if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{end}}\n          ports:\n          - name: http\n            containerPort: 80\n          - name: https\n            containerPort: 443\n          livenessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n{{if .ExtraVolumeMounts}}\n          volumeMounts:\n{{ toYaml .ExtraVolumeMounts | indent 12}}\n{{end}}\n{{if .ExtraVolumes}}\n      volumes:\n{{ toYaml .ExtraVolumes | indent 8}}\n{{end}}\n\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n      - name: default-http-backend\n        # Any image is permissable as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{.IngressBackend}}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n",
    "nginxingress-v1.15.12": "\n# this template is intended for use by \u003e= nginx-0.32.0\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: nginx-configuration\n  namespace: ingress-nginx\n  labels:\n    app: ingress-nginx\ndata:\n{{ range $k,$v := .Options }}\n  {{ $k }}: \"{{ $v }}\"\n{{ end }}\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: tcp-services\n  namespace: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: udp-services\n  namespace: ingress-nginx\n{{if eq .RBACConfig \"rbac\"}}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: nginx-ingress-serviceaccount\n  namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRole\nmetadata:\n  name: nginx-ingress-clusterrole\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - update\n      - watch\n  - apiGroups:\n      - extensions\n      - \"networking.k8s.io\" # k8s 1.14+\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n  - apiGroups:\n      - extensions\n      - \"networking.k8s.io\" # k8s 1.14+\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: Role\nmetadata:\n  name: nginx-ingress-role\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - endpoints\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - update\n      - watch\n  - apiGroups:\n      - extensions\n      - \"networking.k8s.io\" # k8s 1.14+\n    resources:\n      - ingresses\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - extensions\n      - \"networking.k8s.io\" # k8s 1.14+\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n    resourceNames:\n      # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n      # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n      # This has to be adapted if you change either parameter\n      # when launching the nginx-ingress-controller.\n      - ingress-controller-leader-nginx\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - \"\"\n    resources:\n      - endpoints\n    verbs:\n      - create\n      - get\n      - update\n  - apiGroups:\n      - \"\"\n    resources:\n      - events\n    verbs:\n      - create\n      - patch\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: RoleBinding\nmetadata:\n  name: nginx-ingress-role-nisa-binding\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: nginx-ingress-role\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRoleBinding\nmetadata:\n  name: nginx-ingress-clusterrole-nisa-binding\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: nginx-ingress-clusterrole\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n{{ end }}\n---\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: nginx-ingress-controller\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n{{if .UpdateStrategy}}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n      annotations:\n        prometheus.io/port: '10254'\n        prometheus.io/scrape: 'true'\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      {{- if eq .NetworkMode \"hostNetwork\"}}\n      hostNetwork: true\n      {{- end}}\n      {{if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{end}}\n# Rancher specific change\n{{- if .NginxIngressControllerPriorityClassName }}\n      priorityClassName: {{ .NginxIngressControllerPriorityClassName }}\n{{- end }}\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      {{if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: nginx-ingress-serviceaccount\n      {{ end }}\n      terminationGracePeriodSeconds: 60\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n        - name: nginx-ingress-controller\n          image: {{.IngressImage}}\n          args:\n            - /nginx-ingress-controller\n            {{- if .DefaultBackend}}\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            {{- end}}\n            - --configmap=$(POD_NAMESPACE)/nginx-configuration\n            - --election-id=ingress-controller-leader\n            - --ingress-class=nginx\n            - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services\n            - --udp-services-configmap=$(POD_NAMESPACE)/udp-services\n            - --annotations-prefix=nginx.ingress.kubernetes.io\n          {{ range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{ end }}\n          securityContext:\n          {{- if ne .NetworkMode \"none\" }}\n            capabilities:\n                drop:\n                - ALL\n                add:\n                - NET_BIND_SERVICE\n          {{- end }}\n            runAsUser: 101\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n{{if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{end}}\n          ports:\n          - name: http\n            {{- if eq .NetworkMode \"hostNetwork\"}}\n            containerPort: 80\n            {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n            containerPort: {{with (index .ExtraArgs \"http-port\")}}{{.}}{{else}}80{{end}}\n            {{- if eq .NetworkMode \"hostPort\"}}\n            hostPort: {{.HTTPPort}}\n            {{- end }}\n            {{- end }}\n          - name: https\n            {{- if eq .NetworkMode \"hostNetwork\"}}\n            containerPort: 443\n            {{- else if or (eq .NetworkMode \"hostPort\") (eq .NetworkMode \"none\")}}\n            containerPort: {{with (index .ExtraArgs \"https-port\")}}{{.}}{{else}}443{{end}}\n            {{- if eq .NetworkMode \"hostPort\"}}\n            hostPort: {{.HTTPSPort}}\n            {{- end }}\n            {{- end }}\n          livenessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n{{if .ExtraVolumeMounts}}\n          volumeMounts:\n{{ toYaml .ExtraVolumeMounts | indent 12}}\n{{end}}\n{{if .ExtraVolumes}}\n      volumes:\n{{ toYaml .ExtraVolumes | indent 8}}\n{{end}}\n---\n{{- if .DefaultBackend}}\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n# Rancher specific change\n{{- if .DefaultHTTPBackendPriorityClassName }}\n      priorityClassName: {{ .DefaultHTTPBackendPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: default-http-backend\n        # Any image is permissable as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{.IngressBackend}}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n{{- end }}\n",
    "nginxingress-v1.8": "\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: nginx-configuration\n  namespace: ingress-nginx\n  labels:\n    app: ingress-nginx\ndata:\n{{ range $k,$v := .Options }}\n  {{ $k }}: \"{{ $v }}\"\n{{ end }}\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: tcp-services\n  namespace: ingress-nginx\n---\nkind: ConfigMap\napiVersion: v1\nmetadata:\n  name: udp-services\n  namespace: ingress-nginx\n{{if eq .RBACConfig \"rbac\"}}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: nginx-ingress-serviceaccount\n  namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRole\nmetadata:\n  name: nginx-ingress-clusterrole\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n    verbs:\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n      - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n      - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - \"extensions\"\n    resources:\n      - ingresses\n      - daemonsets\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n        - events\n    verbs:\n        - create\n        - patch\n  - apiGroups:\n      - \"extensions\"\n    resources:\n      - ingresses/status\n    verbs:\n      - update\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: Role\nmetadata:\n  name: nginx-ingress-role\n  namespace: ingress-nginx\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - pods\n      - secrets\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n    resourceNames:\n      # Defaults to \"\u003celection-id\u003e-\u003cingress-class\u003e\"\n      # Here: \"\u003cingress-controller-leader\u003e-\u003cnginx\u003e\"\n      # This has to be adapted if you change either parameter\n      # when launching the nginx-ingress-controller.\n      - \"ingress-controller-leader-nginx\"\n    verbs:\n      - get\n      - update\n  - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - \"\"\n    resources:\n      - endpoints\n    verbs:\n      - get\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: RoleBinding\nmetadata:\n  name: nginx-ingress-role-nisa-binding\n  namespace: ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: nginx-ingress-role\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRoleBinding\nmetadata:\n  name: nginx-ingress-clusterrole-nisa-binding\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: nginx-ingress-clusterrole\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace: ingress-nginx\n{{ end }}\n---\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: nginx-ingress-controller\n  namespace: ingress-nginx\nspec:\n  selector:\n    matchLabels:\n      app: ingress-nginx\n{{if .UpdateStrategy}}\n  updateStrategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      labels:\n        app: ingress-nginx\n      annotations:\n        prometheus.io/port: '10254'\n        prometheus.io/scrape: 'true'\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      hostNetwork: true\n      {{if .DNSPolicy}}\n      dnsPolicy: {{.DNSPolicy}}\n      {{end}}\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      {{if eq .RBACConfig \"rbac\"}}\n      serviceAccountName: nginx-ingress-serviceaccount\n      {{ end }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      {{- if ne .AlpineImage \"\"}}\n      initContainers:\n      - command:\n        - sh\n        - -c\n        - sysctl -w net.core.somaxconn=32768; sysctl -w net.ipv4.ip_local_port_range=\"1024 65535\"\n        image: {{.AlpineImage}}\n        imagePullPolicy: IfNotPresent\n        name: sysctl\n        securityContext:\n          privileged: true\n      {{- end }}\n      containers:\n        - name: nginx-ingress-controller\n          image: {{.IngressImage}}\n          args:\n            - /nginx-ingress-controller\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n            - --configmap=$(POD_NAMESPACE)/nginx-configuration\n            - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services\n            - --udp-services-configmap=$(POD_NAMESPACE)/udp-services\n            - --annotations-prefix=nginx.ingress.kubernetes.io\n          {{ range $k, $v := .ExtraArgs }}\n            - --{{ $k }}{{if ne $v \"\" }}={{ $v }}{{end}}\n          {{ end }}\n          {{- if eq .AlpineImage \"\"}}\n          securityContext:\n            capabilities:\n                drop:\n                - ALL\n                add:\n                - NET_BIND_SERVICE\n            runAsUser: 33\n          {{- end }}\n          env:\n            - name: POD_NAME\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.name\n            - name: POD_NAMESPACE\n              valueFrom:\n                fieldRef:\n                  fieldPath: metadata.namespace\n{{if .ExtraEnvs}}\n{{ toYaml .ExtraEnvs | indent 12}}\n{{end}}\n          ports:\n          - name: http\n            containerPort: 80\n          - name: https\n            containerPort: 443\n          livenessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            initialDelaySeconds: 10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n              path: /healthz\n              port: 10254\n              scheme: HTTP\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds: 1\n{{if .ExtraVolumeMounts}}\n          volumeMounts:\n{{ toYaml .ExtraVolumeMounts | indent 12}}\n{{end}}\n{{if .ExtraVolumes}}\n      volumes:\n{{ toYaml .ExtraVolumes | indent 8}}\n{{end}}\n\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n  labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: default-http-backend\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      terminationGracePeriodSeconds: 60\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n      - name: default-http-backend\n        # Any image is permissable as long as:\n        # 1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n        image: {{.IngressBackend}}\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds: 5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n            cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu: 10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app: default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n    app: default-http-backend\n",
@@ -9840,6 +10018,10 @@
    "minRKEVersion": "1.2.14-rc0",
    "minRancherVersion": "2.5.11-rc0"
   },
+  "v1.19.16-rancher1-3": {
+   "minRKEVersion": "1.2.14-rc0",
+   "minRancherVersion": "2.5.11-rc0"
+  },
   "v1.20": {
    "minRKEVersion": "1.2.0-rc0",
    "minRancherVersion": "2.5.6-rc0"
@@ -9880,21 +10062,33 @@
    "minRKEVersion": "1.2.14-rc0",
    "minRancherVersion": "2.5.11-rc0"
   },
+  "v1.20.15-rancher1-1": {
+   "minRKEVersion": "1.2.14-rc0",
+   "minRancherVersion": "2.5.11-rc0"
+  },
   "v1.20.9-rancher1-1": {
    "minRKEVersion": "1.2.0-rc0",
    "minRancherVersion": "2.5.6-rc0"
   },
+  "v1.21": {
+   "minRKEVersion": "1.3.0-rc0",
+   "minRancherVersion": "2.6.0-rc0"
+  },
   "v1.22.4-rancher1-1": {
    "minRKEVersion": "1.3.3-rc0",
-   "minRancherVersion": "2.6.3-rc0"
+   "minRancherVersion": "2.6.3-patch0"
   },
   "v1.22.5-rancher1-1": {
    "minRKEVersion": "1.3.3-rc0",
-   "minRancherVersion": "2.6.3-rc0"
+   "minRancherVersion": "2.6.3-patch0"
   },
   "v1.22.5-rancher2-1": {
    "minRKEVersion": "1.3.3-rc0",
-   "minRancherVersion": "2.6.3-rc0"
+   "minRancherVersion": "2.6.3-patch0"
+  },
+  "v1.22.6-rancher1-1": {
+   "minRKEVersion": "1.3.3-rc0",
+   "minRancherVersion": "2.6.3-patch0"
   },
   "v1.8": {
    "maxRKEVersion": "0.2.2",
@@ -9938,12 +10132,16 @@
   "2.5.4": "v1.19.x",
   "2.5.5": "v1.19.x",
   "2.5.6": "v1.20.x",
-  "2.6": "v1.21.x",
-  "default": "v1.21.x"
+  "2.6": "v1.22.x",
+  "2.6.0": "v1.21.x",
+  "2.6.1": "v1.21.x",
+  "2.6.2": "v1.21.x",
+  "2.6.3": "v1.21.x",
+  "default": "v1.22.x"
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.21.8-rancher2-1"
+  "default": "v1.22.6-rancher1-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
@@ -10517,7 +10715,7 @@
  "k3s": {
   "channels": [
    {
-    "latest": "v1.21.8+k3s2",
+    "latest": "v1.21.9+k3s1",
     "name": "default"
    }
   ],
@@ -10535,7 +10733,7 @@
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.20.14+k3s2"
+    "version": "v1.20.15+k3s1"
    },
    {
     "agentArgs": {
@@ -11414,6 +11612,152 @@
      },
      "snapshotter": {
       "type": "string"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "maxChannelServerVersion": "v2.6.99",
+    "minChannelServerVersion": "v2.6.0-alpha1",
+    "serverArgs": {
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "datastore-cafile": {
+      "type": "string"
+     },
+     "datastore-certfile": {
+      "type": "string"
+     },
+     "datastore-endpoint": {
+      "type": "string"
+     },
+     "datastore-keyfile": {
+      "type": "string"
+     },
+     "default-local-storage-path": {
+      "type": "string"
+     },
+     "disable": {
+      "options": [
+       "coredns",
+       "servicelb",
+       "traefik",
+       "local-storage",
+       "metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-apiserver": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-cloud-controller": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-controller-manager": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-etcd": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-network-policy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-scheduler": {
+      "default": false,
+      "type": "boolean"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-backend": {
+      "options": [
+       "none",
+       "vxlan",
+       "ipsec",
+       "host-gw",
+       "wireguard"
+      ],
+      "type": "enum"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-cloud-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "secrets-encryption": {
+      "default": false,
+      "type": "boolean"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.21.9+k3s1"
+   },
+   {
+    "agentArgs": {
+     "docker": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-conf": {
+      "type": "string"
+     },
+     "flannel-iface": {
+      "type": "string"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "pause-image": {
+      "type": "string"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "selinux": {
+      "default": false,
+      "type": "boolean"
+     },
+     "snapshotter": {
+      "type": "string"
      }
     },
     "maxChannelServerVersion": "v2.6.99",
@@ -11668,13 +12012,159 @@
      }
     },
     "version": "v1.22.5+k3s2"
+   },
+   {
+    "agentArgs": {
+     "docker": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-conf": {
+      "type": "string"
+     },
+     "flannel-iface": {
+      "type": "string"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "pause-image": {
+      "type": "string"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "selinux": {
+      "default": false,
+      "type": "boolean"
+     },
+     "snapshotter": {
+      "type": "string"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "maxChannelServerVersion": "v2.6.99",
+    "minChannelServerVersion": "v2.6.3-alpha1",
+    "serverArgs": {
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "datastore-cafile": {
+      "type": "string"
+     },
+     "datastore-certfile": {
+      "type": "string"
+     },
+     "datastore-endpoint": {
+      "type": "string"
+     },
+     "datastore-keyfile": {
+      "type": "string"
+     },
+     "default-local-storage-path": {
+      "type": "string"
+     },
+     "disable": {
+      "options": [
+       "coredns",
+       "servicelb",
+       "traefik",
+       "local-storage",
+       "metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-apiserver": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-cloud-controller": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-controller-manager": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-etcd": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-network-policy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-scheduler": {
+      "default": false,
+      "type": "boolean"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-backend": {
+      "options": [
+       "none",
+       "vxlan",
+       "ipsec",
+       "host-gw",
+       "wireguard"
+      ],
+      "type": "enum"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-cloud-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "secrets-encryption": {
+      "default": false,
+      "type": "boolean"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.22.6+k3s1"
    }
   ]
  },
  "rke2": {
   "channels": [
    {
-    "latest": "v1.21.8+rke2r2",
+    "latest": "v1.21.9+rke2r1",
     "name": "default"
    }
   ],
@@ -11687,7 +12177,7 @@
    {
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.0-alpha1",
-    "version": "v1.20.14+rke2r2"
+    "version": "v1.20.15+rke2r1"
    },
    {
     "agentArgs": {
@@ -11757,23 +12247,23 @@
      },
      "rke2-cilium": {
       "repo": "rancher-rke2-charts",
-      "version": "1.9.808"
+      "version": "1.9.809"
      },
      "rke2-coredns": {
       "repo": "rancher-rke2-charts",
-      "version": "1.10.101-build2021022304"
+      "version": "1.16.201-build2021072308"
      },
      "rke2-ingress-nginx": {
       "repo": "rancher-rke2-charts",
-      "version": "3.34.002"
+      "version": "3.34.003"
      },
      "rke2-metrics-server": {
       "repo": "rancher-rke2-charts",
-      "version": "2.11.100-build2021022300"
+      "version": "2.11.100-build2021022302"
      },
      "rke2-multus": {
       "repo": "rancher-rke2-charts",
-      "version": "v3.7.1-build2021041603"
+      "version": "v3.7.1-build2021041604"
      }
     },
     "maxChannelServerVersion": "v2.6.99",
@@ -12713,6 +13203,172 @@
     "charts": {
      "harvester-cloud-provider": {
       "repo": "rancher-rke2-charts",
+      "version": "0.1.800"
+     },
+     "harvester-csi-driver": {
+      "repo": "rancher-rke2-charts",
+      "version": "0.1.900"
+     },
+     "rancher-vsphere-cpi": {
+      "repo": "rancher-charts",
+      "version": "100.1.0+up1.0.100"
+     },
+     "rancher-vsphere-csi": {
+      "repo": "rancher-charts",
+      "version": "100.1.0+up2.3.0"
+     },
+     "rke2-calico": {
+      "repo": "rancher-rke2-charts",
+      "version": "v3.19.2-205"
+     },
+     "rke2-calico-crd": {
+      "repo": "rancher-rke2-charts",
+      "version": "v1.0.101"
+     },
+     "rke2-canal": {
+      "repo": "rancher-rke2-charts",
+      "version": "v3.20.3-build2022011406"
+     },
+     "rke2-cilium": {
+      "repo": "rancher-rke2-charts",
+      "version": "1.10.404"
+     },
+     "rke2-coredns": {
+      "repo": "rancher-rke2-charts",
+      "version": "1.16.401-build2021111901"
+     },
+     "rke2-ingress-nginx": {
+      "repo": "rancher-rke2-charts",
+      "version": "4.0.306"
+     },
+     "rke2-metrics-server": {
+      "repo": "rancher-rke2-charts",
+      "version": "2.11.100-build2021111904"
+     },
+     "rke2-multus": {
+      "repo": "rancher-rke2-charts",
+      "version": "v3.7.1-build2021111906"
+     }
+    },
+    "maxChannelServerVersion": "v2.6.99",
+    "minChannelServerVersion": "v2.6.1-alpha1",
+    "serverArgs": {
+     "audit-policy-file": {
+      "type": "string"
+     },
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "cni": {
+      "default": "calico",
+      "options": [
+       "canal",
+       "cilium",
+       "calico",
+       "multus,canal",
+       "multus,cilium",
+       "multus,calico"
+      ],
+      "type": "array"
+     },
+     "disable": {
+      "options": [
+       "rke2-coredns",
+       "rke2-ingress-nginx",
+       "rke2-metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.21.9+rke2r1"
+   },
+   {
+    "agentArgs": {
+     "audit-policy-file": {
+      "type": "string"
+     },
+     "cloud-provider-config": {
+      "type": "string"
+     },
+     "cloud-provider-name": {
+      "default": null,
+      "nullable": true,
+      "options": [
+       "aws",
+       "azure",
+       "gcp",
+       "rancher-vsphere",
+       "harvester",
+       "external"
+      ],
+      "type": "enum"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "profile": {
+      "nullable": true,
+      "options": [
+       "cis-1.5",
+       "cis-1.6"
+      ],
+      "type": "enum"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "selinux": {
+      "type": "bool"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "charts": {
+     "harvester-cloud-provider": {
+      "repo": "rancher-rke2-charts",
       "version": "0.1.300"
      },
      "harvester-csi-driver": {
@@ -12995,6 +13651,172 @@
      }
     },
     "version": "v1.22.5+rke2r2"
+   },
+   {
+    "agentArgs": {
+     "audit-policy-file": {
+      "type": "string"
+     },
+     "cloud-provider-config": {
+      "type": "string"
+     },
+     "cloud-provider-name": {
+      "default": null,
+      "nullable": true,
+      "options": [
+       "aws",
+       "azure",
+       "gcp",
+       "rancher-vsphere",
+       "harvester",
+       "external"
+      ],
+      "type": "enum"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "profile": {
+      "nullable": true,
+      "options": [
+       "cis-1.5",
+       "cis-1.6"
+      ],
+      "type": "enum"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "selinux": {
+      "type": "bool"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "charts": {
+     "harvester-cloud-provider": {
+      "repo": "rancher-rke2-charts",
+      "version": "0.1.800"
+     },
+     "harvester-csi-driver": {
+      "repo": "rancher-rke2-charts",
+      "version": "0.1.900"
+     },
+     "rancher-vsphere-cpi": {
+      "repo": "rancher-charts",
+      "version": "100.1.0+up1.0.100"
+     },
+     "rancher-vsphere-csi": {
+      "repo": "rancher-charts",
+      "version": "100.1.0+up2.3.0"
+     },
+     "rke2-calico": {
+      "repo": "rancher-rke2-charts",
+      "version": "v3.20.201"
+     },
+     "rke2-calico-crd": {
+      "repo": "rancher-rke2-charts",
+      "version": "v1.0.202"
+     },
+     "rke2-canal": {
+      "repo": "rancher-rke2-charts",
+      "version": "v3.20.3-build2022011406"
+     },
+     "rke2-cilium": {
+      "repo": "rancher-rke2-charts",
+      "version": "1.10.404"
+     },
+     "rke2-coredns": {
+      "repo": "rancher-rke2-charts",
+      "version": "1.16.401-build2021111901"
+     },
+     "rke2-ingress-nginx": {
+      "repo": "rancher-rke2-charts",
+      "version": "4.0.306"
+     },
+     "rke2-metrics-server": {
+      "repo": "rancher-rke2-charts",
+      "version": "2.11.100-build2021111904"
+     },
+     "rke2-multus": {
+      "repo": "rancher-rke2-charts",
+      "version": "v3.7.1-build2021111906"
+     }
+    },
+    "maxChannelServerVersion": "v2.6.99",
+    "minChannelServerVersion": "v2.6.3-alpha1",
+    "serverArgs": {
+     "audit-policy-file": {
+      "type": "string"
+     },
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "cni": {
+      "default": "calico",
+      "options": [
+       "canal",
+       "cilium",
+       "calico",
+       "multus,canal",
+       "multus,cilium",
+       "multus,calico"
+      ],
+      "type": "array"
+     },
+     "disable": {
+      "options": [
+       "rke2-coredns",
+       "rke2-ingress-nginx",
+       "rke2-metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.22.6+rke2r1"
    }
   ]
  }
