@@ -164,16 +164,16 @@ func SyncNodeLabels(node *v1.Node, toAddLabels, toDelLabels map[string]string) {
 }
 
 func SyncNodeTaints(node *v1.Node, toAddTaints, toDelTaints []string) {
+	// Remove Taints from node
+	for _, taintStr := range toDelTaints {
+		node.Spec.Taints = delTaintFromList(node.Spec.Taints, toTaint(taintStr))
+	}
 	// Add taints to node
 	for _, taintStr := range toAddTaints {
 		if isTaintExist(toTaint(taintStr), node.Spec.Taints) {
 			continue
 		}
 		node.Spec.Taints = append(node.Spec.Taints, toTaint(taintStr))
-	}
-	// Remove Taints from node
-	for _, taintStr := range toDelTaints {
-		node.Spec.Taints = delTaintFromList(node.Spec.Taints, toTaint(taintStr))
 	}
 }
 
