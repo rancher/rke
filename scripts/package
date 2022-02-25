@@ -9,6 +9,8 @@ ARCH=${ARCH:-"amd64"}
 SUFFIX=""
 [ "${ARCH}" != "amd64" ] && SUFFIX="_${ARCH}"
 
+./scripts/create-releasenote.sh
+
 cd package
 
 TAG=${TAG:-${VERSION}${SUFFIX}}

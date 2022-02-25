@@ -45,9 +45,11 @@ steps:
     checksum:
     - sha256
     files:
-    - "build/bin/rke_*"
+    - "build/bin/rke*"
     prerelease: true
     title: "Pre-release ${DRONE_TAG}"
+    note: ./build/bin/rke-k8sversions.txt
+    overwrite: true
   when:
     instance:
       include:
@@ -66,7 +68,7 @@ steps:
     checksum:
     - sha256
     files:
-    - "build/bin/rke_*"
+    - "build/bin/rke*"
     api_key:
       from_secret: github_token
     title: "Release ${DRONE_TAG}"
