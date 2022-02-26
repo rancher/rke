@@ -661,6 +661,48 @@ func parseNodeDrainInput(clusterFile string, rkeConfig *v3.RancherKubernetesEngi
 	return nil
 }
 
+func parseLoadBalancerConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
+	// setting some defaults here because for these fields there's no way of differentiating between user provided null value vs golang setting it to null during unmarshal
+	// if len(rkeConfig.UpgradeStrategy) > 0 || rkeConfig.UpgradeStrategy.DrainInput == nil {
+	// 	return nil
+	// }
+	var config map[string]interface{}
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &config)
+	if err != nil {
+		return fmt.Errorf("[parseLoadBalancerConfig] error unmarshalling: %v", err)
+	}
+	loadBalancerMap, err := convert.EncodeToMap(config["loadbalancer"])
+	if err != nil {
+		return err
+	}
+	loadBalancerBytes, err := ghodssyaml.Marshal(loadBalancerMap)
+	if err != nil {
+		return err
+	}
+	// this will only have fields that user set and none of the default empty values
+	var loadBalancer v3.LoadBalancer
+	if err := ghodssyaml.Unmarshal(loadBalancerBytes, &loadBalancer); err != nil {
+		return err
+	}
+	var update bool
+	if _, ok := loadBalancerMap["kubeapi_internal_fqdn"]; !ok {
+		// user hasn't provided any input, default to ""
+		loadBalancer.KubeAPIInternalFQDN = ""
+		update = true
+	}
+	if _, ok := loadBalancerMap["kubeapi_external_fqdn"]; !ok {
+		// user hasn't provided any input, default to ""
+		loadBalancer.KubeAPIExternalFQDN = ""
+		update = true
+	}
+
+	if update {
+		rkeConfig.LoadBalancer = &loadBalancer
+	}
+
+	return nil
+}
+
 func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) {
 	logrus.Tracef("Parsing cluster file [%v]", clusterFile)
 	var rkeConfig v3.RancherKubernetesEngineConfig
@@ -693,6 +735,9 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	}
 	if err := parseAddonConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing addon config: %v", err)
+	}
+	if err := parseLoadBalancerConfig(clusterFile, &rkeConfig); err != nil {
+		return &rkeConfig, fmt.Errorf("error parsing loadbalancer config: %v", err)
 	}
 	return &rkeConfig, nil
 }
@@ -816,7 +861,12 @@ func rebuildLocalAdminConfig(ctx context.Context, kubeCluster *Cluster) error {
 			newConfig = getLocalAdminConfigWithNewAddress(kubeCluster.LocalKubeConfigPath, cpHost.Address, kubeCluster.ClusterName)
 		} else {
 			log.Debugf(ctx, "[reconcile] Rebuilding and updating local kube config, creating new kubeconfig")
-			kubeURL := fmt.Sprintf("https://%s:6443", cpHost.Address)
+			var kubeURL string
+			if len(kubeCluster.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIExternalFQDN) > 0 {
+				kubeURL = fmt.Sprintf("https://%s:%d", kubeCluster.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIExternalFQDN, kubeCluster.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIExternalPort)
+			} else {
+				kubeURL = fmt.Sprintf("https://%s:6443", cpHost.Address)
+			}
 			caData := string(cert.EncodeCertPEM(caCrt))
 			crtData := string(cert.EncodeCertPEM(currentKubeConfig.Certificate))
 			keyData := string(cert.EncodePrivateKeyPEM(currentKubeConfig.Key))

@@ -194,7 +194,8 @@ func processControlPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.C
 }
 
 func startNewControlHost(ctx context.Context, runHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry,
-	cpNodePlanMap map[string]v3.RKEConfigNodePlan, updateWorkersOnly bool, alpineImage string, certMap map[string]pki.CertificatePKI, k8sVersion string) error {
+	cpNodePlanMap map[string]v3.RKEConfigNodePlan, updateWorkersOnly bool, alpineImage string, certMap map[string]pki.CertificatePKI, k8sVersion string,
+) error {
 	if err := doDeployControlHost(ctx, runHost, localConnDialerFactory, prsMap, cpNodePlanMap[runHost.Address].Processes, alpineImage, certMap, k8sVersion); err != nil {
 		return err
 	}

@@ -110,7 +110,7 @@ func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts
 
 	portChecks = append(portChecks, BuildPortChecksFromPortList(host, WorkerPortList, ProtocolTCP)...)
 	// Do we need an nginxProxy for this one ?
-	if !host.IsControl {
+	if !host.IsControl && len(myCluster.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalFQDN) == 0 {
 		processes[services.NginxProxyContainerName] = myCluster.BuildProxyProcess(host)
 	}
 	if host.IsControl {

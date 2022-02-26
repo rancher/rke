@@ -519,7 +519,17 @@ func GenerateKubeletCertificate(ctx context.Context, certs map[string]Certificat
 		if err != nil {
 			return err
 		}
-		certs[kubeletName] = ToCertObject(kubeletName, "", "", kubeletCrt, kubeletKey, nil)
+		cert := ToCertObject(kubeletName, "", "", kubeletCrt, kubeletKey, nil)
+		if len(rkeConfig.LoadBalancer.KubeAPIInternalFQDN) > 0 {
+			endpoint := fmt.Sprintf("https://%s:%d", rkeConfig.LoadBalancer.KubeAPIInternalFQDN, rkeConfig.LoadBalancer.KubeAPIInternalPort)
+			caCertPath := GetCertPath(CACertName)
+			path := GetCertPath(kubeletName)
+			keyPath := GetKeyPath(kubeletName)
+			cert.Config = getKubeConfigX509(endpoint, "local", kubeletName, caCertPath, path, keyPath)
+			cert.ConfigPath = GetConfigPath(kubeletName)
+			cert.ConfigEnvName = getConfigEnvFromEnv(kubeletName)
+		}
+		certs[kubeletName] = cert
 	}
 	deleteUnusedCerts(ctx, certs, KubeletCertName, allHosts)
 	return nil

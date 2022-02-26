@@ -300,9 +300,10 @@ func RestartWorkerPlane(ctx context.Context, workerHosts []*hosts.Host) error {
 func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 	localConnDialerFactory hosts.DialerFactory,
 	prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, alpineImage, k8sVersion string) error {
+	nginxProxyProcess, nginxProxyEnabled := processMap[NginxProxyContainerName]
 	// run nginx proxy
-	if !host.IsControl {
-		if err := runNginxProxy(ctx, host, prsMap, processMap[NginxProxyContainerName], alpineImage, k8sVersion); err != nil {
+	if !host.IsControl && nginxProxyEnabled {
+		if err := runNginxProxy(ctx, host, prsMap, nginxProxyProcess, alpineImage, k8sVersion); err != nil {
 			return err
 		}
 	}
@@ -318,7 +319,11 @@ func doDeployWorkerPlane(ctx context.Context, host *hosts.Host,
 }
 
 func isWorkerHostUpgradable(ctx context.Context, host *hosts.Host, processMap map[string]v3.Process, k8sVersion string) (bool, error) {
-	for _, service := range []string{NginxProxyContainerName, SidekickContainerName, KubeletContainerName, KubeproxyContainerName} {
+	defaultServices := []string{SidekickContainerName, KubeletContainerName, KubeproxyContainerName}
+	if _, ok := processMap[NginxProxyContainerName]; ok {
+		defaultServices = append(defaultServices, NginxProxyContainerName)
+	}
+	for _, service := range defaultServices {
 		process := processMap[service]
 		imageCfg, hostCfg, _ := GetProcessConfig(process, host, k8sVersion)
 		upgradable, err := docker.IsContainerUpgradable(ctx, host.DClient, imageCfg, hostCfg, service, host.Address, WorkerRole)

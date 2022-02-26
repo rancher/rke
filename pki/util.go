@@ -197,6 +197,8 @@ func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceI
 		}
 	}
 
+	// kube-api lb endpoint has to be in sans
+
 	ips = append(ips, net.ParseIP("127.0.0.1"))
 	ips = append(ips, KubernetesServiceIP...)
 	dnsNames = append(dnsNames, []string{

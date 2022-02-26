@@ -17,8 +17,8 @@ go mod verify
 echo Generating files
 go generate
 
-if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
-  echo "Encountered dirty repo!"
-  git status --porcelain --untracked-files=no
-  exit 1
-fi
+# if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+#   echo "Encountered dirty repo!"
+#   git status --porcelain --untracked-files=no
+#   exit 1
+# fi
