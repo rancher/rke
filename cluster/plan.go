@@ -732,10 +732,14 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 func (c *Cluster) BuildProxyProcess(host *hosts.Host) v3.Process {
 	Command := c.getNginxEntryPoint(host.OS())
 	nginxProxyEnv := ""
-	for i, host := range c.ControlPlaneHosts {
-		nginxProxyEnv += fmt.Sprintf("%s", host.InternalAddress)
-		if i < (len(c.ControlPlaneHosts) - 1) {
-			nginxProxyEnv += ","
+	if len(c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalFQDN) > 0 {
+		nginxProxyEnv = fmt.Sprintf("%s:%d", c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalFQDN, c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalPort)
+	} else {
+		for i, host := range c.ControlPlaneHosts {
+			nginxProxyEnv += fmt.Sprintf("%s", host.InternalAddress)
+			if i < (len(c.ControlPlaneHosts) - 1) {
+				nginxProxyEnv += ","
+			}
 		}
 	}
 	Env := []string{fmt.Sprintf("%s=%s", services.NginxProxyEnvName, nginxProxyEnv)}

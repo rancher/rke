@@ -124,6 +124,11 @@ const (
 	DefaultHTTPSPort                  = 443
 	DefaultNetworkMode                = "hostNetwork"
 	DefaultNetworkModeV121            = "hostPort"
+
+	DefaultKubeAPIInternalFQDN = ""
+	DefaultKubeAPIInternalPort = 0
+	DefaultKubeAPIExternalFQDN = ""
+	DefaultKubeAPIExternalPort = 0
 )
 
 var (
@@ -256,9 +261,26 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 	c.setClusterServicesDefaults()
 	c.setClusterNetworkDefaults()
 	c.setClusterAuthnDefaults()
+	c.setClusterLoadBalancerDefaults()
 	c.setNodeUpgradeStrategy()
 	c.setAddonsDefaults()
 	return nil
+}
+
+func (c *Cluster) setClusterLoadBalancerDefaults() {
+	if c.LoadBalancer == nil {
+		logrus.Debugf("No input provided for kubeAPIInternalFQDN and kubeAPIInternalPort, disabling internal KubeAPI LoadBalancer")
+		logrus.Debugf("No input provided for kubeAPIEnternalFQDN and kubeAPIEnternalPort, disabling external KubeAPI LoadBalancer")
+		c.LoadBalancer = &v3.LoadBalancer{
+			KubeAPIInternalFQDN: DefaultKubeAPIInternalFQDN,
+			KubeAPIInternalPort: DefaultKubeAPIInternalPort,
+			KubeAPIExternalFQDN: DefaultKubeAPIExternalFQDN,
+			KubeAPIExternalPort: DefaultKubeAPIExternalPort,
+		}
+		return
+	}
+	setDefaultIfEmpty(&c.LoadBalancer.KubeAPIInternalFQDN, DefaultKubeAPIInternalFQDN)
+	setDefaultIfEmpty(&c.LoadBalancer.KubeAPIExternalFQDN, DefaultKubeAPIExternalFQDN)
 }
 
 func (c *Cluster) setNodeUpgradeStrategy() {

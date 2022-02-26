@@ -65,10 +65,23 @@ type RancherKubernetesEngineConfig struct {
 	DNS *DNSConfig `yaml:"dns" json:"dns,omitempty"`
 	// Upgrade Strategy for the cluster
 	UpgradeStrategy *NodeUpgradeStrategy `yaml:"upgrade_strategy,omitempty" json:"upgradeStrategy,omitempty"`
+	// Loadbalancer Config
+	LoadBalancer *LoadBalancer `yaml:"loadbalancer,omitempty" json:"loadbalancer,omitempty"`
 }
 
 func (r *RancherKubernetesEngineConfig) ObjClusterName() string {
 	return r.ClusterName
+}
+
+type LoadBalancer struct {
+	// External name to be used in generated kubeconfig and in certificates for kube-apiserver
+	KubeAPIExternalFQDN string `yaml:"kubeapi_external_fqdn,omitempty" json:"kubeapi_external_fqdn,omitempty"`
+	// Optional, listen port for kubeapi_external_fqdn which is configured at the external load balancer
+	KubeAPIExternalPort int `yaml:"kubeapi_external_port,omitempty" json:"kubeapi_external_port,omitempty" norman:"min=1,default=8443"`
+	// Optional, disables nginx-proxy on the nodes and uses this in the node's kubecfg. Should be added as a SAN.
+	KubeAPIInternalFQDN string `yaml:"kubeapi_internal_fqdn,omitempty" json:"kubeapi_internal_fqdn,omitempty"`
+	// Optional, uses this port to connect to kubeapi
+	KubeAPIInternalPort int `yaml:"kubeapi_internal_port,omitempty" json:"kubeapi_internal_port,omitempty" norman:"min=1,default=9443"`
 }
 
 type NodeUpgradeStrategy struct {

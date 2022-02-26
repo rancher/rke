@@ -55,7 +55,22 @@ func (c *Cluster) ValidateCluster(ctx context.Context) error {
 	}
 
 	// validate services options
-	return validateServicesOptions(c)
+	if err := validateServicesOptions(c); err != nil {
+		return err
+	}
+
+	// validate loadbalancer options
+	return validateLoadBalancerOptions(c)
+}
+
+func validateLoadBalancerOptions(c *Cluster) error {
+	if len(c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIExternalFQDN) > 0 && !(c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIExternalPort >= 0 && c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIExternalPort <= 65535) {
+		return fmt.Errorf("kube-api external loadbalancer port is invalid. Needs to be within 0 to 65535")
+	}
+	if len(c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalFQDN) > 0 && !(c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalPort >= 0 && c.RancherKubernetesEngineConfig.LoadBalancer.KubeAPIInternalPort <= 65535) {
+		return fmt.Errorf("kube-api internal loadbalancer port is invalid. Needs to be within 0 to 65535")
+	}
+	return nil
 }
 
 func validateAuthOptions(c *Cluster) error {
