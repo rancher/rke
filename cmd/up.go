@@ -104,8 +104,8 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	}
 	// if we need to rotate the encryption key, do so and then return
 	if kubeCluster.RancherKubernetesEngineConfig.RotateEncryptionKey {
-		// rotate the encryption key only when updating an existing cluster
-		if clusterState.CurrentState.RancherKubernetesEngineConfig != nil {
+		// rotate the encryption key only when updating an existing cluster which has secret encryption enabled
+		if clusterState.CurrentState.RancherKubernetesEngineConfig != nil && clusterState.CurrentState.RancherKubernetesEngineConfig.Services.KubeAPI.SecretsEncryptionConfig.Enabled {
 			return RotateEncryptionKey(ctx, clusterState.CurrentState.RancherKubernetesEngineConfig.DeepCopy(), dialersOptions, flags)
 		}
 	}
