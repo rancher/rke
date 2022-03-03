@@ -43,7 +43,8 @@ const (
 	LogCleanerContainerName                     = "rke-log-cleaner"
 
 	KubeAPIPort               = 6443
-	SchedulerPort             = 10251
+	SchedulerPortMaxV122      = 10251
+	SchedulerPort             = 10259
 	KubeControllerPortMaxV121 = 10252
 	KubeControllerPort        = 10257
 	KubeletPort               = 10248

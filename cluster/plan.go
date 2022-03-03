@@ -56,6 +56,7 @@ const (
 	MaxEtcdPort4001Version    = "v3.4.3-rancher99"
 	MaxEtcdNoStrictTLSVersion = "v3.4.14-rancher99"
 	MaxK8s121Version          = "v1.21.99-rancher99"
+	MaxK8s122Version          = "v1.22.99-rancher99"
 
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
@@ -833,9 +834,26 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 
 	Binds = append(Binds, c.Services.Scheduler.ExtraBinds...)
 
-	healthCheck := v3.HealthCheck{
-		URL: services.GetHealthCheckURL(false, services.SchedulerPort),
+	maxK8s122Version, err := util.StrToSemVer(MaxK8s122Version)
+	if err != nil {
+		logrus.Warn(err)
 	}
+
+	k8sTag, err := util.GetImageTagFromImage(c.SystemImages.Kubernetes)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	k8sSemVer, err := util.StrToSemVer(k8sTag)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	healthCheck := v3.HealthCheck{}
+	if k8sSemVer != nil && k8sSemVer.LessThan(*maxK8s122Version) {
+		healthCheck.URL = services.GetHealthCheckURL(false, services.SchedulerPortMaxV122)
+	} else {
+		healthCheck.URL = services.GetHealthCheckURL(true, services.SchedulerPort)
+	}
+
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.Scheduler.Image, c.PrivateRegistriesMap)
 	return v3.Process{
 		Name:                    services.SchedulerContainerName,
