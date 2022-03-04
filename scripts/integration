@@ -47,8 +47,12 @@ source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
-# Get latest version from rke
+# Get latest major.minor versions from rke
 all_versions=$(./bin/rke --quiet config --all --list-version | sort -V)
+# Get default version from rke
+default_version=$(./bin/rke --quiet config --list-version)
+
+default_version_found="false"
 
 # Get the latest of the major.minor versions.
 for ver in $all_versions; do
@@ -58,11 +62,21 @@ for ver in $all_versions; do
         continue
     fi
 
+    if [ "$ver" == "$default_version" ]; then
+        default_version_found="true"
+    fi
+
     #split value on .
     split=($(echo $ver | tr '.' '\n'))
     major_ver="${split[0]}.${split[1]}"
     versions_to_test["${major_ver}"]="${ver}"
 done
+
+if [ "$default_version_found" == "false" ]; then
+    echo "Default version (${default_version}) not found when listing all latest k8s versions from rke"
+    echo -e "All versions:\n${all_versions}"
+    exit 1
+fi
 
 for ver in "${!versions_to_test[@]}"; do
     version_to_test=${versions_to_test["${ver}"]}
