@@ -9600,7 +9600,7 @@
    "canalNode": "rancher/mirrored-calico-node:v3.21.1",
    "canalCni": "rancher/mirrored-calico-cni:v3.21.1",
    "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.21.1",
-   "canalFlannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "canalFlannel": "rancher/mirrored-flannelcni-flannel:v0.17.0",
    "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.21.1",
    "weaveNode": "weaveworks/weave-kube:2.8.1",
    "weaveCni": "weaveworks/weave-npc:2.8.1",
@@ -9643,7 +9643,7 @@
    "canalNode": "rancher/mirrored-calico-node:v3.22.0",
    "canalCni": "rancher/mirrored-calico-cni:v3.22.0",
    "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.22.0",
-   "canalFlannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "canalFlannel": "rancher/mirrored-flannelcni-flannel:v0.17.0",
    "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0",
    "weaveNode": "weaveworks/weave-kube:2.8.1",
    "weaveCni": "weaveworks/weave-npc:2.8.1",
@@ -10819,42 +10819,6 @@
    "scheduler": null
   },
   "v1.22": {
-   "etcd": null,
-   "kubeapi": null,
-   "kubelet": {
-    "address": "0.0.0.0",
-    "anonymous-auth": "false",
-    "authentication-token-webhook": "true",
-    "authorization-mode": "Webhook",
-    "cert-dir": "[PREFIX_PATH]/var/lib/kubelet/pki",
-    "cgroups-per-qos": "false",
-    "cni-bin-dir": "[PREFIX_PATH]/opt/cni/bin",
-    "cni-conf-dir": "[PREFIX_PATH]/etc/cni/net.d",
-    "enforce-node-allocatable": "''",
-    "event-qps": "0",
-    "image-pull-progress-deadline": "30m",
-    "kube-reserved": "cpu=500m,memory=500Mi,ephemeral-storage=1Gi",
-    "make-iptables-util-chains": "true",
-    "network-plugin": "cni",
-    "read-only-port": "0",
-    "resolv-conf": "''",
-    "streaming-connection-idle-timeout": "30m",
-    "system-reserved": "cpu=1000m,memory=2Gi,ephemeral-storage=2Gi",
-    "tls-cipher-suites": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
-    "v": "2",
-    "volume-plugin-dir": "[PREFIX_PATH]/var/lib/kubelet/volumeplugins"
-   },
-   "kubeproxy": {
-    "enable-dsr": "false",
-    "feature-gates": "IPv6DualStack=false",
-    "healthz-bind-address": "127.0.0.1",
-    "proxy-mode": "kernelspace",
-    "v": "2"
-   },
-   "kubeController": null,
-   "scheduler": null
-  },
-  "v1.23": {
    "etcd": null,
    "kubeapi": null,
    "kubelet": {
