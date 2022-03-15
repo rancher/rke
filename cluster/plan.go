@@ -810,17 +810,6 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
 
-	for arg, value := range c.Services.Scheduler.ExtraArgs {
-		if _, ok := c.Services.Scheduler.ExtraArgs[arg]; ok {
-			CommandArgs[arg] = value
-		}
-	}
-
-	for arg, value := range CommandArgs {
-		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		Command = append(Command, cmd)
-	}
-
 	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
 	if err != nil {
 		logrus.Debugf("Error while matching cluster version [%s] with range [%s]", c.Version, util.SemVerK8sVersion122OrHigher)
@@ -830,6 +819,17 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 		Binds = util.RemoveZFromBinds(Binds)
 		CommandArgs["authentication-kubeconfig"] = CommandArgs["kubeconfig"]
 		CommandArgs["authorization-kubeconfig"] = CommandArgs["kubeconfig"]
+	}
+
+	for arg, value := range c.Services.Scheduler.ExtraArgs {
+		if _, ok := c.Services.Scheduler.ExtraArgs[arg]; ok {
+			CommandArgs[arg] = value
+		}
+	}
+
+	for arg, value := range CommandArgs {
+		cmd := fmt.Sprintf("--%s=%s", arg, value)
+		Command = append(Command, cmd)
 	}
 
 	Binds = append(Binds, c.Services.Scheduler.ExtraBinds...)
