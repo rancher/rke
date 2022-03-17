@@ -9629,7 +9629,7 @@
    "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1",
    "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.21.1",
    "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
-   "coredns": "coredns/coredns:1.9.0",
+   "coredns": "rancher/mirrored-coredns-coredns:1.9.0",
    "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
    "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
    "kubernetes": "rancher/hyperkube:v1.23.4-rancher1",
@@ -11015,7 +11015,7 @@
  "k3s": {
   "channels": [
    {
-    "latest": "v1.21.10+k3s1",
+    "latest": "v1.23.4+k3s1",
     "name": "default"
    }
   ],
@@ -12786,13 +12786,162 @@
      }
     },
     "version": "v1.22.7+k3s1"
+   },
+   {
+    "agentArgs": {
+     "docker": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-conf": {
+      "type": "string"
+     },
+     "flannel-iface": {
+      "type": "string"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "pause-image": {
+      "type": "string"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "resolv-conf": {
+      "type": "string"
+     },
+     "selinux": {
+      "default": false,
+      "type": "boolean"
+     },
+     "snapshotter": {
+      "type": "string"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "maxChannelServerVersion": "v2.6.99",
+    "minChannelServerVersion": "v2.6.4-alpha1",
+    "serverArgs": {
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "datastore-cafile": {
+      "type": "string"
+     },
+     "datastore-certfile": {
+      "type": "string"
+     },
+     "datastore-endpoint": {
+      "type": "string"
+     },
+     "datastore-keyfile": {
+      "type": "string"
+     },
+     "default-local-storage-path": {
+      "type": "string"
+     },
+     "disable": {
+      "options": [
+       "coredns",
+       "servicelb",
+       "traefik",
+       "local-storage",
+       "metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-apiserver": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-cloud-controller": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-controller-manager": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-etcd": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-network-policy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-scheduler": {
+      "default": false,
+      "type": "boolean"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-backend": {
+      "options": [
+       "none",
+       "vxlan",
+       "ipsec",
+       "host-gw",
+       "wireguard"
+      ],
+      "type": "enum"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-cloud-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "secrets-encryption": {
+      "default": false,
+      "type": "boolean"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.23.4+k3s1"
    }
   ]
  },
  "rke2": {
   "channels": [
    {
-    "latest": "v1.21.10+rke2r2",
+    "latest": "v1.23.4+rke2r2",
     "name": "default"
    }
   ],
