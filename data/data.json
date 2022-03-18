@@ -8770,7 +8770,7 @@
    "\u003e=1.19.16-rancher1-1 \u003c1.19.16-rancher1-3": "nginxingress-v0.49.3",
    "\u003e=1.19.16-rancher1-3 \u003c1.20.0-rancher0": "nginxingress-v1.1.0-rancher2",
    "\u003e=1.20.0-rancher0 \u003c1.20.12-rancher1-1": "nginxingress-v1.15.12",
-   "\u003e=1.20.12-rancher1-1 \u003c 1.20.14-rancher2-2": "nginxingress-v0.49.3",
+   "\u003e=1.20.12-rancher1-1 \u003c1.20.14-rancher2-2": "nginxingress-v0.49.3",
    "\u003e=1.20.14-rancher2-2": "nginxingress-v1.1.0-rancher2",
    "\u003e=1.8.0-rancher0 \u003c1.13.10-rancher1-3": "nginxingress-v1.8"
   },
