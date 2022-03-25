@@ -4,7 +4,7 @@ Rancher Kubernetes Engine, an extremely simple, lightning fast Kubernetes instal
 
 ## Latest Release
 
-* v1.3.4 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.3.4).
+* v1.3.7 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.3.7).
 
 ## Download
 
