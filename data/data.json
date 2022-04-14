@@ -11536,6 +11536,17 @@
   }
  },
  "k3s": {
+  "appDefaults": [
+   {
+    "appName": "rancher",
+    "defaults": [
+     {
+      "appVersion": "\u003e 2.6.0-0 \u003c 2.6.99-0",
+      "defaultVersion": "1.22.x"
+     }
+    ]
+   }
+  ],
   "channels": [
    {
     "latest": "v1.22.8+k3s1",
@@ -13909,6 +13920,17 @@
   ]
  },
  "rke2": {
+  "appDefaults": [
+   {
+    "appName": "rancher",
+    "defaults": [
+     {
+      "appVersion": "\u003e 2.6.0-0 \u003c 2.6.99-0",
+      "defaultVersion": "1.22.x"
+     }
+    ]
+   }
+  ],
   "channels": [
    {
     "latest": "v1.22.8+rke2r1",
