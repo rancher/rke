@@ -49,10 +49,10 @@ func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transpor
 		return err
 	}
 
-	// if the addon configMap is updated, or the previous job is not completed,
-	// I will remove the existing job first, if any
-	if addonUpdated || (jobStatus.Created && !jobStatus.Completed) {
-		logrus.Debugf("[k8s] replacing job %s.. ", job.Name)
+	// if the addon configMap is updated, or the previous job is created or completed,
+	// always re-run the job and let kubectl apply determine what if any changes need to be made.
+	if addonUpdated || jobStatus.Created || jobStatus.Completed {
+		logrus.Debugf("[k8s] deleting job %s so that it can be recreated.. ", job.Name)
 		if err := DeleteK8sSystemJob(jobYaml, k8sClient, timeout); err != nil {
 			return err
 		}
