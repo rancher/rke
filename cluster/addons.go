@@ -188,7 +188,7 @@ func (c *Cluster) deployUserAddOns(ctx context.Context) error {
 	if c.Addons != "" {
 		addonJobExists, err := addons.AddonJobExists(UserAddonJobName, c.LocalKubeConfigPath, c.K8sWrapTransport)
 		if err != nil {
-			return nil
+			return err
 		}
 		if addonJobExists {
 			log.Infof(ctx, "[addons] Removing old user addons")
