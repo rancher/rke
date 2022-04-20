@@ -23,7 +23,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.9.1
-	github.com/rancher/norman v0.0.0-20200517050325-f53cae161640
+	github.com/rancher/norman v0.0.0-20220406153559-82478fb169cb
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.1
@@ -105,12 +105,12 @@ require (
 	github.com/opencontainers/runc v1.1.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.11.0 // indirect
+	github.com/prometheus/client_golang v1.11.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.28.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
-	github.com/rancher/lasso v0.0.0-20200515155337-a34e1e26ad91 // indirect
-	github.com/rancher/wrangler v0.6.2-0.20200515155908-1923f3f8ec3f // indirect
+	github.com/rancher/lasso v0.0.0-20200820172840-0e4cc0ef5cb0 // indirect
+	github.com/rancher/wrangler v0.6.2-0.20200820173016-2068de651106 // indirect
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
