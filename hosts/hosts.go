@@ -420,6 +420,13 @@ func (h *Host) GetExtraArgs(service v3.BaseService) map[string]string {
 	}
 }
 
+func (h *Host) GetExtraArgsArray(service v3.BaseService) map[string][]string {
+	if h.OS() == "windows" && len(service.WindowsExtraArgsArray) > 0 {
+		return service.WindowsExtraArgsArray
+	}
+	return service.ExtraArgsArray
+}
+
 func DoRunLogCleaner(ctx context.Context, host *Host, alpineImage string, prsMap map[string]v3.PrivateRegistry) error {
 	logrus.Debugf("[cleanup] Starting log link cleanup on host [%s]", host.Address)
 	imageCfg := &container.Config{

@@ -188,6 +188,8 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		"tls-cert-file":                pki.GetCertPath(pki.KubeAPICertName),
 		"tls-private-key-file":         pki.GetKeyPath(pki.KubeAPICertName),
 	}
+	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
+
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = cloudConfigFileName
 	}
@@ -300,10 +302,12 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		}
 	}
 
-	for arg, value := range CommandArgs {
-		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		Command = append(Command, cmd)
+	for arg, value := range c.Services.KubeAPI.ExtraArgsArray {
+		CommandArrayArgs[arg] = value
 	}
+
+	Command = appendArgs(Command, CommandArgs)
+	Command = appendArrayArgs(Command, CommandArrayArgs)
 
 	Binds = append(Binds, c.Services.KubeAPI.ExtraBinds...)
 
@@ -339,6 +343,7 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 		"service-account-private-key-file": pki.GetKeyPath(pki.ServiceAccountTokenKeyName),
 		"service-cluster-ip-range":         c.Services.KubeController.ServiceClusterIPRange,
 	}
+	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
 	// Best security practice is to listen on localhost, but DinD uses private container network instead of Host.
 	if c.DinD {
 		CommandArgs["address"] = "0.0.0.0"
@@ -392,10 +397,13 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 		}
 	}
 
-	for arg, value := range CommandArgs {
-		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		Command = append(Command, cmd)
+	for arg, value := range c.Services.KubeController.ExtraArgsArray {
+		CommandArrayArgs[arg] = value
 	}
+
+	Command = appendArgs(Command, CommandArgs)
+	Command = appendArrayArgs(Command, CommandArrayArgs)
+
 	k8sTag, err := util.GetImageTagFromImage(c.SystemImages.Kubernetes)
 	if err != nil {
 		logrus.Warn(err)
@@ -595,6 +603,14 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	for arg, value := range host.GetExtraArgs(kubelet.BaseService) {
 		CommandArgs[arg] = value
 	}
+	extraArgsArray := host.GetExtraArgsArray(kubelet.BaseService)
+	CommandArrayArgs := make(map[string][]string, len(extraArgsArray))
+	for arg, value := range extraArgsArray {
+		CommandArrayArgs[arg] = value
+	}
+
+	Command = appendArgs(Command, CommandArgs)
+	Command = appendArrayArgs(Command, CommandArrayArgs)
 
 	// If nodelocal DNS is configured, set cluster-dns to local IP
 	if c.DNS.Nodelocal != nil && c.DNS.Nodelocal.IPAddress != "" {
@@ -608,7 +624,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 
 	return v3.Process{
 		Name:                    services.KubeletContainerName,
-		Command:                 appendArgs(Command, CommandArgs),
+		Command:                 Command,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   getUniqStringList(Binds),
 		Env:                     getUniqStringList(Env),
@@ -707,13 +723,22 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		CommandArgs[arg] = value
 	}
 
+	extraArgsArray := host.GetExtraArgsArray(kubeproxy.BaseService)
+	CommandArrayArgs := make(map[string][]string, len(extraArgsArray))
+	for arg, value := range extraArgsArray {
+		CommandArrayArgs[arg] = value
+	}
+
+	Command = appendArgs(Command, CommandArgs)
+	Command = appendArrayArgs(Command, CommandArrayArgs)
+
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(false, services.KubeproxyPort),
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(kubeproxy.Image, c.PrivateRegistriesMap)
 	return v3.Process{
 		Name:                    services.KubeproxyContainerName,
-		Command:                 appendArgs(Command, CommandArgs),
+		Command:                 Command,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   getUniqStringList(Binds),
 		Env:                     getUniqStringList(Env),
@@ -786,7 +811,7 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 	CommandArgs := map[string]string{
 		"kubeconfig": pki.GetConfigPath(pki.KubeSchedulerCertName),
 	}
-
+	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
 	// Best security practice is to listen on localhost, but DinD uses private container network instead of Host.
 	if c.DinD {
 		CommandArgs["address"] = "0.0.0.0"
@@ -827,10 +852,12 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 		}
 	}
 
-	for arg, value := range CommandArgs {
-		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		Command = append(Command, cmd)
+	for arg, value := range c.Services.Scheduler.ExtraArgsArray {
+		CommandArrayArgs[arg] = value
 	}
+
+	Command = appendArgs(Command, CommandArgs)
+	Command = appendArrayArgs(Command, CommandArrayArgs)
 
 	Binds = append(Binds, c.Services.Scheduler.ExtraBinds...)
 
@@ -969,6 +996,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 		"peer-cert-file":              pki.GetCertPath(nodeName),
 		"peer-key-file":               pki.GetKeyPath(nodeName),
 	}
+	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
 
 	etcdTag, err := util.GetImageTagFromImage(c.Services.Etcd.Image)
 	if err != nil {
@@ -1035,6 +1063,10 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 		}
 	}
 
+	for arg, value := range c.Services.Etcd.ExtraArgsArray {
+		CommandArrayArgs[arg] = value
+	}
+
 	// adding the old default value from L922 if not present in metadata options or passed by user
 	if _, ok := CommandArgs["client-cert-auth"]; !ok {
 		args = append(args, "--client-cert-auth")
@@ -1043,10 +1075,8 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 		args = append(args, "--peer-client-cert-auth")
 	}
 
-	for arg, value := range CommandArgs {
-		cmd := fmt.Sprintf("--%s=%s", arg, value)
-		args = append(args, cmd)
-	}
+	args = appendArgs(args, CommandArgs)
+	args = appendArrayArgs(args, CommandArrayArgs)
 
 	Binds = append(Binds, c.Services.Etcd.ExtraBinds...)
 	healthCheck := v3.HealthCheck{
@@ -1209,6 +1239,15 @@ func getNetworkJSON(netconfig v3.NetworkConfig) string {
 func appendArgs(command []string, args map[string]string) []string {
 	for arg, value := range args {
 		command = append(command, fmt.Sprintf("--%s=%s", arg, value))
+	}
+	return command
+}
+
+func appendArrayArgs(command []string, args map[string][]string) []string {
+	for arg, value := range args {
+		for _, v := range value {
+			command = append(command, fmt.Sprintf("--%s=%s", arg, v))
+		}
 	}
 	return command
 }
