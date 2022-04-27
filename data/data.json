@@ -14047,7 +14047,7 @@
   ],
   "channels": [
    {
-    "latest": "v1.22.8+rke2r1",
+    "latest": "v1.22.9-rc4+rke2r1",
     "name": "default"
    }
   ],
@@ -16087,19 +16087,19 @@
     "charts": {
      "harvester-cloud-provider": {
       "repo": "rancher-rke2-charts",
-      "version": "0.1.1000"
+      "version": "0.1.1100"
      },
      "harvester-csi-driver": {
       "repo": "rancher-rke2-charts",
-      "version": "0.1.1000"
+      "version": "0.1.1100"
      },
      "rancher-vsphere-cpi": {
-      "repo": "rancher-charts",
-      "version": "100.1.0+up1.0.100"
+      "repo": "rancher-rke2-charts",
+      "version": "1.2.101"
      },
      "rancher-vsphere-csi": {
-      "repo": "rancher-charts",
-      "version": "100.1.0+up2.3.0"
+      "repo": "rancher-rke2-charts",
+      "version": "2.5.1-rancher101"
      },
      "rke2-calico": {
       "repo": "rancher-rke2-charts",
@@ -16115,7 +16115,7 @@
      },
      "rke2-cilium": {
       "repo": "rancher-rke2-charts",
-      "version": "1.11.201"
+      "version": "1.11.203"
      },
      "rke2-coredns": {
       "repo": "rancher-rke2-charts",
@@ -16123,7 +16123,7 @@
      },
      "rke2-ingress-nginx": {
       "repo": "rancher-rke2-charts",
-      "version": "4.0.307"
+      "version": "4.1.001"
      },
      "rke2-metrics-server": {
       "repo": "rancher-rke2-charts",
@@ -16235,7 +16235,7 @@
       "type": "array"
      }
     },
-    "version": "v1.21.11+rke2r1"
+    "version": "v1.21.12-rc4+rke2r1"
    },
    {
     "agentArgs": {
@@ -17307,19 +17307,19 @@
     "charts": {
      "harvester-cloud-provider": {
       "repo": "rancher-rke2-charts",
-      "version": "0.1.1000"
+      "version": "0.1.1100"
      },
      "harvester-csi-driver": {
       "repo": "rancher-rke2-charts",
-      "version": "0.1.1000"
+      "version": "0.1.1100"
      },
      "rancher-vsphere-cpi": {
       "repo": "rancher-rke2-charts",
-      "version": "1.1.000"
+      "version": "1.2.101"
      },
      "rancher-vsphere-csi": {
       "repo": "rancher-rke2-charts",
-      "version": "2.4.1-rancher100"
+      "version": "2.5.1-rancher101"
      },
      "rke2-calico": {
       "repo": "rancher-rke2-charts",
@@ -17335,7 +17335,7 @@
      },
      "rke2-cilium": {
       "repo": "rancher-rke2-charts",
-      "version": "1.11.201"
+      "version": "1.11.203"
      },
      "rke2-coredns": {
       "repo": "rancher-rke2-charts",
@@ -17343,7 +17343,7 @@
      },
      "rke2-ingress-nginx": {
       "repo": "rancher-rke2-charts",
-      "version": "4.0.307"
+      "version": "4.1.001"
      },
      "rke2-metrics-server": {
       "repo": "rancher-rke2-charts",
@@ -17455,7 +17455,7 @@
       "type": "array"
      }
     },
-    "version": "v1.22.8+rke2r1"
+    "version": "v1.22.9-rc4+rke2r1"
    },
    {
     "agentArgs": {
@@ -17795,19 +17795,19 @@
     "charts": {
      "harvester-cloud-provider": {
       "repo": "rancher-rke2-charts",
-      "version": "0.1.1000"
+      "version": "0.1.1100"
      },
      "harvester-csi-driver": {
       "repo": "rancher-rke2-charts",
-      "version": "0.1.1000"
+      "version": "0.1.1100"
      },
      "rancher-vsphere-cpi": {
       "repo": "rancher-rke2-charts",
-      "version": "1.1.002"
+      "version": "1.2.101"
      },
      "rancher-vsphere-csi": {
       "repo": "rancher-rke2-charts",
-      "version": "2.5.0-rancher101"
+      "version": "2.5.1-rancher101"
      },
      "rke2-calico": {
       "repo": "rancher-rke2-charts",
@@ -17823,7 +17823,7 @@
      },
      "rke2-cilium": {
       "repo": "rancher-rke2-charts",
-      "version": "1.11.201"
+      "version": "1.11.203"
      },
      "rke2-coredns": {
       "repo": "rancher-rke2-charts",
@@ -17831,7 +17831,7 @@
      },
      "rke2-ingress-nginx": {
       "repo": "rancher-rke2-charts",
-      "version": "4.0.307"
+      "version": "4.1.001"
      },
      "rke2-metrics-server": {
       "repo": "rancher-rke2-charts",
@@ -17943,7 +17943,7 @@
       "type": "array"
      }
     },
-    "version": "v1.23.5+rke2r1"
+    "version": "v1.23.6-rc4+rke2r1"
    }
   ]
  }
