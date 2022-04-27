@@ -186,18 +186,6 @@ func (c *Cluster) deployK8sAddOns(ctx context.Context, data map[string]interface
 func (c *Cluster) deployUserAddOns(ctx context.Context) error {
 	log.Infof(ctx, "[addons] Setting up user addons")
 	if c.Addons != "" {
-		addonJobExists, err := addons.AddonJobExists(UserAddonJobName, c.LocalKubeConfigPath, c.K8sWrapTransport)
-		if err != nil {
-			return nil
-		}
-		if addonJobExists {
-			log.Infof(ctx, "[addons] Removing old user addons")
-			if err := c.doAddonDelete(ctx, UserAddonResourceName, false); err != nil {
-				return err
-			}
-
-			log.Infof(ctx, "[addons] Old user addons removed successfully")
-		}
 		if err := c.doAddonDeploy(ctx, c.Addons, UserAddonResourceName, false); err != nil {
 			return err
 		}
