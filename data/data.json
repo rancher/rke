@@ -10954,11 +10954,12 @@
   "2.6.3-patch1": "v1.21.x",
   "2.6.3-patch2": "v1.21.x",
   "2.6.4": "v1.22.x",
-  "default": "v1.22.x"
+  "2.6.5": "v1.23.x",
+  "default": "v1.23.x"
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.22.9-rancher1-1"
+  "default": "v1.23.6-rancher1-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
@@ -11651,8 +11652,12 @@
     "appName": "rancher",
     "defaults": [
      {
-      "appVersion": "\u003e 2.6.0-0 \u003c 2.6.99-0",
+      "appVersion": "\u003e= 2.6.0-0 \u003c 2.6.5-0",
       "defaultVersion": "1.22.x"
+     },
+     {
+      "appVersion": "\u003e= 2.6.5-0 \u003c 2.6.99-0",
+      "defaultVersion": "1.23.x"
      }
     ]
    }
@@ -14035,8 +14040,12 @@
     "appName": "rancher",
     "defaults": [
      {
-      "appVersion": "\u003e 2.6.0-0 \u003c 2.6.99-0",
+      "appVersion": "\u003e= 2.6.0-0 \u003c 2.6.5-0",
       "defaultVersion": "1.22.x"
+     },
+     {
+      "appVersion": "\u003e= 2.6.5-0 \u003c 2.6.99-0",
+      "defaultVersion": "1.23.x"
      }
     ]
    }
