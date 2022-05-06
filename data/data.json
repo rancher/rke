@@ -11720,7 +11720,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -11863,7 +11863,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12006,7 +12006,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12149,7 +12149,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12292,7 +12292,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12438,7 +12438,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12587,7 +12587,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.0-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12736,7 +12736,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -12885,7 +12885,7 @@
       "type": "string"
      }
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -14052,7 +14052,7 @@
   ],
   "channels": [
    {
-    "latest": "v1.22.9-rc1+rke2r2",
+    "latest": "v1.22.9+rke2r2",
     "name": "default"
    }
   ],
@@ -16484,7 +16484,7 @@
       "type": "array"
      }
     },
-    "version": "v1.21.12-rc1+rke2r2"
+    "version": "v1.21.12+rke2r2"
    },
    {
     "agentArgs": {
@@ -17948,7 +17948,7 @@
       "type": "array"
      }
     },
-    "version": "v1.22.9-rc1+rke2r2"
+    "version": "v1.22.9+rke2r2"
    },
    {
     "agentArgs": {
@@ -18680,7 +18680,7 @@
       "type": "array"
      }
     },
-    "version": "v1.23.6-rc1+rke2r2"
+    "version": "v1.23.6+rke2r2"
    }
   ]
  }
