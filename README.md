@@ -32,7 +32,7 @@ RKE now fetches `data.json` from https://github.com/rancher/kontainer-driver-met
 ```bash
 go generate
 
-# Change RANCHER_METADATA_URL to an external URL instead of using https://releases.rancher.com/kontainer-driver-metadata/dev-v2.4/data.json by default
+# Change RANCHER_METADATA_URL to an external URL instead of using https://releases.rancher.com/kontainer-driver-metadata/dev-v2.6/data.json by default
 RANCHER_METADATA_URL=${URL} go generate
 
 # Or load it from local file
@@ -50,7 +50,7 @@ RANCHER_METADATA_URL=${URL} rke [commands] [options]
 RANCHER_METADATA_URL=${./local/data.json} rke [commands] [options]
 ```
     
-`RANCHER_METADATA_URL` defaults to `https://releases.rancher.com/kontainer-driver-metadata/dev-v2.4/data.json`.
+`RANCHER_METADATA_URL` defaults to `https://releases.rancher.com/kontainer-driver-metadata/dev-v2.6/data.json`.
 
 ## License
 
