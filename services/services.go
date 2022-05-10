@@ -60,7 +60,7 @@ const (
 type RestartFunc func(context.Context, *hosts.Host) error
 
 func runSidekick(ctx context.Context, host *hosts.Host, prsMap map[string]v3.PrivateRegistry, sidecarProcess v3.Process, k8sVersion string) error {
-	isRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, SidekickContainerName, true)
+	isRunning, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, SidekickContainerName, true)
 	if err != nil {
 		return err
 	}

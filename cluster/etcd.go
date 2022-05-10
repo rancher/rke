@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -17,16 +18,52 @@ import (
 
 func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 	backupImage := c.getBackupImage()
+	containerTimeout := DefaultEtcdBackupConfigTimeout
+	if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.Timeout > 0 {
+		containerTimeout = c.Services.Etcd.BackupConfig.Timeout
+	}
+
+	// store first error message
+	var snapshotErr error
+	snapshotFailures := 0
+	s3Failures := 0
+
 	for _, host := range c.EtcdHosts {
-		containerTimeout := DefaultEtcdBackupConfigTimeout
-		if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.Timeout > 0 {
-			containerTimeout = c.Services.Etcd.BackupConfig.Timeout
-		}
 		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
 		if err := services.RunEtcdSnapshotSave(newCtx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd, c.Version); err != nil {
-			return err
+			if strings.Contains(err.Error(), "failed to upload etcd snapshot file to s3 on host") {
+				s3Failures++
+			} else {
+				if snapshotErr == nil {
+					snapshotErr = err
+				}
+				snapshotFailures++
+			}
 		}
 	}
+
+	if snapshotFailures == len(c.EtcdHosts) {
+		log.Warnf(ctx, "[etcd] Failed to take snapshot on all etcd hosts: %s", snapshotErr)
+		return fmt.Errorf("[etcd] Failed to take snapshot on all etcd hosts: %s", snapshotErr)
+	} else if snapshotFailures > 0 {
+		log.Warnf(ctx, "[etcd] Failed to take snapshot on %s etcd hosts", snapshotFailures)
+	} else {
+		log.Infof(ctx, "[etcd] Finished saving snapshot [%s] on all etcd hosts", snapshotName)
+	}
+
+	if c.Services.Etcd.BackupConfig.S3BackupConfig == nil {
+		return nil
+	}
+
+	if s3Failures >= len(c.EtcdHosts)-snapshotFailures {
+		log.Warnf(ctx, "[etcd] Failed to upload etcd snapshot file to s3 on all etcd hosts")
+		return fmt.Errorf("[etcd] Failed to upload etcd snapshot file to s3 on all etcd hosts")
+	} else if s3Failures > 0 {
+		log.Warnf(ctx, "[etcd] Failed to upload etcd snapshot file to s3 on %s etcd hosts", s3Failures)
+	} else {
+		log.Infof(ctx, "[etcd] Finished uploading etcd snapshot file to s3 on all etcd hosts")
+	}
+
 	return nil
 }
 
@@ -112,13 +149,28 @@ func (c *Cluster) PrepareBackup(ctx context.Context, snapshotPath string) error 
 	var backupServer *hosts.Host
 	backupImage := c.getBackupImage()
 	var errors []error
-	if c.Services.Etcd.BackupConfig == nil || // legacy rke local backup
-		(c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.S3BackupConfig == nil) { // rancher local backup
+	// s3 backup case
+	if c.Services.Etcd.BackupConfig != nil &&
+		c.Services.Etcd.BackupConfig.S3BackupConfig != nil {
+		log.Infof(ctx, "[etcd] etcd s3 backup configuration found, will use s3 as source")
+		downloadFailed := false
+		for _, host := range c.EtcdHosts {
+			if err := services.DownloadEtcdSnapshotFromS3(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, c.Services.Etcd, c.Version); err != nil {
+				log.Warnf(ctx, "failed to download snapshot [%s] from s3 on host [%s]: %v", snapshotPath, host.Address, err)
+				downloadFailed = true
+				break
+			}
+		}
+		backupReady = !downloadFailed
+	}
+	// legacy rke local backup or rancher local backup
+	if !backupReady {
 		if c.Services.Etcd.BackupConfig == nil {
 			log.Infof(ctx, "[etcd] No etcd snapshot configuration found, will use local as source")
-		}
-		if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.S3BackupConfig == nil {
+		} else if c.Services.Etcd.BackupConfig.S3BackupConfig == nil {
 			log.Infof(ctx, "[etcd] etcd snapshot configuration found and no s3 backup configuration found, will use local as source")
+		} else {
+			log.Warnf(ctx, "[etcd] etcd snapshot configuration found and s3 backup configuration failed, falling back to use local as source")
 		}
 		// stop etcd on all etcd nodes, we need this because we start the backup server on the same port
 		for _, host := range c.EtcdHosts {
@@ -159,17 +211,6 @@ func (c *Cluster) PrepareBackup(ctx context.Context, snapshotPath string) error 
 		backupReady = true
 	}
 
-	// s3 backup case
-	if c.Services.Etcd.BackupConfig != nil &&
-		c.Services.Etcd.BackupConfig.S3BackupConfig != nil {
-		log.Infof(ctx, "[etcd] etcd s3 backup configuration found, will use s3 as source")
-		for _, host := range c.EtcdHosts {
-			if err := services.DownloadEtcdSnapshotFromS3(ctx, host, c.PrivateRegistriesMap, backupImage, snapshotPath, c.Services.Etcd, c.Version); err != nil {
-				return err
-			}
-		}
-		backupReady = true
-	}
 	if !backupReady {
 		return fmt.Errorf("failed to prepare backup for restore")
 	}

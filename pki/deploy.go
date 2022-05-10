@@ -116,7 +116,7 @@ func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownload
 		logrus.Warnf("[state] Error during copying state file [%s] to node [%s]: %v", stateFilePath, host.Address, err)
 	}
 
-	if _, err := docker.WaitForContainer(ctx, host.DClient, host.Address, StateDeployerContainerName); err != nil {
+	if _, err := docker.WaitForContainer(ctx, host.DClient, host.Address, StateDeployerContainerName, true); err != nil {
 		return err
 	}
 
@@ -126,7 +126,7 @@ func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownload
 func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string, certDownloaderImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	// remove existing container. Only way it's still here is if previous deployment failed
 	isRunning := false
-	isRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, CrtDownloaderContainer, true)
+	isRunning, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, CrtDownloaderContainer, true)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string,
 	}
 	logrus.Debugf("[certificates] Successfully started Certificate deployer container: %s", CrtDownloaderContainer)
 	for {
-		isDeployerRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, CrtDownloaderContainer, false)
+		isDeployerRunning, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, CrtDownloaderContainer, false)
 		if err != nil {
 			return err
 		}
@@ -331,7 +331,7 @@ func FetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.
 		Binds:      Binds,
 		Privileged: true,
 	}
-	isRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, containerName, true)
+	isRunning, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, containerName, true)
 	if err != nil {
 		return "", err
 	}
