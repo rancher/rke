@@ -249,6 +249,21 @@ func (in *BaseService) DeepCopyInto(out *BaseService) {
 			(*out)[key] = val
 		}
 	}
+	if in.ExtraArgsArray != nil {
+		in, out := &in.ExtraArgsArray, &out.ExtraArgsArray
+		*out = make(map[string][]string, len(*in))
+		for key, val := range *in {
+			var outVal []string
+			if val == nil {
+				(*out)[key] = nil
+			} else {
+				in, out := &val, &outVal
+				*out = make([]string, len(*in))
+				copy(*out, *in)
+			}
+			(*out)[key] = outVal
+		}
+	}
 	if in.ExtraBinds != nil {
 		in, out := &in.ExtraBinds, &out.ExtraBinds
 		*out = make([]string, len(*in))
@@ -264,6 +279,21 @@ func (in *BaseService) DeepCopyInto(out *BaseService) {
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
+		}
+	}
+	if in.WindowsExtraArgsArray != nil {
+		in, out := &in.WindowsExtraArgsArray, &out.WindowsExtraArgsArray
+		*out = make(map[string][]string, len(*in))
+		for key, val := range *in {
+			var outVal []string
+			if val == nil {
+				(*out)[key] = nil
+			} else {
+				in, out := &val, &outVal
+				*out = make([]string, len(*in))
+				copy(*out, *in)
+			}
+			(*out)[key] = outVal
 		}
 	}
 	if in.WindowsExtraBinds != nil {

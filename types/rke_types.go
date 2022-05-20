@@ -364,6 +364,8 @@ type BaseService struct {
 	Image string `yaml:"image" json:"image,omitempty"`
 	// Extra arguments that are added to the services
 	ExtraArgs map[string]string `yaml:"extra_args" json:"extraArgs,omitempty"`
+	// Extra arguments that can be specified multiple times which are added to the services
+	ExtraArgsArray map[string][]string `yaml:"extra_args_array" json:"extraArgsArray,omitempty"`
 	// Extra binds added to the nodes
 	ExtraBinds []string `yaml:"extra_binds" json:"extraBinds,omitempty"`
 	// this is to provide extra env variable to the docker container running kubernetes service
@@ -372,6 +374,8 @@ type BaseService struct {
 	// Windows nodes only of the same as the above
 	// Extra arguments that are added to the services
 	WindowsExtraArgs map[string]string `yaml:"win_extra_args" json:"winExtraArgs,omitempty"`
+	// Extra arguments that can be specified multiple times which are added to the services
+	WindowsExtraArgsArray map[string][]string `yaml:"win_extra_args_array" json:"winExtraArgsArray,omitempty"`
 	// Extra binds added to the nodes
 	WindowsExtraBinds []string `yaml:"win_extra_binds" json:"winExtraBinds,omitempty"`
 	// this is to provide extra env variable to the docker container running kubernetes service
