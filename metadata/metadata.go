@@ -106,7 +106,7 @@ func initDockerOptions(data kdm.Data) {
 }
 
 func initK8sRKESystemImages(data kdm.Data) {
-	K8sVersionToRKESystemImages = map[string]v3.RKESystemImages{}
+	K8sVersionToRKESystemImagesTmp := map[string]v3.RKESystemImages{}
 	rkeData := data
 	// non released versions
 	if RKEVersion == "" {
@@ -132,7 +132,7 @@ func initK8sRKESystemImages(data kdm.Data) {
 			}
 		}
 		// store all for upgrades
-		K8sVersionToRKESystemImages[k8sVersion] = interface{}(systemImages).(v3.RKESystemImages)
+		K8sVersionToRKESystemImagesTmp[k8sVersion] = interface{}(systemImages).(v3.RKESystemImages)
 
 		majorVersion := getTagMajorVersion(k8sVersion)
 		maxVersionInfo, ok := rkeData.K8sVersionInfo[majorVersion]
@@ -150,6 +150,8 @@ func initK8sRKESystemImages(data kdm.Data) {
 	for _, k8sVersion := range maxVersionForMajorK8sVersion {
 		K8sVersionsCurrent = append(K8sVersionsCurrent, k8sVersion)
 	}
+
+	K8sVersionToRKESystemImages = K8sVersionToRKESystemImagesTmp
 }
 
 func getTagMajorVersion(tag string) string {
