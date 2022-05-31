@@ -165,6 +165,7 @@ name: fossa
 steps:
 - name: fossa
   image: rancher/drone-fossa:latest
+  failure: ignore
   settings:
     api_key:
       from_secret: FOSSA_API_KEY
