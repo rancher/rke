@@ -119,6 +119,14 @@ func transformAciNetworkOption(option string) (string, string) {
 		description = "Vlan for service graph nodes on aci"
 	case AciInfraVlan:
 		description = "Vlan for infra network on aci"
+	case AciNodeSvcSubnet:
+		description = "Node svc subnet on aci"
+	case AciDisableWaitForNetwork:
+		description = "Disable waiting for network on aci"
+	case AciDurationWaitForNetwork:
+		description = "Wait duration for network on aci"
+	case AciPodSubnet:
+		description = "Pod subnet on aci"
 	}
 	return option, description
 }
@@ -137,6 +145,21 @@ func validateAciCloudOptionsDisabled(option string, value string) (string, strin
 			ok = true
 		}
 		description = "Mount host netns for opflex server"
+	case AciApicSubscriptionDelay:
+		if value == DefaultApicSubscriptionDelay {
+			ok = true
+		}
+		description = "APIC subscription delay"
+	case AciApicRefreshtickerAdjust:
+		if value == DefaultApicRefreshtickerAdjust {
+			ok = true
+		}
+		description = "APIC refresh ticker adjust"
+	case AciOpflexDeviceDeleteTimeout:
+		if value == DefaultOpflexDeviceDeleteTimeout {
+			ok = true
+		}
+		description = "opflex device delete timeout"
 	case AciCApic:
 		if value == DefaultAciCApic {
 			ok = true
@@ -235,7 +258,8 @@ func validateNetworkOptions(c *Cluster) error {
 
 	if c.Network.Plugin == AciNetworkPlugin {
 		//Skip cloud options and throw an error.
-		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciUseOpflexServerVolume,
+		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciApicSubscriptionDelay, AciApicRefreshtickerAdjust,
+			AciOpflexDeviceDeleteTimeout, AciUseOpflexServerVolume,
 			AciSubnetDomainName, AciKafkaClientCrt, AciKafkaClientKey, AciCApic, UseAciAnywhereCRD,
 			AciOverlayVRFName, AciGbpPodSubnet, AciRunGbpContainer, AciRunOpflexServerContainer, AciOpflexServerPort}
 		for _, v := range cloudOptionsList {
@@ -250,7 +274,7 @@ func validateNetworkOptions(c *Cluster) error {
 			AciApicUserCrt, AciEncapType, AciMcastRangeStart, AciMcastRangeEnd,
 			AciNodeSubnet, AciAEP, AciVRFName, AciVRFTenant, AciL3Out, AciDynamicExternalSubnet,
 			AciStaticExternalSubnet, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan,
-			AciNodeSubnet}
+			AciNodeSvcSubnet, AciDisableWaitForNetwork, AciDurationWaitForNetwork, AciPodSubnet}
 		for _, v := range networkOptionsList {
 			val, ok := c.Network.Options[v]
 			if !ok || val == "" {
@@ -532,6 +556,12 @@ func validateNetworkImages(c *Cluster) error {
 			return errors.New("weave image is not populated")
 		}
 	} else if c.Network.Plugin == AciNetworkPlugin {
+		if len(c.SystemImages.AciProvisionOperatorContainer) == 0 {
+			return errors.New("aci provision operator image is not populated")
+		}
+		if len(c.SystemImages.AciContainersOperatorContainer) == 0 {
+			return errors.New("aci containers operator image is not populated")
+		}
 		if len(c.SystemImages.AciCniDeployContainer) == 0 {
 			return errors.New("aci cnideploy image is not populated")
 		}

@@ -266,6 +266,66 @@ const (
 	NodeSelector                           = "NodeSelector"
 	UpdateStrategy                         = "UpdateStrategy"
 	Tolerations                            = "Tolerations"
+
+	AciImagePrefix                       = "aci_image_prefix"
+	AciCniOperatorVersion                = "aci_cni_operator_version"
+	AciSrioEnable                        = "aci_srio_enable"
+	AciNodepodifEnable                   = "aci_nodepodif_enable"
+	AciMultusDisable                     = "aci_multus_disable"
+	AciApicCertReused                    = "aci_apic_cert_reused"
+	AciDisablePeriodicSnatGlobalInfoSync = "aci_disable_periodic_snat_global_info_sync"
+	AciGenerateInstallerFiles            = "aci_generate_installer_files"
+	AciGenerateCnetFile                  = "aci_generate_cnet_file"
+	AciGenerateApicFile                  = "aci_generate_apic_file"
+	AciApicSubscriptionDelay             = "aci_apic_subscription_delay"
+	AciApicRefreshtickerAdjust           = "aci_apic_refreshticker_adjust"
+	AciOpflexDeviceDeleteTimeout         = "aci_opflex_device_delete_timeout"
+	AciEnableUpdates                     = "aci_enable_updates"
+	AciNodeSvcSubnet                     = "aci_node_svc_subnet"
+	AciDisableWaitForNetwork             = "aci_disable_wait_for_network"
+	AciDurationWaitForNetwork            = "aci_duration_wait_for_network"
+	AciPodSubnet                         = "aci_pod_subnet"
+	AciWatchNamespace                    = "aci_watch_namespace"
+	AciUseAppsApi                        = "aci_use_apps_api"
+	AciKubeConfigController              = "aci_kube_config_controller"
+	AciFlavor                            = "aci_flavor"
+	AciUseCnideployInitcontainer         = "aci_use_cnideploy_initcontainer"
+	AciSnatGlobalInfo                    = "aci_globalinfo_name"
+	AciSnatOperatorName                  = "aci_snat_operator_name"
+	AciUseClusterRole                    = "aci_use_cluster_role"
+	AciHostAgentOpenshiftResource        = "aci_host_agent_openshift_resource"
+	AciMTUHeadroom                       = "aci_mtu_headroom"
+
+	ApicCertReused                    = "ApicCertReused"
+	ImagePrefix                       = "ImagePrefix"
+	CniOperatorVersion                = "CniOperatorVersion"
+	SrioEnable                        = "SrioEnable"
+	NodepodifEnable                   = "NodepodifEnable"
+	MultusDisable                     = "MultusDisable"
+	AciContainersOperatorContainer    = "AciContainersOperatorContainer"
+	AciProvisionOperatorContainer     = "AciProvisionOperatorContainer"
+	DisablePeriodicSnatGlobalInfoSync = "DisablePeriodicSnatGlobalInfoSync"
+	GenerateInstallerFiles            = "GenerateInstallerFiles"
+	GenerateCnetFile                  = "GenerateCnetFile"
+	GenerateApicFile                  = "GenerateApicFile"
+	ApicSubscriptionDelay             = "ApicSubscriptionDelay"
+	ApicRefreshtickerAdjust           = "ApicRefreshtickerAdjust"
+	OpflexDeviceDeleteTimeout         = "OpflexDeviceDeleteTimeout"
+	EnableUpdates                     = "EnableUpdates"
+	MTUHeadroom                       = "MTUHeadroom"
+	NodeSvcSubnet                     = "NodeSvcSubnet"
+	DisableWaitForNetwork             = "DisableWaitForNetwork"
+	DurationWaitForNetwork            = "DurationWaitForNetwork"
+	PodSubnet                         = "PodSubnet"
+	WatchNamespace                    = "WatchNamespace"
+	UseAppsApi                        = "UseAppsApi"
+	KubeConfigController              = "KubeConfigController"
+	Flavor                            = "Flavor"
+	UseCnideployInitcontainer         = "UseCnideployInitcontainer"
+	SnatGlobalInfo                    = "SnatGlobalInfo"
+	SnatOperatorName                  = "SnatOperatorName"
+	UseClusterRole                    = "UseClusterRole"
+	HostAgentOpenshiftResource        = "HostAgentOpenshiftResource"
 )
 
 var EtcdPortList = []string{
@@ -555,6 +615,38 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		AciGbpServerContainer:    c.SystemImages.AciGbpServerContainer,
 		AciOpflexServerContainer: c.SystemImages.AciOpflexServerContainer,
 		MTU:                      c.Network.MTU,
+
+		ApicCertReused:                    c.Network.Options[AciApicCertReused],
+		ImagePrefix:                       c.Network.Options[AciImagePrefix],
+		CniOperatorVersion:                c.Network.Options[AciCniOperatorVersion],
+		SrioEnable:                        c.Network.Options[AciSrioEnable],
+		NodepodifEnable:                   c.Network.Options[AciNodepodifEnable],
+		MultusDisable:                     c.Network.Options[AciMultusDisable],
+		DisablePeriodicSnatGlobalInfoSync: c.Network.Options[AciDisablePeriodicSnatGlobalInfoSync],
+		GenerateInstallerFiles:            c.Network.Options[AciGenerateInstallerFiles],
+		GenerateCnetFile:                  c.Network.Options[AciGenerateCnetFile],
+		GenerateApicFile:                  c.Network.Options[AciGenerateApicFile],
+		SnatGlobalInfo:                    c.Network.Options[AciSnatGlobalInfo],
+		SnatOperatorName:                  c.Network.Options[AciSnatOperatorName],
+		UseClusterRole:                    c.Network.Options[AciUseClusterRole],
+		HostAgentOpenshiftResource:        c.Network.Options[AciHostAgentOpenshiftResource],
+		AciProvisionOperatorContainer:     c.SystemImages.AciProvisionOperatorContainer,
+		AciContainersOperatorContainer:    c.SystemImages.AciContainersOperatorContainer,
+		MTU:                               c.Network.MTU,
+		MTUHeadroom:                       c.Network.Options[AciMTUHeadroom],
+		ApicSubscriptionDelay:             c.Network.Options[AciApicSubscriptionDelay],
+		ApicRefreshtickerAdjust:           c.Network.Options[AciApicRefreshtickerAdjust],
+		OpflexDeviceDeleteTimeout:         c.Network.Options[AciOpflexDeviceDeleteTimeout],
+		EnableUpdates:                     c.Network.Options[AciEnableUpdates],
+		NodeSvcSubnet:                     c.Network.Options[NodeSvcSubnet],
+		DisableWaitForNetwork:             c.Network.Options[DisableWaitForNetwork],
+		DurationWaitForNetwork:            c.Network.Options[DurationWaitForNetwork],
+		PodSubnet:                         c.Network.Options[PodSubnet],
+		WatchNamespace:                    c.Network.Options[WatchNamespace],
+		UseAppsApi:                        c.Network.Options[UseAppsApi],
+		KubeConfigController:              c.Network.Options[KubeConfigController],
+		Flavor:                            c.Network.Options[Flavor],
+		UseCnideployInitcontainer:         c.Network.Options[UseCnideployInitcontainer],
 	}
 
 	pluginYaml, err := c.getNetworkPluginManifest(AciConfig, data)
