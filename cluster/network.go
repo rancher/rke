@@ -286,7 +286,7 @@ const (
 	AciDurationWaitForNetwork            = "aci_duration_wait_for_network"
 	AciPodSubnet                         = "aci_pod_subnet"
 	AciWatchNamespace                    = "aci_watch_namespace"
-	AciUseAppsApi                        = "aci_use_apps_api"
+	AciUseAppsAPI                        = "aci_use_apps_api"
 	AciKubeConfigController              = "aci_kube_config_controller"
 	AciFlavor                            = "aci_flavor"
 	AciUseCnideployInitcontainer         = "aci_use_cnideploy_initcontainer"
@@ -318,7 +318,7 @@ const (
 	DurationWaitForNetwork            = "DurationWaitForNetwork"
 	PodSubnet                         = "PodSubnet"
 	WatchNamespace                    = "WatchNamespace"
-	UseAppsApi                        = "UseAppsApi"
+	UseAppsAPI                        = "UseAppsAPI"
 	KubeConfigController              = "KubeConfigController"
 	Flavor                            = "Flavor"
 	UseCnideployInitcontainer         = "UseCnideployInitcontainer"
@@ -632,7 +632,6 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		HostAgentOpenshiftResource:        c.Network.Options[AciHostAgentOpenshiftResource],
 		AciProvisionOperatorContainer:     c.SystemImages.AciProvisionOperatorContainer,
 		AciContainersOperatorContainer:    c.SystemImages.AciContainersOperatorContainer,
-		MTU:                               c.Network.MTU,
 		MTUHeadroom:                       c.Network.Options[AciMTUHeadroom],
 		ApicSubscriptionDelay:             c.Network.Options[AciApicSubscriptionDelay],
 		ApicRefreshtickerAdjust:           c.Network.Options[AciApicRefreshtickerAdjust],
@@ -643,7 +642,7 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		DurationWaitForNetwork:            c.Network.Options[DurationWaitForNetwork],
 		PodSubnet:                         c.Network.Options[PodSubnet],
 		WatchNamespace:                    c.Network.Options[WatchNamespace],
-		UseAppsApi:                        c.Network.Options[UseAppsApi],
+		UseAppsAPI:                        c.Network.Options[UseAppsAPI],
 		KubeConfigController:              c.Network.Options[KubeConfigController],
 		Flavor:                            c.Network.Options[Flavor],
 		UseCnideployInitcontainer:         c.Network.Options[UseCnideployInitcontainer],

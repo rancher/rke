@@ -670,7 +670,7 @@ type AciNetworkProvider struct {
 	DurationWaitForNetwork            string   `yaml:"duration_wait_for_network,omitempty" json:"durationWaitForNetwork,omitempty"`
 	WatchNamespace                    string   `yaml:"watch_namespace,omitempty" json:"watchNamespace,omitempty"`
 	Flavor                            string   `yaml:"flavor,omitempty" json:"flavor,omitempty"`
-	UseAppsApi                        string   `yaml:"use_apps_api,omitempty" json:"useAppsApi,omitempty"`
+	UseAppsAPI                        string   `yaml:"use_apps_api,omitempty" json:"useAppsAPI,omitempty"`
 	KubeConfigController              string   `yaml:"kube_config_controller,omitempty" json:"kubeConfigController,omitempty"`
 	GenerateApicFile                  string   `yaml:"generate_apic_file,omitempty" json:"generateApicFile,omitempty"`
 	UseCnideployInitcontainer         string   `yaml:"use_cnideploy_initcontainer,omitempty" json:"useCnideployInitcontainer,omitempty"`
