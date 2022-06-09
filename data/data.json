@@ -10279,7 +10279,7 @@
    "nginxProxy": "rancher/rke-tools:v0.1.80",
    "certDownloader": "rancher/rke-tools:v0.1.80",
    "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.80",
-   "kubedns": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.21.1",
    "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1",
    "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.21.1",
    "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
