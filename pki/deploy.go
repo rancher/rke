@@ -125,12 +125,11 @@ func DeployStateOnPlaneHost(ctx context.Context, host *hosts.Host, stateDownload
 
 func doRunDeployer(ctx context.Context, host *hosts.Host, containerEnv []string, certDownloaderImage string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	// remove existing container. Only way it's still here is if previous deployment failed
-	isRunning := false
-	isRunning, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, CrtDownloaderContainer, true)
+	exists, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, CrtDownloaderContainer, true)
 	if err != nil {
 		return err
 	}
-	if isRunning {
+	if exists {
 		if err := docker.RemoveContainer(ctx, host.DClient, host.Address, CrtDownloaderContainer); err != nil {
 			return err
 		}
@@ -331,11 +330,11 @@ func FetchFileFromHost(ctx context.Context, filePath, image string, host *hosts.
 		Binds:      Binds,
 		Privileged: true,
 	}
-	isRunning, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, containerName, true)
+	exists, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, containerName, true)
 	if err != nil {
 		return "", err
 	}
-	if !isRunning {
+	if !exists {
 		if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, containerName, host.Address, state, prsMap); err != nil {
 			return "", err
 		}

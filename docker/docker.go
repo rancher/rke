@@ -164,11 +164,11 @@ func DoRollingUpdateContainer(ctx context.Context, dClient *client.Client, image
 		return fmt.Errorf("[%s] Failed rolling update of container: docker client is nil for container [%s] on host [%s]", plane, containerName, hostname)
 	}
 	logrus.Debugf("[%s] Checking for deployed [%s]", plane, containerName)
-	isRunning, err := DoesContainerExist(ctx, dClient, hostname, containerName, false)
+	exists, err := DoesContainerExist(ctx, dClient, hostname, containerName, false)
 	if err != nil {
 		return err
 	}
-	if !isRunning {
+	if !exists {
 		logrus.Debugf("[%s] Container %s is not running on host [%s]", plane, containerName, hostname)
 		return nil
 	}
@@ -262,7 +262,7 @@ func IsContainerRunning(ctx context.Context, dClient *client.Client, hostname st
 	if err != nil {
 		return false, fmt.Errorf("Error checking if container [%s] is running on host [%s]: %v", containerName, hostname, err)
 	}
-	return container.State == "running", nil
+	return container != nil && container.State == "running", nil
 }
 
 func localImageExists(ctx context.Context, dClient *client.Client, hostname string, containerImage string) error {
