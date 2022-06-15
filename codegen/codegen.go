@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultURL = "https://releases.rancher.com/kontainer-driver-metadata/2022-05-k8s-patches-v2.5/data.json"
+	defaultURL = "https://releases.rancher.com/kontainer-driver-metadata/release-v2.5/data.json"
 	dataFile   = "data/data.json"
 )
 
