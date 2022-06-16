@@ -26,13 +26,13 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 	// store first error message
 	var snapshotErr error
 	snapshotFailures := 0
-	s3Failures := 0
+	s3UploadFailures := 0
 
 	for _, host := range c.EtcdHosts {
 		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
 		if err := services.RunEtcdSnapshotSave(newCtx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd, c.Version); err != nil {
 			if strings.Contains(err.Error(), "failed to upload etcd snapshot file to s3 on host") {
-				s3Failures++
+				s3UploadFailures++
 			} else {
 				if snapshotErr == nil {
 					snapshotErr = err
@@ -55,11 +55,11 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 		return nil
 	}
 
-	if s3Failures >= len(c.EtcdHosts)-snapshotFailures {
+	if s3UploadFailures >= len(c.EtcdHosts)-snapshotFailures {
 		log.Warnf(ctx, "[etcd] Failed to upload etcd snapshot file to s3 on all etcd hosts")
 		return fmt.Errorf("[etcd] Failed to upload etcd snapshot file to s3 on all etcd hosts")
-	} else if s3Failures > 0 {
-		log.Warnf(ctx, "[etcd] Failed to upload etcd snapshot file to s3 on %s etcd hosts", s3Failures)
+	} else if s3UploadFailures > 0 {
+		log.Warnf(ctx, "[etcd] Failed to upload etcd snapshot file to s3 on %s etcd hosts", s3UploadFailures)
 	} else {
 		log.Infof(ctx, "[etcd] Finished uploading etcd snapshot file to s3 on all etcd hosts")
 	}
