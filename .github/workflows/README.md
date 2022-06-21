@@ -22,3 +22,7 @@ Second improvement was to wrap this `make go-generate` into a GitHub Actions wor
 * Automatically triggered via API
 
 In rancher/kontainer-driver-metadata, we added a `dispatch` step in `.drone.yml`, which will execute this GitHub Actions workflow after a PR is merged. The user that merged the PR will also be mentioned and assigned in the PR that will be created when this workflow has finished.
+
+## Update README (`update-readme.yml`)
+
+This workflow will update the README with latest versions retrieved from tags in the GitHub repository. It uses the file `README-template.md` as source, and will add the latest versions into this file to end up with the actual `README.md` file.
