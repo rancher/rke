@@ -557,7 +557,6 @@ func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, add
 	timeout := make(chan bool, 1)
 	go func() {
 		for {
-
 			updated, err = k8s.UpdateConfigMap(kubeClient, []byte(addonYaml), addonName)
 			if err != nil {
 				time.Sleep(time.Second * 5)

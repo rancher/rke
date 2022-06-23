@@ -439,7 +439,6 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 		if hosts.IsDockerSELinuxEnabled(etcdHost) {
 			hostCfg.SecurityOpt = append(hostCfg.SecurityOpt, SELinuxLabel)
 		}
-
 	}
 	hostCfg.Binds = binds
 
@@ -449,18 +448,30 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 		if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdSnapshotOnceContainerName, etcdHost.Address); err != nil {
 			return err
 		}
+
+		// If the etcd container is not running the snapshot will never succeed
+		log.Debugf(ctx, "[etcd] Checking if etcd is running on host [%s]", etcdHost.Address)
+		if running, err := docker.IsContainerRunning(ctx, etcdHost.DClient, etcdHost.Address, "etcd", true); err != nil {
+			return err
+		} else if !running {
+			return fmt.Errorf("etcd is not running on host [%s]", etcdHost.Address)
+		}
+
 		if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdSnapshotOnceContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 			return err
 		}
-		status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdSnapshotOnceContainerName, etcdHost.Address)
+		status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdSnapshotOnceContainerName, etcdHost.Address, false)
 		if status != 0 || err != nil {
 			if removeErr := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotOnceContainerName); removeErr != nil {
-				log.Warnf(ctx, "[etcd] Failed to remove container [%s] on host [%s]: %v", removeErr, etcdHost.Address)
+				log.Warnf(ctx, "[etcd] Failed to remove container [%s] on host [%s]: %v", EtcdSnapshotOnceContainerName, removeErr, etcdHost.Address)
 			}
 			if err != nil {
 				return err
 			}
-			return fmt.Errorf("[etcd] Failed to take one-time snapshot on host [%s], exit code [%d]: %v", etcdHost.Address, status, stderr)
+			if strings.Contains(stderr, "failed to upload etcd snapshot file") {
+				return fmt.Errorf("failed to upload etcd snapshot file to s3 on host [%s], exit code [%d]: %v", etcdHost.Address, status, stderr)
+			}
+			return fmt.Errorf("failed to take one-time snapshot on host [%s], exit code [%d]: %v", etcdHost.Address, status, stderr)
 		}
 
 		return docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotOnceContainerName)
@@ -618,7 +629,7 @@ func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMa
 		return err
 	}
 
-	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address)
+	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address, true)
 	if status != 0 || err != nil {
 		if removeErr := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdDownloadBackupContainerName); removeErr != nil {
 			log.Warnf(ctx, "Failed to remove container [%s]: %v", removeErr)
@@ -689,7 +700,7 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdRestoreContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return err
 	}
-	status, err := docker.WaitForContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdRestoreContainerName)
+	status, err := docker.WaitForContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdRestoreContainerName, false)
 	if err != nil {
 		return err
 	}
@@ -779,7 +790,7 @@ func RunEtcdSnapshotRemove(ctx context.Context, etcdHost *hosts.Host, prsMap map
 	if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdSnapshotRemoveContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return err
 	}
-	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdSnapshotRemoveContainerName, etcdHost.Address)
+	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdSnapshotRemoveContainerName, etcdHost.Address, true)
 	if status != 0 || err != nil {
 		if removeErr := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotRemoveContainerName); removeErr != nil {
 			log.Warnf(ctx, "Failed to remove container [%s]: %v", removeErr)
@@ -831,7 +842,7 @@ func GetEtcdSnapshotChecksum(ctx context.Context, etcdHost *hosts.Host, prsMap m
 	if err := docker.DoRunContainer(ctx, etcdHost.DClient, imageCfg, hostCfg, EtcdChecksumContainerName, etcdHost.Address, ETCDRole, prsMap); err != nil {
 		return checksum, err
 	}
-	if _, err := docker.WaitForContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdChecksumContainerName); err != nil {
+	if _, err := docker.WaitForContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdChecksumContainerName, true); err != nil {
 		return checksum, err
 	}
 	stderr, checksum, err = docker.GetContainerLogsStdoutStderr(ctx, etcdHost.DClient, EtcdChecksumContainerName, "1", false)
@@ -999,7 +1010,7 @@ func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.H
 		return err
 	}
 
-	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address)
+	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address, true)
 	if status != 0 || err != nil {
 		if removeErr := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdDownloadBackupContainerName); removeErr != nil {
 			log.Warnf(ctx, "Failed to remove container [%s]: %v", removeErr)

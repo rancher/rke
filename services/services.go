@@ -60,13 +60,13 @@ const (
 type RestartFunc func(context.Context, *hosts.Host) error
 
 func runSidekick(ctx context.Context, host *hosts.Host, prsMap map[string]v3.PrivateRegistry, sidecarProcess v3.Process, k8sVersion string) error {
-	isRunning, err := docker.IsContainerRunning(ctx, host.DClient, host.Address, SidekickContainerName, true)
+	exists, err := docker.DoesContainerExist(ctx, host.DClient, host.Address, SidekickContainerName, true)
 	if err != nil {
 		return err
 	}
 	imageCfg, hostCfg, _ := GetProcessConfig(sidecarProcess, host, k8sVersion)
 	isUpgradable := false
-	if isRunning {
+	if exists {
 		isUpgradable, err = docker.IsContainerUpgradable(ctx, host.DClient, imageCfg, hostCfg, SidekickContainerName, host.Address, SidekickServiceName)
 		if err != nil {
 			return err

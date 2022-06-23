@@ -135,7 +135,7 @@ func (h *Host) CleanUp(ctx context.Context, toCleanPaths []string, cleanerImage 
 		return err
 	}
 
-	if _, err := docker.WaitForContainer(ctx, h.DClient, h.Address, CleanerContainerName); err != nil {
+	if _, err := docker.WaitForContainer(ctx, h.DClient, h.Address, CleanerContainerName, true); err != nil {
 		return err
 	}
 

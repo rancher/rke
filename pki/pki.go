@@ -131,7 +131,7 @@ func SaveBackupBundleOnHost(ctx context.Context, host *hosts.Host, alpineSystemI
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, BundleCertContainer, host.Address, "certificates", prsMap); err != nil {
 		return err
 	}
-	status, err := docker.WaitForContainer(ctx, host.DClient, host.Address, BundleCertContainer)
+	status, err := docker.WaitForContainer(ctx, host.DClient, host.Address, BundleCertContainer, true)
 	if err != nil {
 		return err
 	}
