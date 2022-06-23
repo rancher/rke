@@ -403,8 +403,6 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 			"--key", pki.GetKeyPath(pki.KubeNodeCertName),
 			"--name", name,
 			"--endpoints=" + etcdHost.InternalAddress + ":2379",
-			"--backup-retries=5",
-			"--s3-retries=5",
 		},
 		Image: etcdSnapshotImage,
 		Env:   es.ExtraEnv,
