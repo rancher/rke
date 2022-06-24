@@ -200,6 +200,9 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 		if len(host.SSHKeyPath) == 0 {
 			c.Nodes[i].SSHKeyPath = c.SSHKeyPath
 		}
+		if len(host.SSHCertPath) == 0 {
+			c.Nodes[i].SSHCertPath = c.SSHCertPath
+		}
 		if len(host.Port) == 0 {
 			c.Nodes[i].Port = DefaultSSHPort
 		}
