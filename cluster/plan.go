@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
@@ -63,7 +64,10 @@ const (
 	KubeletCRIDockerdNameEnv = "RKE_KUBELET_CRIDOCKERD"
 )
 
-var admissionControlOptionNames = []string{"enable-admission-plugins", "admission-control"}
+var (
+	admissionControlOptionNames = []string{"enable-admission-plugins", "admission-control"}
+	parsedRangeAtLeast124       = semver.MustParseRange(">= 1.24.0-rancher0")
+)
 
 func GetServiceOptionData(data map[string]interface{}) map[string]*v3.KubernetesServicesOptions {
 	svcOptionsData := map[string]*v3.KubernetesServicesOptions{}
@@ -345,7 +349,12 @@ func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3
 	}
 	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
 	// Best security practice is to listen on localhost, but DinD uses private container network instead of Host.
-	if c.DinD {
+	// the flag --address is removed since k8s 1.24
+	parsedVersion, err := getClusterVersion(c.Version)
+	if err != nil {
+		logrus.Warn(err)
+	}
+	if c.DinD && !parsedRangeAtLeast124(parsedVersion) {
 		CommandArgs["address"] = "0.0.0.0"
 	}
 	if len(c.CloudProvider.Name) > 0 {
@@ -493,6 +502,14 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	if c.IsCRIDockerdEnabled() {
 		CommandArgs["container-runtime"] = "remote"
 		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
+		parsedVersion, err := getClusterVersion(c.Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		// cri-dockerd must be enabled if the cluster version is 1.24 and higher
+		if parsedRangeAtLeast124(parsedVersion) {
+			CommandArgs["container-runtime-endpoint"] = "unix:///var/run/cri-dockerd.sock"
+		}
 	}
 
 	if serviceOptions.Kubelet != nil {
@@ -813,7 +830,9 @@ func (c *Cluster) BuildSchedulerProcess(host *hosts.Host, serviceOptions v3.Kube
 	}
 	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
 	// Best security practice is to listen on localhost, but DinD uses private container network instead of Host.
-	if c.DinD {
+	// the flag --address is removed since k8s 1.24
+	parsedVersion, _ := getClusterVersion(c.Version)
+	if c.DinD && !parsedRangeAtLeast124(parsedVersion) {
 		CommandArgs["address"] = "0.0.0.0"
 	}
 
