@@ -249,6 +249,12 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 		c.ForceDeployCerts = true
 	}
 
+	// enable cri-dockerd for k8s >= 1.24
+	err = c.setCRIDockerd()
+	if err != nil {
+		return err
+	}
+
 	err = c.setClusterDNSDefaults()
 	if err != nil {
 		return err
@@ -286,6 +292,22 @@ func (c *Cluster) setNodeUpgradeStrategy() {
 			GracePeriod: DefaultNodeDrainGracePeriod,
 		}
 	}
+}
+
+// setCRIDockerd set enable_cri_dockerd = true when the following two conditions are met:
+//the cluster's version is at least 1.24 and the option enable_cri_dockerd is not configured
+func (c *Cluster) setCRIDockerd() error {
+	parsedVersion, err := getClusterVersion(c.Version)
+	if err != nil {
+		return err
+	}
+	if parsedRangeAtLeast124(parsedVersion) {
+		if c.EnableCRIDockerd == nil {
+			enable := true
+			c.EnableCRIDockerd = &enable
+		}
+	}
+	return nil
 }
 
 func (c *Cluster) setClusterServicesDefaults() {

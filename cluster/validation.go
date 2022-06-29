@@ -631,9 +631,9 @@ func validateIngressImages(c *Cluster) error {
 func validateCRIDockerdOption(c *Cluster) error {
 	if c.EnableCRIDockerd != nil && *c.EnableCRIDockerd {
 		k8sVersion := c.RancherKubernetesEngineConfig.Version
-		toMatch, err := semver.Make(k8sVersion[1:])
+		parsedVersion, err := getClusterVersion(k8sVersion)
 		if err != nil {
-			return fmt.Errorf("%s is not valid semver", k8sVersion)
+			return err
 		}
 		logrus.Debugf("Checking cri-dockerd for cluster version [%s]", k8sVersion)
 		// cri-dockerd can be enabled for k8s 1.21 and up
@@ -641,11 +641,23 @@ func validateCRIDockerdOption(c *Cluster) error {
 		if err != nil {
 			logrus.Warnf("Failed to parse semver range for checking cri-dockerd")
 		}
-		if !CRIDockerdAllowedRange(toMatch) {
+		if !CRIDockerdAllowedRange(parsedVersion) {
 			logrus.Debugf("Cluster version [%s] is not allowed to enable cri-dockerd", k8sVersion)
 			return fmt.Errorf("Enabling cri-dockerd for cluster version [%s] is not supported", k8sVersion)
 		}
 		logrus.Infof("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
 	}
 	return nil
+}
+
+func getClusterVersion(version string) (semver.Version, error) {
+	var parsedVersion semver.Version
+	if len(version) <= 1 || !strings.HasPrefix(version, "v") {
+		return parsedVersion, fmt.Errorf("%s is not valid version", version)
+	}
+	parsedVersion, err := semver.Parse(version[1:])
+	if err != nil {
+		return parsedVersion, fmt.Errorf("%s is not valid semver", version)
+	}
+	return parsedVersion, nil
 }
