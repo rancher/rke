@@ -72,35 +72,46 @@ const (
 
 	DefaultCanalFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
 
-	DefaultAciApicRefreshTime          = "1200"
-	DefaultAciOVSMemoryLimit           = "1Gi"
-	DefaultAciImagePullPolicy          = "Always"
-	DefaultAciServiceMonitorInterval   = "5"
-	DefaultAciPBRTrackingNonSnat       = "false"
-	DefaultAciInstallIstio             = "false"
-	DefaultAciIstioProfile             = "demo"
-	DefaultAciDropLogEnable            = "true"
-	DefaultAciControllerLogLevel       = "info"
-	DefaultAciHostAgentLogLevel        = "info"
-	DefaultAciOpflexAgentLogLevel      = "info"
-	DefaultAciUseAciCniPriorityClass   = "false"
-	DefaultAciNoPriorityClass          = "false"
-	DefaultAciMaxNodesSvcGraph         = "32"
-	DefaultAciSnatContractScope        = "global"
-	DefaultAciSnatNamespace            = "aci-containers-system"
-	DefaultAciCApic                    = "false"
-	DefaultAciPodSubnetChunkSize       = "32"
-	DefaultAciSnatPortRangeStart       = "5000"
-	DefaultAciSnatPortRangeEnd         = "65000"
-	DefaultAciSnatPortsPerNode         = "3000"
-	DefaultAciUseHostNetnsVolume       = "false"
-	DefaultAciRunGbpContainer          = "false"
-	DefaultAciRunOpflexServerContainer = "false"
-	DefaultAciUseAciAnywhereCRD        = "false"
-	DefaultAciEnableEndpointSlice      = "false"
-	DefaultAciOpflexClientSSL          = "true"
-	DefaultAciUsePrivilegedContainer   = "false"
-	DefaultAciUseOpflexServerVolume    = "false"
+	DefaultAciApicRefreshTime                   = "1200"
+	DefaultAciOVSMemoryLimit                    = "1Gi"
+	DefaultAciImagePullPolicy                   = "Always"
+	DefaultAciServiceMonitorInterval            = "5"
+	DefaultAciPBRTrackingNonSnat                = "false"
+	DefaultAciInstallIstio                      = "false"
+	DefaultAciIstioProfile                      = "demo"
+	DefaultAciDropLogEnable                     = "true"
+	DefaultAciControllerLogLevel                = "info"
+	DefaultAciHostAgentLogLevel                 = "info"
+	DefaultAciOpflexAgentLogLevel               = "info"
+	DefaultAciUseAciCniPriorityClass            = "false"
+	DefaultAciNoPriorityClass                   = "false"
+	DefaultAciMaxNodesSvcGraph                  = "32"
+	DefaultAciSnatContractScope                 = "global"
+	DefaultAciSnatNamespace                     = "aci-containers-system"
+	DefaultAciCApic                             = "false"
+	DefaultAciPodSubnetChunkSize                = "32"
+	DefaultAciSnatPortRangeStart                = "5000"
+	DefaultAciSnatPortRangeEnd                  = "65000"
+	DefaultAciSnatPortsPerNode                  = "3000"
+	DefaultAciUseHostNetnsVolume                = "false"
+	DefaultAciRunGbpContainer                   = "false"
+	DefaultAciRunOpflexServerContainer          = "false"
+	DefaultAciUseAciAnywhereCRD                 = "false"
+	DefaultAciEnableEndpointSlice               = "false"
+	DefaultAciOpflexClientSSL                   = "true"
+	DefaultAciUsePrivilegedContainer            = "false"
+	DefaultAciUseOpflexServerVolume             = "false"
+	DefaultAciDurationWaitForNetwork            = "210"
+	DefaultAciUseClusterRole                    = "true"
+	DefaultAciDisableWaitForNetwork             = "false"
+	DefaultAciApicSubscriptionDelay             = "0"
+	DefaultAciApicRefreshTickerAdjust           = "0"
+	DefaultAciDisablePeriodicSnatGlobalInfoSync = "false"
+	DefaultAciOpflexDeviceDeleteTimeout         = "0"
+	DefaultAciMTUHeadRoom                       = "0"
+	DefaultAciNodePodIfEnable                   = "false"
+	DefaultAciSriovEnable                       = "false"
+	DefaultAciMultusDisable                     = "true"
 
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
@@ -617,35 +628,46 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		}
 	case AciNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{
-			AciOVSMemoryLimit:           DefaultAciOVSMemoryLimit,
-			AciImagePullPolicy:          DefaultAciImagePullPolicy,
-			AciPBRTrackingNonSnat:       DefaultAciPBRTrackingNonSnat,
-			AciInstallIstio:             DefaultAciInstallIstio,
-			AciIstioProfile:             DefaultAciIstioProfile,
-			AciDropLogEnable:            DefaultAciDropLogEnable,
-			AciControllerLogLevel:       DefaultAciControllerLogLevel,
-			AciHostAgentLogLevel:        DefaultAciHostAgentLogLevel,
-			AciOpflexAgentLogLevel:      DefaultAciOpflexAgentLogLevel,
-			AciApicRefreshTime:          DefaultAciApicRefreshTime,
-			AciServiceMonitorInterval:   DefaultAciServiceMonitorInterval,
-			AciUseAciCniPriorityClass:   DefaultAciUseAciCniPriorityClass,
-			AciNoPriorityClass:          DefaultAciNoPriorityClass,
-			AciMaxNodesSvcGraph:         DefaultAciMaxNodesSvcGraph,
-			AciSnatContractScope:        DefaultAciSnatContractScope,
-			AciPodSubnetChunkSize:       DefaultAciPodSubnetChunkSize,
-			AciEnableEndpointSlice:      DefaultAciEnableEndpointSlice,
-			AciSnatNamespace:            DefaultAciSnatNamespace,
-			AciSnatPortRangeStart:       DefaultAciSnatPortRangeStart,
-			AciSnatPortRangeEnd:         DefaultAciSnatPortRangeEnd,
-			AciSnatPortsPerNode:         DefaultAciSnatPortsPerNode,
-			AciOpflexClientSSL:          DefaultAciOpflexClientSSL,
-			AciUsePrivilegedContainer:   DefaultAciUsePrivilegedContainer,
-			AciUseOpflexServerVolume:    DefaultAciUseOpflexServerVolume,
-			AciUseHostNetnsVolume:       DefaultAciUseHostNetnsVolume,
-			AciCApic:                    DefaultAciCApic,
-			AciUseAciAnywhereCRD:        DefaultAciUseAciAnywhereCRD,
-			AciRunGbpContainer:          DefaultAciRunGbpContainer,
-			AciRunOpflexServerContainer: DefaultAciRunOpflexServerContainer,
+			AciOVSMemoryLimit:                    DefaultAciOVSMemoryLimit,
+			AciImagePullPolicy:                   DefaultAciImagePullPolicy,
+			AciPBRTrackingNonSnat:                DefaultAciPBRTrackingNonSnat,
+			AciInstallIstio:                      DefaultAciInstallIstio,
+			AciIstioProfile:                      DefaultAciIstioProfile,
+			AciDropLogEnable:                     DefaultAciDropLogEnable,
+			AciControllerLogLevel:                DefaultAciControllerLogLevel,
+			AciHostAgentLogLevel:                 DefaultAciHostAgentLogLevel,
+			AciOpflexAgentLogLevel:               DefaultAciOpflexAgentLogLevel,
+			AciApicRefreshTime:                   DefaultAciApicRefreshTime,
+			AciServiceMonitorInterval:            DefaultAciServiceMonitorInterval,
+			AciUseAciCniPriorityClass:            DefaultAciUseAciCniPriorityClass,
+			AciNoPriorityClass:                   DefaultAciNoPriorityClass,
+			AciMaxNodesSvcGraph:                  DefaultAciMaxNodesSvcGraph,
+			AciSnatContractScope:                 DefaultAciSnatContractScope,
+			AciPodSubnetChunkSize:                DefaultAciPodSubnetChunkSize,
+			AciEnableEndpointSlice:               DefaultAciEnableEndpointSlice,
+			AciSnatNamespace:                     DefaultAciSnatNamespace,
+			AciSnatPortRangeStart:                DefaultAciSnatPortRangeStart,
+			AciSnatPortRangeEnd:                  DefaultAciSnatPortRangeEnd,
+			AciSnatPortsPerNode:                  DefaultAciSnatPortsPerNode,
+			AciOpflexClientSSL:                   DefaultAciOpflexClientSSL,
+			AciUsePrivilegedContainer:            DefaultAciUsePrivilegedContainer,
+			AciUseOpflexServerVolume:             DefaultAciUseOpflexServerVolume,
+			AciUseHostNetnsVolume:                DefaultAciUseHostNetnsVolume,
+			AciCApic:                             DefaultAciCApic,
+			AciUseAciAnywhereCRD:                 DefaultAciUseAciAnywhereCRD,
+			AciRunGbpContainer:                   DefaultAciRunGbpContainer,
+			AciRunOpflexServerContainer:          DefaultAciRunOpflexServerContainer,
+			AciDurationWaitForNetwork:            DefaultAciDurationWaitForNetwork,
+			AciUseClusterRole:                    DefaultAciUseClusterRole,
+			AciDisableWaitForNetwork:             DefaultAciDisableWaitForNetwork,
+			AciApicSubscriptionDelay:             DefaultAciApicSubscriptionDelay,
+			AciApicRefreshTickerAdjust:           DefaultAciApicRefreshTickerAdjust,
+			AciDisablePeriodicSnatGlobalInfoSync: DefaultAciDisablePeriodicSnatGlobalInfoSync,
+			AciOpflexDeviceDeleteTimeout:         DefaultAciOpflexDeviceDeleteTimeout,
+			AciMTUHeadRoom:                       DefaultAciMTUHeadRoom,
+			AciNodePodIfEnable:                   DefaultAciNodePodIfEnable,
+			AciSriovEnable:                       DefaultAciSriovEnable,
+			AciMultusDisable:                     DefaultAciMultusDisable,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
@@ -691,6 +713,17 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.UseAciAnywhereCRD, DefaultAciUseAciAnywhereCRD)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.RunGbpContainer, DefaultAciRunGbpContainer)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.RunOpflexServerContainer, DefaultAciRunOpflexServerContainer)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.SriovEnable, DefaultAciSriovEnable)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.NodePodIfEnable, DefaultAciNodePodIfEnable)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.MultusDisable, DefaultAciMultusDisable)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DisablePeriodicSnatGlobalInfoSync, DefaultAciDisablePeriodicSnatGlobalInfoSync)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicSubscriptionDelay, DefaultAciApicSubscriptionDelay)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicRefreshTickerAdjust, DefaultAciApicRefreshTickerAdjust)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexDeviceDeleteTimeout, DefaultAciOpflexDeviceDeleteTimeout)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.MTUHeadRoom, DefaultAciMTUHeadRoom)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DurationWaitForNetwork, DefaultAciDurationWaitForNetwork)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DisableWaitForNetwork, DefaultAciDisableWaitForNetwork)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.UseClusterRole, DefaultAciUseClusterRole)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
 		networkPluginConfigDefaultsMap[AciPBRTrackingNonSnat] = c.Network.AciNetworkProvider.PBRTrackingNonSnat
@@ -719,6 +752,17 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciUseAciAnywhereCRD] = c.Network.AciNetworkProvider.UseAciAnywhereCRD
 		networkPluginConfigDefaultsMap[AciRunGbpContainer] = c.Network.AciNetworkProvider.RunGbpContainer
 		networkPluginConfigDefaultsMap[AciRunOpflexServerContainer] = c.Network.AciNetworkProvider.RunOpflexServerContainer
+		networkPluginConfigDefaultsMap[AciDurationWaitForNetwork] = c.Network.AciNetworkProvider.DurationWaitForNetwork
+		networkPluginConfigDefaultsMap[AciDisableWaitForNetwork] = c.Network.AciNetworkProvider.DisableWaitForNetwork
+		networkPluginConfigDefaultsMap[AciUseClusterRole] = c.Network.AciNetworkProvider.UseClusterRole
+		networkPluginConfigDefaultsMap[AciApicSubscriptionDelay] = c.Network.AciNetworkProvider.ApicSubscriptionDelay
+		networkPluginConfigDefaultsMap[AciApicRefreshTickerAdjust] = c.Network.AciNetworkProvider.ApicRefreshTickerAdjust
+		networkPluginConfigDefaultsMap[AciDisablePeriodicSnatGlobalInfoSync] = c.Network.AciNetworkProvider.DisablePeriodicSnatGlobalInfoSync
+		networkPluginConfigDefaultsMap[AciOpflexDeviceDeleteTimeout] = c.Network.AciNetworkProvider.OpflexDeviceDeleteTimeout
+		networkPluginConfigDefaultsMap[AciMTUHeadRoom] = c.Network.AciNetworkProvider.MTUHeadRoom
+		networkPluginConfigDefaultsMap[AciNodePodIfEnable] = c.Network.AciNetworkProvider.NodePodIfEnable
+		networkPluginConfigDefaultsMap[AciSriovEnable] = c.Network.AciNetworkProvider.SriovEnable
+		networkPluginConfigDefaultsMap[AciMultusDisable] = c.Network.AciNetworkProvider.MultusDisable
 		networkPluginConfigDefaultsMap[AciSystemIdentifier] = c.Network.AciNetworkProvider.SystemIdentifier
 		networkPluginConfigDefaultsMap[AciToken] = c.Network.AciNetworkProvider.Token
 		networkPluginConfigDefaultsMap[AciApicUserName] = c.Network.AciNetworkProvider.ApicUserName
