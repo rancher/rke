@@ -13741,6 +13741,9 @@
       "type": "string"
      }
     },
+    "featureVersions": {
+     "encryption-key-rotation": "2.0.0"
+    },
     "maxChannelServerVersion": "v2.6.4",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
@@ -14781,6 +14784,9 @@
       "type": "string"
      }
     },
+    "featureVersions": {
+     "encryption-key-rotation": "2.0.0"
+    },
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
@@ -15382,6 +15388,9 @@
      "system-default-registry": {
       "type": "string"
      }
+    },
+    "featureVersions": {
+     "encryption-key-rotation": "2.0.0"
     },
     "maxChannelServerVersion": "v2.6.99",
     "minChannelServerVersion": "v2.6.4-alpha1",
