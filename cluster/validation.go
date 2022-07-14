@@ -645,7 +645,7 @@ func validateCRIDockerdOption(c *Cluster) error {
 			logrus.Debugf("Cluster version [%s] is not allowed to enable cri-dockerd", k8sVersion)
 			return fmt.Errorf("Enabling cri-dockerd for cluster version [%s] is not supported", k8sVersion)
 		}
-		logrus.Infof("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
+		logrus.Debugf("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
 	}
 	return nil
 }
