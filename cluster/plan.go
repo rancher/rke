@@ -473,7 +473,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	if host.IsControl && !host.IsWorker {
 		CommandArgs["register-with-taints"] = unschedulableControlTaint
 	}
-	if host.Address != host.InternalAddress {
+	if host.InternalAddress != "" {
 		CommandArgs["node-ip"] = host.InternalAddress
 	}
 	if len(c.CloudProvider.Name) > 0 {
