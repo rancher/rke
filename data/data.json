@@ -15548,7 +15548,7 @@
      "encryption-key-rotation": "2.0.0"
     },
     "maxChannelServerVersion": "v2.6.99",
-    "minChannelServerVersion": "v2.6.4-alpha1",
+    "minChannelServerVersion": "v2.6.7-alpha1",
     "serverArgs": {
      "cluster-cidr": {
       "type": "string"
