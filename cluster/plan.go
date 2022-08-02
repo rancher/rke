@@ -499,6 +499,9 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		CommandArgs["tls-cert-file"] = pki.GetCertPath(pki.GetCrtNameForHost(host, pki.KubeletCertName))
 		CommandArgs["tls-private-key-file"] = pki.GetCertPath(fmt.Sprintf("%s-key", pki.GetCrtNameForHost(host, pki.KubeletCertName)))
 	}
+
+	var Binds []string
+
 	if c.IsCRIDockerdEnabled() {
 		CommandArgs["container-runtime"] = "remote"
 		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
@@ -509,6 +512,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		// cri-dockerd must be enabled if the cluster version is 1.24 and higher
 		if parsedRangeAtLeast124(parsedVersion) {
 			CommandArgs["container-runtime-endpoint"] = "unix:///var/run/cri-dockerd.sock"
+			Binds = []string{fmt.Sprintf("%s:/var/lib/cri-dockerd:z", path.Join(host.PrefixPath, "/var/lib/cri-dockerd"))}
 		}
 	}
 
@@ -542,18 +546,17 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		services.SidekickContainerName,
 	}
 
-	var Binds []string
 	if host.IsWindows() { // compatible with Windows
-		Binds = []string{
+		Binds = append(Binds, []string{
 			// put the execution binaries and cloud provider configuration to the host
 			fmt.Sprintf("%s:c:/host/etc/kubernetes", path.Join(host.PrefixPath, "/etc/kubernetes")),
 			// put the flexvolume plugins or private registry docker configuration to the host
 			fmt.Sprintf("%s:c:/host/var/lib/kubelet", path.Join(host.PrefixPath, "/var/lib/kubelet")),
 			// exchange resources with other components
 			fmt.Sprintf("%s:c:/host/run", path.Join(host.PrefixPath, "/run")),
-		}
+		}...)
 	} else {
-		Binds = []string{
+		Binds = append(Binds, []string{
 			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 			"/etc/cni:/etc/cni:rw,z",
 			"/opt/cni:/opt/cni:rw,z",
@@ -572,7 +575,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 			"/var/log/pods:/var/log/pods:z",
 			"/usr:/host/usr:ro",
 			"/etc:/host/etc:ro",
-		}
+		}...)
 
 		// Special case to simplify using flex volumes
 		if path.Join(host.PrefixPath, "/var/lib/kubelet") != "/var/lib/kubelet" {
