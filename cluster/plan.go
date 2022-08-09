@@ -512,8 +512,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		// cri-dockerd must be enabled if the cluster version is 1.24 and higher
 		if parsedRangeAtLeast124(parsedVersion) {
 			CommandArgs["container-runtime-endpoint"] = "unix:///var/run/cri-dockerd.sock"
-			Binds = []string{fmt.Sprintf("%s:/var/lib/cri-dockerd:z", path.Join(host.PrefixPath, "/var/lib/cri-dockerd")),
-				fmt.Sprintf("%s:%s", path.Join(host.PrefixPath, KubeletDockerConfigPath), "/.docker/config.json")}
+			Binds = []string{fmt.Sprintf("%s:/var/lib/cri-dockerd:z", path.Join(host.PrefixPath, "/var/lib/cri-dockerd"))}
 		}
 	}
 
