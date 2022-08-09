@@ -630,13 +630,13 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		CommandArrayArgs[arg] = value
 	}
 
-	Command = appendArgs(Command, CommandArgs)
-	Command = appendArrayArgs(Command, CommandArrayArgs)
-
 	// If nodelocal DNS is configured, set cluster-dns to local IP
 	if c.DNS.Nodelocal != nil && c.DNS.Nodelocal.IPAddress != "" {
 		CommandArgs["cluster-dns"] = c.DNS.Nodelocal.IPAddress
 	}
+
+	Command = appendArgs(Command, CommandArgs)
+	Command = appendArrayArgs(Command, CommandArrayArgs)
 
 	healthCheck := v3.HealthCheck{
 		URL: services.GetHealthCheckURL(false, services.KubeletPort),
