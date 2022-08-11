@@ -509,8 +509,8 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		if err != nil {
 			logrus.Debugf("Error while parsing cluster version: %s", err)
 		}
-		// cri-dockerd must be enabled if the cluster version is 1.24 and higher
-		if parsedRangeAtLeast124(parsedVersion) {
+
+		if useNewCRIEndpoint(c.Version, parsedVersion) {
 			CommandArgs["container-runtime-endpoint"] = "unix:///var/run/cri-dockerd.sock"
 			Binds = []string{fmt.Sprintf("%s:/var/lib/cri-dockerd:z", path.Join(host.PrefixPath, "/var/lib/cri-dockerd"))}
 		}
@@ -1279,6 +1279,25 @@ func (c *Cluster) IsCRIDockerdEnabled() bool {
 		return false
 	}
 	if c.EnableCRIDockerd != nil && *c.EnableCRIDockerd {
+		return true
+	}
+	return false
+}
+
+func useNewCRIEndpoint(clusterVersion string, parsedVersion semver.Version) bool {
+	// cri-dockerd v0.2.4 must be enabled if the cluster version is 1.24 and higher
+	if parsedRangeAtLeast124(parsedVersion) {
+		return true
+	}
+	// cri-dockerd v0.2.4 requires new endpoint, must be used for patch versions with rke-tools v0.1.86
+	majorVersion := util.GetTagMajorVersion(clusterVersion)
+	if majorVersion == "v1.21" && semver.MustParseRange(">= 1.21.14-rancher0")(parsedVersion) {
+		return true
+	}
+	if majorVersion == "v1.22" && semver.MustParseRange(">= 1.22.11-rancher0")(parsedVersion) {
+		return true
+	}
+	if majorVersion == "v1.23" && semver.MustParseRange(">= 1.23.8-rancher0")(parsedVersion) {
 		return true
 	}
 	return false
