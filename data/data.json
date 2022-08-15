@@ -11388,6 +11388,10 @@
    "minRKEVersion": "1.3.3-rc0",
    "minRancherVersion": "2.6.3-patch0"
   },
+  "v1.22.11-rancher1-1": {
+   "minRKEVersion": "1.3.3-rc0",
+   "minRancherVersion": "2.6.3-patch0"
+  },
   "v1.22.4-rancher1-1": {
    "minRKEVersion": "1.3.3-rc0",
    "minRancherVersion": "2.6.3-patch0"
