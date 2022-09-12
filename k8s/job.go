@@ -13,13 +13,18 @@ import (
 	"k8s.io/client-go/transport"
 )
 
+const (
+	UserAddonResourceName         = "rke-user-addon"
+	UserAddonsIncludeResourceName = "rke-user-includes-addons"
+)
+
 type JobStatus struct {
 	Completed bool
 	Created   bool
 	Removing  bool
 }
 
-func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transport.WrapperFunc, timeout int, addonUpdated bool) error {
+func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transport.WrapperFunc, timeout int, resourceName string, addonUpdated bool) error {
 	job := v1.Job{}
 	if err := DecodeYamlResource(&job, jobYaml); err != nil {
 		return err
@@ -49,10 +54,11 @@ func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transpor
 		return err
 	}
 
-	// if the addon configMap is updated, or the previous job is not completed,
-	// I will remove the existing job first, if any
-	if addonUpdated || (jobStatus.Created && !jobStatus.Completed) {
-		logrus.Debugf("[k8s] replacing job %s.. ", job.Name)
+	// remove the existing job if addon config has changed or the job isn't completed
+	// always remove the existing job for user addons to rerun kubectl apply for user addons
+	if addonUpdated || (jobStatus.Created && !jobStatus.Completed) ||
+		resourceName == UserAddonResourceName || resourceName == UserAddonsIncludeResourceName {
+		logrus.Debugf("[k8s] replacing job %s for %s", job.Name, resourceName)
 		if err := DeleteK8sSystemJob(jobYaml, k8sClient, timeout); err != nil {
 			return err
 		}
