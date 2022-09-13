@@ -5,8 +5,8 @@ set -x
 REPO="https://api.github.com/repos/rancher/rancher/actions/workflows/go-get.yml/dispatches"
 
 case $DRONE_TAG in
-  "v1.3"*)
-    ACTION_TARGET_BRANCH="release/v2.6"
+  "v1.4"*)
+    ACTION_TARGET_BRANCH="release/v2.7"
     ;;
   *)
     echo "Not a valid tag, not dispatching event"
