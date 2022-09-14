@@ -147,6 +147,8 @@ const (
 	AciNodePodIfEnable                   = "aci_node_pod_if_enable"
 	AciSriovEnable                       = "aci_sriov_enable"
 	AciMultusDisable                     = "aci_multus_disable"
+	AciNoWaitForServiceEpReadiness       = "aci_no_wait_for_service_ep_readiness"
+	AciAddExternalSubnetsToRdconfig      = "aci_add_external_subnets_to_rdconfig"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -283,6 +285,8 @@ const (
 	NodePodIfEnable                        = "NodePodIfEnable"
 	SriovEnable                            = "SriovEnable"
 	MultusDisable                          = "MultusDisable"
+	NoWaitForServiceEpReadiness            = "NoWaitForServiceEpReadiness"
+	AddExternalSubnetsToRdconfig           = "AddExternalSubnetsToRdconfig"
 	OVSMemoryLimit                         = "OVSMemoryLimit"
 	NodeSubnet                             = "NodeSubnet"
 	NodeSelector                           = "NodeSelector"
@@ -579,6 +583,8 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		NodePodIfEnable:                   c.Network.Options[AciNodePodIfEnable],
 		SriovEnable:                       c.Network.Options[AciSriovEnable],
 		MultusDisable:                     c.Network.Options[AciMultusDisable],
+		NoWaitForServiceEpReadiness:       c.Network.Options[AciNoWaitForServiceEpReadiness],
+		AddExternalSubnetsToRdconfig:      c.Network.Options[AciAddExternalSubnetsToRdconfig],
 		AciCniDeployContainer:             c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                  c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                c.SystemImages.AciOpflexContainer,
