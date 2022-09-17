@@ -9,9 +9,9 @@ platform:
 steps:
 - name: ci
   pull: default
-  image: rancher/dapper:1.11.2
+  image: rancherlabs/rke:latest
   commands:
-  - dapper ci
+  - mage build
   - ls -lR build/bin
   environment:
     CROSS: 1
@@ -26,7 +26,7 @@ steps:
 
 - name: stage-binaries
   pull: default
-  image: rancher/dapper:1.11.2
+  image: rancherlabs/rke:latest
   commands:
   - "cp -r ./bin/* ./package/"
   when:
@@ -117,9 +117,9 @@ platform:
 steps:
 - name: build
   pull: default
-  image: rancher/dapper:1.11.2
+  image: rancherlabs/rke:latest
   commands:
-  - dapper build
+  - mage build
   privileged: true
   volumes:
   - name: socket
@@ -131,9 +131,9 @@ steps:
 
 - name: integration-flannel
   pull: default
-  image: rancher/dapper:1.11.2
+  image: rancherlabs/rke:latest
   commands:
-  - dapper integration flannel
+  - scripts/integration flannel
   privileged: true
   volumes:
   - name: socket
@@ -145,9 +145,9 @@ steps:
 
 - name: integration-calico
   pull: default
-  image: rancher/dapper:1.11.2
+  image: rancherlabs/rke:latest
   commands:
-  - dapper integration calico
+  - scripts/integration calico
   privileged: true
   volumes:
   - name: socket
@@ -159,9 +159,9 @@ steps:
 
 - name: integration-weave
   pull: default
-  image: rancher/dapper:1.11.2
+  image: rancherlabs/rke:latest
   commands:
-  - dapper integration weave
+  - scripts/integration weave
   privileged: true
   volumes:
   - name: socket

@@ -29,7 +29,7 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 	s3UploadFailures := 0
 
 	for _, host := range c.EtcdHosts {
-		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
+		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout) //nolint
 		if err := services.RunEtcdSnapshotSave(newCtx, host, c.PrivateRegistriesMap, backupImage, snapshotName, true, c.Services.Etcd, c.Version); err != nil {
 			if strings.Contains(err.Error(), "failed to upload etcd snapshot file to s3 on host") {
 				s3UploadFailures++
@@ -230,7 +230,7 @@ func (c *Cluster) RestoreEtcdSnapshot(ctx context.Context, snapshotPath string) 
 		if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.Timeout > 0 {
 			containerTimeout = c.Services.Etcd.BackupConfig.Timeout
 		}
-		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
+		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout) //nolint
 		if err := services.RestoreEtcdSnapshot(newCtx, host, c.PrivateRegistriesMap, c.SystemImages.Etcd, backupImage,
 			snapshotPath, initCluster, c.Services.Etcd, c.Version); err != nil {
 			return fmt.Errorf("[etcd] Failed to restore etcd snapshot: %v", err)

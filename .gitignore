@@ -1,5 +1,6 @@
 .idea
 /.dapper
+/artifacts
 /bin
 /dist
 *.swp
