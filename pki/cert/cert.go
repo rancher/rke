@@ -149,7 +149,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 			CommonName: fmt.Sprintf("%s-ca@%d", host, time.Now().Unix()),
 		},
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(time.Hour * 24 * 365),
+		NotAfter:  time.Now().Add(duration365d),
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
@@ -177,7 +177,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 			CommonName: fmt.Sprintf("%s@%d", host, time.Now().Unix()),
 		},
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(time.Hour * 24 * 365),
+		NotAfter:  time.Now().Add(duration365d),
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
