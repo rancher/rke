@@ -12456,7 +12456,7 @@
       "defaultVersion": "1.23.x"
      },
      {
-      "appVersion": "\u003e= 2.6.7-0 \u003c 2.6.100-0",
+      "appVersion": "\u003e= 2.6.7-0 \u003c 2.7.100-0",
       "defaultVersion": "1.24.x"
      }
     ]
@@ -15184,7 +15184,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -15944,7 +15944,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.4-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -16254,7 +16254,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.7-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -16383,7 +16383,7 @@
       "defaultVersion": "1.23.x"
      },
      {
-      "appVersion": "\u003e= 2.6.7-0 \u003c 2.6.100-0",
+      "appVersion": "\u003e= 2.6.7-0 \u003c 2.7.100-0",
       "defaultVersion": "1.24.x"
      }
     ]
@@ -21421,7 +21421,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
      "audit-policy-file": {
@@ -22900,7 +22900,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.4-alpha1",
     "serverArgs": {
      "audit-policy-file": {
@@ -23400,7 +23400,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.7-alpha1",
     "serverArgs": {
      "audit-policy-file": {
