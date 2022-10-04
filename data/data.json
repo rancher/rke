@@ -10249,6 +10249,49 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.2.3.2.1d150da",
    "aciOpflexServerContainer": "noiro/opflex-server:5.2.3.2.1d150da"
   },
+  "v1.22.15-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.5.3",
+   "alpine": "rancher/rke-tools:v0.1.87",
+   "nginxProxy": "rancher/rke-tools:v0.1.87",
+   "certDownloader": "rancher/rke-tools:v0.1.87",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.87",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.17.4",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.17.4",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.17.4",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.3",
+   "coredns": "rancher/mirrored-coredns-coredns:1.8.6",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
+   "kubernetes": "rancher/hyperkube:v1.22.15-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.21.1",
+   "calicoCni": "rancher/calico-cni:v3.21.3-rancher1",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.21.1",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.21.1",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.21.1",
+   "canalNode": "rancher/mirrored-calico-node:v3.21.1",
+   "canalCni": "rancher/calico-cni:v3.21.3-rancher1",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.21.1",
+   "canalFlannel": "rancher/mirrored-flannelcni-flannel:v0.17.0",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.21.1",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.6",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.2.1-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.5.1",
+   "windowsPodInfraContainer": "rancher/mirrored-pause:3.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.2.3.2.1d150da",
+   "aciHostContainer": "noiro/aci-containers-host:5.2.3.2.1d150da",
+   "aciOpflexContainer": "noiro/opflex:5.2.3.2.1d150da",
+   "aciMcastContainer": "noiro/opflex:5.2.3.2.1d150da",
+   "aciOvsContainer": "noiro/openvswitch:5.2.3.2.1d150da",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.2.3.2.1d150da",
+   "aciGbpServerContainer": "noiro/gbp-server:5.2.3.2.1d150da",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.2.3.2.1d150da"
+  },
   "v1.22.4-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.5.0",
    "alpine": "rancher/rke-tools:v0.1.78",
@@ -10593,6 +10636,49 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.2.3.2.1d150da",
    "aciOpflexServerContainer": "noiro/opflex-server:5.2.3.2.1d150da"
   },
+  "v1.23.12-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.5.3",
+   "alpine": "rancher/rke-tools:v0.1.87",
+   "nginxProxy": "rancher/rke-tools:v0.1.87",
+   "certDownloader": "rancher/rke-tools:v0.1.87",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.87",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.21.1",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.21.1",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
+   "coredns": "rancher/mirrored-coredns-coredns:1.9.0",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
+   "kubernetes": "rancher/hyperkube:v1.23.12-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.22.0",
+   "calicoCni": "rancher/calico-cni:v3.22.0-rancher1",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.22.0",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.22.0",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0",
+   "canalNode": "rancher/mirrored-calico-node:v3.22.0",
+   "canalCni": "rancher/calico-cni:v3.22.0-rancher1",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.22.0",
+   "canalFlannel": "rancher/mirrored-flannelcni-flannel:v0.17.0",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.6",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.2.1-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.6.1",
+   "windowsPodInfraContainer": "rancher/mirrored-pause:3.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.2.3.2.1d150da",
+   "aciHostContainer": "noiro/aci-containers-host:5.2.3.2.1d150da",
+   "aciOpflexContainer": "noiro/opflex:5.2.3.2.1d150da",
+   "aciMcastContainer": "noiro/opflex:5.2.3.2.1d150da",
+   "aciOvsContainer": "noiro/openvswitch:5.2.3.2.1d150da",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.2.3.2.1d150da",
+   "aciGbpServerContainer": "noiro/gbp-server:5.2.3.2.1d150da",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.2.3.2.1d150da"
+  },
   "v1.23.4-rancher1-1": {
    "etcd": "rancher/mirrored-coreos-etcd:v3.5.2",
    "alpine": "rancher/rke-tools:v0.1.80",
@@ -10894,6 +10980,49 @@
    "aciGbpServerContainer": "noiro/gbp-server:5.2.3.2.1d150da",
    "aciOpflexServerContainer": "noiro/opflex-server:5.2.3.2.1d150da"
   },
+  "v1.24.6-rancher1-1": {
+   "etcd": "rancher/mirrored-coreos-etcd:v3.5.4",
+   "alpine": "rancher/rke-tools:v0.1.87",
+   "nginxProxy": "rancher/rke-tools:v0.1.87",
+   "certDownloader": "rancher/rke-tools:v0.1.87",
+   "kubernetesServicesSidecar": "rancher/rke-tools:v0.1.87",
+   "kubedns": "rancher/mirrored-k8s-dns-kube-dns:1.21.1",
+   "dnsmasq": "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1",
+   "kubednsSidecar": "rancher/mirrored-k8s-dns-sidecar:1.21.1",
+   "kubednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
+   "coredns": "rancher/mirrored-coredns-coredns:1.9.3",
+   "corednsAutoscaler": "rancher/mirrored-cluster-proportional-autoscaler:1.8.5",
+   "nodelocal": "rancher/mirrored-k8s-dns-node-cache:1.21.1",
+   "kubernetes": "rancher/hyperkube:v1.24.6-rancher1",
+   "flannel": "rancher/mirrored-coreos-flannel:v0.15.1",
+   "flannelCni": "rancher/flannel-cni:v0.3.0-rancher6",
+   "calicoNode": "rancher/mirrored-calico-node:v3.22.0",
+   "calicoCni": "rancher/calico-cni:v3.22.0-rancher1",
+   "calicoControllers": "rancher/mirrored-calico-kube-controllers:v3.22.0",
+   "calicoCtl": "rancher/mirrored-calico-ctl:v3.22.0",
+   "calicoFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0",
+   "canalNode": "rancher/mirrored-calico-node:v3.22.0",
+   "canalCni": "rancher/calico-cni:v3.22.0-rancher1",
+   "canalControllers": "rancher/mirrored-calico-kube-controllers:v3.22.0",
+   "canalFlannel": "rancher/mirrored-flannelcni-flannel:v0.17.0",
+   "canalFlexVol": "rancher/mirrored-calico-pod2daemon-flexvol:v3.22.0",
+   "weaveNode": "weaveworks/weave-kube:2.8.1",
+   "weaveCni": "weaveworks/weave-npc:2.8.1",
+   "podInfraContainer": "rancher/mirrored-pause:3.6",
+   "ingress": "rancher/nginx-ingress-controller:nginx-1.2.1-rancher1",
+   "ingressBackend": "rancher/mirrored-nginx-ingress-controller-defaultbackend:1.5-rancher1",
+   "ingressWebhook": "rancher/mirrored-ingress-nginx-kube-webhook-certgen:v1.1.1",
+   "metricsServer": "rancher/mirrored-metrics-server:v0.6.1",
+   "windowsPodInfraContainer": "rancher/mirrored-pause:3.6",
+   "aciCniDeployContainer": "noiro/cnideploy:5.2.3.2.1d150da",
+   "aciHostContainer": "noiro/aci-containers-host:5.2.3.2.1d150da",
+   "aciOpflexContainer": "noiro/opflex:5.2.3.2.1d150da",
+   "aciMcastContainer": "noiro/opflex:5.2.3.2.1d150da",
+   "aciOvsContainer": "noiro/openvswitch:5.2.3.2.1d150da",
+   "aciControllerContainer": "noiro/aci-containers-controller:5.2.3.2.1d150da",
+   "aciGbpServerContainer": "noiro/gbp-server:5.2.3.2.1d150da",
+   "aciOpflexServerContainer": "noiro/opflex-server:5.2.3.2.1d150da"
+  },
   "v1.8.11-rancher2-1": {
    "etcd": "rancher/coreos-etcd:v3.0.17",
    "alpine": "rancher/rke-tools:v0.1.8",
@@ -11064,8 +11193,9 @@
    "\u003e=1.8.0-rancher0 \u003c1.16.0-alpha": "kubedns-v1.8"
   },
   "metricsServer": {
-   "\u003e=1.20.14-rancher2-1 \u003c1.23.3-rancher1-1": "metricsserver-v0.5.0",
+   "\u003e=1.20.14-rancher2-1 \u003c1.22.15-rancher1-1": "metricsserver-v0.5.0",
    "\u003e=1.20.4-rancher1-1 \u003c1.20.14-rancher2-1": "metricsserver-v1.20",
+   "\u003e=1.22.15-rancher1-1 \u003c1.23.3-rancher1-1": "metricsserver-v0.5.1-fix",
    "\u003e=1.23.3-rancher1-1": "metricsserver-v0.6.1",
    "\u003e=1.8.0-rancher0 \u003c1.20.4-rancher1-1": "metricsserver-v1.8"
   },
@@ -11150,6 +11280,7 @@
    "kubedns-v1.16": "\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: kube-dns-autoscaler\n  namespace: kube-system\n  labels:\n    k8s-app: kube-dns-autoscaler\nspec:\n  selector:\n    matchLabels:\n      k8s-app: kube-dns-autoscaler\n  template:\n    metadata:\n      labels:\n        k8s-app: kube-dns-autoscaler\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      serviceAccountName: kube-dns-autoscaler\n# Rancher specific change\n{{- if .KubeDNSAutoscalerPriorityClassName }}\n      priorityClassName: {{ .KubeDNSAutoscalerPriorityClassName }}\n{{- end }}\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: autoscaler\n        image: {{.KubeDNSAutoScalerImage}}\n        resources:\n            requests:\n                cpu: \"20m\"\n                memory: \"10Mi\"\n        command:\n          - /cluster-proportional-autoscaler\n          - --namespace=kube-system\n          - --configmap=kube-dns-autoscaler\n          - --target=Deployment/kube-dns\n          # When cluster is using large nodes(with more cores), \"coresPerReplica\" should dominate.\n          # If using small nodes, \"nodesPerReplica\" should dominate.\n{{if .LinearAutoscalerParams}}\n          - --default-params={\"linear\":{{.LinearAutoscalerParams}}}\n{{else}}\n          - --default-params={\"linear\":{\"coresPerReplica\":128,\"nodesPerReplica\":4,\"min\":1,\"preventSinglePointFailure\":true}}\n{{end}}\n          - --logtostderr=true\n          - --v=2\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: kube-dns-autoscaler\n  namespace: kube-system\n  labels:\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\n{{- if eq .RBACConfig \"rbac\"}}\n---\nkind: ClusterRole\napiVersion: rbac.authorization.k8s.io/v1\nmetadata:\n  name: system:kube-dns-autoscaler\nrules:\n  - apiGroups: [\"\"]\n    resources: [\"nodes\"]\n    verbs: [\"list\", \"watch\"]\n  - apiGroups: [\"\"]\n    resources: [\"replicationcontrollers/scale\"]\n    verbs: [\"get\", \"update\"]\n  - apiGroups: [\"extensions\",\"apps\"]\n    resources: [\"deployments/scale\", \"replicasets/scale\"]\n    verbs: [\"get\", \"update\"]\n  - apiGroups: [\"\"]\n    resources: [\"configmaps\"]\n    verbs: [\"get\", \"create\"]\n---\nkind: ClusterRoleBinding\napiVersion: rbac.authorization.k8s.io/v1\nmetadata:\n  name: system:kube-dns-autoscaler\nsubjects:\n  - kind: ServiceAccount\n    name: kube-dns-autoscaler\n    namespace: kube-system\nroleRef:\n  kind: ClusterRole\n  name: system:kube-dns-autoscaler\n  apiGroup: rbac.authorization.k8s.io\n{{- end }}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: kube-dns\n  namespace: kube-system\n  labels:\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: kube-dns\n  namespace: kube-system\n  labels:\n    k8s-app: kube-dns\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\nspec:\n  # replicas: not specified here:\n  # 1. In order to make Addon Manager do not reconcile this replicas parameter.\n  # 2. Default is 1.\n  # 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.\n  strategy:\n{{if .UpdateStrategy}}\n{{ toYaml .UpdateStrategy | indent 4}}\n{{else}}\n    rollingUpdate:\n      maxSurge: 10%\n      maxUnavailable: 0\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: kube-dns\n  template:\n    metadata:\n      labels:\n        k8s-app: kube-dns\n      annotations:\n        scheduler.alpha.kubernetes.io/critical-pod: ''\n    spec:\n# Rancher specific change\n{{- if .KubeDNSPriorityClassName }}\n      priorityClassName: {{ .KubeDNSPriorityClassName }}\n{{- end }}\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      affinity:\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n          - weight: 100\n            podAffinityTerm:\n              labelSelector:\n                matchExpressions:\n                  - key: k8s-app\n                    operator: In\n                    values: [\"kube-dns\"]\n              topologyKey: kubernetes.io/hostname\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - key: \"CriticalAddonsOnly\"\n        operator: \"Exists\"\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      volumes:\n      - name: kube-dns-config\n        configMap:\n          name: kube-dns\n          optional: true\n      containers:\n      - name: kubedns\n        image: {{.KubeDNSImage}}\n        resources:\n          # TODO: Set memory limits when we've profiled the container for large\n          # clusters, then set request = limit to keep this container in\n          # guaranteed class. Currently, this container falls into the\n          # \"burstable\" category so the kubelet doesn't backoff from restarting it.\n          limits:\n            memory: 170Mi\n          requests:\n            cpu: 100m\n            memory: 70Mi\n        livenessProbe:\n          httpGet:\n            path: /healthcheck/kubedns\n            port: 10054\n            scheme: HTTP\n          initialDelaySeconds: 60\n          timeoutSeconds: 5\n          successThreshold: 1\n          failureThreshold: 5\n        readinessProbe:\n          httpGet:\n            path: /readiness\n            port: 8081\n            scheme: HTTP\n          # we poll on pod startup for the Kubernetes master service and\n          # only setup the /readiness HTTP server once that's available.\n          initialDelaySeconds: 3\n          timeoutSeconds: 5\n        args:\n        - --domain={{.ClusterDomain}}.\n        - --dns-port=10053\n        - --config-dir=/kube-dns-config\n        - --v=2\n        env:\n        - name: PROMETHEUS_PORT\n          value: \"10055\"\n        ports:\n        - containerPort: 10053\n          name: dns-local\n          protocol: UDP\n        - containerPort: 10053\n          name: dns-tcp-local\n          protocol: TCP\n        - containerPort: 10055\n          name: metrics\n          protocol: TCP\n        volumeMounts:\n        - name: kube-dns-config\n          mountPath: /kube-dns-config\n      - name: dnsmasq\n        image: {{.DNSMasqImage}}\n        livenessProbe:\n          httpGet:\n            path: /healthcheck/dnsmasq\n            port: 10054\n            scheme: HTTP\n          initialDelaySeconds: 60\n          timeoutSeconds: 5\n          successThreshold: 1\n          failureThreshold: 5\n        args:\n        - -v=2\n        - -logtostderr\n        - -configDir=/etc/k8s/dns/dnsmasq-nanny\n        - -restartDnsmasq=true\n        - --\n        - -k\n        - --cache-size=1000\n        - --log-facility=-\n        - --server=/{{.ClusterDomain}}/127.0.0.1#10053\n\t{{- if .ReverseCIDRs }}\n\t{{- range .ReverseCIDRs }}\n        - --server=/{{.}}/127.0.0.1#10053\n\t{{- end }}\n\t{{- else }}\n        - --server=/in-addr.arpa/127.0.0.1#10053\n        - --server=/ip6.arpa/127.0.0.1#10053\n\t{{- end }}\n        ports:\n        - containerPort: 53\n          name: dns\n          protocol: UDP\n        - containerPort: 53\n          name: dns-tcp\n          protocol: TCP\n        # see: https://github.com/kubernetes/kubernetes/issues/29055 for details\n        resources:\n          requests:\n            cpu: 150m\n            memory: 20Mi\n        volumeMounts:\n        - name: kube-dns-config\n          mountPath: /etc/k8s/dns/dnsmasq-nanny\n      - name: sidecar\n        image: {{.KubeDNSSidecarImage}}\n        livenessProbe:\n          httpGet:\n            path: /metrics\n            port: 10054\n            scheme: HTTP\n          initialDelaySeconds: 60\n          timeoutSeconds: 5\n          successThreshold: 1\n          failureThreshold: 5\n        args:\n        - --v=2\n        - --logtostderr\n        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{.ClusterDomain}},5,A\n        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.{{.ClusterDomain}},5,A\n        ports:\n        - containerPort: 10054\n          name: metrics\n          protocol: TCP\n        resources:\n          requests:\n            memory: 20Mi\n            cpu: 10m\n      dnsPolicy: Default  # Don't use cluster DNS.\n      serviceAccountName: kube-dns\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: kube-dns\n  namespace: kube-system\n  labels:\n    k8s-app: kube-dns\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\n    kubernetes.io/name: \"KubeDNS\"\nspec:\n  selector:\n    k8s-app: kube-dns\n  clusterIP: {{.ClusterDNSServer}}\n  ports:\n  - name: dns\n    port: 53\n    protocol: UDP\n  - name: dns-tcp\n    port: 53\n    protocol: TCP\n---\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: kube-dns\n  namespace: kube-system\ndata:\n{{- if .UpstreamNameservers }}\n  upstreamNameservers: |\n    [{{range $i, $v := .UpstreamNameservers}}{{if $i}}, {{end}}{{printf \"%q\" .}}{{end}}]\n{{- end }}\n{{- if .StubDomains }}\n  stubDomains: |\n    {{ GetKubednsStubDomains .StubDomains }}\n{{- end }}",
    "kubedns-v1.8": "\n---\napiVersion: apps/v1beta1\nkind: Deployment\nmetadata:\n  name: kube-dns-autoscaler\n  namespace: kube-system\n  labels:\n    k8s-app: kube-dns-autoscaler\nspec:\n  template:\n    metadata:\n      labels:\n        k8s-app: kube-dns-autoscaler\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      serviceAccountName: kube-dns-autoscaler\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      containers:\n      - name: autoscaler\n        image: {{.KubeDNSAutoScalerImage}}\n        resources:\n            requests:\n                cpu: \"20m\"\n                memory: \"10Mi\"\n        command:\n          - /cluster-proportional-autoscaler\n          - --namespace=kube-system\n          - --configmap=kube-dns-autoscaler\n          - --target=Deployment/kube-dns\n          # When cluster is using large nodes(with more cores), \"coresPerReplica\" should dominate.\n          # If using small nodes, \"nodesPerReplica\" should dominate.\n{{if .LinearAutoscalerParams}}\n          - --default-params={\"linear\":{{.LinearAutoscalerParams}}}\n{{else}}\n          - --default-params={\"linear\":{\"coresPerReplica\":128,\"nodesPerReplica\":4,\"min\":1}}\n{{end}}\n          - --logtostderr=true\n          - --v=2\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: kube-dns-autoscaler\n  namespace: kube-system\n  labels:\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\n{{- if eq .RBACConfig \"rbac\"}}\n---\nkind: ClusterRole\napiVersion: rbac.authorization.k8s.io/v1\nmetadata:\n  name: system:kube-dns-autoscaler\nrules:\n  - apiGroups: [\"\"]\n    resources: [\"nodes\"]\n    verbs: [\"list\", \"watch\"]\n  - apiGroups: [\"\"]\n    resources: [\"replicationcontrollers/scale\"]\n    verbs: [\"get\", \"update\"]\n  - apiGroups: [\"extensions\"]\n    resources: [\"deployments/scale\", \"replicasets/scale\"]\n    verbs: [\"get\", \"update\"]\n  - apiGroups: [\"\"]\n    resources: [\"configmaps\"]\n    verbs: [\"get\", \"create\"]\n---\nkind: ClusterRoleBinding\napiVersion: rbac.authorization.k8s.io/v1\nmetadata:\n  name: system:kube-dns-autoscaler\nsubjects:\n  - kind: ServiceAccount\n    name: kube-dns-autoscaler\n    namespace: kube-system\nroleRef:\n  kind: ClusterRole\n  name: system:kube-dns-autoscaler\n  apiGroup: rbac.authorization.k8s.io\n{{- end }}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: kube-dns\n  namespace: kube-system\n  labels:\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\n---\napiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: kube-dns\n  namespace: kube-system\n  labels:\n    k8s-app: kube-dns\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\nspec:\n  # replicas: not specified here:\n  # 1. In order to make Addon Manager do not reconcile this replicas parameter.\n  # 2. Default is 1.\n  # 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.\n  strategy:\n{{if .UpdateStrategy}}\n{{ toYaml .UpdateStrategy | indent 4}}\n{{else}}\n    rollingUpdate:\n      maxSurge: 10%\n      maxUnavailable: 0\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: kube-dns\n  template:\n    metadata:\n      labels:\n        k8s-app: kube-dns\n      annotations:\n        scheduler.alpha.kubernetes.io/critical-pod: ''\n    spec:\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      affinity:\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n          - weight: 100\n            podAffinityTerm:\n              labelSelector:\n                matchExpressions:\n                  - key: k8s-app\n                    operator: In\n                    values: [\"kube-dns\"]\n              topologyKey: kubernetes.io/hostname\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n      tolerations:\n      - key: \"CriticalAddonsOnly\"\n        operator: \"Exists\"\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n      volumes:\n      - name: kube-dns-config\n        configMap:\n          name: kube-dns\n          optional: true\n      containers:\n      - name: kubedns\n        image: {{.KubeDNSImage}}\n        resources:\n          # TODO: Set memory limits when we've profiled the container for large\n          # clusters, then set request = limit to keep this container in\n          # guaranteed class. Currently, this container falls into the\n          # \"burstable\" category so the kubelet doesn't backoff from restarting it.\n          limits:\n            memory: 170Mi\n          requests:\n            cpu: 100m\n            memory: 70Mi\n        livenessProbe:\n          httpGet:\n            path: /healthcheck/kubedns\n            port: 10054\n            scheme: HTTP\n          initialDelaySeconds: 60\n          timeoutSeconds: 5\n          successThreshold: 1\n          failureThreshold: 5\n        readinessProbe:\n          httpGet:\n            path: /readiness\n            port: 8081\n            scheme: HTTP\n          # we poll on pod startup for the Kubernetes master service and\n          # only setup the /readiness HTTP server once that's available.\n          initialDelaySeconds: 3\n          timeoutSeconds: 5\n        args:\n        - --domain={{.ClusterDomain}}.\n        - --dns-port=10053\n        - --config-dir=/kube-dns-config\n        - --v=2\n        env:\n        - name: PROMETHEUS_PORT\n          value: \"10055\"\n        ports:\n        - containerPort: 10053\n          name: dns-local\n          protocol: UDP\n        - containerPort: 10053\n          name: dns-tcp-local\n          protocol: TCP\n        - containerPort: 10055\n          name: metrics\n          protocol: TCP\n        volumeMounts:\n        - name: kube-dns-config\n          mountPath: /kube-dns-config\n      - name: dnsmasq\n        image: {{.DNSMasqImage}}\n        livenessProbe:\n          httpGet:\n            path: /healthcheck/dnsmasq\n            port: 10054\n            scheme: HTTP\n          initialDelaySeconds: 60\n          timeoutSeconds: 5\n          successThreshold: 1\n          failureThreshold: 5\n        args:\n        - -v=2\n        - -logtostderr\n        - -configDir=/etc/k8s/dns/dnsmasq-nanny\n        - -restartDnsmasq=true\n        - --\n        - -k\n        - --cache-size=1000\n        - --log-facility=-\n        - --server=/{{.ClusterDomain}}/127.0.0.1#10053\n\t{{- if .ReverseCIDRs }}\n\t{{- range .ReverseCIDRs }}\n        - --server=/{{.}}/127.0.0.1#10053\n\t{{- end }}\n\t{{- else }}\n        - --server=/in-addr.arpa/127.0.0.1#10053\n        - --server=/ip6.arpa/127.0.0.1#10053\n\t{{- end }}\n        ports:\n        - containerPort: 53\n          name: dns\n          protocol: UDP\n        - containerPort: 53\n          name: dns-tcp\n          protocol: TCP\n        # see: https://github.com/kubernetes/kubernetes/issues/29055 for details\n        resources:\n          requests:\n            cpu: 150m\n            memory: 20Mi\n        volumeMounts:\n        - name: kube-dns-config\n          mountPath: /etc/k8s/dns/dnsmasq-nanny\n      - name: sidecar\n        image: {{.KubeDNSSidecarImage}}\n        livenessProbe:\n          httpGet:\n            path: /metrics\n            port: 10054\n            scheme: HTTP\n          initialDelaySeconds: 60\n          timeoutSeconds: 5\n          successThreshold: 1\n          failureThreshold: 5\n        args:\n        - --v=2\n        - --logtostderr\n        - --probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.{{.ClusterDomain}},5,A\n        - --probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.{{.ClusterDomain}},5,A\n        ports:\n        - containerPort: 10054\n          name: metrics\n          protocol: TCP\n        resources:\n          requests:\n            memory: 20Mi\n            cpu: 10m\n      dnsPolicy: Default  # Don't use cluster DNS.\n      serviceAccountName: kube-dns\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: kube-dns\n  namespace: kube-system\n  labels:\n    k8s-app: kube-dns\n    kubernetes.io/cluster-service: \"true\"\n    addonmanager.kubernetes.io/mode: Reconcile\n    kubernetes.io/name: \"KubeDNS\"\nspec:\n  selector:\n    k8s-app: kube-dns\n  clusterIP: {{.ClusterDNSServer}}\n  ports:\n  - name: dns\n    port: 53\n    protocol: UDP\n  - name: dns-tcp\n    port: 53\n    protocol: TCP\n---\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: kube-dns\n  namespace: kube-system\ndata:\n{{- if .UpstreamNameservers }}\n  upstreamNameservers: |\n    [{{range $i, $v := .UpstreamNameservers}}{{if $i}}, {{end}}{{printf \"%q\" .}}{{end}}]\n{{- end }}\n{{- if .StubDomains }}\n  stubDomains: |\n    {{ GetKubednsStubDomains .StubDomains }}\n{{- end }}",
    "metricsserver-v0.5.0": "\n{{- if eq .RBACConfig \"rbac\"}}\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n    rbac.authorization.k8s.io/aggregate-to-admin: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-edit: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-view: \"true\"\n  name: system:aggregated-metrics-reader\nrules:\n- apiGroups:\n  - metrics.k8s.io\n  resources:\n  - pods\n  - nodes\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nrules:\n- apiGroups:\n  - \"\"\n  resources:\n  - pods\n  - nodes\n  - nodes/stats\n  - namespaces\n  - configmaps\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server-auth-reader\n  namespace: kube-system\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: extension-apiserver-authentication-reader\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server:system:auth-delegator\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:auth-delegator\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:metrics-server\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n{{- end }}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\nspec:\n  ports:\n  - name: https\n    port: 443\n    protocol: TCP\n    targetPort: https\n  selector:\n    k8s-app: metrics-server\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: metrics-server\n  namespace: kube-system\n  labels:\n    k8s-app: metrics-server\nspec:\n{{if .Replicas}}\n  replicas: {{.Replicas}}\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: metrics-server\n{{if .UpdateStrategy}}\n  strategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      name: metrics-server\n      labels:\n        k8s-app: metrics-server\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      serviceAccountName: metrics-server\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      volumes:\n      - emptyDir: {}\n        name: tmp-dir\n      # Rancher specific change\n      priorityClassName: {{ .MetricsServerPriorityClassName | default \"system-cluster-critical\" }}\n      containers:\n      - name: metrics-server\n        image: {{ .MetricsServerImage }}\n        imagePullPolicy: IfNotPresent\n        livenessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /livez\n            port: https\n            scheme: HTTPS\n          periodSeconds: 10\n        args:\n        - --cert-dir=/tmp\n        - --secure-port=443\n        # Rancher specific: connecting to kubelet using insecure tls\n        - --kubelet-insecure-tls\n        - --kubelet-preferred-address-types=InternalIP\n        - --metric-resolution=15s\n        - --logtostderr\n        {{ range $k,$v := .Options }}\n        -  --{{ $k }}={{ $v }}\n        {{ end }}\n        ports:\n        - containerPort: 443\n          name: https\n          protocol: TCP\n        readinessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /readyz\n            port: https\n            scheme: HTTPS\n          initialDelaySeconds: 20\n          periodSeconds: 10\n        resources:\n          requests:\n            cpu: 100m\n            memory: 200Mi\n        securityContext:\n          readOnlyRootFilesystem: true\n          runAsNonRoot: true\n          runAsUser: 1000\n        volumeMounts:\n        - mountPath: /tmp\n          name: tmp-dir\n---\napiVersion: apiregistration.k8s.io/v1\nkind: APIService\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: v1beta1.metrics.k8s.io\nspec:\n  group: metrics.k8s.io\n  groupPriorityMinimum: 100\n  insecureSkipTLSVerify: true\n  service:\n    name: metrics-server\n    namespace: kube-system\n  version: v1beta1\n  versionPriority: 100\n---\n",
+   "metricsserver-v0.5.1-fix": "\n{{- if eq .RBACConfig \"rbac\"}}\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n    rbac.authorization.k8s.io/aggregate-to-admin: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-edit: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-view: \"true\"\n  name: system:aggregated-metrics-reader\nrules:\n- apiGroups:\n  - metrics.k8s.io\n  resources:\n  - pods\n  - nodes\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nrules:\n- apiGroups:\n  - \"\"\n  resources:\n  - pods\n  - nodes\n  - nodes/stats\n  - namespaces\n  - configmaps\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server-auth-reader\n  namespace: kube-system\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: extension-apiserver-authentication-reader\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server:system:auth-delegator\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:auth-delegator\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:metrics-server\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n{{- end }}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\nspec:\n  ports:\n  - name: https\n    port: 443\n    protocol: TCP\n    targetPort: https\n  selector:\n    k8s-app: metrics-server\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: metrics-server\n  namespace: kube-system\n  labels:\n    k8s-app: metrics-server\nspec:\n{{if .Replicas}}\n  replicas: {{.Replicas}}\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: metrics-server\n{{if .UpdateStrategy}}\n  strategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      name: metrics-server\n      labels:\n        k8s-app: metrics-server\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      serviceAccountName: metrics-server\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      volumes:\n      - emptyDir: {}\n        name: tmp-dir\n      # Rancher specific change\n      priorityClassName: {{ .MetricsServerPriorityClassName | default \"system-cluster-critical\" }}\n      containers:\n      - name: metrics-server\n        image: {{ .MetricsServerImage }}\n        imagePullPolicy: IfNotPresent\n        livenessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /livez\n            port: https\n            scheme: HTTPS\n          periodSeconds: 10\n        args:\n        - --cert-dir=/tmp\n        - --secure-port=443\n        # Rancher specific: connecting to kubelet using insecure tls\n        - --kubelet-insecure-tls\n        - --kubelet-preferred-address-types=InternalIP\n        - --metric-resolution=15s\n        - --logtostderr\n        {{ range $k,$v := .Options }}\n        -  --{{ $k }}={{ $v }}\n        {{ end }}\n        ports:\n        - containerPort: 443\n          name: https\n          protocol: TCP\n        readinessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /readyz\n            port: https\n            scheme: HTTPS\n          initialDelaySeconds: 20\n          periodSeconds: 10\n        resources:\n          requests:\n            cpu: 100m\n            memory: 200Mi\n        securityContext:\n          readOnlyRootFilesystem: true\n          runAsNonRoot: true\n          runAsUser: 1000\n          allowPrivilegeEscalation: false\n        volumeMounts:\n        - mountPath: /tmp\n          name: tmp-dir\n---\napiVersion: apiregistration.k8s.io/v1\nkind: APIService\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: v1beta1.metrics.k8s.io\nspec:\n  group: metrics.k8s.io\n  groupPriorityMinimum: 100\n  insecureSkipTLSVerify: true\n  service:\n    name: metrics-server\n    namespace: kube-system\n  version: v1beta1\n  versionPriority: 100\n---\n",
    "metricsserver-v0.6.1": "\n{{- if eq .RBACConfig \"rbac\"}}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n    rbac.authorization.k8s.io/aggregate-to-admin: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-edit: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-view: \"true\"\n  name: system:aggregated-metrics-reader\nrules:\n- apiGroups:\n  - metrics.k8s.io\n  resources:\n  - pods\n  - nodes\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nrules:\n- apiGroups:\n  - \"\"\n  resources:\n  - nodes/metrics\n  verbs:\n  - get\n- apiGroups:\n  - \"\"\n  resources:\n  - pods\n  - nodes\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server-auth-reader\n  namespace: kube-system\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: extension-apiserver-authentication-reader\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server:system:auth-delegator\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:auth-delegator\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:metrics-server\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n{{- end }}\n---\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\nspec:\n  ports:\n  - name: https\n    port: 443\n    protocol: TCP\n    targetPort: https\n  selector:\n    k8s-app: metrics-server\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  labels:\n    k8s-app: metrics-server  \n  name: metrics-server\n  namespace: kube-system\nspec:\n{{if .Replicas}}\n  replicas: {{.Replicas}}\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: metrics-server\n{{if .UpdateStrategy}}\n  strategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      name: metrics-server\n      labels:\n        k8s-app: metrics-server\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      serviceAccountName: metrics-server\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      volumes:\n      - emptyDir: {}\n        name: tmp-dir\n      # Rancher specific change\n      priorityClassName: {{ .MetricsServerPriorityClassName | default \"system-cluster-critical\" }}\n      containers:\n      - name: metrics-server\n        image: {{ .MetricsServerImage }}\n        imagePullPolicy: IfNotPresent\n        livenessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /livez\n            port: https\n            scheme: HTTPS\n          periodSeconds: 10\n        args:\n        - --cert-dir=/tmp\n        - --secure-port=4443\n        # Rancher specific: connecting to kubelet using insecure tls\n        - --kubelet-insecure-tls\n        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname\n        - --metric-resolution=15s\n        {{ range $k,$v := .Options }}\n        -  --{{ $k }}={{ $v }}\n        {{ end }}\n        ports:\n        - containerPort: 4443\n          name: https\n          protocol: TCP\n        readinessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /readyz\n            port: https\n            scheme: HTTPS\n          initialDelaySeconds: 20\n          periodSeconds: 10\n        resources:\n          requests:\n            cpu: 100m\n            memory: 200Mi\n        securityContext:\n          allowPrivilegeEscalation: false          \n          readOnlyRootFilesystem: true\n          runAsNonRoot: true\n          runAsUser: 1000\n        volumeMounts:\n        - mountPath: /tmp\n          name: tmp-dir\n---\napiVersion: apiregistration.k8s.io/v1\nkind: APIService\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: v1beta1.metrics.k8s.io\nspec:\n  group: metrics.k8s.io\n  groupPriorityMinimum: 100\n  insecureSkipTLSVerify: true\n  service:\n    name: metrics-server\n    namespace: kube-system\n  version: v1beta1\n  versionPriority: 100\n---\n",
    "metricsserver-v1.20": "\n{{- if eq .RBACConfig \"rbac\"}}\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n    rbac.authorization.k8s.io/aggregate-to-admin: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-edit: \"true\"\n    rbac.authorization.k8s.io/aggregate-to-view: \"true\"\n  name: system:aggregated-metrics-reader\nrules:\n- apiGroups:\n  - metrics.k8s.io\n  resources:\n  - pods\n  - nodes\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nrules:\n- apiGroups:\n  - \"\"\n  resources:\n  - pods\n  - nodes\n  - nodes/stats\n  - namespaces\n  - configmaps\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server-auth-reader\n  namespace: kube-system\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: extension-apiserver-authentication-reader\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server:system:auth-delegator\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:auth-delegator\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: system:metrics-server\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:metrics-server\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n{{- end }}\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: metrics-server\n  namespace: kube-system\nspec:\n  ports:\n  - name: https\n    port: 443\n    protocol: TCP\n    targetPort: https\n  selector:\n    k8s-app: metrics-server\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: metrics-server\n  namespace: kube-system\n  labels:\n    k8s-app: metrics-server\nspec:\n{{if .Replicas}}\n  replicas: {{.Replicas}}\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: metrics-server\n{{if .UpdateStrategy}}\n  strategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      name: metrics-server\n      labels:\n        k8s-app: metrics-server\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      serviceAccountName: metrics-server\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      volumes:\n      - emptyDir: {}\n        name: tmp-dir\n      # Rancher specific change\n      priorityClassName: {{ .MetricsServerPriorityClassName | default \"system-cluster-critical\" }}\n      containers:\n      - name: metrics-server\n        image: {{ .MetricsServerImage }}\n        imagePullPolicy: IfNotPresent\n        livenessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /livez\n            port: https\n            scheme: HTTPS\n          periodSeconds: 10\n        args:\n        - --cert-dir=/tmp\n        - --secure-port=4443\n        # Rancher specific: connecting to kubelet using insecure tls\n        - --kubelet-insecure-tls\n        - --kubelet-preferred-address-types=InternalIP\n        - --logtostderr\n        {{ range $k,$v := .Options }}\n        -  --{{ $k }}={{ $v }}\n        {{ end }}\n        ports:\n        - containerPort: 4443\n          name: https\n          protocol: TCP\n        readinessProbe:\n          failureThreshold: 3\n          httpGet:\n            path: /readyz\n            port: https\n            scheme: HTTPS\n          periodSeconds: 10\n        securityContext:\n          readOnlyRootFilesystem: true\n          runAsNonRoot: true\n          runAsUser: 1000\n        volumeMounts:\n        - mountPath: /tmp\n          name: tmp-dir\n---\napiVersion: apiregistration.k8s.io/v1\nkind: APIService\nmetadata:\n  labels:\n    k8s-app: metrics-server\n  name: v1beta1.metrics.k8s.io\nspec:\n  group: metrics.k8s.io\n  groupPriorityMinimum: 100\n  insecureSkipTLSVerify: true\n  service:\n    name: metrics-server\n    namespace: kube-system\n  version: v1beta1\n  versionPriority: 100\n---\n",
    "metricsserver-v1.8": "\n{{- if eq .RBACConfig \"rbac\"}}\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRoleBinding\nmetadata:\n  name: metrics-server:system:auth-delegator\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:auth-delegator\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: RoleBinding\nmetadata:\n  name: metrics-server-auth-reader\n  namespace: kube-system\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n  name: extension-apiserver-authentication-reader\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: system:metrics-server\nrules:\n- apiGroups:\n  - \"\"\n  resources:\n  - pods\n  - nodes\n  - nodes/stats\n  - namespaces\n  verbs:\n  - get\n  - list\n  - watch\n- apiGroups:\n  - \"extensions\"\n  resources:\n  - deployments\n  verbs:\n  - get\n  - list\n  - watch\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: system:metrics-server\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: system:metrics-server\nsubjects:\n- kind: ServiceAccount\n  name: metrics-server\n  namespace: kube-system\n{{- end }}\n---\napiVersion: apiregistration.k8s.io/v1beta1\nkind: APIService\nmetadata:\n  name: v1beta1.metrics.k8s.io\nspec:\n  service:\n    name: metrics-server\n    namespace: kube-system\n  group: metrics.k8s.io\n  version: v1beta1\n  insecureSkipTLSVerify: true\n  groupPriorityMinimum: 100\n  versionPriority: 100\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: metrics-server\n  namespace: kube-system\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: metrics-server\n  namespace: kube-system\n  labels:\n    k8s-app: metrics-server\nspec:\n{{if .Replicas}}\n  replicas: {{.Replicas}}\n{{end}}\n  selector:\n    matchLabels:\n      k8s-app: metrics-server\n{{if .UpdateStrategy}}\n  strategy:\n{{ toYaml .UpdateStrategy | indent 4}}\n{{end}}\n  template:\n    metadata:\n      name: metrics-server\n      labels:\n        k8s-app: metrics-server\n    spec:\n      affinity:\n        nodeAffinity:\n          requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n              - matchExpressions:\n                - key: beta.kubernetes.io/os\n                  operator: NotIn\n                  values:\n                    - windows\n                - key: node-role.kubernetes.io/worker\n                  operator: Exists\n# Rancher specific change\n{{ if .MetricsServerPriorityClassName }}\n      priorityClassName: {{ .MetricsServerPriorityClassName }}\n{{ end }}\n{{if .NodeSelector}}\n      nodeSelector:\n      {{ range $k, $v := .NodeSelector }}\n        {{ $k }}: \"{{ $v }}\"\n      {{ end }}\n{{end}}\n      serviceAccountName: metrics-server\n{{- if .Tolerations}}\n      tolerations:\n{{ toYaml .Tolerations | indent 6}}\n{{- else }}\n      tolerations:\n      - effect: NoExecute\n        operator: Exists\n      - effect: NoSchedule\n        operator: Exists\n{{- end }}\n      containers:\n      - name: metrics-server\n        image: {{ .MetricsServerImage }}\n        imagePullPolicy: Always\n        command:\n        - /metrics-server\n        {{- if eq .Version \"v0.3\" }}\n        - --kubelet-insecure-tls\n        - --kubelet-preferred-address-types=InternalIP\n        - --logtostderr\n        {{- else }}\n        - --source=kubernetes.summary_api:https://kubernetes.default.svc?kubeletHttps=true\u0026kubeletPort=10250\u0026useServiceAccount=true\u0026insecure=true\n        {{- end }}\n        {{ range $k,$v := .Options }}\n        -  --{{ $k }}={{ $v }}\n        {{ end }}\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: metrics-server\n  namespace: kube-system\n  labels:\n    kubernetes.io/name: \"Metrics-server\"\nspec:\n  selector:\n    k8s-app: metrics-server\n  ports:\n  - port: 443\n    protocol: TCP\n    targetPort: 443\n",
@@ -11619,6 +11750,10 @@
    "minRKEVersion": "1.3.3-rc0",
    "minRancherVersion": "2.6.3-patch0"
   },
+  "v1.22.15-rancher1-1": {
+   "minRKEVersion": "1.3.3-rc0",
+   "minRancherVersion": "2.6.3-patch0"
+  },
   "v1.22.4-rancher1-1": {
    "minRKEVersion": "1.3.3-rc0",
    "minRancherVersion": "2.6.3-patch0"
@@ -11713,7 +11848,7 @@
  },
  "RKEDefaultK8sVersions": {
   "0.3": "v1.16.3-rancher1-1",
-  "default": "v1.24.4-rancher1-1"
+  "default": "v1.24.6-rancher1-1"
  },
  "K8sVersionDockerInfo": {
   "1.10": [
@@ -12456,7 +12591,7 @@
       "defaultVersion": "1.23.x"
      },
      {
-      "appVersion": "\u003e= 2.6.7-0 \u003c 2.6.100-0",
+      "appVersion": "\u003e= 2.6.7-0 \u003c 2.7.100-0",
       "defaultVersion": "1.24.x"
      }
     ]
@@ -12464,7 +12599,7 @@
   ],
   "channels": [
    {
-    "latest": "v1.22.11+k3s2",
+    "latest": "v1.22.15+k3s1",
     "name": "default"
    }
   ],
@@ -15184,7 +15319,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -15296,6 +15431,161 @@
      }
     },
     "version": "v1.22.13+k3s1"
+   },
+   {
+    "agentArgs": {
+     "docker": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-conf": {
+      "type": "string"
+     },
+     "flannel-iface": {
+      "type": "string"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "pause-image": {
+      "type": "string"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "resolv-conf": {
+      "type": "string"
+     },
+     "selinux": {
+      "default": false,
+      "type": "boolean"
+     },
+     "snapshotter": {
+      "type": "string"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "featureVersions": {
+     "encryption-key-rotation": "2.0.0"
+    },
+    "maxChannelServerVersion": "v2.7.99",
+    "minChannelServerVersion": "v2.6.3-alpha1",
+    "serverArgs": {
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "datastore-cafile": {
+      "type": "string"
+     },
+     "datastore-certfile": {
+      "type": "string"
+     },
+     "datastore-endpoint": {
+      "type": "string"
+     },
+     "datastore-keyfile": {
+      "type": "string"
+     },
+     "default-local-storage-path": {
+      "type": "string"
+     },
+     "disable": {
+      "options": [
+       "coredns",
+       "servicelb",
+       "traefik",
+       "local-storage",
+       "metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-apiserver": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-cloud-controller": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-controller-manager": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-etcd": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-network-policy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-scheduler": {
+      "default": false,
+      "type": "boolean"
+     },
+     "egress-selector-mode": {
+      "type": "string"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-backend": {
+      "options": [
+       "none",
+       "vxlan",
+       "ipsec",
+       "host-gw",
+       "wireguard"
+      ],
+      "type": "enum"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-cloud-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "secrets-encryption": {
+      "default": false,
+      "type": "boolean"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.22.15+k3s1"
    },
    {
     "agentArgs": {
@@ -15944,7 +16234,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.4-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -16056,6 +16346,161 @@
      }
     },
     "version": "v1.23.10+k3s1"
+   },
+   {
+    "agentArgs": {
+     "docker": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-conf": {
+      "type": "string"
+     },
+     "flannel-iface": {
+      "type": "string"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "pause-image": {
+      "type": "string"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "resolv-conf": {
+      "type": "string"
+     },
+     "selinux": {
+      "default": false,
+      "type": "boolean"
+     },
+     "snapshotter": {
+      "type": "string"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "featureVersions": {
+     "encryption-key-rotation": "2.0.0"
+    },
+    "maxChannelServerVersion": "v2.7.99",
+    "minChannelServerVersion": "v2.6.4-alpha1",
+    "serverArgs": {
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "datastore-cafile": {
+      "type": "string"
+     },
+     "datastore-certfile": {
+      "type": "string"
+     },
+     "datastore-endpoint": {
+      "type": "string"
+     },
+     "datastore-keyfile": {
+      "type": "string"
+     },
+     "default-local-storage-path": {
+      "type": "string"
+     },
+     "disable": {
+      "options": [
+       "coredns",
+       "servicelb",
+       "traefik",
+       "local-storage",
+       "metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-apiserver": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-cloud-controller": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-controller-manager": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-etcd": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-network-policy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-scheduler": {
+      "default": false,
+      "type": "boolean"
+     },
+     "egress-selector-mode": {
+      "type": "string"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-backend": {
+      "options": [
+       "none",
+       "vxlan",
+       "ipsec",
+       "host-gw",
+       "wireguard"
+      ],
+      "type": "enum"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-cloud-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "secrets-encryption": {
+      "default": false,
+      "type": "boolean"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.23.12+k3s1"
    },
    {
     "agentArgs": {
@@ -16254,7 +16699,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.7-alpha1",
     "serverArgs": {
      "cluster-cidr": {
@@ -16366,6 +16811,161 @@
      }
     },
     "version": "v1.24.4+k3s1"
+   },
+   {
+    "agentArgs": {
+     "docker": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-conf": {
+      "type": "string"
+     },
+     "flannel-iface": {
+      "type": "string"
+     },
+     "kube-proxy-arg": {
+      "type": "array"
+     },
+     "kubelet-arg": {
+      "type": "array"
+     },
+     "pause-image": {
+      "type": "string"
+     },
+     "protect-kernel-defaults": {
+      "default": false,
+      "type": "boolean"
+     },
+     "resolv-conf": {
+      "type": "string"
+     },
+     "selinux": {
+      "default": false,
+      "type": "boolean"
+     },
+     "snapshotter": {
+      "type": "string"
+     },
+     "system-default-registry": {
+      "type": "string"
+     }
+    },
+    "featureVersions": {
+     "encryption-key-rotation": "2.0.0"
+    },
+    "maxChannelServerVersion": "v2.7.99",
+    "minChannelServerVersion": "v2.6.7-alpha1",
+    "serverArgs": {
+     "cluster-cidr": {
+      "type": "string"
+     },
+     "cluster-dns": {
+      "type": "string"
+     },
+     "cluster-domain": {
+      "type": "string"
+     },
+     "datastore-cafile": {
+      "type": "string"
+     },
+     "datastore-certfile": {
+      "type": "string"
+     },
+     "datastore-endpoint": {
+      "type": "string"
+     },
+     "datastore-keyfile": {
+      "type": "string"
+     },
+     "default-local-storage-path": {
+      "type": "string"
+     },
+     "disable": {
+      "options": [
+       "coredns",
+       "servicelb",
+       "traefik",
+       "local-storage",
+       "metrics-server"
+      ],
+      "type": "array"
+     },
+     "disable-apiserver": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-cloud-controller": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-controller-manager": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-etcd": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-kube-proxy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-network-policy": {
+      "default": false,
+      "type": "boolean"
+     },
+     "disable-scheduler": {
+      "default": false,
+      "type": "boolean"
+     },
+     "egress-selector-mode": {
+      "type": "string"
+     },
+     "etcd-arg": {
+      "type": "array"
+     },
+     "etcd-expose-metrics": {
+      "default": false,
+      "type": "boolean"
+     },
+     "flannel-backend": {
+      "options": [
+       "none",
+       "vxlan",
+       "ipsec",
+       "host-gw",
+       "wireguard"
+      ],
+      "type": "enum"
+     },
+     "kube-apiserver-arg": {
+      "type": "array"
+     },
+     "kube-cloud-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-controller-manager-arg": {
+      "type": "array"
+     },
+     "kube-scheduler-arg": {
+      "type": "array"
+     },
+     "secrets-encryption": {
+      "default": false,
+      "type": "boolean"
+     },
+     "service-cidr": {
+      "type": "string"
+     },
+     "service-node-port-range": {
+      "type": "string"
+     },
+     "tls-san": {
+      "type": "array"
+     }
+    },
+    "version": "v1.24.6+k3s1"
    }
   ]
  },
@@ -16383,7 +16983,7 @@
       "defaultVersion": "1.23.x"
      },
      {
-      "appVersion": "\u003e= 2.6.7-0 \u003c 2.6.100-0",
+      "appVersion": "\u003e= 2.6.7-0 \u003c 2.7.100-0",
       "defaultVersion": "1.24.x"
      }
     ]
@@ -21421,7 +22021,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.3-alpha1",
     "serverArgs": {
      "audit-policy-file": {
@@ -22900,7 +23500,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.4-alpha1",
     "serverArgs": {
      "audit-policy-file": {
@@ -23400,7 +24000,7 @@
     "featureVersions": {
      "encryption-key-rotation": "2.0.0"
     },
-    "maxChannelServerVersion": "v2.6.99",
+    "maxChannelServerVersion": "v2.7.99",
     "minChannelServerVersion": "v2.6.7-alpha1",
     "serverArgs": {
      "audit-policy-file": {
