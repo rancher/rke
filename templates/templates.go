@@ -62,6 +62,7 @@ func getTemplate(templateName, k8sVersion string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("k8sVersion not sem-ver %s %v", k8sVersion, err)
 	}
+	//logrus.Infof("GET TEMPLATE %v %v %v", templateName, k8sVersion, metadata.K8sVersionToTemplates[kdm.TemplateKeys])
 	for k := range versionData {
 		testRange, err := semver.ParseRange(k)
 		if err != nil {

@@ -459,6 +459,7 @@ func (c *Cluster) deployMetricServer(ctx context.Context, data map[string]interf
 	if err != nil {
 		return err
 	}
+	log.Infof(ctx, "METRICS TEMPLATE %s", metricsYaml)
 	if err := c.doAddonDeploy(ctx, metricsYaml, MetricsServerAddonResourceName, true); err != nil {
 		return err
 	}
