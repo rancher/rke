@@ -377,7 +377,7 @@ func validateIngressOptions(c *Cluster) error {
 	}
 
 	if c.Ingress.NetworkMode == "hostPort" {
-		if !(c.Ingress.HTTPPort >= 0 && c.Ingress.HTTPPort <= 65535) {
+		if !(c.Ingress.HTTPSPort >= 0 && c.Ingress.HTTPSPort <= 65535) {
 			return fmt.Errorf("https port is invalid. Needs to be within 0 to 65535")
 		}
 		if !(c.Ingress.HTTPPort >= 0 && c.Ingress.HTTPPort <= 65535) {
