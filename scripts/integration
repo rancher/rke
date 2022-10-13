@@ -262,11 +262,22 @@ for pid in "${!pid_upgrade_results[@]}"; do
                     continue
                 fi
                 if [ "$kind" = "Job" ]; then
+                    echo "Before"
+                    echo "-----------------------------------------------------------------"
+                    echo "kubectl get all -A"
+                    /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace get all -A
+                    echo "-----------------------------------------------------------------"
+                    /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace wait --for=condition=complete $kind $name --timeout=5m >/dev/null 2>&1
                     echo_with_time "Checking job complete status of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}""
                     /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace wait --for=condition=complete $kind $name --timeout=5m >/dev/null 2>&1
                     if [ $? -ne 0 ]; then
                         echo_with_time "[FAIL] Job complete of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" did not complete in 5 minutes"
                         rollout_upgrade_results["${pid}"]="1"
+                        echo "On failure"
+                        echo "-----------------------------------------------------------------"
+                        echo "kubectl get all -A"
+                        /usr/local/bin/kubectl-${clusterk8sversion} --kubeconfig "./bin/kube_config_cluster-${pid_to_version}.yml" -n $namespace get all -A
+                        echo "-----------------------------------------------------------------"
                         continue
                     else
                         echo_with_time "[OK] Job complete of $kind $name in namespace $namespace for upgrade ${pid_upgrade_to_version} to "${upgraded_version}" complete"
