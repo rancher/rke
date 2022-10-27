@@ -3,7 +3,7 @@ package types
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiserverv1alpha1 "k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
 	configv1 "k8s.io/apiserver/pkg/apis/config/v1"
 )
@@ -301,7 +301,7 @@ type KubeAPIService struct {
 	// Audit Log Configuration
 	AuditLog *AuditLog `yaml:"audit_log" json:"auditLog,omitempty"`
 	// AdmissionConfiguration
-	AdmissionConfiguration *apiserverv1alpha1.AdmissionConfiguration `yaml:"admission_configuration" json:"admissionConfiguration,omitempty" norman:"type=map[json]"`
+	AdmissionConfiguration *apiserverv1.AdmissionConfiguration `yaml:"admission_configuration" json:"admissionConfiguration,omitempty" norman:"type=map[json]"`
 	// Event Rate Limit configuration
 	EventRateLimit *EventRateLimit `yaml:"event_rate_limit" json:"eventRateLimit,omitempty"`
 }

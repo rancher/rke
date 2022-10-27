@@ -25,7 +25,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	v1alpha1 "k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	v1 "k8s.io/apiserver/pkg/apis/audit/v1"
 	configv1 "k8s.io/apiserver/pkg/apis/config/v1"
 )
@@ -988,7 +988,7 @@ func (in *KubeAPIService) DeepCopyInto(out *KubeAPIService) {
 	}
 	if in.AdmissionConfiguration != nil {
 		in, out := &in.AdmissionConfiguration, &out.AdmissionConfiguration
-		*out = new(v1alpha1.AdmissionConfiguration)
+		*out = new(apiserverv1.AdmissionConfiguration)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.EventRateLimit != nil {

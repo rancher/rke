@@ -14,7 +14,7 @@ import (
 	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
-	"k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -148,9 +148,9 @@ func (c *Cluster) CalculateMaxUnavailable() (int, int, error) {
 	return maxUnavailableWorker, maxUnavailableControl, nil
 }
 
-func (c *Cluster) getConsolidatedAdmissionConfiguration() (*v1alpha1.AdmissionConfiguration, error) {
+func (c *Cluster) getConsolidatedAdmissionConfiguration() (*apiserverv1.AdmissionConfiguration, error) {
 	var err error
-	var admissionConfig *v1alpha1.AdmissionConfiguration
+	var admissionConfig *apiserverv1.AdmissionConfiguration
 
 	if c.Services.KubeAPI.EventRateLimit == nil ||
 		!c.Services.KubeAPI.EventRateLimit.Enabled {

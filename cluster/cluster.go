@@ -32,7 +32,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	apiserverv1alpha1 "k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -431,21 +431,21 @@ func parseAdmissionConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEng
 		return fmt.Errorf("error marshalling admission configuration: %v", err)
 	}
 	scheme := runtime.NewScheme()
-	err = apiserverv1alpha1.AddToScheme(scheme)
+	err = apiserverv1.AddToScheme(scheme)
 	if err != nil {
 		return fmt.Errorf("error adding to scheme: %v", err)
 	}
-	err = scheme.SetVersionPriority(apiserverv1alpha1.SchemeGroupVersion)
+	err = scheme.SetVersionPriority(apiserverv1.SchemeGroupVersion)
 	if err != nil {
 		return fmt.Errorf("error setting version priority: %v", err)
 	}
 	codecs := serializer.NewCodecFactory(scheme)
-	decoder := codecs.UniversalDecoder(apiserverv1alpha1.SchemeGroupVersion)
+	decoder := codecs.UniversalDecoder(apiserverv1.SchemeGroupVersion)
 	decodedObj, err := runtime.Decode(decoder, data)
 	if err != nil {
 		return fmt.Errorf("error decoding data: %v", err)
 	}
-	decodedConfig, ok := decodedObj.(*apiserverv1alpha1.AdmissionConfiguration)
+	decodedConfig, ok := decodedObj.(*apiserverv1.AdmissionConfiguration)
 	if !ok {
 		return fmt.Errorf("unexpected type: %T", decodedObj)
 	}
