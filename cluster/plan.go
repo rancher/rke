@@ -67,6 +67,7 @@ const (
 var (
 	admissionControlOptionNames = []string{"enable-admission-plugins", "admission-control"}
 	parsedRangeAtLeast124       = semver.MustParseRange(">= 1.24.0-rancher0")
+	parsedRangeAtLeast125       = semver.MustParseRange(">= 1.25.0-rancher0")
 )
 
 func GetServiceOptionData(data map[string]interface{}) map[string]*v3.KubernetesServicesOptions {

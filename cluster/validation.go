@@ -54,6 +54,11 @@ func (c *Cluster) ValidateCluster(ctx context.Context) error {
 		return err
 	}
 
+	// validate enabling Pod Security Policy
+	if err := validatePSP(c); err != nil {
+		return err
+	}
+
 	// validate services options
 	return validateServicesOptions(c)
 }
@@ -234,7 +239,7 @@ func validateNetworkOptions(c *Cluster) error {
 	}
 
 	if c.Network.Plugin == AciNetworkPlugin {
-		//Skip cloud options and throw an error.
+		// Skip cloud options and throw an error.
 		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciUseOpflexServerVolume,
 			AciSubnetDomainName, AciKafkaClientCrt, AciKafkaClientKey, AciCApic, UseAciAnywhereCRD,
 			AciOverlayVRFName, AciGbpPodSubnet, AciRunGbpContainer, AciRunOpflexServerContainer, AciOpflexServerPort}
@@ -550,9 +555,9 @@ func validateNetworkImages(c *Cluster) error {
 		if len(c.SystemImages.AciControllerContainer) == 0 {
 			return errors.New("aci controller image is not populated")
 		}
-		//Skipping Cloud image validation.
-		//c.SystemImages.AciOpflexServerContainer
-		//c.SystemImages.AciGbpServerContainer
+		// Skipping Cloud image validation.
+		// c.SystemImages.AciOpflexServerContainer
+		// c.SystemImages.AciGbpServerContainer
 	}
 	return nil
 }
@@ -646,6 +651,23 @@ func validateCRIDockerdOption(c *Cluster) error {
 			return fmt.Errorf("Enabling cri-dockerd for cluster version [%s] is not supported", k8sVersion)
 		}
 		logrus.Debugf("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
+	}
+	return nil
+}
+
+func validatePSP(c *Cluster) error {
+	parsedVersion, err := getClusterVersion(c.Version)
+	if err != nil {
+		logrus.Warnf("Failed to parse semver range for validating Pod Security Policy")
+		return err
+	}
+	if c.Services.KubeAPI.PodSecurityPolicy {
+		if c.Authorization.Mode != services.RBACAuthorizationMode {
+			return errors.New("PodSecurityPolicy can't be enabled with RBAC support disabled")
+		}
+		if parsedRangeAtLeast125(parsedVersion) {
+			return errors.New("PodSecurityPolicy has been removed and can not be enabled since k8s v1.25")
+		}
 	}
 	return nil
 }
