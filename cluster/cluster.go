@@ -37,6 +37,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/transport"
+	eventratelimitapi "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit"
 )
 
 type Cluster struct {
@@ -405,6 +406,45 @@ func parseAuditLogConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngi
 	return err
 }
 
+func parseEventRateLimit(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
+	if rkeConfig.Services.KubeAPI.EventRateLimit == nil || !rkeConfig.Services.KubeAPI.EventRateLimit.Enabled {
+		return nil
+	}
+	logrus.Debugf("event rate limit is found in cluster.yml")
+	var r map[string]interface{}
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &r)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling: %v", err)
+	}
+	if r["services"] == nil {
+		return nil
+	}
+	services := r["services"].(map[string]interface{})
+	if services["kube-api"] == nil {
+		return nil
+	}
+	kubeApi := services["kube-api"].(map[string]interface{})
+	if kubeApi["event_rate_limit"] == nil {
+		return nil
+	}
+	eventRateLimit := kubeApi["event_rate_limit"].(map[string]interface{})
+	if eventRateLimit["configuration"] == nil {
+		return nil
+	}
+	cfg := eventRateLimit["configuration"].(map[string]interface{})
+	cfgBytes, err := json.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("error marshalling eventRateLimit: %v", err)
+	}
+	output := eventratelimitapi.Configuration{}
+	err = json.Unmarshal(cfgBytes, &output)
+	if err != nil {
+		return fmt.Errorf("error decoding eventRateLimit: %v", err)
+	}
+	rkeConfig.Services.KubeAPI.EventRateLimit.Configuration = &output
+	return err
+}
+
 func parseAdmissionConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
 	if rkeConfig.Services.KubeAPI.AdmissionConfiguration == nil {
 		return nil
@@ -692,6 +732,9 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 		return &rkeConfig, fmt.Errorf("error parsing upgrade strategy and node drain input: %v", err)
 	}
 	if err := parseAddonConfig(clusterFile, &rkeConfig); err != nil {
+		return &rkeConfig, fmt.Errorf("error parsing addon config: %v", err)
+	}
+	if err := parseEventRateLimit(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing addon config: %v", err)
 	}
 	return &rkeConfig, nil

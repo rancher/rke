@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	eventratelimitapi "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit"
 	"strings"
 
 	"github.com/blang/semver"
@@ -242,7 +243,7 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 	if len(c.Monitoring.Provider) == 0 {
 		c.Monitoring.Provider = DefaultMonitoringProvider
 	}
-	//set docker private registry URL
+	// set docker private registry URL
 	for _, pr := range c.PrivateRegistries {
 		if pr.URL == "" {
 			pr.URL = docker.DockerRegistryURL
@@ -298,7 +299,7 @@ func (c *Cluster) setNodeUpgradeStrategy() {
 			IgnoreDaemonSets: &DefaultNodeDrainIgnoreDaemonsets,
 			// default to 120 seems to work better for controlplane nodes
 			Timeout: DefaultNodeDrainTimeout,
-			//Period of time in seconds given to each pod to terminate gracefully.
+			// Period of time in seconds given to each pod to terminate gracefully.
 			// If negative, the default value specified in the pod will be used
 			GracePeriod: DefaultNodeDrainGracePeriod,
 		}
@@ -306,7 +307,7 @@ func (c *Cluster) setNodeUpgradeStrategy() {
 }
 
 // setCRIDockerd set enable_cri_dockerd = true when the following two conditions are met:
-//the cluster's version is at least 1.24 and the option enable_cri_dockerd is not configured
+// the cluster's version is at least 1.24 and the option enable_cri_dockerd is not configured
 func (c *Cluster) setCRIDockerd() error {
 	parsedVersion, err := getClusterVersion(c.Version)
 	if err != nil {
@@ -437,7 +438,7 @@ func newDefaultAuditLogConfig() *v3.AuditLogConfig {
 	return c
 }
 
-func getEventRateLimitPluginFromConfig(c *v3.Configuration) (apiserverv1alpha1.AdmissionPluginConfiguration, error) {
+func getEventRateLimitPluginFromConfig(c *eventratelimitapi.Configuration) (apiserverv1alpha1.AdmissionPluginConfiguration, error) {
 	plugin := apiserverv1alpha1.AdmissionPluginConfiguration{
 		Name: EventRateLimitPluginName,
 		Configuration: &runtime.Unknown{
@@ -454,15 +455,15 @@ func getEventRateLimitPluginFromConfig(c *v3.Configuration) (apiserverv1alpha1.A
 	return plugin, nil
 }
 
-func newDefaultEventRateLimitConfig() *v3.Configuration {
-	return &v3.Configuration{
+func newDefaultEventRateLimitConfig() *eventratelimitapi.Configuration {
+	return &eventratelimitapi.Configuration{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Configuration",
 			APIVersion: "eventratelimit.admission.k8s.io/v1alpha1",
 		},
-		Limits: []v3.Limit{
+		Limits: []eventratelimitapi.Limit{
 			{
-				Type:  v3.ServerLimitType,
+				Type:  eventratelimitapi.ServerLimitType,
 				QPS:   5000,
 				Burst: 20000,
 			},
