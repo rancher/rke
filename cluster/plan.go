@@ -66,8 +66,11 @@ const (
 
 var (
 	admissionControlOptionNames = []string{"enable-admission-plugins", "admission-control"}
+	parsedRangeAtLeast123       = semver.MustParseRange(">= 1.23.0-rancher0")
 	parsedRangeAtLeast124       = semver.MustParseRange(">= 1.24.0-rancher0")
 	parsedRangeAtLeast125       = semver.MustParseRange(">= 1.25.0-rancher0")
+	parsedRange123              = semver.MustParseRange(">=1.23.0-rancher0 <=1.23.99-rancher-0")
+	parsedRange124              = semver.MustParseRange(">=1.24.0-rancher0 <=1.24.99-rancher-0")
 )
 
 func GetServiceOptionData(data map[string]interface{}) map[string]*v3.KubernetesServicesOptions {
@@ -174,24 +177,25 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 
 	Command := c.getRKEToolsEntryPoint(host.OS(), "kube-apiserver")
 	CommandArgs := map[string]string{
-		"client-ca-file":               pki.GetCertPath(pki.CACertName),
-		"cloud-provider":               c.CloudProvider.Name,
-		"etcd-cafile":                  etcdCAClientCert,
-		"etcd-certfile":                etcdClientCert,
-		"etcd-keyfile":                 etcdClientKey,
-		"etcd-prefix":                  etcdPathPrefix,
-		"etcd-servers":                 etcdConnectionString,
-		"kubelet-client-certificate":   pki.GetCertPath(pki.KubeAPICertName),
-		"kubelet-client-key":           pki.GetKeyPath(pki.KubeAPICertName),
-		"proxy-client-cert-file":       pki.GetCertPath(pki.APIProxyClientCertName),
-		"proxy-client-key-file":        pki.GetKeyPath(pki.APIProxyClientCertName),
-		"requestheader-allowed-names":  pki.APIProxyClientCertName,
-		"requestheader-client-ca-file": pki.GetCertPath(pki.RequestHeaderCACertName),
-		"service-account-key-file":     pki.GetKeyPath(pki.ServiceAccountTokenKeyName),
-		"service-cluster-ip-range":     c.Services.KubeAPI.ServiceClusterIPRange,
-		"service-node-port-range":      c.Services.KubeAPI.ServiceNodePortRange,
-		"tls-cert-file":                pki.GetCertPath(pki.KubeAPICertName),
-		"tls-private-key-file":         pki.GetKeyPath(pki.KubeAPICertName),
+		"admission-control-config-file": DefaultKubeAPIArgAdmissionControlConfigFileValue,
+		"client-ca-file":                pki.GetCertPath(pki.CACertName),
+		"cloud-provider":                c.CloudProvider.Name,
+		"etcd-cafile":                   etcdCAClientCert,
+		"etcd-certfile":                 etcdClientCert,
+		"etcd-keyfile":                  etcdClientKey,
+		"etcd-prefix":                   etcdPathPrefix,
+		"etcd-servers":                  etcdConnectionString,
+		"kubelet-client-certificate":    pki.GetCertPath(pki.KubeAPICertName),
+		"kubelet-client-key":            pki.GetKeyPath(pki.KubeAPICertName),
+		"proxy-client-cert-file":        pki.GetCertPath(pki.APIProxyClientCertName),
+		"proxy-client-key-file":         pki.GetKeyPath(pki.APIProxyClientCertName),
+		"requestheader-allowed-names":   pki.APIProxyClientCertName,
+		"requestheader-client-ca-file":  pki.GetCertPath(pki.RequestHeaderCACertName),
+		"service-account-key-file":      pki.GetKeyPath(pki.ServiceAccountTokenKeyName),
+		"service-cluster-ip-range":      c.Services.KubeAPI.ServiceClusterIPRange,
+		"service-node-port-range":       c.Services.KubeAPI.ServiceNodePortRange,
+		"tls-cert-file":                 pki.GetCertPath(pki.KubeAPICertName),
+		"tls-private-key-file":          pki.GetKeyPath(pki.KubeAPICertName),
 	}
 	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
 
@@ -256,7 +260,6 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	}
 
 	if c.Services.KubeAPI.EventRateLimit != nil && c.Services.KubeAPI.EventRateLimit.Enabled {
-		CommandArgs[KubeAPIArgAdmissionControlConfigFile] = DefaultKubeAPIArgAdmissionControlConfigFileValue
 		CommandArgs[admissionControlOptionName] = CommandArgs[admissionControlOptionName] + ",EventRateLimit"
 	}
 
@@ -705,7 +708,7 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		services.SidekickContainerName,
 	}
 
-	//TODO: we should reevaluate if any of the bind mounts here should be using read-only mode
+	// TODO: we should reevaluate if any of the bind mounts here should be using read-only mode
 	var Binds []string
 	if host.IsWindows() { // compatible with Windows
 		Binds = []string{

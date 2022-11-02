@@ -40,6 +40,7 @@ require (
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185
 	k8s.io/kubectl v0.25.3
 	k8s.io/kubernetes v1.13.0
+	k8s.io/pod-security-admission v0.25.3
 	sigs.k8s.io/yaml v1.2.0
 )
 

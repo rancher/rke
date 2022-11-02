@@ -200,6 +200,10 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
+	if err := cluster.RestartKubeAPIServerWhenConfigChanges(ctx, kubeCluster, currentCluster); err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, err
+	}
+
 	if err := kubeCluster.PrePullK8sImages(ctx); err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}

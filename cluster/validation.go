@@ -55,7 +55,11 @@ func (c *Cluster) ValidateCluster(ctx context.Context) error {
 	}
 
 	// validate enabling Pod Security Policy
-	if err := validatePSP(c); err != nil {
+	if err := validatePodSecurityPolicy(c); err != nil {
+		return err
+	}
+	// validate enabling Pod Security
+	if err := validatePodSecurity(c); err != nil {
 		return err
 	}
 
@@ -655,18 +659,42 @@ func validateCRIDockerdOption(c *Cluster) error {
 	return nil
 }
 
-func validatePSP(c *Cluster) error {
+func validatePodSecurityPolicy(c *Cluster) error {
 	parsedVersion, err := getClusterVersion(c.Version)
 	if err != nil {
 		logrus.Warnf("Failed to parse semver range for validating Pod Security Policy")
 		return err
 	}
+	logrus.Debugf("Checking PodSecurityPolicy for cluster version [%s]", c.Version)
 	if c.Services.KubeAPI.PodSecurityPolicy {
 		if c.Authorization.Mode != services.RBACAuthorizationMode {
 			return errors.New("PodSecurityPolicy can't be enabled with RBAC support disabled")
 		}
 		if parsedRangeAtLeast125(parsedVersion) {
 			return errors.New("PodSecurityPolicy has been removed and can not be enabled since k8s v1.25")
+		}
+	}
+	return nil
+}
+
+func validatePodSecurity(c *Cluster) error {
+	parsedVersion, err := getClusterVersion(c.Version)
+	if err != nil {
+		logrus.Warnf("Failed to parse semver range for validating Pod Security")
+		return err
+	}
+	logrus.Debugf("Checking PodSecurity for cluster version [%s]", c.Version)
+	level := c.Services.KubeAPI.PodSecurityConfiguration
+	if len(level) != 0 {
+		if c.Authorization.Mode != services.RBACAuthorizationMode {
+			return errors.New("PodSecurity can't be enabled with RBAC support disabled")
+		}
+		if !parsedRangeAtLeast123(parsedVersion) {
+			return errors.New("cluster version must be at least v1.23 to use PodSecurity in RKE")
+		}
+		if level != PodSecurityPrivileged && level != PodSecurityRestricted {
+			return fmt.Errorf("invalid pod_security_configuration [%s]. Supported values: [%s, %s]",
+				level, PodSecurityPrivileged, PodSecurityRestricted)
 		}
 	}
 	return nil

@@ -148,67 +148,78 @@ func (c *Cluster) CalculateMaxUnavailable() (int, int, error) {
 	return maxUnavailableWorker, maxUnavailableControl, nil
 }
 
+// getConsolidatedAdmissionConfiguration returns a consolidated admission configuration;
+// for individual plugin configuration, the one under KubeAPI.AdmissionConfiguration takes precedence over the one under KubeAPI.<PLUGIN-NAME>
 func (c *Cluster) getConsolidatedAdmissionConfiguration() (*apiserverv1.AdmissionConfiguration, error) {
-	var err error
-	var admissionConfig *apiserverv1.AdmissionConfiguration
-
-	if c.Services.KubeAPI.EventRateLimit == nil ||
-		!c.Services.KubeAPI.EventRateLimit.Enabled {
-		return c.Services.KubeAPI.AdmissionConfiguration, nil
+	admissionConfig, err := newDefaultAdmissionConfiguration()
+	if err != nil {
+		logrus.Errorf("error getting default admission configuration: %v", err)
+		return nil, err
 	}
+	if c.Services.KubeAPI.AdmissionConfiguration != nil {
+		copy(admissionConfig.Plugins, c.Services.KubeAPI.AdmissionConfiguration.Plugins)
+	}
+	// EventRateLimit
+	ertConfig, err := c.getEventRateLimitPluginConfiguration()
+	if err != nil {
+		return nil, err
+	}
+	_ = setPluginConfiguration(admissionConfig, ertConfig)
 
-	logrus.Debugf("EventRateLimit is enabled")
-	found := false
+	// PodSecurity
+	psConfig, err := c.getPodSecurityAdmissionPluginConfiguration()
+	if err != nil {
+		return nil, err
+	}
+	_ = setPluginConfiguration(admissionConfig, psConfig)
+
+	return admissionConfig, nil
+}
+
+func (c *Cluster) getEventRateLimitPluginConfiguration() (apiserverv1.AdmissionPluginConfiguration, error) {
+	// the configuration under KubeAPI.AdmissionConfiguration takes precedence over the one under KubeAPI.EventRateLimit
 	if c.Services.KubeAPI.AdmissionConfiguration != nil {
 		plugins := c.Services.KubeAPI.AdmissionConfiguration.Plugins
 		for _, plugin := range plugins {
 			if plugin.Name == EventRateLimitPluginName {
-				found = true
-				break
+				logrus.Debug("using the EventRateLimit configuration under the admission configuration")
+				return plugin, nil
 			}
 		}
 	}
-	if found {
-		logrus.Debugf("EventRateLimit Plugin configuration found in admission config")
-		if c.Services.KubeAPI.EventRateLimit.Configuration != nil {
-			logrus.Warnf("conflicting EventRateLimit configuration found, using the one from Admission Configuration")
-			return c.Services.KubeAPI.AdmissionConfiguration, nil
-		}
+	if c.Services.KubeAPI.EventRateLimit != nil &&
+		c.Services.KubeAPI.EventRateLimit.Enabled &&
+		c.Services.KubeAPI.EventRateLimit.Configuration != nil {
+		logrus.Debug("using the user-specified EventRateLimit configuration")
+		return getEventRateLimitPluginFromConfig(c.Services.KubeAPI.EventRateLimit.Configuration)
 	}
+	logrus.Debug("using the default EventRateLimit configuration")
+	return newDefaultEventRateLimitPlugin()
+}
 
-	logrus.Debugf("EventRateLimit Plugin configuration not found in admission config")
-	if c.Services.KubeAPI.AdmissionConfiguration == nil {
-		logrus.Debugf("no user specified admission configuration found")
-		admissionConfig, err = newDefaultAdmissionConfiguration()
-		if err != nil {
-			logrus.Errorf("error getting default admission configuration: %v", err)
-			return nil, err
+func (c *Cluster) getPodSecurityAdmissionPluginConfiguration() (apiserverv1.AdmissionPluginConfiguration, error) {
+	// the configuration under KubeAPI.AdmissionConfiguration takes precedence over
+	// the one under KubeAPI.PodSecurityConfiguration
+	if c.Services.KubeAPI.AdmissionConfiguration != nil {
+		plugins := c.Services.KubeAPI.AdmissionConfiguration.Plugins
+		for _, plugin := range plugins {
+			logrus.Debug("using the PodSecurity configuration under the admission configuration")
+			if plugin.Name == PodSecurityPluginName {
+				return plugin, nil
+			}
 		}
-	} else {
-		admissionConfig, err = newDefaultAdmissionConfiguration()
-		if err != nil {
-			logrus.Errorf("error getting default admission configuration: %v", err)
-			return nil, err
-		}
-		copy(admissionConfig.Plugins, c.Services.KubeAPI.AdmissionConfiguration.Plugins)
 	}
-	if c.Services.KubeAPI.EventRateLimit.Configuration != nil {
-		logrus.Debugf("user specified EventRateLimit configuration found")
-		p, err := getEventRateLimitPluginFromConfig(c.Services.KubeAPI.EventRateLimit.Configuration)
-		if err != nil {
-			logrus.Errorf("error getting eventratelimit plugin from config: %v", err)
-		}
-		admissionConfig.Plugins = append(admissionConfig.Plugins, p)
-	} else {
-		logrus.Debugf("using default EventRateLimit configuration")
-		p, err := newDefaultEventRateLimitPlugin()
-		if err != nil {
-			logrus.Errorf("error getting default eventratelimit plugin: %v", err)
-		}
-		admissionConfig.Plugins = append(admissionConfig.Plugins, p)
+	level := c.Services.KubeAPI.PodSecurityConfiguration
+	logrus.Debugf("using the PodSecurity configuration [%s]", level)
+	switch level {
+	case PodSecurityPrivileged:
+		return newDefaultPodSecurityPluginConfigurationPrivileged(c.Version)
+	case PodSecurityRestricted:
+		return newDefaultPodSecurityPluginConfigurationRestricted(c.Version)
+	default:
+		logrus.Debugf("invalid PodSecurity configuration [%s], using the default [privileged] configuration", level)
+		return newDefaultPodSecurityPluginConfigurationPrivileged(c.Version)
 	}
-
-	return admissionConfig, nil
 }
 
 func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
@@ -270,21 +281,19 @@ func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
 		}
 
 		if _, ok := c.Services.KubeAPI.ExtraArgs[KubeAPIArgAdmissionControlConfigFile]; !ok {
-			if c.Services.KubeAPI.EventRateLimit != nil && c.Services.KubeAPI.EventRateLimit.Enabled {
-				controlPlaneHosts := hosts.GetUniqueHostList(nil, c.ControlPlaneHosts, nil)
-				ac, err := c.getConsolidatedAdmissionConfiguration()
-				if err != nil {
-					return fmt.Errorf("error getting consolidated admission configuration: %v", err)
-				}
-				bytes, err := yaml.Marshal(ac)
-				if err != nil {
-					return err
-				}
-				if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAdmissionControlConfigFileValue, string(bytes), c.Version); err != nil {
-					return err
-				}
-				log.Infof(ctx, "[%s] Successfully deployed admission control config to Cluster control nodes", DefaultKubeAPIArgAdmissionControlConfigFileValue)
+			controlPlaneHosts := hosts.GetUniqueHostList(nil, c.ControlPlaneHosts, nil)
+			ac, err := c.getConsolidatedAdmissionConfiguration()
+			if err != nil {
+				return fmt.Errorf("error getting consolidated admission configuration: %v", err)
 			}
+			bytes, err := yaml.Marshal(ac)
+			if err != nil {
+				return err
+			}
+			if err := deployFile(ctx, controlPlaneHosts, c.SystemImages.Alpine, c.PrivateRegistriesMap, DefaultKubeAPIArgAdmissionControlConfigFileValue, string(bytes), c.Version); err != nil {
+				return err
+			}
+			log.Infof(ctx, "[%s] Successfully deployed admission control config to Cluster control nodes", DefaultKubeAPIArgAdmissionControlConfigFileValue)
 		}
 
 		if _, ok := c.Services.KubeAPI.ExtraArgs[KubeAPIArgAuditPolicyFile]; !ok {
@@ -331,4 +340,19 @@ func removeFromRKENodes(nodeToRemove v3.RKEConfigNode, nodeList []v3.RKEConfigNo
 		}
 	}
 	return l
+}
+
+// setPluginConfiguration either adds the plugin configuration or replaces the existing one in the admission configuration
+func setPluginConfiguration(admissionConfig *apiserverv1.AdmissionConfiguration, pluginConfig apiserverv1.AdmissionPluginConfiguration) error {
+	if admissionConfig == nil {
+		return fmt.Errorf("admission configuarion does not exist")
+	}
+	for i, plugin := range admissionConfig.Plugins {
+		if plugin.Name == pluginConfig.Name {
+			admissionConfig.Plugins[i] = pluginConfig
+			return nil
+		}
+	}
+	admissionConfig.Plugins = append(admissionConfig.Plugins, pluginConfig)
+	return nil
 }

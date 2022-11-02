@@ -295,6 +295,8 @@ type KubeAPIService struct {
 	ServiceNodePortRange string `yaml:"service_node_port_range" json:"serviceNodePortRange,omitempty" norman:"default=30000-32767"`
 	// Enabled/Disable PodSecurityPolicy
 	PodSecurityPolicy bool `yaml:"pod_security_policy" json:"podSecurityPolicy,omitempty"`
+	// setting the default configuration for PodSecurityAdmission
+	PodSecurityConfiguration string `yaml:"pod_security_configuration" json:"podSecurityConfiguration,omitempty" norman:"default=privileged"`
 	// Enable/Disable AlwaysPullImages admissions plugin
 	AlwaysPullImages bool `yaml:"always_pull_images" json:"alwaysPullImages,omitempty"`
 	// Secrets encryption provider config
@@ -920,14 +922,14 @@ type GlobalAwsOpts struct {
 	// Security group for each ELB this security group will be used instead.
 	ElbSecurityGroup string `json:"elb-security-group" yaml:"elb-security-group" ini:"ElbSecurityGroup,omitempty"`
 
-	// During the instantiation of an new AWS cloud provider, the detected region
+	// During the instantiation of a new AWS cloud provider, the detected region
 	// is validated against a known set of regions.
 	//
 	// In a non-standard, AWS like environment (e.g. Eucalyptus), this check may
 	// be undesirable.  Setting this to true will disable the check and provide
 	// a warning that the check was skipped.  Please note that this is an
 	// experimental feature and work-in-progress for the moment.  If you find
-	// yourself in an non-AWS cloud and open an issue, please indicate that in the
+	// yourself in a non-AWS cloud and open an issue, please indicate that in the
 	// issue body.
 	DisableStrictZoneCheck bool `json:"disable-strict-zone-check" yaml:"disable-strict-zone-check" ini:"DisableStrictZoneCheck,omitempty"`
 }
