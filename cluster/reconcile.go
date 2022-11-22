@@ -490,7 +490,7 @@ func getTaintValue(taint v3.RKETaint) string {
 	return fmt.Sprintf("%s=%s:%s", taint.Key, taint.Value, taint.Effect)
 }
 
-// RestartKubeAPIServerWhenConfigChanges restarts the kube-apiserver container on the control plan nodes
+// RestartKubeAPIServerWhenConfigChanges restarts the kube-apiserver container on the control plane nodes
 // when changes are detected on the to-be-applied kube-api configuration. This is needed to handle the case
 // where changes happen on the generated admission-control-config-file but not on the kube-apiserver container
 func RestartKubeAPIServerWhenConfigChanges(ctx context.Context, kubeCluster, currentCluster *Cluster) error {

@@ -684,6 +684,10 @@ func validatePodSecurity(c *Cluster) error {
 		return err
 	}
 	logrus.Debugf("Checking PodSecurity for cluster version [%s]", c.Version)
+	// The following requirements must be met to set the default Pod Security Admission Config:
+	// - RBAC is enabled on the cluster
+	// - Cluster version is at least 1.23
+	// - valid values are privileged and restricted
 	level := c.Services.KubeAPI.PodSecurityConfiguration
 	if len(level) != 0 {
 		if c.Authorization.Mode != services.RBACAuthorizationMode {
