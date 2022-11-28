@@ -22,8 +22,11 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	apiserverv1alpha1 "k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
+	eventratelimitapi "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit"
+	admissionapiv1 "k8s.io/pod-security-admission/admission/api/v1"
+	admissionapiv1beta1 "k8s.io/pod-security-admission/admission/api/v1beta1"
 )
 
 const (
@@ -117,6 +120,9 @@ const (
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
 
 	EventRateLimitPluginName = "EventRateLimit"
+	PodSecurityPluginName    = "PodSecurity"
+	PodSecurityPrivileged    = "privileged"
+	PodSecurityRestricted    = "restricted"
 
 	KubeAPIArgAuditLogPath                = "audit-log-path"
 	KubeAPIArgAuditLogMaxAge              = "audit-log-maxage"
@@ -242,7 +248,7 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 	if len(c.Monitoring.Provider) == 0 {
 		c.Monitoring.Provider = DefaultMonitoringProvider
 	}
-	//set docker private registry URL
+	// set docker private registry URL
 	for _, pr := range c.PrivateRegistries {
 		if pr.URL == "" {
 			pr.URL = docker.DockerRegistryURL
@@ -298,7 +304,7 @@ func (c *Cluster) setNodeUpgradeStrategy() {
 			IgnoreDaemonSets: &DefaultNodeDrainIgnoreDaemonsets,
 			// default to 120 seems to work better for controlplane nodes
 			Timeout: DefaultNodeDrainTimeout,
-			//Period of time in seconds given to each pod to terminate gracefully.
+			// Period of time in seconds given to each pod to terminate gracefully.
 			// If negative, the default value specified in the pod will be used
 			GracePeriod: DefaultNodeDrainGracePeriod,
 		}
@@ -381,6 +387,9 @@ func (c *Cluster) setClusterServicesDefaults() {
 			c.Services.KubeAPI.EventRateLimit.Configuration == nil {
 			c.Services.KubeAPI.EventRateLimit.Configuration = newDefaultEventRateLimitConfig()
 		}
+		if len(c.Services.KubeAPI.PodSecurityConfiguration) == 0 {
+			c.Services.KubeAPI.PodSecurityConfiguration = PodSecurityPrivileged
+		}
 	}
 
 	enableKubeAPIAuditLog, err := checkVersionNeedsKubeAPIAuditLog(c.Version)
@@ -437,8 +446,8 @@ func newDefaultAuditLogConfig() *v3.AuditLogConfig {
 	return c
 }
 
-func getEventRateLimitPluginFromConfig(c *v3.Configuration) (apiserverv1alpha1.AdmissionPluginConfiguration, error) {
-	plugin := apiserverv1alpha1.AdmissionPluginConfiguration{
+func getEventRateLimitPluginFromConfig(c *eventratelimitapi.Configuration) (apiserverv1.AdmissionPluginConfiguration, error) {
+	plugin := apiserverv1.AdmissionPluginConfiguration{
 		Name: EventRateLimitPluginName,
 		Configuration: &runtime.Unknown{
 			ContentType: "application/json",
@@ -454,15 +463,15 @@ func getEventRateLimitPluginFromConfig(c *v3.Configuration) (apiserverv1alpha1.A
 	return plugin, nil
 }
 
-func newDefaultEventRateLimitConfig() *v3.Configuration {
-	return &v3.Configuration{
+func newDefaultEventRateLimitConfig() *eventratelimitapi.Configuration {
+	return &eventratelimitapi.Configuration{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Configuration",
 			APIVersion: "eventratelimit.admission.k8s.io/v1alpha1",
 		},
-		Limits: []v3.Limit{
+		Limits: []eventratelimitapi.Limit{
 			{
-				Type:  v3.ServerLimitType,
+				Type:  eventratelimitapi.ServerLimitType,
 				QPS:   5000,
 				Burst: 20000,
 			},
@@ -470,8 +479,8 @@ func newDefaultEventRateLimitConfig() *v3.Configuration {
 	}
 }
 
-func newDefaultEventRateLimitPlugin() (apiserverv1alpha1.AdmissionPluginConfiguration, error) {
-	plugin := apiserverv1alpha1.AdmissionPluginConfiguration{
+func newDefaultEventRateLimitPlugin() (apiserverv1.AdmissionPluginConfiguration, error) {
+	plugin := apiserverv1.AdmissionPluginConfiguration{
 		Name: EventRateLimitPluginName,
 		Configuration: &runtime.Unknown{
 			ContentType: "application/json",
@@ -488,15 +497,129 @@ func newDefaultEventRateLimitPlugin() (apiserverv1alpha1.AdmissionPluginConfigur
 	return plugin, nil
 }
 
-func newDefaultAdmissionConfiguration() (*apiserverv1alpha1.AdmissionConfiguration, error) {
-	var admissionConfiguration *apiserverv1alpha1.AdmissionConfiguration
-	admissionConfiguration = &apiserverv1alpha1.AdmissionConfiguration{
+func newDefaultAdmissionConfiguration() (*apiserverv1.AdmissionConfiguration, error) {
+	var admissionConfiguration *apiserverv1.AdmissionConfiguration
+	admissionConfiguration = &apiserverv1.AdmissionConfiguration{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "AdmissionConfiguration",
-			APIVersion: apiserverv1alpha1.SchemeGroupVersion.String(),
+			APIVersion: apiserverv1.SchemeGroupVersion.String(),
 		},
 	}
 	return admissionConfiguration, nil
+}
+
+func newDefaultPodSecurityPluginConfigurationRestricted(Version string) (apiserverv1.AdmissionPluginConfiguration, error) {
+	plugin := apiserverv1.AdmissionPluginConfiguration{
+		Name: PodSecurityPluginName,
+		Configuration: &runtime.Unknown{
+			ContentType: "application/json",
+		},
+	}
+	parsedVersion, err := getClusterVersion(Version)
+	if err != nil {
+		return plugin, err
+	}
+	var cBytes []byte
+	if parsedRangeAtLeast125(parsedVersion) {
+		configuration := admissionapiv1.PodSecurityConfiguration{
+			TypeMeta: v1.TypeMeta{
+				Kind:       "PodSecurityConfiguration",
+				APIVersion: admissionapiv1.SchemeGroupVersion.String(),
+			},
+			Defaults: admissionapiv1.PodSecurityDefaults{
+				Enforce:        "restricted",
+				EnforceVersion: "latest",
+				Audit:          "restricted",
+				AuditVersion:   "latest",
+				Warn:           "restricted",
+				WarnVersion:    "latest",
+			},
+			Exemptions: admissionapiv1.PodSecurityExemptions{
+				Usernames:      nil,
+				Namespaces:     []string{"ingress-nginx", "kube-system"},
+				RuntimeClasses: nil,
+			},
+		}
+		cBytes, err = json.Marshal(configuration)
+		if err != nil {
+			return plugin, fmt.Errorf("error marshalling podSecurity config: %v", err)
+		}
+	}
+	if parsedRange123(parsedVersion) || parsedRange124(parsedVersion) {
+		configuration := admissionapiv1beta1.PodSecurityConfiguration{
+			TypeMeta: v1.TypeMeta{
+				Kind:       "PodSecurityConfiguration",
+				APIVersion: admissionapiv1beta1.SchemeGroupVersion.String(),
+			},
+			Defaults: admissionapiv1beta1.PodSecurityDefaults{
+				Enforce:        "restricted",
+				EnforceVersion: "latest",
+				Audit:          "restricted",
+				AuditVersion:   "latest",
+				Warn:           "restricted",
+				WarnVersion:    "latest",
+			},
+			Exemptions: admissionapiv1beta1.PodSecurityExemptions{
+				Usernames:      nil,
+				Namespaces:     []string{"ingress-nginx", "kube-system"},
+				RuntimeClasses: nil,
+			},
+		}
+		cBytes, err = json.Marshal(configuration)
+		if err != nil {
+			return plugin, fmt.Errorf("error marshalling podSecurity config: %v", err)
+		}
+	}
+	plugin.Configuration.Raw = cBytes
+	return plugin, nil
+}
+
+func newDefaultPodSecurityPluginConfigurationPrivileged(Version string) (apiserverv1.AdmissionPluginConfiguration, error) {
+	plugin := apiserverv1.AdmissionPluginConfiguration{
+		Name: PodSecurityPluginName,
+		Configuration: &runtime.Unknown{
+			ContentType: "application/json",
+		},
+	}
+	parsedVersion, err := getClusterVersion(Version)
+	if err != nil {
+		return plugin, err
+	}
+	var cBytes []byte
+	if parsedRangeAtLeast125(parsedVersion) {
+		configuration := admissionapiv1.PodSecurityConfiguration{
+			TypeMeta: v1.TypeMeta{
+				Kind:       "PodSecurityConfiguration",
+				APIVersion: admissionapiv1.SchemeGroupVersion.String(),
+			},
+			Defaults: admissionapiv1.PodSecurityDefaults{
+				Enforce:        "privileged",
+				EnforceVersion: "latest",
+			},
+		}
+		cBytes, err = json.Marshal(configuration)
+		if err != nil {
+			return plugin, fmt.Errorf("error marshalling podSecurity config: %v", err)
+		}
+	}
+	if parsedRange123(parsedVersion) || parsedRange124(parsedVersion) {
+		configuration := admissionapiv1beta1.PodSecurityConfiguration{
+			TypeMeta: v1.TypeMeta{
+				Kind:       "PodSecurityConfiguration",
+				APIVersion: admissionapiv1beta1.SchemeGroupVersion.String(),
+			},
+			Defaults: admissionapiv1beta1.PodSecurityDefaults{
+				Enforce:        "privileged",
+				EnforceVersion: "latest",
+			},
+		}
+		cBytes, err = json.Marshal(configuration)
+		if err != nil {
+			return plugin, fmt.Errorf("error marshalling podSecurity config: %v", err)
+		}
+	}
+	plugin.Configuration.Raw = cBytes
+	return plugin, nil
 }
 
 func (c *Cluster) setClusterImageDefaults() error {

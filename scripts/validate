@@ -6,6 +6,7 @@ cd $(dirname $0)/..
 echo Running validation
 
 echo Running: golangci-lint
+export "GOROOT=$(go env GOROOT)"
 golangci-lint run
 
 echo Tidying up modules

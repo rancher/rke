@@ -30,13 +30,15 @@ import (
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	apiserverv1alpha1 "k8s.io/apiserver/pkg/apis/apiserver/v1alpha1"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/transport"
+	eventratelimitapi "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit"
 )
 
 type Cluster struct {
@@ -374,11 +376,11 @@ func parseAuditLogConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngi
 	if services["kube-api"] == nil {
 		return nil
 	}
-	kubeapi := services["kube-api"].(map[string]interface{})
-	if kubeapi["audit_log"] == nil {
+	kubeAPI := services["kube-api"].(map[string]interface{})
+	if kubeAPI["audit_log"] == nil {
 		return nil
 	}
-	auditlog := kubeapi["audit_log"].(map[string]interface{})
+	auditlog := kubeAPI["audit_log"].(map[string]interface{})
 	if auditlog["configuration"] == nil {
 		return nil
 	}
@@ -402,6 +404,39 @@ func parseAuditLogConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEngi
 		return fmt.Errorf("error decoding audit policy: %v", err)
 	}
 	rkeConfig.Services.KubeAPI.AuditLog.Configuration.Policy = &p
+	return err
+}
+
+func parseEventRateLimit(clusterFile string, rkeConfig *v3.RancherKubernetesEngineConfig) error {
+	if rkeConfig.Services.KubeAPI.EventRateLimit == nil || !rkeConfig.Services.KubeAPI.EventRateLimit.Enabled {
+		return nil
+	}
+	logrus.Debugf("event rate limit is found in cluster.yml")
+	var parsedClusterFile map[string]interface{}
+	err := ghodssyaml.Unmarshal([]byte(clusterFile), &parsedClusterFile)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling: %v", err)
+	}
+	if parsedClusterFile["services"] == nil {
+		return nil
+	}
+	cfg, found, err := unstructured.NestedMap(parsedClusterFile, "services", "kube-api", "event_rate_limit", "configuration")
+	if err != nil {
+		return err
+	}
+	if !found {
+		return nil
+	}
+	cfgBytes, err := json.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("error marshalling eventRateLimit: %v", err)
+	}
+	output := eventratelimitapi.Configuration{}
+	err = json.Unmarshal(cfgBytes, &output)
+	if err != nil {
+		return fmt.Errorf("error decoding eventRateLimit: %v", err)
+	}
+	rkeConfig.Services.KubeAPI.EventRateLimit.Configuration = &output
 	return err
 }
 
@@ -431,21 +466,21 @@ func parseAdmissionConfig(clusterFile string, rkeConfig *v3.RancherKubernetesEng
 		return fmt.Errorf("error marshalling admission configuration: %v", err)
 	}
 	scheme := runtime.NewScheme()
-	err = apiserverv1alpha1.AddToScheme(scheme)
+	err = apiserverv1.AddToScheme(scheme)
 	if err != nil {
 		return fmt.Errorf("error adding to scheme: %v", err)
 	}
-	err = scheme.SetVersionPriority(apiserverv1alpha1.SchemeGroupVersion)
+	err = scheme.SetVersionPriority(apiserverv1.SchemeGroupVersion)
 	if err != nil {
 		return fmt.Errorf("error setting version priority: %v", err)
 	}
 	codecs := serializer.NewCodecFactory(scheme)
-	decoder := codecs.UniversalDecoder(apiserverv1alpha1.SchemeGroupVersion)
+	decoder := codecs.UniversalDecoder(apiserverv1.SchemeGroupVersion)
 	decodedObj, err := runtime.Decode(decoder, data)
 	if err != nil {
 		return fmt.Errorf("error decoding data: %v", err)
 	}
-	decodedConfig, ok := decodedObj.(*apiserverv1alpha1.AdmissionConfiguration)
+	decodedConfig, ok := decodedObj.(*apiserverv1.AdmissionConfiguration)
 	if !ok {
 		return fmt.Errorf("unexpected type: %T", decodedObj)
 	}
@@ -684,6 +719,9 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	}
 	if err := parseAuditLogConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing audit log config: %v", err)
+	}
+	if err := parseEventRateLimit(clusterFile, &rkeConfig); err != nil {
+		return &rkeConfig, fmt.Errorf("error parsing event rate limit config: %v", err)
 	}
 	if err := parseIngressConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing ingress config: %v", err)
