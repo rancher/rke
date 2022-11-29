@@ -115,6 +115,8 @@ const (
 	DefaultAciNodePodIfEnable                   = "false"
 	DefaultAciSriovEnable                       = "false"
 	DefaultAciMultusDisable                     = "true"
+	DefaultAciNoWaitForServiceEpReadiness       = "false"
+	DefaultAciAddExternalSubnetsToRdconfig      = "false"
 
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
@@ -791,6 +793,8 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			AciNodePodIfEnable:                   DefaultAciNodePodIfEnable,
 			AciSriovEnable:                       DefaultAciSriovEnable,
 			AciMultusDisable:                     DefaultAciMultusDisable,
+			AciNoWaitForServiceEpReadiness:       DefaultAciNoWaitForServiceEpReadiness,
+			AciAddExternalSubnetsToRdconfig:      DefaultAciAddExternalSubnetsToRdconfig,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
@@ -847,6 +851,8 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DurationWaitForNetwork, DefaultAciDurationWaitForNetwork)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DisableWaitForNetwork, DefaultAciDisableWaitForNetwork)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.UseClusterRole, DefaultAciUseClusterRole)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.NoWaitForServiceEpReadiness, DefaultAciNoWaitForServiceEpReadiness)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AddExternalSubnetsToRdconfig, DefaultAciAddExternalSubnetsToRdconfig)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
 		networkPluginConfigDefaultsMap[AciPBRTrackingNonSnat] = c.Network.AciNetworkProvider.PBRTrackingNonSnat
@@ -886,6 +892,8 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciNodePodIfEnable] = c.Network.AciNetworkProvider.NodePodIfEnable
 		networkPluginConfigDefaultsMap[AciSriovEnable] = c.Network.AciNetworkProvider.SriovEnable
 		networkPluginConfigDefaultsMap[AciMultusDisable] = c.Network.AciNetworkProvider.MultusDisable
+		networkPluginConfigDefaultsMap[AciNoWaitForServiceEpReadiness] = c.Network.AciNetworkProvider.NoWaitForServiceEpReadiness
+		networkPluginConfigDefaultsMap[AciAddExternalSubnetsToRdconfig] = c.Network.AciNetworkProvider.AddExternalSubnetsToRdconfig
 		networkPluginConfigDefaultsMap[AciSystemIdentifier] = c.Network.AciNetworkProvider.SystemIdentifier
 		networkPluginConfigDefaultsMap[AciToken] = c.Network.AciNetworkProvider.Token
 		networkPluginConfigDefaultsMap[AciApicUserName] = c.Network.AciNetworkProvider.ApicUserName
