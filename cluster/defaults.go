@@ -306,7 +306,7 @@ func (c *Cluster) setNodeUpgradeStrategy() {
 }
 
 // setCRIDockerd set enable_cri_dockerd = true when the following two conditions are met:
-//the cluster's version is at least 1.24 and the option enable_cri_dockerd is not configured
+// the cluster's version is at least 1.24 and the option enable_cri_dockerd is not configured
 func (c *Cluster) setCRIDockerd() error {
 	parsedVersion, err := getClusterVersion(c.Version)
 	if err != nil {
@@ -952,7 +952,8 @@ func setDNSDeploymentAddonDefaults(updateStrategy *v3.DeploymentStrategy, dnsPro
 		coreDNSMaxUnavailable, coreDNSMaxSurge = intstr.FromInt(1), intstr.FromInt(0)
 		kubeDNSMaxSurge, kubeDNSMaxUnavailable = intstr.FromString("10%"), intstr.FromInt(0)
 	)
-	if updateStrategy != nil && updateStrategy.Strategy != appsv1.RollingUpdateDeploymentStrategyType {
+	if updateStrategy != nil && updateStrategy.Strategy != appsv1.RollingUpdateDeploymentStrategyType &&
+		updateStrategy.Strategy != "" {
 		return updateStrategy
 	}
 	switch dnsProvider {
