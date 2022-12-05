@@ -661,6 +661,8 @@ type AciNetworkProvider struct {
 	SriovEnable                       string   `yaml:"sriov_enable,omitempty" json:"sriovEnable,omitempty"`
 	MultusDisable                     string   `yaml:"multus_disable,omitempty" json:"multusDisable,omitempty"`
 	UseClusterRole                    string   `yaml:"use_cluster_role,omitempty" json:"useClusterRole,omitempty"`
+	NoWaitForServiceEpReadiness       string   `yaml:"no_wait_for_service_ep_readiness,omitempty" json:"noWaitForServiceEpReadiness,omitempty"`
+	AddExternalSubnetsToRdconfig      string   `yaml:"add_external_subnets_to_rdconfig,omitempty" json:"addExternalSubnetsToRdconfig,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
