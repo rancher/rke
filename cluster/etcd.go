@@ -51,7 +51,7 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 		log.Infof(ctx, "[etcd] Finished saving snapshot [%s] on all etcd hosts", snapshotName)
 	}
 
-	if c.Services.Etcd.BackupConfig.S3BackupConfig == nil {
+	if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.S3BackupConfig == nil {
 		return nil
 	}
 
