@@ -30,3 +30,9 @@ func updatePodSecurityPolicy(k8sClient *kubernetes.Clientset, p interface{}) err
 	return nil
 
 }
+
+// GetPSPList returns the PodSecurityPolicyList containing all PSPs in the cluster and an error.
+// The list could be empty if there is no PSP in the cluster.
+func GetPSPList(k8sClient *kubernetes.Clientset) (*v1beta1.PodSecurityPolicyList, error) {
+	return k8sClient.PolicyV1beta1().PodSecurityPolicies().List(context.TODO(), metav1.ListOptions{})
+}
