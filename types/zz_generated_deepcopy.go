@@ -72,6 +72,19 @@ func (in *AciNetworkProvider) DeepCopyInto(out *AciNetworkProvider) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.ServiceGraphEndpointAddServices != nil {
+		in, out := &in.ServiceGraphEndpointAddServices, &out.ServiceGraphEndpointAddServices
+		*out = make([]map[string]string, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = make(map[string]string, len(*in))
+				for key, val := range *in {
+					(*out)[key] = val
+				}
+			}
+		}
+	}
 	return
 }
 

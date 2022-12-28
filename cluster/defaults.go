@@ -117,6 +117,7 @@ const (
 	DefaultAciMultusDisable                     = "true"
 	DefaultAciNoWaitForServiceEpReadiness       = "false"
 	DefaultAciAddExternalSubnetsToRdconfig      = "false"
+	DefaultAciServiceGraphEndpointAddDelay      = "0"
 
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
@@ -795,6 +796,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			AciMultusDisable:                     DefaultAciMultusDisable,
 			AciNoWaitForServiceEpReadiness:       DefaultAciNoWaitForServiceEpReadiness,
 			AciAddExternalSubnetsToRdconfig:      DefaultAciAddExternalSubnetsToRdconfig,
+			AciServiceGraphEndpointAddDelay:      DefaultAciServiceGraphEndpointAddDelay,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
@@ -853,6 +855,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.UseClusterRole, DefaultAciUseClusterRole)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.NoWaitForServiceEpReadiness, DefaultAciNoWaitForServiceEpReadiness)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AddExternalSubnetsToRdconfig, DefaultAciAddExternalSubnetsToRdconfig)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ServiceGraphEndpointAddDelay, DefaultAciServiceGraphEndpointAddDelay)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
 		networkPluginConfigDefaultsMap[AciPBRTrackingNonSnat] = c.Network.AciNetworkProvider.PBRTrackingNonSnat
@@ -894,6 +897,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciMultusDisable] = c.Network.AciNetworkProvider.MultusDisable
 		networkPluginConfigDefaultsMap[AciNoWaitForServiceEpReadiness] = c.Network.AciNetworkProvider.NoWaitForServiceEpReadiness
 		networkPluginConfigDefaultsMap[AciAddExternalSubnetsToRdconfig] = c.Network.AciNetworkProvider.AddExternalSubnetsToRdconfig
+		networkPluginConfigDefaultsMap[AciServiceGraphEndpointAddDelay] = c.Network.AciNetworkProvider.ServiceGraphEndpointAddDelay
 		networkPluginConfigDefaultsMap[AciSystemIdentifier] = c.Network.AciNetworkProvider.SystemIdentifier
 		networkPluginConfigDefaultsMap[AciToken] = c.Network.AciNetworkProvider.Token
 		networkPluginConfigDefaultsMap[AciApicUserName] = c.Network.AciNetworkProvider.ApicUserName
