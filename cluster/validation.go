@@ -681,7 +681,7 @@ func validatePodSecurityPolicy(c *Cluster) error {
 		kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
 		if err != nil {
 			// we can not tell this is invoked when creating a new cluster or updating an existing one, so skip this check
-			logrus.Warnf("Skip the check for PSP resource due to the failire of initializing the kubernetes client")
+			logrus.Debugf("Skip the check for PSP resource due to the failire of initializing the kubernetes client")
 			return nil
 		}
 		pspList, _ := k8s.GetPSPList(kubeClient)
