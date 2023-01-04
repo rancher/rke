@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rancher/rke/k8s"
-
 	"github.com/blang/semver"
+	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/metadata"
 	"github.com/rancher/rke/pki"
@@ -681,7 +680,7 @@ func validatePodSecurityPolicy(c *Cluster) error {
 		kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
 		if err != nil {
 			// we can not tell this is invoked when creating a new cluster or updating an existing one, so skip this check
-			logrus.Debugf("Skip the check for PSP resource due to the failire of initializing the kubernetes client")
+			logrus.Debugf("Skip the check for PSP resource due to the failure of initializing the kubernetes client")
 			return nil
 		}
 		pspList, _ := k8s.GetPSPList(kubeClient)
@@ -691,7 +690,7 @@ func validatePodSecurityPolicy(c *Cluster) error {
 			return nil
 		}
 		// a PSP "psp.flannel.unprivileged" from old Flannel templates is created when using Flannel as the network plugin
-		// we should ignore it if it is the only one PSP in the cluster
+		// we should ignore it if it is the only PSP in the cluster
 		if len(items) == 1 && items[0].Name == "psp.flannel.unprivileged" && c.Network.Plugin == FlannelNetworkPlugin {
 			return nil
 		}
