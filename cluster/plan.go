@@ -458,11 +458,12 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	kubelet := &c.Services.Kubelet
 	Command := c.getRKEToolsEntryPoint(host.OS(), "kubelet")
 	CommandArgs := map[string]string{
-		"client-ca-file":            pki.GetCertPath(pki.CACertName),
-		"cloud-provider":            c.CloudProvider.Name,
-		"cluster-dns":               c.ClusterDNSServer,
-		"cluster-domain":            c.ClusterDomain,
-		"fail-swap-on":              strconv.FormatBool(kubelet.FailSwapOn),
+		"client-ca-file": pki.GetCertPath(pki.CACertName),
+		"cloud-provider": c.CloudProvider.Name,
+		"cluster-dns":    c.ClusterDNSServer,
+		"cluster-domain": c.ClusterDomain,
+		"fail-swap-on":   strconv.FormatBool(kubelet.FailSwapOn),
+		// overrides kubernetes.io/hostname label on node, rke uses it to find node (services/node_util.go)
 		"hostname-override":         host.HostnameOverride,
 		"kubeconfig":                pki.GetConfigPath(pki.KubeNodeCertName),
 		"pod-infra-container-image": kubelet.InfraContainerImage,
@@ -489,9 +490,6 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		CommandArgs["cloud-config"] = cloudConfigFileName
 		if host.IsWindows() { // compatible with Windows
 			CommandArgs["cloud-config"] = path.Join(host.PrefixPath, cloudConfigFileName)
-		}
-		if c.CloudProvider.Name == k8s.AWSCloudProvider {
-			delete(CommandArgs, "hostname-override")
 		}
 	}
 
@@ -690,7 +688,8 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		} else {
 			CommandArgs["bind-address"] = host.Address
 		}
-		if c.CloudProvider.Name == k8s.AWSCloudProvider {
+		if c.CloudProvider.Name == k8s.AWSCloudProvider && c.CloudProvider.UseInstanceMetadataHostname != nil && *c.CloudProvider.UseInstanceMetadataHostname {
+			// rke-tools will inject hostname-override from ec2 instance metadata to match with the spec.nodeName set by cloud provider https://github.com/rancher/rke-tools/blob/3eab4f07aa97a8aeeaaef55b1b7bbc82e2a3374a/entrypoint.sh#L17
 			delete(CommandArgs, "hostname-override")
 		}
 	}
