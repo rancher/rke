@@ -463,7 +463,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 		status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdSnapshotOnceContainerName, etcdHost.Address, false)
 		if status != 0 || err != nil {
 			if removeErr := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotOnceContainerName); removeErr != nil {
-				log.Warnf(ctx, "[etcd] Failed to remove container [%s] on host [%s]: %v", EtcdSnapshotOnceContainerName, removeErr, etcdHost.Address)
+				log.Warnf(ctx, "[etcd] Failed to remove container [%s] on host [%s]: %v", EtcdSnapshotOnceContainerName, etcdHost.Address, removeErr)
 			}
 			if err != nil {
 				return err
