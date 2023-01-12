@@ -632,7 +632,7 @@ func DownloadEtcdSnapshotFromS3(ctx context.Context, etcdHost *hosts.Host, prsMa
 	status, _, stderr, err := docker.GetContainerOutput(ctx, etcdHost.DClient, EtcdDownloadBackupContainerName, etcdHost.Address, true)
 	if status != 0 || err != nil {
 		if removeErr := docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdDownloadBackupContainerName); removeErr != nil {
-			log.Warnf(ctx, "Failed to remove container [%s]: %v", removeErr)
+			log.Warnf(ctx, "[etcd] Failed to remove container [%s] on host [%s]: %v", EtcdDownloadBackupContainerName, etcdHost.Address, removeErr)
 		}
 		if err != nil {
 			return err
