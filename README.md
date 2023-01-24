@@ -6,9 +6,9 @@ Rancher Kubernetes Engine, an extremely simple, lightning fast Kubernetes instal
 
 ## Latest Release
 * v1.4
-  * v1.4.1 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.4.1).
+  * v1.4.2 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.4.2).
 * v1.3
-  * v1.3.17 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.3.17).
+  * v1.3.18 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.3.18).
 * v1.2
   * v1.2.23 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.2.23).
 
@@ -60,7 +60,7 @@ RANCHER_METADATA_URL=${./local/data.json} rke [commands] [options]
 
 ## License
 
-Copyright (c) 2022 [Rancher Labs, Inc.](http://rancher.com)
+Copyright (c) 2023 [Rancher Labs, Inc.](http://rancher.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
