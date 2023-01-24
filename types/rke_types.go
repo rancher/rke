@@ -554,8 +554,6 @@ type PortCheck struct {
 type CloudProvider struct {
 	// Name of the Cloud Provider
 	Name string `yaml:"name" json:"name,omitempty"`
-	// Only configured for AWS currently, add for other providers as needed
-	UseInstanceMetadataHostname *bool ` yaml:"useInstanceMetadataHostname,omitempty" json:"useInstanceMetadataHostname,omitempty"`
 	// AWSCloudProvider
 	AWSCloudProvider *AWSCloudProvider `yaml:"awsCloudProvider,omitempty" json:"awsCloudProvider,omitempty"`
 	// AzureCloudProvider

@@ -157,7 +157,6 @@ var (
 	}
 	DefaultClusterProportionalAutoscalerLinearParams = v3.LinearAutoscalerParams{CoresPerReplica: 128, NodesPerReplica: 4, Min: 1, PreventSinglePointFailure: true}
 	DefaultMonitoringAddonReplicas                   = int32(1)
-	defaultUseInstanceMetadataHostname               = false
 )
 
 type ExternalFlags struct {
@@ -262,10 +261,6 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 	if c.RancherKubernetesEngineConfig.RotateCertificates != nil ||
 		flags.CustomCerts {
 		c.ForceDeployCerts = true
-	}
-
-	if c.CloudProvider.Name == k8s.AWSCloudProvider && c.CloudProvider.UseInstanceMetadataHostname == nil {
-		c.CloudProvider.UseInstanceMetadataHostname = &defaultUseInstanceMetadataHostname
 	}
 
 	// enable cri-dockerd for k8s >= 1.24
