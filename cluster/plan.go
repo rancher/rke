@@ -571,6 +571,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 			"/dev:/host/dev:rprivate",
 			"/var/log/containers:/var/log/containers:z",
 			"/var/log/pods:/var/log/pods:z",
+			"/var/log/calico/cni:/var/log/calico/cni:z",
 			"/usr:/host/usr:ro",
 			"/etc:/host/etc:ro",
 		}...)
