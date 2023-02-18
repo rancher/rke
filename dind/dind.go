@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DINDImage           = "docker:19.03.12-dind"
+	DINDImage           = "docker:20.10.23-dind"
 	DINDContainerPrefix = "rke-dind"
 	DINDPlane           = "dind"
 	DINDNetwork         = "dind-network"
@@ -66,7 +66,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 				"mount --make-shared / && " +
 					"mount --make-shared /sys && " +
 					"mount --make-shared /var/lib/docker && " +
-					"dockerd-entrypoint.sh --storage-driver=" + storageDriver,
+					"dockerd-entrypoint.sh --tls=false --storage-driver=" + storageDriver,
 			},
 			Hostname: dindAddress,
 			Env:      []string{"DOCKER_TLS_CERTDIR="},
