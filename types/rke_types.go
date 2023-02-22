@@ -296,7 +296,7 @@ type KubeAPIService struct {
 	// Enabled/Disable PodSecurityPolicy
 	PodSecurityPolicy bool `yaml:"pod_security_policy" json:"podSecurityPolicy,omitempty"`
 	// setting the default configuration for PodSecurityAdmission
-	PodSecurityConfiguration string `yaml:"pod_security_configuration" json:"podSecurityConfiguration,omitempty"`
+	PodSecurityConfiguration string `yaml:"pod_security_configuration" json:"podSecurityConfiguration,omitempty" norman:"default=privileged"`
 	// Enable/Disable AlwaysPullImages admissions plugin
 	AlwaysPullImages bool `yaml:"always_pull_images" json:"alwaysPullImages,omitempty"`
 	// Secrets encryption provider config
