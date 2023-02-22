@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/metadata"
 	"github.com/rancher/rke/pki"
@@ -52,15 +51,6 @@ func (c *Cluster) ValidateCluster(ctx context.Context) error {
 
 	// validate enabling CRIDockerd
 	if err := validateCRIDockerdOption(c); err != nil {
-		return err
-	}
-
-	// validate enabling Pod Security Policy
-	if err := validatePodSecurityPolicy(c); err != nil {
-		return err
-	}
-	// validate enabling Pod Security
-	if err := validatePodSecurity(c); err != nil {
 		return err
 	}
 
@@ -244,7 +234,7 @@ func validateNetworkOptions(c *Cluster) error {
 	}
 
 	if c.Network.Plugin == AciNetworkPlugin {
-		// Skip cloud options and throw an error.
+		//Skip cloud options and throw an error.
 		cloudOptionsList := []string{AciEpRegistry, AciOpflexMode, AciUseHostNetnsVolume, AciUseOpflexServerVolume,
 			AciSubnetDomainName, AciKafkaClientCrt, AciKafkaClientKey, AciCApic, UseAciAnywhereCRD,
 			AciOverlayVRFName, AciGbpPodSubnet, AciRunGbpContainer, AciRunOpflexServerContainer, AciOpflexServerPort}
@@ -560,9 +550,9 @@ func validateNetworkImages(c *Cluster) error {
 		if len(c.SystemImages.AciControllerContainer) == 0 {
 			return errors.New("aci controller image is not populated")
 		}
-		// Skipping Cloud image validation.
-		// c.SystemImages.AciOpflexServerContainer
-		// c.SystemImages.AciGbpServerContainer
+		//Skipping Cloud image validation.
+		//c.SystemImages.AciOpflexServerContainer
+		//c.SystemImages.AciGbpServerContainer
 	}
 	return nil
 }
@@ -656,75 +646,6 @@ func validateCRIDockerdOption(c *Cluster) error {
 			return fmt.Errorf("Enabling cri-dockerd for cluster version [%s] is not supported", k8sVersion)
 		}
 		logrus.Debugf("cri-dockerd is enabled for cluster version [%s]", k8sVersion)
-	}
-	return nil
-}
-
-func validatePodSecurityPolicy(c *Cluster) error {
-	parsedVersion, err := getClusterVersion(c.Version)
-	if err != nil {
-		logrus.Warnf("Failed to parse semver range for validating Pod Security Policy")
-		return err
-	}
-	logrus.Debugf("Checking PodSecurityPolicy for cluster version [%s]", c.Version)
-	if c.Services.KubeAPI.PodSecurityPolicy {
-		if c.Authorization.Mode != services.RBACAuthorizationMode {
-			return errors.New("PodSecurityPolicy can't be enabled with RBAC support disabled")
-		}
-		if parsedRangeAtLeast125(parsedVersion) {
-			return errors.New("PodSecurityPolicy has been removed and can not be enabled since k8s v1.25")
-		}
-	}
-	// check if there is any PSP resource when upgrading a cluster to k8s v1.25 and above
-	if parsedRangeAtLeast125(parsedVersion) {
-		kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
-		if err != nil {
-			// we can not tell this is invoked when creating a new cluster or updating an existing one, so skip this check
-			logrus.Debugf("Skip the check for PSP resource due to the failure of initializing the kubernetes client")
-			return nil
-		}
-		pspList, _ := k8s.GetPSPList(kubeClient)
-		// ignore the error because the "no such resource type" error is definitely returned in k8s v1.25 and above
-		items := pspList.Items
-		if len(items) == 0 {
-			return nil
-		}
-		// a PSP "psp.flannel.unprivileged" from old Flannel templates is created when using Flannel as the network plugin
-		// we should ignore it if it is the only PSP in the cluster
-		if len(items) == 1 && items[0].Name == "psp.flannel.unprivileged" && c.Network.Plugin == FlannelNetworkPlugin {
-			return nil
-		}
-		msg := fmt.Sprintf("PodSecurityPolicy(PSP) resource is detected in the cluster, "+
-			"please remove them before upgrading the cluster version to %s", c.Version)
-		return errors.New(msg)
-	}
-
-	return nil
-}
-
-func validatePodSecurity(c *Cluster) error {
-	parsedVersion, err := getClusterVersion(c.Version)
-	if err != nil {
-		logrus.Warnf("Failed to parse semver range for validating Pod Security")
-		return err
-	}
-	logrus.Debugf("Checking PodSecurity for cluster version [%s]", c.Version)
-	// The following requirements must be met to set the default Pod Security Admission Config:
-	// - RBAC is enabled on the cluster
-	// - Cluster version is at least 1.23
-	// - valid values are privileged and restricted
-	level := c.Services.KubeAPI.PodSecurityConfiguration
-	if len(level) != 0 {
-		if c.Authorization.Mode != services.RBACAuthorizationMode {
-			return errors.New("PodSecurity can't be enabled with RBAC support disabled")
-		}
-		if !parsedRangeAtLeast123(parsedVersion) {
-			return errors.New("cluster version must be at least v1.23 to use PodSecurity in RKE")
-		}
-		if level != PodSecurityPrivileged && level != PodSecurityRestricted {
-			return fmt.Errorf("invalid pod_security_configuration [%s]. Supported values: [%s, %s]",
-				level, PodSecurityPrivileged, PodSecurityRestricted)
-		}
 	}
 	return nil
 }

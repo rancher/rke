@@ -3,7 +3,6 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/rancher/rke/docker"
@@ -456,7 +455,7 @@ func syncTaints(ctx context.Context, currentCluster, kubeCluster *Cluster) {
 	}
 }
 
-// getHostsTaintsMap return the taint set with unique key & effect for each host
+//getHostsTaintsMap return the taint set with unique key & effect for each host
 func getHostsTaintsMap(list []*hosts.Host) map[string]map[string]string {
 	rtn := make(map[string]map[string]string)
 	for _, item := range list {
@@ -488,19 +487,4 @@ func getTaintKey(taint v3.RKETaint) string {
 
 func getTaintValue(taint v3.RKETaint) string {
 	return fmt.Sprintf("%s=%s:%s", taint.Key, taint.Value, taint.Effect)
-}
-
-// RestartKubeAPIServerWhenConfigChanges restarts the kube-apiserver container on the control plane nodes
-// when changes are detected on the to-be-applied kube-api configuration. This is needed to handle the case
-// where changes happen on the generated admission-control-config-file but not on the kube-apiserver container
-func RestartKubeAPIServerWhenConfigChanges(ctx context.Context, kubeCluster, currentCluster *Cluster) error {
-	if currentCluster == nil {
-		return nil
-	}
-	if !reflect.DeepEqual(currentCluster.Services.KubeAPI, kubeCluster.Services.KubeAPI) {
-		for _, host := range kubeCluster.ControlPlaneHosts {
-			return services.RestartKubeAPI(ctx, host)
-		}
-	}
-	return nil
 }
