@@ -52,13 +52,15 @@ const (
 	KubeletDockerConfigPath    = "/var/lib/kubelet/config.json"
 
 	// MaxEtcdOldEnvVersion The versions are maxed out for minor versions because -rancher1 suffix will cause semver to think its older, example: v1.15.0 > v1.15.0-rancher1
-	MaxEtcdOldEnvVersion      = "v3.2.99"
-	MaxK8s115Version          = "v1.15"
-	MaxEtcdPort4001Version    = "v3.4.3-rancher99"
-	MaxEtcdNoStrictTLSVersion = "v3.4.14-rancher99"
-	MaxK8s121Version          = "v1.21.99-rancher99"
-	MaxK8s122Version          = "v1.22.99-rancher99"
-
+	MaxEtcdOldEnvVersion             = "v3.2.99"
+	MaxK8s115Version                 = "v1.15"
+	MaxEtcdPort4001Version           = "v3.4.3-rancher99"
+	MaxEtcdNoStrictTLSVersion        = "v3.4.14-rancher99"
+	MaxK8s121Version                 = "v1.21.99-rancher99"
+	MaxK8s122Version                 = "v1.22.99-rancher99"
+	JanK8s123Version                 = "v1.23.16-rancher1"
+	JanK8s124Version                 = "v1.24.10-rancher1"
+	JanK8s125Version                 = "1.25.6-rancher1"
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
 	KubeletCRIDockerdNameEnv = "RKE_KUBELET_CRIDOCKERD"
@@ -558,6 +560,26 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 			fmt.Sprintf("%s:c:/host/run", path.Join(host.PrefixPath, "/run")),
 		}...)
 	} else {
+		parsedVersion, err := getClusterVersion(c.Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		parsedJanK8s123Version, err := getClusterVersion(JanK8s123Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		parsedJanK8s124Version, err := getClusterVersion(JanK8s124Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		parsedJanK8s125Version, err := getClusterVersion(JanK8s125Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		if parsedVersion.GE(parsedJanK8s123Version) && parsedVersion.GE(parsedJanK8s124Version) && parsedVersion.GE(parsedJanK8s125Version) {
+			Binds = append(Binds, "/var/log/calico/cni:/var/log/calico/cni:z")
+		}
+
 		Binds = append(Binds, []string{
 			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 			"/etc/cni:/etc/cni:rw,z",
