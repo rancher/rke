@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/metadata"
 	"github.com/rancher/rke/pki"
@@ -675,30 +674,6 @@ func validatePodSecurityPolicy(c *Cluster) error {
 			return errors.New("PodSecurityPolicy has been removed and can not be enabled since k8s v1.25")
 		}
 	}
-	// check if there is any PSP resource when upgrading a cluster to k8s v1.25 and above
-	if parsedRangeAtLeast125(parsedVersion) {
-		kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
-		if err != nil {
-			// we can not tell this is invoked when creating a new cluster or updating an existing one, so skip this check
-			logrus.Debugf("Skip the check for PSP resource due to the failure of initializing the kubernetes client")
-			return nil
-		}
-		pspList, _ := k8s.GetPSPList(kubeClient)
-		// ignore the error because the "no such resource type" error is definitely returned in k8s v1.25 and above
-		items := pspList.Items
-		if len(items) == 0 {
-			return nil
-		}
-		// a PSP "psp.flannel.unprivileged" from old Flannel templates is created when using Flannel as the network plugin
-		// we should ignore it if it is the only PSP in the cluster
-		if len(items) == 1 && items[0].Name == "psp.flannel.unprivileged" && c.Network.Plugin == FlannelNetworkPlugin {
-			return nil
-		}
-		msg := fmt.Sprintf("PodSecurityPolicy(PSP) resource is detected in the cluster, "+
-			"please remove them before upgrading the cluster version to %s", c.Version)
-		return errors.New(msg)
-	}
-
 	return nil
 }
 
