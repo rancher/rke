@@ -1048,14 +1048,17 @@ func (c *Cluster) PrePullK8sImages(ctx context.Context) error {
 	var errgrp errgroup.Group
 	hostList := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)
 	hostsQueue := util.GetObjectQueue(hostList)
+	imageList := []string{c.SystemImages.Kubernetes, c.Services.Kubelet.InfraContainerImage}
 	for w := 0; w < WorkerThreads; w++ {
 		errgrp.Go(func() error {
 			var errList []error
 			for host := range hostsQueue {
 				runHost := host.(*hosts.Host)
-				err := docker.UseLocalOrPull(ctx, runHost.DClient, runHost.Address, c.SystemImages.Kubernetes, "pre-deploy", c.PrivateRegistriesMap)
-				if err != nil {
-					errList = append(errList, err)
+				for _, image := range imageList {
+					err := docker.UseLocalOrPull(ctx, runHost.DClient, runHost.Address, image, "pre-deploy", c.PrivateRegistriesMap)
+					if err != nil {
+						errList = append(errList, err)
+					}
 				}
 			}
 			return util.ErrList(errList)
