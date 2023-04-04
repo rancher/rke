@@ -15,7 +15,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/coreos/go-semver v0.3.0
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/docker/docker v20.10.14+incompatible
+	github.com/docker/docker v20.10.24+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
