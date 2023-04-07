@@ -35,7 +35,7 @@ import (
 
 const (
 	rsaKeySize   = 2048
-	duration1d = time.Hour *24
+	duration1d   = time.Hour * 24
 	duration365d = duration1d * 365
 )
 
