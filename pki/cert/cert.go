@@ -35,7 +35,8 @@ import (
 
 const (
 	rsaKeySize   = 2048
-	duration365d = time.Hour * 24 * 365
+	duration1d = time.Hour *24
+	duration365d = duration1d * 365
 )
 
 // Config contains the basic fields required for creating a certificate
@@ -44,6 +45,7 @@ type Config struct {
 	Organization []string
 	AltNames     AltNames
 	Usages       []x509.ExtKeyUsage
+	Expiration   time.Time
 }
 
 // AltNames contains the domain names and IP addresses that will be added
@@ -94,6 +96,9 @@ func NewSignedCert(cfg Config, key *rsa.PrivateKey, caCert *x509.Certificate, ca
 	if len(cfg.Usages) == 0 {
 		return nil, errors.New("must specify at least one ExtKeyUsage")
 	}
+	if cfg.Expiration.Before(time.Now().Add(duration1d)) {
+		cfg.Expiration = time.Now().Add(duration365d * 10).UTC()
+	}
 
 	certTmpl := x509.Certificate{
 		Subject: pkix.Name{
@@ -104,7 +109,7 @@ func NewSignedCert(cfg Config, key *rsa.PrivateKey, caCert *x509.Certificate, ca
 		IPAddresses:  cfg.AltNames.IPs,
 		SerialNumber: serial,
 		NotBefore:    caCert.NotBefore,
-		NotAfter:     time.Now().Add(duration365d).UTC(),
+		NotAfter:     cfg.Expiration,
 		KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  cfg.Usages,
 	}

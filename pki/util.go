@@ -38,7 +38,8 @@ func GenerateSignedCertAndKey(
 	commonName string,
 	altNames *cert.AltNames,
 	reusedKey *rsa.PrivateKey,
-	orgs []string) (*x509.Certificate, *rsa.PrivateKey, error) {
+	orgs []string,
+	expDays int) (*x509.Certificate, *rsa.PrivateKey, error) {
 	// Generate a generic signed certificate
 	var rootKey *rsa.PrivateKey
 	var err error
@@ -61,6 +62,7 @@ func GenerateSignedCertAndKey(
 		Organization: orgs,
 		Usages:       usages,
 		AltNames:     *altNames,
+		Expiration:   time.Now().Add(duration1d * time.Duration(expDays)),
 	}
 	clientCert, err := newSignedCert(caConfig, rootKey, caCrt, caKey)
 	if err != nil {
@@ -441,7 +443,7 @@ func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string,
 	return certs
 }
 
-// Overriding k8s.io/client-go/util/cert.NewSignedCert function to extend the expiration date to 10 years instead of 1 year
+// Overriding k8s.io/client-go/util/cert.NewSignedCert function to configurable expiration
 func newSignedCert(cfg cert.Config, key *rsa.PrivateKey, caCert *x509.Certificate, caKey *rsa.PrivateKey) (*x509.Certificate, error) {
 	serial, err := cryptorand.Int(cryptorand.Reader, new(big.Int).SetInt64(math.MaxInt64))
 	if err != nil {
@@ -463,7 +465,7 @@ func newSignedCert(cfg cert.Config, key *rsa.PrivateKey, caCert *x509.Certificat
 		IPAddresses:  cfg.AltNames.IPs,
 		SerialNumber: serial,
 		NotBefore:    caCert.NotBefore,
-		NotAfter:     time.Now().Add(duration365d * 10).UTC(),
+		NotAfter:     cfg.Expiration,
 		KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  cfg.Usages,
 	}

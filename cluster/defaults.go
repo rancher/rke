@@ -144,6 +144,8 @@ const (
 	DefaultHTTPSPort                  = 443
 	DefaultNetworkMode                = "hostNetwork"
 	DefaultNetworkModeV121            = "hostPort"
+
+	DefaultCertificateLifetime = 365 * 10
 )
 
 var (
@@ -1058,6 +1060,9 @@ func (c *Cluster) setAddonsDefaults() {
 	if c.Ingress.DefaultIngressClass == nil {
 		defaultIngressClass := true
 		c.Ingress.DefaultIngressClass = &defaultIngressClass
+	}
+	if c.CertificateLifetime == 0 {
+		c.CertificateLifetime = DefaultCertificateLifetime
 	}
 }
 

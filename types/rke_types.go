@@ -66,6 +66,8 @@ type RancherKubernetesEngineConfig struct {
 	DNS *DNSConfig `yaml:"dns" json:"dns,omitempty"`
 	// Upgrade Strategy for the cluster
 	UpgradeStrategy *NodeUpgradeStrategy `yaml:"upgrade_strategy,omitempty" json:"upgradeStrategy,omitempty"`
+	// CertLifetime identify the lifetime of generated certificates in days for corporate compliance
+	CertificateLifetime int `yaml:"certificate_lifetime" json:"certificateLifetime,omitempty"`
 }
 
 func (r *RancherKubernetesEngineConfig) ObjClusterName() string {

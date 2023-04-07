@@ -25,6 +25,7 @@ func TestPKI(t *testing.T) {
 				HostnameOverride: "server1",
 			},
 		},
+		CertificateLifetime: 30,
 		Services: v3.RKEConfigServices{
 			KubeAPI: v3.KubeAPIService{
 				ServiceClusterIPRange: FakeClusterCidr,
