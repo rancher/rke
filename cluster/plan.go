@@ -58,8 +58,8 @@ const (
 	MaxEtcdNoStrictTLSVersion        = "v3.4.14-rancher99"
 	MaxK8s121Version                 = "v1.21.99-rancher99"
 	MaxK8s122Version                 = "v1.22.99-rancher99"
-	JanK8s123Version                 = "v1.23.16-rancher1"
-	AprilK8s124Version               = "v1.24.10-rancher1"
+	JanK8s123Version                 = "v1.23.16-rancher1-1"
+	AprilK8s124Version               = "v1.24.10-rancher1-1"
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
 	KubeletCRIDockerdNameEnv = "RKE_KUBELET_CRIDOCKERD"
@@ -567,7 +567,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		if err != nil {
 			logrus.Debugf("Error while parsing cluster version: %s", err)
 		}
-		if parsedVersion.GE(parsedJanK8s123Version) && parsedVersion.GE(parsedAprilK8s124Version) {
+		if parsedVersion.GE(parsedJanK8s123Version) || parsedVersion.GE(parsedAprilK8s124Version) {
 			Binds = append(Binds, "/var/log/calico/cni:/var/log/calico/cni:z")
 		}
 		Binds = append(Binds, []string{
