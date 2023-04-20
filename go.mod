@@ -8,6 +8,8 @@ replace (
 	sigs.k8s.io/json => sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2
 )
 
+replace github.com/rancher/norman => github.com/vardhaman22/norman v1.26.4-rancher1
+
 require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/apparentlymart/go-cidr v1.0.1
@@ -24,13 +26,13 @@ require (
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.9.1
 	github.com/rancher/norman v0.0.0-20221205184727-32ef2e185b99
-	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.8.0
+	github.com/sirupsen/logrus v1.9.0
+	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli v1.22.2
 	go.etcd.io/etcd/client/v2 v2.305.5
 	go.etcd.io/etcd/client/v3 v3.5.5
 	golang.org/x/crypto v0.1.0
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
+	golang.org/x/sync v0.1.0
 	google.golang.org/grpc v1.49.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.26.4
@@ -110,8 +112,8 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/rancher/lasso v0.0.0-20221202205459-e7138f16489c // indirect
-	github.com/rancher/wrangler v1.0.1-0.20221202234327-1cafffeaa9a1 // indirect
+	github.com/rancher/lasso v0.0.0-20221227210133-6ea88ca2fbcc // indirect
+	github.com/rancher/wrangler v1.1.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
@@ -126,14 +128,14 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.0 // indirect
-	golang.org/x/mod v0.6.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
-	golang.org/x/tools v0.2.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220714211235-042d03aeabc9 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
