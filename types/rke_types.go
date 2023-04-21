@@ -667,6 +667,10 @@ type AciNetworkProvider struct {
 	AddExternalSubnetsToRdconfig      string              `yaml:"add_external_subnets_to_rdconfig,omitempty" json:"addExternalSubnetsToRdconfig,omitempty"`
 	ServiceGraphEndpointAddDelay      string              `yaml:"service_graph_endpoint_add_delay,omitempty" json:"serviceGraphEndpointAddDelay,omitempty"`
 	ServiceGraphEndpointAddServices   []map[string]string `yaml:"service_graph_endpoint_add_services,omitempty" json:"serviceGraphEndpointAddServices,omitempty"`
+	HppOptimization                   string              `yaml:"hpp_optimization,omitempty" json:"hppOptimization,omitempty"`
+	SleepTimeSnatGlobalInfoSync       string              `yaml:"sleep_time_snat_global_info_sync,omitempty" json:"sleepTimeSnatGlobalInfoSync,omitempty"`
+	OpflexAgentOpflexAsyncjsonEnabled string              `yaml:"opflex_agent_opflex_asyncjson_enabled,omitempty" json:"opflexAgentOpflexAsyncjsonEnabled,omitempty"`
+	OpflexAgentOvsAsyncjsonEnabled    string              `yaml:"opflex_agent_ovs_asyncjson_enabled,omitempty" json:"opflexAgentOvsAsyncjsonEnabled,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
