@@ -150,6 +150,10 @@ const (
 	AciNoWaitForServiceEpReadiness       = "aci_no_wait_for_service_ep_readiness"
 	AciAddExternalSubnetsToRdconfig      = "aci_add_external_subnets_to_rdconfig"
 	AciServiceGraphEndpointAddDelay      = "aci_service_graph_endpoint_add_delay"
+	AciHppOptimization                   = "aci_hpp_optimization"
+	AciSleepTimeSnatGlobalInfoSync       = "aci_sleep_time_snat_global_info_sync"
+	AciOpflexAgentOpflexAsyncjsonEnabled = "aci_opflex_agent_opflex_asyncjson_enabled"
+	AciOpflexAgentOvsAsyncjsonEnabled    = "aci_opflex_agent_ovs_asyncjson_enabled"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -290,6 +294,10 @@ const (
 	AddExternalSubnetsToRdconfig           = "AddExternalSubnetsToRdconfig"
 	ServiceGraphEndpointAddDelay           = "ServiceGraphEndpointAddDelay"
 	ServiceGraphEndpointAddServices        = "ServiceGraphEndpointAddServices"
+	HppOptimization                        = "HppOptimization"
+	SleepTimeSnatGlobalInfoSync            = "SleepTimeSnatGlobalInfoSync"
+	OpflexAgentOpflexAsyncjsonEnabled      = "OpflexAgentOpflexAsyncjsonEnabled"
+	OpflexAgentOvsAsyncjsonEnabled         = "OpflexAgentOvsAsyncjsonEnabled"
 	OVSMemoryLimit                         = "OVSMemoryLimit"
 	NodeSubnet                             = "NodeSubnet"
 	NodeSelector                           = "NodeSelector"
@@ -590,6 +598,10 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		AddExternalSubnetsToRdconfig:      c.Network.Options[AciAddExternalSubnetsToRdconfig],
 		ServiceGraphEndpointAddDelay:      c.Network.Options[AciServiceGraphEndpointAddDelay],
 		ServiceGraphEndpointAddServices:   c.Network.AciNetworkProvider.ServiceGraphEndpointAddServices,
+		HppOptimization:                   c.Network.Options[AciHppOptimization],
+		SleepTimeSnatGlobalInfoSync:       c.Network.Options[AciSleepTimeSnatGlobalInfoSync],
+		OpflexAgentOpflexAsyncjsonEnabled: c.Network.Options[AciOpflexAgentOpflexAsyncjsonEnabled],
+		OpflexAgentOvsAsyncjsonEnabled:    c.Network.Options[AciOpflexAgentOvsAsyncjsonEnabled],
 		AciCniDeployContainer:             c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                  c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                c.SystemImages.AciOpflexContainer,

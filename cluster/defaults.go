@@ -115,6 +115,10 @@ const (
 	DefaultAciNoWaitForServiceEpReadiness       = "false"
 	DefaultAciAddExternalSubnetsToRdconfig      = "false"
 	DefaultAciServiceGraphEndpointAddDelay      = "0"
+	DefaultAciHppOptimization                   = "false"
+	DefaultAciSleepTimeSnatGlobalInfoSync       = "0"
+	DefaultAciOpflexAgentOpflexAsyncjsonEnabled = "false"
+	DefaultAciOpflexAgentOvsAsyncjsonEnabled    = "false"
 
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
@@ -679,6 +683,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			AciNoWaitForServiceEpReadiness:       DefaultAciNoWaitForServiceEpReadiness,
 			AciAddExternalSubnetsToRdconfig:      DefaultAciAddExternalSubnetsToRdconfig,
 			AciServiceGraphEndpointAddDelay:      DefaultAciServiceGraphEndpointAddDelay,
+			AciHppOptimization:                   DefaultAciHppOptimization,
+			AciSleepTimeSnatGlobalInfoSync:       DefaultAciSleepTimeSnatGlobalInfoSync,
+			AciOpflexAgentOpflexAsyncjsonEnabled: DefaultAciOpflexAgentOpflexAsyncjsonEnabled,
+			AciOpflexAgentOvsAsyncjsonEnabled:    DefaultAciOpflexAgentOvsAsyncjsonEnabled,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
@@ -738,6 +746,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.NoWaitForServiceEpReadiness, DefaultAciNoWaitForServiceEpReadiness)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AddExternalSubnetsToRdconfig, DefaultAciAddExternalSubnetsToRdconfig)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ServiceGraphEndpointAddDelay, DefaultAciServiceGraphEndpointAddDelay)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.HppOptimization, DefaultAciHppOptimization)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.SleepTimeSnatGlobalInfoSync, DefaultAciSleepTimeSnatGlobalInfoSync)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentOpflexAsyncjsonEnabled, DefaultAciOpflexAgentOpflexAsyncjsonEnabled)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentOvsAsyncjsonEnabled, DefaultAciOpflexAgentOvsAsyncjsonEnabled)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
 		networkPluginConfigDefaultsMap[AciPBRTrackingNonSnat] = c.Network.AciNetworkProvider.PBRTrackingNonSnat
@@ -780,6 +792,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciNoWaitForServiceEpReadiness] = c.Network.AciNetworkProvider.NoWaitForServiceEpReadiness
 		networkPluginConfigDefaultsMap[AciAddExternalSubnetsToRdconfig] = c.Network.AciNetworkProvider.AddExternalSubnetsToRdconfig
 		networkPluginConfigDefaultsMap[AciServiceGraphEndpointAddDelay] = c.Network.AciNetworkProvider.ServiceGraphEndpointAddDelay
+		networkPluginConfigDefaultsMap[AciHppOptimization] = c.Network.AciNetworkProvider.HppOptimization
+		networkPluginConfigDefaultsMap[AciSleepTimeSnatGlobalInfoSync] = c.Network.AciNetworkProvider.SleepTimeSnatGlobalInfoSync
+		networkPluginConfigDefaultsMap[AciOpflexAgentOpflexAsyncjsonEnabled] = c.Network.AciNetworkProvider.OpflexAgentOpflexAsyncjsonEnabled
+		networkPluginConfigDefaultsMap[AciOpflexAgentOvsAsyncjsonEnabled] = c.Network.AciNetworkProvider.OpflexAgentOvsAsyncjsonEnabled
 		networkPluginConfigDefaultsMap[AciSystemIdentifier] = c.Network.AciNetworkProvider.SystemIdentifier
 		networkPluginConfigDefaultsMap[AciToken] = c.Network.AciNetworkProvider.Token
 		networkPluginConfigDefaultsMap[AciApicUserName] = c.Network.AciNetworkProvider.ApicUserName
