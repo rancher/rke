@@ -671,6 +671,11 @@ type AciNetworkProvider struct {
 	SleepTimeSnatGlobalInfoSync       string              `yaml:"sleep_time_snat_global_info_sync,omitempty" json:"sleepTimeSnatGlobalInfoSync,omitempty"`
 	OpflexAgentOpflexAsyncjsonEnabled string              `yaml:"opflex_agent_opflex_asyncjson_enabled,omitempty" json:"opflexAgentOpflexAsyncjsonEnabled,omitempty"`
 	OpflexAgentOvsAsyncjsonEnabled    string              `yaml:"opflex_agent_ovs_asyncjson_enabled,omitempty" json:"opflexAgentOvsAsyncjsonEnabled,omitempty"`
+	OpflexAgentPolicyRetryDelayTimer  string              `yaml:"opflex_agent_policy_retry_delay_timer,omitempty" json:"opflexAgentPolicyRetryDelayTimer,omitempty"`
+	AciMultipod                       string              `yaml:"aci_multipod,omitempty" json:"aciMultipod,omitempty"`
+	AciMultipodUbuntu                 string              `yaml:"aci_multipod_ubuntu,omitempty" json:"aciMultipodUbuntu,omitempty"`
+	DhcpRenewMaxRetryCount            string              `yaml:"dhcp_renew_max_retry_count,omitempty" json:"dhcpRenewMaxRetryCount,omitempty"`
+	DhcpDelay                         string              `yaml:"dhcp_delay,omitempty" json:"dhcpDelay,omitempty"`
 }
 
 type KubernetesServicesOptions struct {

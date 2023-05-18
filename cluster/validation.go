@@ -231,6 +231,23 @@ func validateNetworkOptions(c *Cluster) error {
 		if !IPv6CompatibleNetworkPluginFound {
 			return fmt.Errorf("Network plugin [%s] does not support IPv6 (dualstack)", c.Network.Plugin)
 		}
+		if c.Network.Plugin == AciNetworkPlugin {
+			k8sVersion := c.RancherKubernetesEngineConfig.Version
+			toMatch, err := semver.Make(k8sVersion[1:])
+			if err != nil {
+				return fmt.Errorf("Cluster version [%s] is not valid semver", k8sVersion)
+			}
+			logrus.Debugf("Checking if cluster version [%s] has dualstack supported aci cni version", k8sVersion)
+			//k8s version needs to have aci version >= 5.2.7.1
+			clusterDualstackAciRange, err := semver.ParseRange(">=1.23.16-rancher2-3 <=1.23.99 || >=1.24.13-rancher2-2")
+			if err != nil {
+				return errors.New("Failed to parse semver range for checking dualstack supported aci cni versions")
+			}
+			if !clusterDualstackAciRange(toMatch) {
+				return fmt.Errorf("Cluster version [%s] does not have dualstack supported aci cni version", k8sVersion)
+			}
+			logrus.Debugf("Cluster version [%s] has dualstack supported aci cni version", k8sVersion)
+		}
 	}
 
 	if c.Network.Plugin == AciNetworkPlugin {
@@ -249,8 +266,7 @@ func validateNetworkOptions(c *Cluster) error {
 		networkOptionsList := []string{AciSystemIdentifier, AciToken, AciApicUserName, AciApicUserKey,
 			AciApicUserCrt, AciEncapType, AciMcastRangeStart, AciMcastRangeEnd,
 			AciNodeSubnet, AciAEP, AciVRFName, AciVRFTenant, AciL3Out, AciDynamicExternalSubnet,
-			AciStaticExternalSubnet, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan,
-			AciNodeSubnet}
+			AciStaticExternalSubnet, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan}
 		for _, v := range networkOptionsList {
 			val, ok := c.Network.Options[v]
 			if !ok || val == "" {
