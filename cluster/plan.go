@@ -69,6 +69,7 @@ var (
 	parsedRangeAtLeast123       = semver.MustParseRange(">= 1.23.0-rancher0")
 	parsedRangeAtLeast124       = semver.MustParseRange(">= 1.24.0-rancher0")
 	parsedRangeAtLeast125       = semver.MustParseRange(">= 1.25.0-rancher0")
+	parsedRangeBelow127         = semver.MustParseRange("< 1.27.0-rancher0")
 	parsedRange123              = semver.MustParseRange(">=1.23.0-rancher0 <=1.23.99-rancher-0")
 	parsedRange124              = semver.MustParseRange(">=1.24.0-rancher0 <=1.24.99-rancher-0")
 )
@@ -505,12 +506,14 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	var Binds []string
 
 	if c.IsCRIDockerdEnabled() {
-		CommandArgs["container-runtime"] = "remote"
-		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
 		parsedVersion, err := getClusterVersion(c.Version)
 		if err != nil {
 			logrus.Debugf("Error while parsing cluster version: %s", err)
 		}
+		if parsedRangeBelow127(parsedVersion) {
+			CommandArgs["container-runtime"] = "remote" // This flag has been removed from v1.27 https://v1-26.docs.kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
+		}
+		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
 		// cri-dockerd must be enabled if the cluster version is 1.24 and higher
 		if parsedRangeAtLeast124(parsedVersion) {
 			CommandArgs["container-runtime-endpoint"] = "unix:///var/run/cri-dockerd.sock"
