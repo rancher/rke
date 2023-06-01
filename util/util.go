@@ -218,21 +218,21 @@ func PrintProxyEnvVars() {
 
 func CleanWindowsPath(s string) string {
 	// clean backslashes added from encoding
-	var new []string
+	var newSlice []string
 
 	// squash multi backslashes
 	sp := strings.Split(s, "\\")
 	for _, v := range sp {
 		if v != "" {
-			new = append(new, v)
+			newSlice = append(newSlice, v)
 		}
 	}
 
 	// drive letter only, add a trailing slash
-	if len(new) == 1 {
-		new = append(new, "")
+	if len(newSlice) == 1 {
+		newSlice = append(newSlice, "")
 	}
-	return strings.Join(new, "\\")
+	return strings.Join(newSlice, "\\")
 }
 
 func ReplaceFileWithBackup(originalFile, prefixBackupFile string) error {

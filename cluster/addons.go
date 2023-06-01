@@ -466,7 +466,7 @@ func (c *Cluster) deployMetricServer(ctx context.Context, data map[string]interf
 	return nil
 }
 
-func (c *Cluster) deployWithKubectl(ctx context.Context, addonYaml string) error {
+func (c *Cluster) deployWithKubectl(_ context.Context, addonYaml string) error {
 	buf := bytes.NewBufferString(addonYaml)
 	cmd := exec.Command("kubectl", "--kubeconfig", c.LocalKubeConfigPath, "apply", "-f", "-")
 	cmd.Stdin = buf
@@ -508,7 +508,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	return nil
 }
 
-func (c *Cluster) doAddonDelete(ctx context.Context, resourceName string, isCritical bool) error {
+func (c *Cluster) doAddonDelete(_ context.Context, resourceName string, isCritical bool) error {
 	k8sClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
 	if err != nil {
 		return &addonError{fmt.Sprintf("%v", err), isCritical}

@@ -20,7 +20,7 @@ const (
 	DINDSubnet          = "172.18.0.0/16"
 )
 
-func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindStorageDriver, dindDNS string) (string, error) {
+func StartUpDindContainer(ctx context.Context, dindAddress, _, dindStorageDriver, dindDNS string) (string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		return "", err

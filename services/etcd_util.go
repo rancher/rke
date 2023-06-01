@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func getEtcdClientV2(ctx context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (etcdclientv2.Client, error) {
+func getEtcdClientV2(_ context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (etcdclientv2.Client, error) {
 	dialer, err := getEtcdDialer(localConnDialerFactory, etcdHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a dialer for host [%s]: %v", etcdHost.Address, err)
@@ -42,7 +42,7 @@ func getEtcdClientV2(ctx context.Context, etcdHost *hosts.Host, localConnDialerF
 	return etcdclientv2.New(cfg)
 }
 
-func getEtcdClientV3(ctx context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (*etcdclientv3.Client, error) {
+func getEtcdClientV3(_ context.Context, etcdHost *hosts.Host, localConnDialerFactory hosts.DialerFactory, cert, key []byte) (*etcdclientv3.Client, error) {
 	dialer, err := getEtcdDialer(localConnDialerFactory, etcdHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a dialer for host [%s]: %v", etcdHost.Address, err)

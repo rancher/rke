@@ -107,7 +107,7 @@ func GeneratePlan(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConf
 	return clusterPlan, nil
 }
 
-func BuildRKEConfigNodePlan(ctx context.Context, myCluster *Cluster, host *hosts.Host, svcOptions v3.KubernetesServicesOptions) v3.RKEConfigNodePlan {
+func BuildRKEConfigNodePlan(_ context.Context, myCluster *Cluster, host *hosts.Host, svcOptions v3.KubernetesServicesOptions) v3.RKEConfigNodePlan {
 	var portChecks []v3.PortCheck
 	processes := make(map[string]v3.Process)
 	host.SetPrefixPath(myCluster.getPrefixPath(host.OS()))

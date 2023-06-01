@@ -499,10 +499,9 @@ func getUniqueSlice(slice []string) []string {
 	for i := range slice {
 		if encountered[slice[i]] {
 			continue
-		} else {
-			encountered[slice[i]] = true
-			unqiue = append(unqiue, slice[i])
 		}
+		encountered[slice[i]] = true
+		unqiue = append(unqiue, slice[i])
 	}
 	return unqiue
 }

@@ -247,7 +247,7 @@ func GetCertificateDirPath(configPath, configDir string) string {
 	return trimmedName + certDirExt
 }
 
-func StringToFullState(ctx context.Context, stateFileContent string) (*FullState, error) {
+func StringToFullState(_ context.Context, stateFileContent string) (*FullState, error) {
 	rkeFullState := &FullState{}
 	logrus.Tracef("stateFileContent: %s", stateFileContent)
 	if err := json.Unmarshal([]byte(stateFileContent), rkeFullState); err != nil {
@@ -260,7 +260,7 @@ func StringToFullState(ctx context.Context, stateFileContent string) (*FullState
 	return rkeFullState, nil
 }
 
-func ReadStateFile(ctx context.Context, statePath string) (*FullState, error) {
+func ReadStateFile(_ context.Context, statePath string) (*FullState, error) {
 	rkeFullState := &FullState{}
 	fp, err := filepath.Abs(statePath)
 	if err != nil {

@@ -158,7 +158,7 @@ func RetrieveClusterStateConfigMap(
 	rkeConfig *v3.RancherKubernetesEngineConfig,
 	dialersOptions hosts.DialersOptions,
 	flags cluster.ExternalFlags,
-	data map[string]interface{}) (string, string, string, string, map[string]pki.CertificatePKI, error) {
+	_ map[string]interface{}) (string, string, string, string, map[string]pki.CertificatePKI, error) {
 	var APIURL, caCrt, clientCert, clientKey string
 
 	rkeFullState := &cluster.FullState{}

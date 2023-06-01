@@ -100,7 +100,7 @@ func reconcileWorker(ctx context.Context, currentCluster, kubeCluster *Cluster, 
 	return nil
 }
 
-func reconcileControl(ctx context.Context, currentCluster, kubeCluster *Cluster, kubeClient *kubernetes.Clientset) error {
+func reconcileControl(ctx context.Context, currentCluster, kubeCluster *Cluster, _ *kubernetes.Clientset) error {
 	logrus.Debugf("[reconcile] Check Control plane hosts to be deleted")
 	selfDeleteAddress, err := getLocalConfigAddress(kubeCluster.LocalKubeConfigPath)
 	if err != nil {
@@ -196,7 +196,7 @@ func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, ku
 	return addEtcdMembers(ctx, currentCluster, kubeCluster, kubeClient, svcOptionData, clientCert, clientKey, etcdToAdd)
 }
 
-func addEtcdMembers(ctx context.Context, currentCluster, kubeCluster *Cluster, kubeClient *kubernetes.Clientset, svcOptionData map[string]*v3.KubernetesServicesOptions, clientCert, clientKey []byte, etcdToAdd []*hosts.Host) error {
+func addEtcdMembers(ctx context.Context, currentCluster, kubeCluster *Cluster, _ *kubernetes.Clientset, svcOptionData map[string]*v3.KubernetesServicesOptions, clientCert, clientKey []byte, etcdToAdd []*hosts.Host) error {
 	log.Infof(ctx, "[reconcile] Check etcd hosts to be added")
 	for _, etcdHost := range etcdToAdd {
 		kubeCluster.UpdateWorkersOnly = false
@@ -266,7 +266,7 @@ func deleteEtcdMembers(ctx context.Context, currentCluster, kubeCluster *Cluster
 	return nil
 }
 
-func syncLabels(ctx context.Context, currentCluster, kubeCluster *Cluster) {
+func syncLabels(_ context.Context, currentCluster, kubeCluster *Cluster) {
 	currentHosts := hosts.GetUniqueHostList(currentCluster.EtcdHosts, currentCluster.ControlPlaneHosts, currentCluster.WorkerHosts)
 	configHosts := hosts.GetUniqueHostList(kubeCluster.EtcdHosts, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
 	for _, host := range configHosts {
@@ -283,7 +283,7 @@ func syncLabels(ctx context.Context, currentCluster, kubeCluster *Cluster) {
 	}
 }
 
-func syncNodeRoles(ctx context.Context, currentCluster, kubeCluster *Cluster) {
+func syncNodeRoles(_ context.Context, currentCluster, kubeCluster *Cluster) {
 	currentHosts := hosts.GetUniqueHostList(currentCluster.EtcdHosts, currentCluster.ControlPlaneHosts, currentCluster.WorkerHosts)
 	configHosts := hosts.GetUniqueHostList(kubeCluster.EtcdHosts, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
 	for _, host := range configHosts {
@@ -385,7 +385,7 @@ func runRestartFuncs(ctx context.Context, certFuncMap map[string][]services.Rest
 	return nil
 }
 
-func checkCertificateChanges(ctx context.Context, currentCluster, kubeCluster *Cluster, certMap map[string]bool) {
+func checkCertificateChanges(_ context.Context, currentCluster, kubeCluster *Cluster, certMap map[string]bool) {
 	for certName := range certMap {
 		if currentCluster.Certificates[certName].CertificatePEM != kubeCluster.Certificates[certName].CertificatePEM {
 			certMap[certName] = true
@@ -399,7 +399,7 @@ func checkCertificateChanges(ctx context.Context, currentCluster, kubeCluster *C
 	}
 }
 
-func isEtcdPlaneReplaced(ctx context.Context, currentCluster, kubeCluster *Cluster) bool {
+func isEtcdPlaneReplaced(_ context.Context, currentCluster, kubeCluster *Cluster) bool {
 	numCurrentEtcdHosts := len(currentCluster.EtcdHosts)
 	// We had and have no etcd hosts, nothing was replaced
 	if numCurrentEtcdHosts == 0 && len(kubeCluster.EtcdHosts) == 0 {
@@ -419,7 +419,7 @@ func isEtcdPlaneReplaced(ctx context.Context, currentCluster, kubeCluster *Clust
 	return false
 }
 
-func syncTaints(ctx context.Context, currentCluster, kubeCluster *Cluster) {
+func syncTaints(_ context.Context, currentCluster, kubeCluster *Cluster) {
 	var currentHosts, expectedHosts []*hosts.Host
 	var currentTaints, expectedTaints map[string]map[string]string
 	// handling taints in configuration

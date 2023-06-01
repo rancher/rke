@@ -228,7 +228,7 @@ func (c *Cluster) getPodSecurityAdmissionPluginConfiguration() (apiserverv1.Admi
 	}
 }
 
-func (c *Cluster) SetUpHosts(ctx context.Context, flags ExternalFlags) error {
+func (c *Cluster) SetUpHosts(ctx context.Context, _ ExternalFlags) error {
 	if c.AuthnStrategies[AuthnX509Provider] {
 		log.Infof(ctx, "[certificates] Deploying kubernetes certificates to Cluster nodes")
 		hostList := hosts.GetUniqueHostList(c.EtcdHosts, c.ControlPlaneHosts, c.WorkerHosts)

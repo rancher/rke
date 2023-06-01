@@ -733,7 +733,7 @@ func (c *Cluster) checkKubeAPIPort(ctx context.Context) error {
 	return nil
 }
 
-func (c *Cluster) deployTCPPortListeners(ctx context.Context, currentCluster *Cluster) error {
+func (c *Cluster) deployTCPPortListeners(ctx context.Context, _ *Cluster) error {
 	log.Infof(ctx, "[network] Deploying port listener containers")
 
 	// deploy ectd listeners

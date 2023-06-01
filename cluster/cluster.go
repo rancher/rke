@@ -813,7 +813,7 @@ func (c *Cluster) setNetworkOptions() error {
 	return nil
 }
 
-func (c *Cluster) SetupDialers(ctx context.Context, dailersOptions hosts.DialersOptions) error {
+func (c *Cluster) SetupDialers(_ context.Context, dailersOptions hosts.DialersOptions) error {
 	c.DockerDialerFactory = dailersOptions.DockerDialerFactory
 	c.LocalConnDialerFactory = dailersOptions.LocalConnDialerFactory
 	c.K8sWrapTransport = dailersOptions.K8sWrapTransport

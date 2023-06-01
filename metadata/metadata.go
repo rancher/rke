@@ -41,7 +41,7 @@ var (
 	kdmMutex = sync.Mutex{}
 )
 
-func InitMetadata(ctx context.Context) error {
+func InitMetadata(_ context.Context) error {
 	kdmMutex.Lock()
 	defer kdmMutex.Unlock()
 	data, err := loadData()

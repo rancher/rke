@@ -379,7 +379,7 @@ func (c *Cluster) getEncryptionProviderFile() (string, error) {
 	return c.EncryptionConfig.EncryptionProviderFile, err
 }
 
-func (c *Cluster) extractActiveKey(s string) (*encryptionKey, error) {
+func (c *Cluster) extractActiveKey(_ string) (*encryptionKey, error) {
 	config := apiserverconfig.EncryptionConfiguration{}
 	if err := k8s.DecodeYamlResource(&config, c.EncryptionConfig.EncryptionProviderFile); err != nil {
 		return nil, err

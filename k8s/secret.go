@@ -16,7 +16,7 @@ func GetSecret(k8sClient *kubernetes.Clientset, secretName, namespace string) (*
 	return k8sClient.CoreV1().Secrets(namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 }
 
-func GetSecretsList(k8sClient *kubernetes.Clientset, namespace string) (*v1.SecretList, error) {
+func GetSecretsList(k8sClient *kubernetes.Clientset, _ string) (*v1.SecretList, error) {
 	return k8sClient.CoreV1().Secrets("").List(context.TODO(), metav1.ListOptions{})
 }
 
