@@ -62,8 +62,23 @@ func (in *AciNetworkProvider) DeepCopyInto(out *AciNetworkProvider) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.NodeSubnet != nil {
+		in, out := &in.NodeSubnet, &out.NodeSubnet
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.L3OutExternalNetworks != nil {
 		in, out := &in.L3OutExternalNetworks, &out.L3OutExternalNetworks
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.DynamicExternalSubnet != nil {
+		in, out := &in.DynamicExternalSubnet, &out.DynamicExternalSubnet
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.StaticExternalSubnet != nil {
+		in, out := &in.StaticExternalSubnet, &out.StaticExternalSubnet
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
