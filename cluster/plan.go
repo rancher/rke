@@ -505,7 +505,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	var Binds []string
 
 	if c.IsCRIDockerdEnabled() {
-		CommandArgs["container-runtime"] = "remote"
+		//CommandArgs["container-runtime"] = "remote" https://v1-26.docs.kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
 		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
 		parsedVersion, err := getClusterVersion(c.Version)
 		if err != nil {
