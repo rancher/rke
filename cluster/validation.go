@@ -92,12 +92,6 @@ func transformAciNetworkOption(option string) (string, string) {
 	case AciServiceGraphSubnet:
 		option = "node_svc_subnet"
 		description = "Subnet to use for service graph endpoints on aci"
-	case AciStaticExternalSubnet:
-		option = "extern_static"
-		description = "Subnet to use for static external IPs on aci"
-	case AciDynamicExternalSubnet:
-		option = "extern_dynamic"
-		description = "Subnet to use for dynamic external IPs on aci"
 	case AciToken:
 		description = "UUID for this version of the input configuration"
 	case AciApicUserName:
@@ -112,8 +106,6 @@ func transformAciNetworkOption(option string) (string, string) {
 		description = "Mcast range start address for endpoint groups on aci"
 	case AciMcastRangeEnd:
 		description = "Mcast range end address for endpoint groups on aci"
-	case AciNodeSubnet:
-		description = "Kubernetes node address subnet"
 	case AciAEP:
 		description = "Attachment entity profile name on aci"
 	case AciVRFName:
@@ -256,10 +248,8 @@ func validateNetworkOptions(c *Cluster) error {
 		}
 
 		networkOptionsList := []string{AciSystemIdentifier, AciToken, AciApicUserName, AciApicUserKey,
-			AciApicUserCrt, AciEncapType, AciMcastRangeStart, AciMcastRangeEnd,
-			AciNodeSubnet, AciAEP, AciVRFName, AciVRFTenant, AciL3Out, AciDynamicExternalSubnet,
-			AciStaticExternalSubnet, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan,
-			AciNodeSubnet}
+			AciApicUserCrt, AciEncapType, AciMcastRangeStart, AciMcastRangeEnd, AciAEP, AciVRFName,
+			AciVRFTenant, AciL3Out, AciServiceGraphSubnet, AciKubeAPIVlan, AciServiceVlan, AciInfraVlan}
 		for _, v := range networkOptionsList {
 			val, ok := c.Network.Options[v]
 			if !ok || val == "" {
@@ -275,6 +265,15 @@ func validateNetworkOptions(c *Cluster) error {
 			if c.Network.AciNetworkProvider.L3OutExternalNetworks == nil {
 				return fmt.Errorf("Network plugin aci: %s(external network name/s on aci) under aci_network_provider is not provided", "l3out_external_networks")
 			}
+			if c.Network.AciNetworkProvider.NodeSubnet == nil {
+				return fmt.Errorf("Network plugin aci: %s(node subnet/s on aci) under aci_network_provider is not provided", "node_subnet")
+			}
+			if c.Network.AciNetworkProvider.StaticExternalSubnet == nil {
+				return fmt.Errorf("Network plugin aci: %s(static external subnet/s on aci) under aci_network_provider is not provided", "extern_static")
+			}
+			if c.Network.AciNetworkProvider.DynamicExternalSubnet == nil {
+				return fmt.Errorf("Network plugin aci: %s(dynamic external subnet/s on aci) under aci_network_provider is not provided", "extern_dynamic")
+			}
 		} else {
 			var requiredArgs []string
 			for _, v := range networkOptionsList {
@@ -283,6 +282,9 @@ func validateNetworkOptions(c *Cluster) error {
 			}
 			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", ApicHosts))
 			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", L3OutExternalNetworks))
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", NodeSubnet))
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", StaticExternalSubnet))
+			requiredArgs = append(requiredArgs, fmt.Sprintf(" %s", DynamicExternalSubnet))
 			return fmt.Errorf("Network plugin aci: multiple parameters under aci_network_provider are not provided: %s", requiredArgs)
 		}
 	}

@@ -602,7 +602,7 @@ type AciNetworkProvider struct {
 	VmmDomain                         string              `yaml:"vmm_domain,omitempty" json:"vmmDomain,omitempty"`
 	VmmController                     string              `yaml:"vmm_controller,omitempty" json:"vmmController,omitempty"`
 	EncapType                         string              `yaml:"encap_type,omitempty" json:"encapType,omitempty"`
-	NodeSubnet                        string              `yaml:"node_subnet,omitempty" json:"nodeSubnet,omitempty"`
+	NodeSubnet                        []string            `yaml:"node_subnet" json:"nodeSubnet,omitempty"`
 	McastRangeStart                   string              `yaml:"mcast_range_start,omitempty" json:"mcastRangeStart,omitempty"`
 	McastRangeEnd                     string              `yaml:"mcast_range_end,omitempty" json:"mcastRangeEnd,omitempty"`
 	AEP                               string              `yaml:"aep,omitempty" json:"aep,omitempty"`
@@ -610,8 +610,8 @@ type AciNetworkProvider struct {
 	VRFTenant                         string              `yaml:"vrf_tenant,omitempty" json:"vrfTenant,omitempty"`
 	L3Out                             string              `yaml:"l3out,omitempty" json:"l3out,omitempty"`
 	L3OutExternalNetworks             []string            `yaml:"l3out_external_networks" json:"l3outExternalNetworks,omitempty"`
-	DynamicExternalSubnet             string              `yaml:"extern_dynamic,omitempty" json:"externDynamic,omitempty"`
-	StaticExternalSubnet              string              `yaml:"extern_static,omitempty" json:"externStatic,omitempty"`
+	DynamicExternalSubnet             []string            `yaml:"extern_dynamic,omitempty" json:"externDynamic,omitempty"`
+	StaticExternalSubnet              []string            `yaml:"extern_static,omitempty" json:"externStatic,omitempty"`
 	ServiceGraphSubnet                string              `yaml:"node_svc_subnet,omitempty" json:"nodeSvcSubnet,omitempty"`
 	KubeAPIVlan                       string              `yaml:"kube_api_vlan,omitempty" json:"kubeApiVlan,omitempty"`
 	ServiceVlan                       string              `yaml:"service_vlan,omitempty" json:"serviceVlan,omitempty"`
@@ -674,6 +674,10 @@ type AciNetworkProvider struct {
 	SleepTimeSnatGlobalInfoSync       string              `yaml:"sleep_time_snat_global_info_sync,omitempty" json:"sleepTimeSnatGlobalInfoSync,omitempty"`
 	OpflexAgentOpflexAsyncjsonEnabled string              `yaml:"opflex_agent_opflex_asyncjson_enabled,omitempty" json:"opflexAgentOpflexAsyncjsonEnabled,omitempty"`
 	OpflexAgentOvsAsyncjsonEnabled    string              `yaml:"opflex_agent_ovs_asyncjson_enabled,omitempty" json:"opflexAgentOvsAsyncjsonEnabled,omitempty"`
+	OpflexAgentPolicyRetryDelayTimer  string              `yaml:"opflex_agent_policy_retry_delay_timer,omitempty" json:"opflexAgentPolicyRetryDelayTimer,omitempty"`
+	AciMultipod                       string              `yaml:"aci_multipod,omitempty" json:"aciMultipod,omitempty"`
+	AciMultipodUbuntu                 string              `yaml:"aci_multipod_ubuntu,omitempty" json:"aciMultipodUbuntu,omitempty"`
+	DhcpRenewMaxRetryCount            string              `yaml:"dhcp_renew_max_retry_count,omitempty" json:"acidhcpRenewMaxRetryCount,omitempty"`
 }
 
 type KubernetesServicesOptions struct {

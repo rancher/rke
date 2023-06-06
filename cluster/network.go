@@ -99,15 +99,12 @@ const (
 	AciVRFName                           = "aci_vrf_name"
 	AciVRFTenant                         = "aci_vrf_tenant"
 	AciL3Out                             = "aci_l3out"
-	AciDynamicExternalSubnet             = "aci_dynamic_external_subnet"
-	AciStaticExternalSubnet              = "aci_static_external_subnet"
 	AciServiceGraphSubnet                = "aci_service_graph_subnet"
 	AciKubeAPIVlan                       = "aci_kubeapi_vlan"
 	AciServiceVlan                       = "aci_service_vlan"
 	AciInfraVlan                         = "aci_infra_vlan"
 	AciImagePullSecret                   = "aci_image_pull_secret"
 	AciTenant                            = "aci_tenant"
-	AciNodeSubnet                        = "aci_node_subnet"
 	AciMcastRangeStart                   = "aci_mcast_range_start"
 	AciMcastRangeEnd                     = "aci_mcast_range_end"
 	AciUseAciCniPriorityClass            = "aci_use_aci_cni_priority_class"
@@ -154,6 +151,10 @@ const (
 	AciSleepTimeSnatGlobalInfoSync       = "aci_sleep_time_snat_global_info_sync"
 	AciOpflexAgentOpflexAsyncjsonEnabled = "aci_opflex_agent_opflex_asyncjson_enabled"
 	AciOpflexAgentOvsAsyncjsonEnabled    = "aci_opflex_agent_ovs_asyncjson_enabled"
+	AciOpflexAgentPolicyRetryDelayTimer  = "aci_opflex_agent_policy_retry_delay_timer"
+	AciAciMultipod                       = "aci_aci_multipod"
+	AciAciMultipodUbuntu                 = "aci_aci_multipod_ubuntu"
+	AciDhcpRenewMaxRetryCount            = "aci_dhcp_renew_max_retry_count"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -243,15 +244,13 @@ const (
 	AciControllerContainer                 = "AciControllerContainer"
 	AciGbpServerContainer                  = "AciGbpServerContainer"
 	AciOpflexServerContainer               = "AciOpflexServerContainer"
-	StaticServiceIPStart                   = "StaticServiceIPStart"
-	StaticServiceIPEnd                     = "StaticServiceIPEnd"
-	PodGateway                             = "PodGateway"
-	PodIPStart                             = "PodIPStart"
-	PodIPEnd                               = "PodIPEnd"
+	StaticServiceIPPool                    = "StaticServiceIPPool"
+	PodNetwork                             = "PodNetwork"
+	PodSubnet                              = "PodSubnet"
+	PodIPPool                              = "PodIPPool"
 	NodeServiceIPStart                     = "NodeServiceIPStart"
 	NodeServiceIPEnd                       = "NodeServiceIPEnd"
-	ServiceIPStart                         = "ServiceIPStart"
-	ServiceIPEnd                           = "ServiceIPEnd"
+	ServiceIPPool                          = "ServiceIPPool"
 	UseAciCniPriorityClass                 = "UseAciCniPriorityClass"
 	NoPriorityClass                        = "NoPriorityClass"
 	MaxNodesSvcGraph                       = "MaxNodesSvcGraph"
@@ -298,12 +297,26 @@ const (
 	SleepTimeSnatGlobalInfoSync            = "SleepTimeSnatGlobalInfoSync"
 	OpflexAgentOpflexAsyncjsonEnabled      = "OpflexAgentOpflexAsyncjsonEnabled"
 	OpflexAgentOvsAsyncjsonEnabled         = "OpflexAgentOvsAsyncjsonEnabled"
+	OpflexAgentPolicyRetryDelayTimer       = "OpflexAgentPolicyRetryDelayTimer"
+	AciMultipod                            = "AciMultipod"
+	AciMultipodUbuntu                      = "AciMultipodUbuntu"
+	DhcpRenewMaxRetryCount                 = "DhcpRenewMaxRetryCount"
 	OVSMemoryLimit                         = "OVSMemoryLimit"
 	NodeSubnet                             = "NodeSubnet"
 	NodeSelector                           = "NodeSelector"
 	UpdateStrategy                         = "UpdateStrategy"
 	Tolerations                            = "Tolerations"
 )
+
+type IPPool struct {
+	Start net.IP
+	End   net.IP
+}
+
+type PodIPNetwork struct {
+	Subnet  net.IPNet
+	Gateway net.IP
+}
 
 var EtcdPortList = []string{
 	EtcdPort1,
@@ -323,7 +336,7 @@ var EtcdClientPortList = []string{
 }
 
 var CalicoNetworkLabels = []string{CalicoNodeLabel, CalicoControllerLabel}
-var IPv6CompatibleNetworkPlugins = []string{CalicoNetworkPlugin}
+var IPv6CompatibleNetworkPlugins = []string{CalicoNetworkPlugin, AciNetworkPlugin}
 
 func (c *Cluster) deployNetworkPlugin(ctx context.Context, data map[string]interface{}) error {
 	log.Infof(ctx, "[network] Setting up network plugin: %s", c.Network.Plugin)
@@ -485,26 +498,50 @@ func (c *Cluster) doWeaveDeploy(ctx context.Context, data map[string]interface{}
 }
 
 func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) error {
-	_, clusterCIDR, err := net.ParseCIDR(c.ClusterCIDR)
-	if err != nil {
-		return err
+	var podIPPool []IPPool
+	var podNetwork []PodIPNetwork
+	var podSubnet []string
+
+	clusterCIDRs := strings.Split(c.ClusterCIDR, ",")
+	for _, clusterCIDR := range clusterCIDRs {
+		podSubnet = append(podSubnet, fmt.Sprintf("\"%s\"", clusterCIDR))
+		_, ClusterCIDRs, err := net.ParseCIDR(clusterCIDR)
+		if err != nil {
+			return err
+		}
+		podIPStart, podIPEnd := cidr.AddressRange(ClusterCIDRs)
+		podIPPool = append(podIPPool, IPPool{Start: cidr.Inc(cidr.Inc(podIPStart)), End: cidr.Dec(podIPEnd)})
+		podNetwork = append(podNetwork, PodIPNetwork{Subnet: *ClusterCIDRs, Gateway: cidr.Inc(podIPStart)})
 	}
-	podIPStart, podIPEnd := cidr.AddressRange(clusterCIDR)
-	_, staticExternalSubnet, err := net.ParseCIDR(c.Network.Options[AciStaticExternalSubnet])
-	if err != nil {
-		return err
+
+	var staticServiceIPPool []IPPool
+	staticExternalSubnets := strings.Split(c.Network.AciNetworkProvider.StaticExternalSubnet[0], ",")
+	for _, staticExternalSubnet := range staticExternalSubnets {
+		_, externStatic, err := net.ParseCIDR(strings.Trim(staticExternalSubnet, "\\\""))
+		if err != nil {
+			return err
+		}
+		staticServiceIPStart, staticServiceIPEnd := cidr.AddressRange(externStatic)
+		staticServiceIPPool = append(staticServiceIPPool, IPPool{Start: cidr.Inc(cidr.Inc(staticServiceIPStart)), End: cidr.Dec(staticServiceIPEnd)})
 	}
-	staticServiceIPStart, staticServiceIPEnd := cidr.AddressRange(staticExternalSubnet)
+
 	_, svcGraphSubnet, err := net.ParseCIDR(c.Network.Options[AciServiceGraphSubnet])
 	if err != nil {
 		return err
 	}
 	nodeServiceIPStart, nodeServiceIPEnd := cidr.AddressRange(svcGraphSubnet)
-	_, dynamicExternalSubnet, err := net.ParseCIDR(c.Network.Options[AciDynamicExternalSubnet])
-	if err != nil {
-		return err
+
+	var serviceIPPool []IPPool
+	dynamicExternalSubnets := strings.Split(c.Network.AciNetworkProvider.DynamicExternalSubnet[0], ",")
+	for _, dynamicExternalSubnet := range dynamicExternalSubnets {
+		_, externDynamic, err := net.ParseCIDR(strings.Trim(dynamicExternalSubnet, "\\\""))
+		if err != nil {
+			return err
+		}
+		serviceIPStart, serviceIPEnd := cidr.AddressRange(externDynamic)
+		serviceIPPool = append(serviceIPPool, IPPool{Start: cidr.Inc(cidr.Inc(serviceIPStart)), End: cidr.Dec(serviceIPEnd)})
 	}
-	serviceIPStart, serviceIPEnd := cidr.AddressRange(dynamicExternalSubnet)
+
 	if c.Network.Options[AciTenant] == "" {
 		c.Network.Options[AciTenant] = c.Network.Options[AciSystemIdentifier]
 	}
@@ -522,14 +559,14 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		EncapType:                         c.Network.Options[AciEncapType],
 		McastRangeStart:                   c.Network.Options[AciMcastRangeStart],
 		McastRangeEnd:                     c.Network.Options[AciMcastRangeEnd],
-		NodeSubnet:                        c.Network.Options[AciNodeSubnet],
+		NodeSubnet:                        c.Network.AciNetworkProvider.NodeSubnet,
 		AEP:                               c.Network.Options[AciAEP],
 		VRFName:                           c.Network.Options[AciVRFName],
 		VRFTenant:                         c.Network.Options[AciVRFTenant],
 		L3Out:                             c.Network.Options[AciL3Out],
 		L3OutExternalNetworks:             c.Network.AciNetworkProvider.L3OutExternalNetworks,
-		DynamicExternalSubnet:             c.Network.Options[AciDynamicExternalSubnet],
-		StaticExternalSubnet:              c.Network.Options[AciStaticExternalSubnet],
+		DynamicExternalSubnet:             c.Network.AciNetworkProvider.DynamicExternalSubnet,
+		StaticExternalSubnet:              c.Network.AciNetworkProvider.StaticExternalSubnet,
 		ServiceGraphSubnet:                c.Network.Options[AciServiceGraphSubnet],
 		KubeAPIVlan:                       c.Network.Options[AciKubeAPIVlan],
 		ServiceVlan:                       c.Network.Options[AciServiceVlan],
@@ -547,15 +584,13 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		OpflexAgentLogLevel:               c.Network.Options[AciOpflexAgentLogLevel],
 		OVSMemoryLimit:                    c.Network.Options[AciOVSMemoryLimit],
 		ClusterCIDR:                       c.ClusterCIDR,
-		StaticServiceIPStart:              cidr.Inc(cidr.Inc(staticServiceIPStart)),
-		StaticServiceIPEnd:                cidr.Dec(staticServiceIPEnd),
-		PodGateway:                        cidr.Inc(podIPStart),
-		PodIPStart:                        cidr.Inc(cidr.Inc(podIPStart)),
-		PodIPEnd:                          cidr.Dec(podIPEnd),
+		PodNetwork:                        podNetwork,
+		PodIPPool:                         podIPPool,
+		StaticServiceIPPool:               staticServiceIPPool,
+		ServiceIPPool:                     serviceIPPool,
+		PodSubnet:                         podSubnet,
 		NodeServiceIPStart:                cidr.Inc(cidr.Inc(nodeServiceIPStart)),
 		NodeServiceIPEnd:                  cidr.Dec(nodeServiceIPEnd),
-		ServiceIPStart:                    cidr.Inc(cidr.Inc(serviceIPStart)),
-		ServiceIPEnd:                      cidr.Dec(serviceIPEnd),
 		UseAciCniPriorityClass:            c.Network.Options[AciUseAciCniPriorityClass],
 		NoPriorityClass:                   c.Network.Options[AciNoPriorityClass],
 		MaxNodesSvcGraph:                  c.Network.Options[AciMaxNodesSvcGraph],
@@ -602,6 +637,10 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		SleepTimeSnatGlobalInfoSync:       c.Network.Options[AciSleepTimeSnatGlobalInfoSync],
 		OpflexAgentOpflexAsyncjsonEnabled: c.Network.Options[AciOpflexAgentOpflexAsyncjsonEnabled],
 		OpflexAgentOvsAsyncjsonEnabled:    c.Network.Options[AciOpflexAgentOvsAsyncjsonEnabled],
+		OpflexAgentPolicyRetryDelayTimer:  c.Network.Options[AciOpflexAgentPolicyRetryDelayTimer],
+		AciMultipod:                       c.Network.Options[AciAciMultipod],
+		AciMultipodUbuntu:                 c.Network.Options[AciAciMultipodUbuntu],
+		DhcpRenewMaxRetryCount:            c.Network.Options[AciDhcpRenewMaxRetryCount],
 		AciCniDeployContainer:             c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                  c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                c.SystemImages.AciOpflexContainer,
