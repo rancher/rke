@@ -399,8 +399,15 @@ func (c *Cluster) setClusterServicesDefaults() {
 			c.Services.KubeAPI.EventRateLimit.Configuration == nil {
 			c.Services.KubeAPI.EventRateLimit.Configuration = newDefaultEventRateLimitConfig()
 		}
-		if len(c.Services.KubeAPI.PodSecurityConfiguration) == 0 {
-			c.Services.KubeAPI.PodSecurityConfiguration = PodSecurityPrivileged
+		parsedVersion, err := getClusterVersion(c.Version)
+		if err != nil {
+			logrus.Warnf("Can not parse the cluster version [%s] to determine wether to set the default PodSecurityConfiguration: %v", c.Version, err)
+		} else {
+			if parsedRangeAtLeast123(parsedVersion) {
+				if len(c.Services.KubeAPI.PodSecurityConfiguration) == 0 {
+					c.Services.KubeAPI.PodSecurityConfiguration = PodSecurityPrivileged
+				}
+			}
 		}
 	}
 
