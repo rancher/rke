@@ -122,6 +122,11 @@ const (
 	DefaultAciSleepTimeSnatGlobalInfoSync       = "0"
 	DefaultAciOpflexAgentOpflexAsyncjsonEnabled = "false"
 	DefaultAciOpflexAgentOvsAsyncjsonEnabled    = "false"
+	DefaultAciOpflexAgentPolicyRetryDelayTimer  = "10"
+	DefaultAciAciMultipod                       = "false"
+	DefaultAciAciMultipodUbuntu                 = "false"
+	DefaultAciDhcpRenewMaxRetryCount            = "0"
+	DefaultAciDhcpDelay                         = "0"
 
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
@@ -810,6 +815,11 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			AciSleepTimeSnatGlobalInfoSync:       DefaultAciSleepTimeSnatGlobalInfoSync,
 			AciOpflexAgentOpflexAsyncjsonEnabled: DefaultAciOpflexAgentOpflexAsyncjsonEnabled,
 			AciOpflexAgentOvsAsyncjsonEnabled:    DefaultAciOpflexAgentOvsAsyncjsonEnabled,
+			AciOpflexAgentPolicyRetryDelayTimer:  DefaultAciOpflexAgentPolicyRetryDelayTimer,
+			AciAciMultipod:                       DefaultAciAciMultipod,
+			AciAciMultipodUbuntu:                 DefaultAciAciMultipodUbuntu,
+			AciDhcpRenewMaxRetryCount:            DefaultAciDhcpRenewMaxRetryCount,
+			AciDhcpDelay:                         DefaultAciDhcpDelay,
 		}
 	}
 	if c.Network.CalicoNetworkProvider != nil {
@@ -873,6 +883,11 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.SleepTimeSnatGlobalInfoSync, DefaultAciSleepTimeSnatGlobalInfoSync)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentOpflexAsyncjsonEnabled, DefaultAciOpflexAgentOpflexAsyncjsonEnabled)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentOvsAsyncjsonEnabled, DefaultAciOpflexAgentOvsAsyncjsonEnabled)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentPolicyRetryDelayTimer, DefaultAciOpflexAgentPolicyRetryDelayTimer)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AciMultipod, DefaultAciAciMultipod)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AciMultipodUbuntu, DefaultAciAciMultipodUbuntu)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DhcpRenewMaxRetryCount, DefaultAciDhcpRenewMaxRetryCount)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DhcpDelay, DefaultAciDhcpDelay)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
 		networkPluginConfigDefaultsMap[AciPBRTrackingNonSnat] = c.Network.AciNetworkProvider.PBRTrackingNonSnat
@@ -919,6 +934,11 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciSleepTimeSnatGlobalInfoSync] = c.Network.AciNetworkProvider.SleepTimeSnatGlobalInfoSync
 		networkPluginConfigDefaultsMap[AciOpflexAgentOpflexAsyncjsonEnabled] = c.Network.AciNetworkProvider.OpflexAgentOpflexAsyncjsonEnabled
 		networkPluginConfigDefaultsMap[AciOpflexAgentOvsAsyncjsonEnabled] = c.Network.AciNetworkProvider.OpflexAgentOvsAsyncjsonEnabled
+		networkPluginConfigDefaultsMap[AciOpflexAgentPolicyRetryDelayTimer] = c.Network.AciNetworkProvider.OpflexAgentPolicyRetryDelayTimer
+		networkPluginConfigDefaultsMap[AciDhcpRenewMaxRetryCount] = c.Network.AciNetworkProvider.DhcpRenewMaxRetryCount
+		networkPluginConfigDefaultsMap[AciDhcpDelay] = c.Network.AciNetworkProvider.DhcpDelay
+		networkPluginConfigDefaultsMap[AciAciMultipod] = c.Network.AciNetworkProvider.AciMultipod
+		networkPluginConfigDefaultsMap[AciAciMultipodUbuntu] = c.Network.AciNetworkProvider.AciMultipodUbuntu
 		networkPluginConfigDefaultsMap[AciSystemIdentifier] = c.Network.AciNetworkProvider.SystemIdentifier
 		networkPluginConfigDefaultsMap[AciToken] = c.Network.AciNetworkProvider.Token
 		networkPluginConfigDefaultsMap[AciApicUserName] = c.Network.AciNetworkProvider.ApicUserName
