@@ -22,6 +22,7 @@ import (
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
+	netutils "k8s.io/utils/net"
 	"sigs.k8s.io/yaml"
 )
 
@@ -62,6 +63,7 @@ const (
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
 	KubeletCRIDockerdNameEnv = "RKE_KUBELET_CRIDOCKERD"
+	KubeletDualStackNameEnv  = "RKE_KUBELET_CRIDOCKERD_DUALSTACK"
 )
 
 var (
@@ -602,6 +604,11 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		Env = append(Env,
 			// Enable running cri-dockerd
 			fmt.Sprintf("%s=%s", KubeletCRIDockerdNameEnv, "true"))
+		if c.multipleCIDRsConfigured() {
+			Env = append(Env,
+				// Enable cri-dockerd flag for dual-stack
+				fmt.Sprintf("%s=%s", KubeletDualStackNameEnv, "true"))
+		}
 	}
 
 	if len(c.CloudProvider.Name) > 0 {
@@ -1284,5 +1291,28 @@ func (c *Cluster) IsCRIDockerdEnabled() bool {
 	if c.EnableCRIDockerd != nil && *c.EnableCRIDockerd {
 		return true
 	}
+	return false
+}
+
+func (c *Cluster) multipleCIDRsConfigured() bool {
+	if c == nil {
+		logrus.Debug("multipleCIDRsConfigured: Returning false, cluster object is nil")
+		return false
+	}
+	if c.Services.KubeController.ClusterCIDR == "" {
+		logrus.Debug("multipleCIDRsConfigured: Returning false, ClusterCIDR is empty")
+		return false
+	}
+	CIDRsSplitted := strings.Split(c.Services.KubeController.ClusterCIDR, ",")
+	multipleCIDRs, err := netutils.IsDualStackCIDRStrings(CIDRsSplitted)
+	if err != nil {
+		logrus.Debugf("multipleCIDRsConfigured: Returning false for ClusterCIDR [%s], error: %v", c.Services.KubeController.ClusterCIDR, err)
+		return false
+	}
+	if multipleCIDRs {
+		logrus.Debugf("multipleCIDRsConfigured: Returning true for ClusterCIDR [%s]", c.Services.KubeController.ClusterCIDR)
+		return true
+	}
+	logrus.Debugf("multipleCIDRsConfigured: Returning false for ClusterCIDR [%s]", c.Services.KubeController.ClusterCIDR)
 	return false
 }
