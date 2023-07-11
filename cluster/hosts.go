@@ -167,11 +167,17 @@ func (c *Cluster) getConsolidatedAdmissionConfiguration() (*apiserverv1.Admissio
 	_ = setPluginConfiguration(admissionConfig, ertConfig)
 
 	// PodSecurity
-	psConfig, err := c.getPodSecurityAdmissionPluginConfiguration()
+	parsedVersion, err := getClusterVersion(c.Version)
 	if err != nil {
 		return nil, err
 	}
-	_ = setPluginConfiguration(admissionConfig, psConfig)
+	if parsedRangeAtLeast123(parsedVersion) {
+		psConfig, err := c.getPodSecurityAdmissionPluginConfiguration()
+		if err != nil {
+			return nil, err
+		}
+		_ = setPluginConfiguration(admissionConfig, psConfig)
+	}
 
 	return admissionConfig, nil
 }
