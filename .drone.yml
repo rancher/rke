@@ -142,6 +142,8 @@ steps:
     event:
     - pull_request
     - tag
+  depends_on:
+    - build
 
 - name: integration-calico
   pull: default
@@ -156,6 +158,8 @@ steps:
     event:
     - pull_request
     - tag
+  depends_on:
+    - build
 
 - name: integration-weave
   pull: default
@@ -170,6 +174,8 @@ steps:
     event:
     - pull_request
     - tag
+  depends_on:
+    - build
 
 volumes:
 - name: socket
