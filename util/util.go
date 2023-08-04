@@ -3,7 +3,6 @@ package util
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"reflect"
@@ -244,7 +243,7 @@ func ReplaceFileWithBackup(originalFile, prefixBackupFile string) error {
 	if !fileExists {
 		return nil
 	}
-	tmpfile, err := ioutil.TempFile(".", prefixBackupFile)
+	tmpfile, err := os.CreateTemp(".", prefixBackupFile)
 	if err != nil {
 		return err
 	}
@@ -280,7 +279,7 @@ func CopyFileWithPrefix(originalFile, prefixDestFile string) error {
 	}
 	defer source.Close()
 
-	destFile, err := ioutil.TempFile(".", prefixDestFile)
+	destFile, err := os.CreateTemp(".", prefixDestFile)
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"math/big"
 	"net"
@@ -558,7 +557,7 @@ func ReadCSRsAndKeysFromDir(certDir string) (map[string]CertificatePKI, error) {
 		return certMap, nil
 	}
 
-	files, err := ioutil.ReadDir(certDir)
+	files, err := os.ReadDir(certDir)
 	if err != nil {
 		return nil, err
 	}
@@ -590,7 +589,7 @@ func ReadCertsAndKeysFromDir(certDir string) (map[string]CertificatePKI, error) 
 		return certMap, nil
 	}
 
-	files, err := ioutil.ReadDir(certDir)
+	files, err := os.ReadDir(certDir)
 	if err != nil {
 		return nil, err
 	}
@@ -638,7 +637,7 @@ func getOUName(certName string) string {
 
 func getCertFromFile(certDir string, fileName string) (*x509.Certificate, error) {
 	var certificate *x509.Certificate
-	certPEM, _ := ioutil.ReadFile(filepath.Join(certDir, fileName))
+	certPEM, _ := os.ReadFile(filepath.Join(certDir, fileName))
 	if len(certPEM) > 0 {
 		logrus.Debugf("Certificate file [%s/%s] content is greater than 0", certDir, fileName)
 		certificates, err := cert.ParseCertsPEM(certPEM)
@@ -652,7 +651,7 @@ func getCertFromFile(certDir string, fileName string) (*x509.Certificate, error)
 
 func getKeyFromFile(certDir string, fileName string) (*rsa.PrivateKey, error) {
 	var key *rsa.PrivateKey
-	keyPEM, _ := ioutil.ReadFile(filepath.Join(certDir, fileName))
+	keyPEM, _ := os.ReadFile(filepath.Join(certDir, fileName))
 	if len(keyPEM) > 0 {
 		keyInterface, err := cert.ParsePrivateKeyPEM(keyPEM)
 		if err != nil {
@@ -664,7 +663,7 @@ func getKeyFromFile(certDir string, fileName string) (*rsa.PrivateKey, error) {
 }
 
 func getCSRFromFile(certDir string, fileName string) ([]byte, error) {
-	csrPEM, err := ioutil.ReadFile(filepath.Join(certDir, fileName))
+	csrPEM, err := os.ReadFile(filepath.Join(certDir, fileName))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read csr [%s]: %v", fileName, err)
 	}
@@ -683,7 +682,7 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 	for certName, cert := range certBundle {
 		if cert.CertificatePEM != "" {
 			certificatePath := filepath.Join(certDirPath, certName+".pem")
-			if err := ioutil.WriteFile(certificatePath, []byte(cert.CertificatePEM), 0640); err != nil {
+			if err := os.WriteFile(certificatePath, []byte(cert.CertificatePEM), 0640); err != nil {
 				return fmt.Errorf("Failed to write certificate to path %v: %v", certificatePath, err)
 			}
 			logrus.Debugf("Successfully Deployed certificate file at [%s]", certificatePath)
@@ -691,7 +690,7 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 
 		if cert.KeyPEM != "" {
 			keyPath := filepath.Join(certDirPath, certName+"-key.pem")
-			if err := ioutil.WriteFile(keyPath, []byte(cert.KeyPEM), 0640); err != nil {
+			if err := os.WriteFile(keyPath, []byte(cert.KeyPEM), 0640); err != nil {
 				return fmt.Errorf("Failed to write key to path %v: %v", keyPath, err)
 			}
 			logrus.Debugf("Successfully Deployed key file at [%s]", keyPath)
@@ -699,7 +698,7 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 
 		if cert.CSRPEM != "" {
 			csrPath := filepath.Join(certDirPath, certName+"-csr.pem")
-			if err := ioutil.WriteFile(csrPath, []byte(cert.CSRPEM), 0640); err != nil {
+			if err := os.WriteFile(csrPath, []byte(cert.CSRPEM), 0640); err != nil {
 				return fmt.Errorf("Failed to write csr to path %v: %v", csrPath, err)
 			}
 			logrus.Debugf("Successfully Deployed csr file at [%s]", csrPath)
@@ -789,7 +788,7 @@ func validateCAIssuer(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle ma
 }
 
 func ReadCertToStr(file string) (string, error) {
-	certStr, err := ioutil.ReadFile(file)
+	certStr, err := os.ReadFile(file)
 	if err != nil {
 		return "", fmt.Errorf("failed to read certificate [%s]: %v", file, err)
 	}

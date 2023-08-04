@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -260,7 +260,7 @@ func (c *Cluster) deployAddonsInclude(ctx context.Context) error {
 
 			manifests = append(manifests, addonYAML...)
 		} else if isFilePath(addon) {
-			addonYAML, err := ioutil.ReadFile(addon)
+			addonYAML, err := os.ReadFile(addon)
 			if err != nil {
 				return err
 			}
@@ -324,7 +324,7 @@ func getAddonFromURL(yamlURL string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	addonYaml, err := ioutil.ReadAll(resp.Body)
+	addonYaml, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return nil, err

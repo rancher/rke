@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -271,7 +271,7 @@ func ReadStateFile(ctx context.Context, statePath string) (*FullState, error) {
 		return rkeFullState, fmt.Errorf("Can not find RKE state file: %v", err)
 	}
 	defer file.Close()
-	buf, err := ioutil.ReadAll(file)
+	buf, err := io.ReadAll(file)
 	if err != nil {
 		return rkeFullState, fmt.Errorf("failed to read state file: %v", err)
 	}

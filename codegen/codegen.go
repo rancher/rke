@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 
@@ -26,13 +26,13 @@ func main() {
 	}
 	defer data.Body.Close()
 
-	b, err := ioutil.ReadAll(data.Body)
+	b, err := io.ReadAll(data.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Writing data")
-	if err := ioutil.WriteFile(dataFile, b, 0755); err != nil {
+	if err := os.WriteFile(dataFile, b, 0755); err != nil {
 		return
 	}
 }

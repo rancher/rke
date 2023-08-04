@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -96,7 +96,7 @@ func getHealthz(client *http.Client, serviceName, hostAddress, url string) error
 		return fmt.Errorf("Failed to check %s for service [%s] on host [%s]: %v", url, serviceName, hostAddress, err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		statusBody, _ := ioutil.ReadAll(resp.Body)
+		statusBody, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("Service [%s] is not healthy on host [%s]. Response code: [%d], response body: %s", serviceName, hostAddress, resp.StatusCode, statusBody)
 	}
 	return nil

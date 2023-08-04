@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -97,7 +96,7 @@ func writeConfig(cluster *v3.RancherKubernetesEngineConfig, configFile string, p
 		fmt.Printf("Configuration File: \n%s", configString)
 		return nil
 	}
-	return ioutil.WriteFile(configFile, []byte(configString), 0640)
+	return os.WriteFile(configFile, []byte(configString), 0640)
 }
 
 func clusterConfig(ctx *cli.Context) error {

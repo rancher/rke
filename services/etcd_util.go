@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -116,7 +116,7 @@ func getHealthEtcd(hc http.Client, host *hosts.Host, url string) (string, error)
 	if err != nil {
 		return healthy.Health, fmt.Errorf("failed to get /health for host [%s]: %v", host.Address, err)
 	}
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return healthy.Health, fmt.Errorf("failed to read response of /health for host [%s]: %v", host.Address, err)
 	}

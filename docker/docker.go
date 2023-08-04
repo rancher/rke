@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -311,7 +310,7 @@ func pullImage(ctx context.Context, dClient *client.Client, hostname string, con
 		if logrus.GetLevel() == logrus.TraceLevel {
 			io.Copy(os.Stdout, out)
 		} else {
-			io.Copy(ioutil.Discard, out)
+			io.Copy(io.Discard, out)
 		}
 		return nil
 	}
@@ -647,7 +646,7 @@ func ReadFileFromContainer(ctx context.Context, dClient *client.Client, hostname
 	if _, err := tarReader.Next(); err != nil {
 		return "", err
 	}
-	file, err := ioutil.ReadAll(tarReader)
+	file, err := io.ReadAll(tarReader)
 	if err != nil {
 		return "", err
 	}
