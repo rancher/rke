@@ -476,7 +476,7 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 
 		return docker.RemoveContainer(ctx, etcdHost.DClient, etcdHost.Address, EtcdSnapshotOnceContainerName)
 	}
-	log.Infof(ctx, "[etcd] Running rolling snapshot container [%s] on host [%s]", EtcdSnapshotOnceContainerName, etcdHost.Address)
+	log.Infof(ctx, "[etcd] Running rolling snapshot container [%s] on host [%s]", EtcdSnapshotContainerName, etcdHost.Address)
 	logrus.Debugf("[etcd] Using command [%s] for rolling snapshot container [%s] on host [%s]", getSanitizedSnapshotCmd(imageCfg, es.BackupConfig), EtcdSnapshotContainerName, etcdHost.Address)
 	if err := docker.DoRemoveContainer(ctx, etcdHost.DClient, EtcdSnapshotContainerName, etcdHost.Address); err != nil {
 		return err
