@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -85,9 +85,9 @@ func readFile(file string) ([]byte, error) {
 			return nil, err
 		}
 		defer resp.Body.Close()
-		return ioutil.ReadAll(resp.Body)
+		return io.ReadAll(resp.Body)
 	}
-	return ioutil.ReadFile(file)
+	return os.ReadFile(file)
 }
 
 const RKEVersionDev = "v1.4.99"

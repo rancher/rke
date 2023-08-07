@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -209,7 +208,7 @@ func DeployAdminConfig(ctx context.Context, kubeConfig, localConfigPath string) 
 	}
 	logrus.Debugf("Deploying admin Kubeconfig locally at [%s]", localConfigPath)
 	logrus.Tracef("Deploying admin Kubeconfig locally: %s", kubeConfig)
-	err := ioutil.WriteFile(localConfigPath, []byte(kubeConfig), 0600)
+	err := os.WriteFile(localConfigPath, []byte(kubeConfig), 0600)
 	if err != nil {
 		return fmt.Errorf("Failed to create local admin kubeconfig file: %v", err)
 	}

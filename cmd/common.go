@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,7 +40,7 @@ func resolveClusterFile(ctx *cli.Context) (string, string, error) {
 		return "", "", fmt.Errorf("can not find cluster configuration file: %v", err)
 	}
 	defer file.Close()
-	buf, err := ioutil.ReadAll(file)
+	buf, err := io.ReadAll(file)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read file: %v", err)
 	}

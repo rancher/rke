@@ -4,7 +4,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"regexp"
 
@@ -34,7 +34,7 @@ func mainErr() error {
 	app.Usage = "Rancher Kubernetes Engine, an extremely simple, lightning fast Kubernetes installer that works everywhere"
 	app.Before = func(ctx *cli.Context) error {
 		if ctx.GlobalBool("quiet") {
-			logrus.SetOutput(ioutil.Discard)
+			logrus.SetOutput(io.Discard)
 		} else {
 			if ctx.GlobalBool("debug") {
 				logrus.SetLevel(logrus.DebugLevel)

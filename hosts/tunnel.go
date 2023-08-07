@@ -3,7 +3,6 @@ package hosts
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -136,7 +135,7 @@ func privateKeyPath(sshKeyPath string) (string, error) {
 	if sshKeyPath[:2] == "~/" {
 		sshKeyPath = filepath.Join(userHome(), sshKeyPath[2:])
 	}
-	buff, err := ioutil.ReadFile(sshKeyPath)
+	buff, err := os.ReadFile(sshKeyPath)
 	if err != nil {
 		return "", fmt.Errorf("Error while reading SSH key file: %v", err)
 	}
@@ -147,7 +146,7 @@ func certificatePath(sshCertPath string) (string, error) {
 	if sshCertPath[:2] == "~/" {
 		sshCertPath = filepath.Join(userHome(), sshCertPath[2:])
 	}
-	buff, err := ioutil.ReadFile(sshCertPath)
+	buff, err := os.ReadFile(sshCertPath)
 	if err != nil {
 		return "", fmt.Errorf("Error while reading SSH certificate file: %v", err)
 	}
