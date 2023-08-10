@@ -4,14 +4,14 @@ go 1.20
 
 replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
-	k8s.io/client-go => k8s.io/client-go v0.27.2
+	k8s.io/client-go => github.com/vardhaman22/rancher-client-go v1.27.4-rancher1
 	sigs.k8s.io/json => sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2
 )
 
 replace (
-	github.com/rancher/lasso => github.com/rayandas/lasso v1.27.2-rancher1
-	github.com/rancher/norman => github.com/rayandas/norman v1.27.2-rancher1
-	github.com/rancher/wrangler => github.com/rayandas/wrangler v1.27.2-rancher1
+	github.com/rancher/lasso => github.com/vardhaman22/lasso v1.27.4-rancher2
+	github.com/rancher/norman => github.com/vardhaman22/norman v1.27.4-rancher1
+	github.com/rancher/wrangler => github.com/vardhaman22/wrangler v1.27.4-rancher1
 )
 
 require (
@@ -35,18 +35,18 @@ require (
 	github.com/urfave/cli v1.22.13
 	go.etcd.io/etcd/client/v2 v2.305.9
 	go.etcd.io/etcd/client/v3 v3.5.9
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.11.0
 	golang.org/x/sync v0.2.0
 	google.golang.org/grpc v1.55.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.27.2
-	k8s.io/apimachinery v0.27.2
-	k8s.io/apiserver v0.27.2
+	k8s.io/api v0.27.4
+	k8s.io/apimachinery v0.27.4
+	k8s.io/apiserver v0.27.4
 	k8s.io/client-go v1.5.2
 	k8s.io/gengo v0.0.0-20230306165830-ab3349d207d4
-	k8s.io/kubectl v0.27.2
+	k8s.io/kubectl v0.27.4
 	k8s.io/kubernetes v1.15.0-alpha.0
-	k8s.io/pod-security-admission v0.27.2
+	k8s.io/pod-security-admission v0.27.4
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -114,7 +114,7 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/rancher/lasso v0.0.0-20230502204209-3eb356f3e8cf // indirect
+	github.com/rancher/lasso v0.0.0-20230629200414-8a54b32e6792 // indirect
 	github.com/rancher/wrangler v1.1.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
@@ -129,11 +129,11 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/term v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/term v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.9.1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -144,8 +144,8 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.4.0 // indirect
-	k8s.io/cli-runtime v0.27.2 // indirect
-	k8s.io/component-base v0.27.2 // indirect
+	k8s.io/cli-runtime v0.27.4 // indirect
+	k8s.io/component-base v0.27.4 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230530175149-33f04d5d6b58 // indirect
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
