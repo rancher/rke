@@ -3,6 +3,11 @@ package dind
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -20,7 +25,7 @@ const (
 	DINDSubnet          = "172.18.0.0/16"
 )
 
-func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindStorageDriver, dindDNS string) (string, error) {
+func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindStorageDriver, dindDNS, dindImportImagesList, dindImportImagesPath string) (string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		return "", err
@@ -58,6 +63,48 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 		} else {
 			binds = append(binds, "/etc/resolv.conf:/etc/resolv.conf")
 		}
+		// Export images to shared image path if configured
+		if dindImportImagesList != "" {
+			importImages := strings.Split(dindImportImagesList, ",")
+			logrus.Infof("[%s] Found one or more custom images to use for testing in docker in docker: %v", DINDPlane, importImages)
+			logrus.Infof("[%s] Using bind [%s] as shared image path for custom images", DINDPlane, dindImportImagesPath)
+			// Add shared path to binds for dind containers
+			binds = append(binds, fmt.Sprintf("%s/%s:%s", dindImportImagesPath, containerName, dindImportImagesPath))
+			// Export each configured image
+			for _, importImage := range importImages {
+				logrus.Infof("[%s] Exporting image [%s]", DINDPlane, importImage)
+				reader, err := cli.ImageSave(ctx, []string{importImage})
+				if err != nil {
+					return "", fmt.Errorf("Failed to save image [%s]: %v", importImage, err)
+				}
+				defer reader.Close()
+
+				// Keep the filename valid (no breaking characters)
+				imageFilename := strings.Replace(importImage, "/", "_", -1)
+				imageFilename = strings.Replace(imageFilename, ":", "_", -1)
+				tarFileName := fmt.Sprintf("dind-image-tar-%s.tar", imageFilename)
+				// Create a temporary directory to extract the Docker image to.
+				err = os.MkdirAll(filepath.Join(dindImportImagesPath, containerName), 0755)
+				if err != nil {
+					return "", fmt.Errorf("Failed to create directory [%s]", filepath.Join(dindImportImagesPath, containerName))
+				}
+				tarPath := filepath.Join(dindImportImagesPath, containerName, tarFileName)
+				tarFile, err := os.Create(tarPath)
+				if err != nil {
+					return "", fmt.Errorf("Failed to create image file for image [%s]: %v", importImage, err)
+				}
+				defer tarFile.Close()
+
+				// Copy the Docker image to the temporary file.
+				_, err = io.Copy(tarFile, reader)
+				if err != nil {
+					return "", fmt.Errorf("Failed to copy reader to image file [%s] for image [%s]: %v", tarFileName, importImage, err)
+				}
+				logrus.Infof("[%s] Done exporting image [%s]", DINDPlane, importImage)
+			}
+			logrus.Infof("[%s] Done exporting all images", DINDPlane)
+		}
+
 		imageCfg := &container.Config{
 			Image: DINDImage,
 			Entrypoint: []string{
@@ -89,7 +136,20 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 		if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 			return "", fmt.Errorf("Failed to start [%s] container on host [%s]: %v", containerName, cli.DaemonHost(), err)
 		}
+
 		logrus.Infof("[%s] Successfully started [%s] container on host [%s]", DINDPlane, containerName, cli.DaemonHost())
+
+		// Exec into containers to load images
+		if dindImportImagesList != "" {
+			logrus.Infof("[%s] Running docker load using docker exec in container [%s]", DINDPlane, containerName)
+			cmd := exec.Command("docker", "exec", containerName, "sh", "-c", fmt.Sprintf("find %s -type f | xargs docker load -i", dindImportImagesPath))
+
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				return "", fmt.Errorf("Failed to exec command in container [%s]: %v, output: %s", containerName, err, string(output))
+			}
+			logrus.Infof("[%s] Log output for docker exec in container [%s]:\n %s", DINDPlane, containerName, string(output))
+		}
 		dindContainer, err := cli.ContainerInspect(ctx, containerName)
 		if err != nil {
 			return "", fmt.Errorf("Failed to get the address of container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)

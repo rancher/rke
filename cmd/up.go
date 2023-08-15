@@ -41,6 +41,15 @@ func UpCommand() cli.Command {
 			Usage: "Storage driver for the docker in docker containers (experimental)",
 		},
 		cli.StringFlag{
+			Name:  "dind-import-images-list",
+			Usage: "Comma separated list of images to import from host/CI Docker for use in docker in docker",
+		},
+		cli.StringFlag{
+			Name:  "dind-import-images-path",
+			Usage: "The shared path where host/CI Docker images are exported and where docker in docker containers can import images from",
+			Value: "/data/docker-images",
+		},
+		cli.StringFlag{
 			Name:  "dind-dns-server",
 			Usage: "DNS resolver to be used by docker in docker container. Useful if host is running systemd-resovld",
 			Value: "8.8.8.8",
@@ -353,12 +362,12 @@ func clusterUpLocal(ctx *cli.Context) error {
 
 func clusterUpDind(ctx *cli.Context) error {
 	// get dind config
-	rkeConfig, disablePortCheck, dindStorageDriver, filePath, dindDNS, err := getDindConfig(ctx)
+	rkeConfig, disablePortCheck, dindStorageDriver, filePath, dindDNS, dindImportImagesList, dindImportImagesPath, err := getDindConfig(ctx)
 	if err != nil {
 		return err
 	}
 	// setup dind environment
-	if err = createDINDEnv(context.Background(), rkeConfig, dindStorageDriver, dindDNS); err != nil {
+	if err = createDINDEnv(context.Background(), rkeConfig, dindStorageDriver, dindDNS, dindImportImagesList, dindImportImagesPath); err != nil {
 		return err
 	}
 
@@ -379,24 +388,26 @@ func clusterUpDind(ctx *cli.Context) error {
 	return err
 }
 
-func getDindConfig(ctx *cli.Context) (*v3.RancherKubernetesEngineConfig, bool, string, string, string, error) {
+func getDindConfig(ctx *cli.Context) (*v3.RancherKubernetesEngineConfig, bool, string, string, string, string, string, error) {
 	disablePortCheck := ctx.Bool("disable-port-check")
 	dindStorageDriver := ctx.String("dind-storage-driver")
 	dindDNS := ctx.String("dind-dns-server")
+	dindImportImagesList := ctx.String("dind-import-images-list")
+	dindImportImagesPath := ctx.String("dind-import-images-path")
 
 	clusterFile, filePath, err := resolveClusterFile(ctx)
 	if err != nil {
-		return nil, disablePortCheck, "", "", "", fmt.Errorf("Failed to resolve cluster file: %v", err)
+		return nil, disablePortCheck, "", "", "", "", "", fmt.Errorf("Failed to resolve cluster file: %v", err)
 	}
 
 	rkeConfig, err := cluster.ParseConfig(clusterFile)
 	if err != nil {
-		return nil, disablePortCheck, "", "", "", fmt.Errorf("Failed to parse cluster file: %v", err)
+		return nil, disablePortCheck, "", "", "", "", "", fmt.Errorf("Failed to parse cluster file: %v", err)
 	}
 
 	rkeConfig, err = setOptionsFromCLI(ctx, rkeConfig)
 	if err != nil {
-		return nil, disablePortCheck, "", "", "", err
+		return nil, disablePortCheck, "", "", "", "", "", err
 	}
 	// Setting conntrack max for kubeproxy to 0
 	if rkeConfig.Services.Kubeproxy.ExtraArgs == nil {
@@ -404,13 +415,14 @@ func getDindConfig(ctx *cli.Context) (*v3.RancherKubernetesEngineConfig, bool, s
 	}
 	rkeConfig.Services.Kubeproxy.ExtraArgs["conntrack-max-per-core"] = "0"
 
-	return rkeConfig, disablePortCheck, dindStorageDriver, filePath, dindDNS, nil
+	return rkeConfig, disablePortCheck, dindStorageDriver, filePath, dindDNS, dindImportImagesList, dindImportImagesPath, nil
 }
 
-func createDINDEnv(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dindStorageDriver, dindDNS string) error {
+func createDINDEnv(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, dindStorageDriver, dindDNS, dindImportImagesList, dindImportImagesPath string) error {
 	for i := range rkeConfig.Nodes {
-		address, err := dind.StartUpDindContainer(ctx, rkeConfig.Nodes[i].Address, dind.DINDNetwork, dindStorageDriver, dindDNS)
+		address, err := dind.StartUpDindContainer(ctx, rkeConfig.Nodes[i].Address, dind.DINDNetwork, dindStorageDriver, dindDNS, dindImportImagesList, dindImportImagesPath)
 		if err != nil {
+			logrus.Error(err)
 			return err
 		}
 		if rkeConfig.Nodes[i].HostnameOverride == "" {
