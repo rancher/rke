@@ -242,6 +242,7 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
+	data["calico-upgrade-cluster"] = reconcileCluster
 	err = cluster.ConfigureCluster(ctx, kubeCluster.RancherKubernetesEngineConfig, kubeCluster.Certificates, flags, dialersOptions, data, false)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err

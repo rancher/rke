@@ -152,6 +152,8 @@ type RKESystemImages struct {
 	CalicoCNI string `yaml:"calico_cni" json:"calicoCni,omitempty"`
 	// Calico Controllers image
 	CalicoControllers string `yaml:"calico_controllers" json:"calicoControllers,omitempty"`
+	// Calico Operator image
+	CalicoOperator string `yaml:"calico_operator" json:"calicoOperator,omitempty"`
 	// Calicoctl image
 	CalicoCtl string `yaml:"calico_ctl" json:"calicoCtl,omitempty"`
 	// CalicoFlexVol image

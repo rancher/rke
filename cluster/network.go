@@ -60,6 +60,7 @@ const (
 	CalicoFlexVolPluginDirectory                  = "calico_flex_volume_plugin_dir"
 	CalicoNodePriorityClassNameKeyName            = "calico_node_priority_class_name"
 	CalicoKubeControllersPriorityClassNameKeyName = "calico_kube_controllers_priority_class_name"
+	CalicoOperator                                = "tigera-operator-v3.26.1"
 
 	CanalNetworkPlugin      = "canal"
 	CanalIface              = "canal_iface"
@@ -186,6 +187,7 @@ const (
 	Image              = "Image"
 	CNIImage           = "CNIImage"
 	NodeImage          = "NodeImage"
+	OperatorImage      = "OperatorImage"
 	ControllersImage   = "ControllersImage"
 	CanalFlannelImg    = "CanalFlannelImg"
 	FlexVolImg         = "FlexVolImg"
@@ -408,6 +410,7 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context, data map[string]interface{
 		ClusterCIDR:      c.ClusterCIDR,
 		CNIImage:         c.SystemImages.CalicoCNI,
 		NodeImage:        c.SystemImages.CalicoNode,
+		OperatorImage:    c.SystemImages.CalicoOperator,
 		Calicoctl:        c.SystemImages.CalicoCtl,
 		ControllersImage: c.SystemImages.CalicoControllers,
 		CloudProvider:    c.Network.Options[CalicoCloudProvider],
@@ -423,6 +426,21 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context, data map[string]interface{
 		FlexVolPluginDir:                       c.Network.Options[CalicoFlexVolPluginDirectory],
 		CalicoNodePriorityClassName:            c.Network.Options[CalicoNodePriorityClassNameKeyName],
 		CalicoKubeControllersPriorityClassName: c.Network.Options[CalicoKubeControllersPriorityClassNameKeyName],
+	}
+	//check if we're using the 'Installation' Custom Resource
+	//If yes, we're using the Tigera Operator
+	isUsingOperator, err := c.checkTigeraOperator(ctx)
+	if err != nil {
+		logrus.Infof("couldn't read Installation CR: %s", err)
+	}
+	isUpgrading := data["calico-upgrade-cluster"].(bool)
+	if isUsingOperator || !isUpgrading {
+		//already migrated to Operator => keep using it
+		//or new cluster => use Operator
+		calicoConfig["CalicoUseOperator"] = true
+	} else {
+		//existing cluster deployed with Calido deployed by manifests => keep using manifests
+		calicoConfig["CalicoUseOperator"] = false
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(calicoConfig, data)
 	if err != nil {
@@ -677,7 +695,7 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 
 func (c *Cluster) getNetworkPluginManifest(pluginConfig, data map[string]interface{}) (string, error) {
 	switch c.Network.Plugin {
-	case CanalNetworkPlugin, FlannelNetworkPlugin, CalicoNetworkPlugin, WeaveNetworkPlugin, AciNetworkPlugin:
+	case CanalNetworkPlugin, CalicoNetworkPlugin, FlannelNetworkPlugin, WeaveNetworkPlugin, AciNetworkPlugin:
 		tmplt, err := templates.GetVersionedTemplates(c.Network.Plugin, data, c.Version)
 		if err != nil {
 			return "", err
