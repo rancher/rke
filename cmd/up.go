@@ -183,6 +183,7 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		kubeCluster.NewHosts = newNodes
 		reconcileCluster = true
 
+        kubeCluster.FindHostsLabeledToIgnoreUpgrade(ctx)
 		maxUnavailableWorker, maxUnavailableControl, err := kubeCluster.CalculateMaxUnavailable()
 		if err != nil {
 			return APIURL, caCrt, clientCert, clientKey, nil, err
@@ -270,6 +271,9 @@ func checkAllIncluded(cluster *cluster.Cluster) error {
 
 	var names []string
 	for _, host := range cluster.InactiveHosts {
+	    if cluster.HostsLabeledToIgnoreUpgrade[host.Address] {
+			continue
+		}
 		names = append(names, host.Address)
 	}
 

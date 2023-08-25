@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/rancher/rke/hosts"
+	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/pki"
 	"github.com/rancher/rke/services"
@@ -61,6 +62,28 @@ func (c *Cluster) TunnelHosts(ctx context.Context, flags ExternalFlags) error {
 		c.RancherKubernetesEngineConfig.Nodes = removeFromRKENodes(host.RKEConfigNode, c.RancherKubernetesEngineConfig.Nodes)
 	}
 	return ValidateHostCount(c)
+}
+
+func (c *Cluster) FindHostsLabeledToIgnoreUpgrade(ctx context.Context) error {
+	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
+	if err != nil {
+	    return err
+	}
+	nodeList, err := k8s.GetNodeList(kubeClient)
+	if err != nil {
+	    return err
+	}
+	if nodeList == nil {
+		return err
+	}
+	for _, node := range nodeList.Items {
+		if val, ok := node.Labels[k8s.IgnoreHostDuringUpgradeLabel]; ok && val == k8s.IgnoreLabelValue {
+			host := hosts.Host{RKEConfigNode: v3.RKEConfigNode{Address: node.Annotations[k8s.ExternalAddressAnnotation]}}
+			logrus.Infof("Host %v is labeled to ignore upgrade", host.Address)
+			c.HostsLabeledToIgnoreUpgrade[host.Address] = true
+		}
+	}
+	return nil
 }
 
 func (c *Cluster) InvertIndexHosts() error {
@@ -125,10 +148,10 @@ func (c *Cluster) CalculateMaxUnavailable() (int, int, error) {
 	var workerHosts, controlHosts, maxUnavailableWorker, maxUnavailableControl int
 
 	for _, host := range c.InactiveHosts {
-		if host.IsControl {
+		if host.IsControl && c.HostsLabeledToIgnoreUpgrade[host.Address] {
 			inactiveControlPlaneHosts = append(inactiveControlPlaneHosts, host.HostnameOverride)
 		}
-		if !host.IsWorker {
+		if !host.IsWorker && c.HostsLabeledToIgnoreUpgrade[host.Address] {
 			inactiveWorkerHosts = append(inactiveWorkerHosts, host.HostnameOverride)
 		}
 		// not breaking out of the loop so we can log all of the inactive hosts
