@@ -67,11 +67,11 @@ func (c *Cluster) TunnelHosts(ctx context.Context, flags ExternalFlags) error {
 func (c *Cluster) FindHostsLabeledToIgnoreUpgrade(ctx context.Context) error {
 	kubeClient, err := k8s.NewClient(c.LocalKubeConfigPath, c.K8sWrapTransport)
 	if err != nil {
-	    return err
+		return err
 	}
 	nodeList, err := k8s.GetNodeList(kubeClient)
 	if err != nil {
-	    return err
+		return err
 	}
 	if nodeList == nil {
 		return err
