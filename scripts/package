@@ -10,23 +10,3 @@ SUFFIX=""
 [ "${ARCH}" != "amd64" ] && SUFFIX="_${ARCH}"
 
 ./scripts/create-releasenote.sh
-
-cd package
-
-TAG=${TAG:-${VERSION}${SUFFIX}}
-REPO=${REPO:-rke}
-
-if echo $TAG | grep -q dirty; then
-    TAG=dev
-fi
-
-if [ -n "$DRONE_TAG" ]; then
-    TAG=$DRONE_TAG
-fi
-
-cp ../bin/rke .
-
-IMAGE=${REPO}/rke:${TAG}
-docker build -t ${IMAGE} .
-echo ${IMAGE} > ../dist/images
-echo Built ${IMAGE}
