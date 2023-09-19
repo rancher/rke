@@ -15,10 +15,12 @@ jobs:
        tagstmpfile=$(mktemp)
        readmetmpfile=$(mktemp)
        gh api graphql -F owner='rancher' -F name='rke' -f query='query($name: String!, $owner: String!) {repository(owner: $owner, name: $name) {releases(first: 100) {nodes { tagName }}}}' |jq -r .data.repository.releases[] > $tagstmpfile
-       for rke_major_minor in 1.4 1.3 1.2; do
+       for rke_major_minor in 1.5 1.4 1.3; do
          latest=$(jq -r 'first(.[] | select(.tagName | startswith("v'"${rke_major_minor}"'")) | select(.tagName | contains("rc") | not) | .tagName)' $tagstmpfile)
-         echo "* v${rke_major_minor}" >> $readmetmpfile
-         echo "  * ${latest} - Read the full release [notes](https://github.com/rancher/rke/releases/tag/${latest})." >> $readmetmpfile
+         if [ -n "${latest}" ]; then
+           echo "* v${rke_major_minor}" >> $readmetmpfile
+           echo "  * ${latest} - Read the full release [notes](https://github.com/rancher/rke/releases/tag/${latest})." >> $readmetmpfile
+         fi
        done
        sed -e '/## Latest Release/r '"$readmetmpfile"'' -e 's/CURRENTYEAR/'"$(date +%Y)"'/g' README-template.md > README.md
       env:
