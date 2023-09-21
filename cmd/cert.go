@@ -199,7 +199,7 @@ func rebuildClusterWithRotatedCertificates(ctx context.Context,
 	}
 
 	if kubeCluster.RotateCertificates.CACertificates {
-		if err := cluster.RestartClusterPods(ctx, kubeCluster); err != nil {
+		if err := cluster.DeleteClusterPods(ctx, kubeCluster); err != nil {
 			return APIURL, caCrt, clientCert, clientKey, nil, err
 		}
 	}

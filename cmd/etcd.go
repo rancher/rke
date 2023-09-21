@@ -245,7 +245,7 @@ func RestoreEtcdSnapshot(
 		log.Warnf(ctx, err.Error())
 	}
 
-	if err := cluster.RestartClusterPods(ctx, kubeCluster); err != nil {
+	if err := cluster.DeleteClusterPods(ctx, kubeCluster); err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 	if err := kubeCluster.RemoveOldNodes(ctx); err != nil {

@@ -1104,12 +1104,12 @@ func ConfigureCluster(
 	return nil
 }
 
-func RestartClusterPods(ctx context.Context, kubeCluster *Cluster) error {
-	log.Infof(ctx, "Restarting network, ingress, and metrics pods")
+func DeleteClusterPods(ctx context.Context, kubeCluster *Cluster) error {
+	log.Infof(ctx, "Deleting system pods")
 	// this will remove the pods created by RKE and let the controller creates them again
 	kubeClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize new kubernetes client: %v", err)
+		return fmt.Errorf("Failed to initialize new Kubernetes client: %w", err)
 	}
 	labelsList := []string{
 		fmt.Sprintf("%s=%s", KubeAppLabel, FlannelNetworkPlugin),
@@ -1133,14 +1133,17 @@ func RestartClusterPods(ctx context.Context, kubeCluster *Cluster) error {
 			var errList []error
 			for label := range labelQueue {
 				runLabel := label.(string)
+				logrus.Debugf("Listing system pods with label %v to be deleted", runLabel)
 				// list pods to be deleted
 				pods, err := k8s.ListPodsByLabel(kubeClient, runLabel)
 				if err != nil {
+					logrus.Errorf("Error while listing system pods with label %v: %v", runLabel, err)
 					errList = append(errList, err)
 				}
 				// delete pods
 				err = k8s.DeletePods(kubeClient, pods)
 				if err != nil {
+					logrus.Errorf("Error while deleting system pods: %v", err)
 					errList = append(errList, err)
 				}
 			}
