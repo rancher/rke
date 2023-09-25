@@ -16,6 +16,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const MinEtcdVersionWithDistrolessImage = "v3.5.7"
+
 func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 	backupImage := c.getBackupImage()
 	containerTimeout := DefaultEtcdBackupConfigTimeout
@@ -225,13 +227,14 @@ func (c *Cluster) RestoreEtcdSnapshot(ctx context.Context, snapshotPath string) 
 	// Start restore process on all etcd hosts
 	initCluster := services.GetEtcdInitialCluster(c.EtcdHosts)
 	backupImage := c.getBackupImage()
+	restoreImage := c.getRestoreImage()
 	for _, host := range c.EtcdHosts {
 		containerTimeout := DefaultEtcdBackupConfigTimeout
 		if c.Services.Etcd.BackupConfig != nil && c.Services.Etcd.BackupConfig.Timeout > 0 {
 			containerTimeout = c.Services.Etcd.BackupConfig.Timeout
 		}
 		newCtx := context.WithValue(ctx, docker.WaitTimeoutContextKey, containerTimeout)
-		if err := services.RestoreEtcdSnapshot(newCtx, host, c.PrivateRegistriesMap, c.SystemImages.Etcd, backupImage,
+		if err := services.RestoreEtcdSnapshot(newCtx, host, c.PrivateRegistriesMap, restoreImage, backupImage,
 			snapshotPath, initCluster, c.Services.Etcd, c.Version); err != nil {
 			return fmt.Errorf("[etcd] Failed to restore etcd snapshot: %v", err)
 		}
@@ -280,4 +283,36 @@ func (c *Cluster) getBackupImage() string {
 	}
 	logrus.Debugf("[etcd] Image used for etcd snapshot is: [%s]", rkeToolsImage)
 	return rkeToolsImage
+}
+
+func (c *Cluster) getRestoreImage() string {
+
+	// use etcd image for restore in case of custom system image
+	if !strings.Contains(c.SystemImages.Etcd, "rancher/mirrored-coreos-etcd") {
+		return c.SystemImages.Etcd
+	}
+
+	etcdImageTag, err := util.GetImageTagFromImage(c.SystemImages.Etcd)
+	if err != nil {
+		logrus.Errorf("[etcd] getRestoreImage: error extracting tag from etcd image: %v", err)
+		return ""
+	}
+
+	etcdVersion, err := util.StrToSemVer(etcdImageTag)
+	if err != nil {
+		logrus.Errorf("[etcd] getRestoreImage: error converting etcd image tag to semver: %v", err)
+		return ""
+	}
+
+	minEtcdVersionWithDistrolessImage, err := util.StrToSemVer(MinEtcdVersionWithDistrolessImage)
+	if err != nil {
+		logrus.Errorf("[etcd] getRestoreImage: error converting min distroless etcd image version to semver: %v", err)
+		return ""
+	}
+
+	if etcdVersion.LessThan(*minEtcdVersionWithDistrolessImage) {
+		return c.SystemImages.Etcd
+	}
+
+	return c.getBackupImage()
 }
