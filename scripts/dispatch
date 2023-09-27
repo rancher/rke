@@ -8,6 +8,9 @@ case $DRONE_TAG in
   "v1.4"*)
     ACTION_TARGET_BRANCH="release/v2.7"
     ;;
+  "v1.5"*)
+    ACTION_TARGET_BRANCH="release/v2.8"
+    ;;
   *)
     echo "Not a valid tag, not dispatching event"
     exit 0
