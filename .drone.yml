@@ -24,18 +24,6 @@ steps:
     - pull_request
     - tag
 
-- name: stage-binaries
-  pull: default
-  image: rancher/dapper:v0.6.0
-  commands:
-  - "cp -r ./bin/* ./package/"
-  when:
-    event:
-    - tag
-    ref:
-      include:
-      - "refs/tags/*"
-
 - name: github_binary_prerelease
   pull: default
   image: plugins/github-release
