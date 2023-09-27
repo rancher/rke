@@ -6,17 +6,25 @@ replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
 	// Replace some k8s modules with specific versions to get rid of the "unknown revision v0.0.0" error caused by the k8s.io/kubernetes module
 	// Upstream Issue: https://github.com/kubernetes/kubernetes/issues/79384
+	k8s.io/api => k8s.io/api v0.27.6
+	k8s.io/apimachinery => k8s.io/apimachinery v0.27.6
+	k8s.io/apiserver => k8s.io/apiserver v0.27.6
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.27.6
+	k8s.io/client-go => k8s.io/client-go v0.27.6
 	k8s.io/cloud-provider => k8s.io/cloud-provider v0.27.6
 	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.27.6
+	k8s.io/component-base => k8s.io/component-base v0.27.6
 	k8s.io/controller-manager => k8s.io/controller-manager v0.27.6
 	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.27.6
 	k8s.io/dynamic-resource-allocation => k8s.io/dynamic-resource-allocation v0.27.6
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.27.6
 	k8s.io/kube-proxy => k8s.io/kube-proxy v0.27.6
 	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.27.6
+	k8s.io/kubectl => k8s.io/kubectl v0.27.6
 	k8s.io/kubelet => k8s.io/kubelet v0.27.6
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.27.6
 	k8s.io/mount-utils => k8s.io/mount-utils v0.27.6
+	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.27.6
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.27.6
 	sigs.k8s.io/json => sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2
 )
