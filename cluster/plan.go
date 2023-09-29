@@ -60,6 +60,11 @@ const (
 	MaxK8s121Version          = "v1.21.99-rancher99"
 	MaxK8s122Version          = "v1.22.99-rancher99"
 
+	// For Calico CNI fix
+	SeptK8s125Version = "v1.25.14-rancher1-1"
+	SeptK8s126Version = "v1.26.9-rancher1-1"
+	SeptK8s127Version = "v1.27.6-rancher1-1"
+
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
 	KubeletCRIDockerdNameEnv = "RKE_KUBELET_CRIDOCKERD"
@@ -563,6 +568,29 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 			fmt.Sprintf("%s:c:/host/run", path.Join(host.PrefixPath, "/run")),
 		}...)
 	} else {
+		// For Calico CNI fix
+		parsedVersion, err := getClusterVersion(c.Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		parsedSeptK8s125Version, err := getClusterVersion(SeptK8s125Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		parsedSeptK8s126Version, err := getClusterVersion(SeptK8s126Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		parsedSeptK8s127Version, err := getClusterVersion(SeptK8s127Version)
+		if err != nil {
+			logrus.Debugf("Error while parsing cluster version: %s", err)
+		}
+		if (parsedVersion.Major == parsedSeptK8s125Version.Major && parsedVersion.Minor == parsedSeptK8s125Version.Minor && parsedVersion.GE(parsedSeptK8s125Version)) ||
+			(parsedVersion.Major == parsedSeptK8s126Version.Major && parsedVersion.Minor == parsedSeptK8s126Version.Minor && parsedVersion.GE(parsedSeptK8s126Version)) ||
+			parsedVersion.GE(parsedSeptK8s127Version) {
+			Binds = append(Binds, "/var/log/calico/cni:/var/log/calico/cni:z")
+		}
+
 		Binds = append(Binds, []string{
 			fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 			"/etc/cni:/etc/cni:rw,z",
@@ -580,6 +608,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 			"/dev:/host/dev:rprivate",
 			"/var/log/containers:/var/log/containers:z",
 			"/var/log/pods:/var/log/pods:z",
+			"/var/log/calico/cni:/var/log/calico/cni:z",
 			"/usr:/host/usr:ro",
 			"/etc:/host/etc:ro",
 		}...)
