@@ -72,8 +72,8 @@ const (
 	DefaultFlannelBackendVxLanVNI  = "1"
 
 	DefaultCalicoFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
-
-	DefaultCanalFlexVolPluginDirectory = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
+	DefaultCalicoFeatureDetectOverride  = ""
+	DefaultCanalFlexVolPluginDirectory  = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds"
 
 	DefaultAciApicRefreshTime                   = "1200"
 	DefaultAciOVSMemoryLimit                    = "1Gi"
@@ -757,8 +757,9 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	switch c.Network.Plugin {
 	case CalicoNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{
-			CalicoCloudProvider:          DefaultNetworkCloudProvider,
-			CalicoFlexVolPluginDirectory: DefaultCalicoFlexVolPluginDirectory,
+			CalicoCloudProvider:                DefaultNetworkCloudProvider,
+			CalicoFlexVolPluginDirectory:       DefaultCalicoFlexVolPluginDirectory,
+			CalicoFeatureDetectOverrideKeyName: DefaultCalicoFeatureDetectOverride,
 		}
 	case FlannelNetworkPlugin:
 		networkPluginConfigDefaultsMap = map[string]string{

@@ -60,6 +60,7 @@ const (
 	CalicoFlexVolPluginDirectory                  = "calico_flex_volume_plugin_dir"
 	CalicoNodePriorityClassNameKeyName            = "calico_node_priority_class_name"
 	CalicoKubeControllersPriorityClassNameKeyName = "calico_kube_controllers_priority_class_name"
+	CalicoFeatureDetectOverrideKeyName            = "calico_feature_detect_override"
 
 	CanalNetworkPlugin      = "canal"
 	CanalIface              = "canal_iface"
@@ -198,6 +199,8 @@ const (
 	KubeFlannelPriorityClassName           = "KubeFlannelPriorityClassName"
 	CalicoNodePriorityClassName            = "CalicoNodePriorityClassName"
 	CalicoKubeControllersPriorityClassName = "CalicoKubeControllersPriorityClassName"
+	CalicoFeatureDetectOverride            = "CalicoFeatureDetectOverride"
+	CalicoFelixConfiguration               = "CalicoFelixConfiguration"
 	CanalInterface                         = "CanalInterface"
 	CanalPriorityClassName                 = "CanalPriorityClassName"
 	FlexVolPluginDir                       = "FlexVolPluginDir"
@@ -424,6 +427,11 @@ func (c *Cluster) doCalicoDeploy(ctx context.Context, data map[string]interface{
 		CalicoNodePriorityClassName:            c.Network.Options[CalicoNodePriorityClassNameKeyName],
 		CalicoKubeControllersPriorityClassName: c.Network.Options[CalicoKubeControllersPriorityClassNameKeyName],
 	}
+
+	if c.Network.CalicoNetworkProvider != nil {
+		calicoConfig[CalicoFelixConfiguration] = c.Network.CalicoNetworkProvider.FelixConfiguration
+	}
+
 	pluginYaml, err := c.getNetworkPluginManifest(calicoConfig, data)
 	if err != nil {
 		return err

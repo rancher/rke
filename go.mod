@@ -24,7 +24,7 @@ replace (
 require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/apparentlymart/go-cidr v1.0.1
-	github.com/aws/aws-sdk-go v1.38.65
+	github.com/aws/aws-sdk-go v1.44.106
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/coreos/go-semver v0.3.0
 	github.com/docker/distribution v2.8.2+incompatible
@@ -36,6 +36,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mcuadros/go-version v0.0.0-20180611085657-6d5863ca60fa
 	github.com/pkg/errors v0.9.1
+	github.com/projectcalico/api v0.0.0-20220722155641-439a754a988b
 	github.com/rancher/norman v0.0.0-20230831160711-5de27f66385d
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
@@ -89,20 +90,20 @@ require (
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/gofuzz v1.1.0 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20191106031601-ce3c9ade29de // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/huandu/xstrings v1.3.1 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
@@ -115,6 +116,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.1.9 // indirect
@@ -137,9 +139,9 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.7 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.19.0 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.7.0 // indirect
+	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect

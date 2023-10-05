@@ -1,6 +1,8 @@
 package types
 
 import (
+	calico "github.com/projectcalico/api/pkg/apis/projectcalico/v3"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
@@ -576,6 +578,10 @@ type CloudProvider struct {
 type CalicoNetworkProvider struct {
 	// Cloud provider type used with calico
 	CloudProvider string `json:"cloudProvider"`
+
+	// Felix Configuration to pass to Calico
+	// FelixConfiguration *calico.FelixConfigurationSpec `yaml:"felix_configuration,omitempty"`
+	FelixConfiguration calico.FelixConfigurationSpec `yaml:"felixConfiguration" json:"felixConfiguration"`
 }
 
 type FlannelNetworkProvider struct {

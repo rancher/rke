@@ -12,6 +12,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	ghodssyaml "github.com/ghodss/yaml"
+	calico "github.com/projectcalico/api/pkg/apis/projectcalico/v3"
 	"github.com/rancher/norman/types/convert"
 	"github.com/rancher/norman/types/values"
 	"github.com/rancher/rke/authz"
@@ -707,6 +708,14 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	if err != nil {
 		return nil, err
 	}
+
+	var felixConfig calico.FelixConfigurationSpec
+	clusterFile, err = resolveFelixConfiguration(clusterFile, &felixConfig)
+	if err != nil {
+		return nil, err
+	}
+	logrus.Infof("felixConfig is: %v", felixConfig)
+
 	if err := yaml.Unmarshal([]byte(clusterFile), &rkeConfig); err != nil {
 		return nil, err
 	}
@@ -731,6 +740,14 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 	}
 	if err := parseAddonConfig(clusterFile, &rkeConfig); err != nil {
 		return &rkeConfig, fmt.Errorf("error parsing addon config: %v", err)
+	}
+
+	if rkeConfig.Network.Plugin == "calico" {
+		if rkeConfig.Network.CalicoNetworkProvider == nil {
+			var calicoNetworkProvider v3.CalicoNetworkProvider
+			rkeConfig.Network.CalicoNetworkProvider = &calicoNetworkProvider
+		}
+		rkeConfig.Network.CalicoNetworkProvider.FelixConfiguration = felixConfig
 	}
 	return &rkeConfig, nil
 }
