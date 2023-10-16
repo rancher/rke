@@ -15,18 +15,19 @@ import (
 )
 
 const (
-	HostnameLabel             = "kubernetes.io/hostname"
-	InternalAddressAnnotation = "rke.cattle.io/internal-ip"
-	ExternalAddressAnnotation = "rke.cattle.io/external-ip"
-	AWSCloudProvider          = "aws"
-	MaxRetries                = 5
-	RetryInterval             = 5
+	HostnameLabel                = "kubernetes.io/hostname"
+	InternalAddressAnnotation    = "rke.cattle.io/internal-ip"
+	ExternalAddressAnnotation    = "rke.cattle.io/external-ip"
+	AWSCloudProvider             = "aws"
+	ExternalAWSCloudProviderName = "external-aws"
+	MaxRetries                   = 5
+	RetryInterval                = 5
 )
 
-func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProvider string) error {
+func DeleteNode(k8sClient *kubernetes.Clientset, nodeName, cloudProviderName string) error {
 	// If cloud provider is configured, the node name can be set by the cloud provider, which can be different from the original node name
-	if cloudProvider != "" {
-		node, err := GetNode(k8sClient, nodeName)
+	if cloudProviderName != "" {
+		node, err := GetNode(k8sClient, nodeName, cloudProviderName)
 		if err != nil {
 			return err
 		}
@@ -39,7 +40,7 @@ func GetNodeList(k8sClient *kubernetes.Clientset) (*v1.NodeList, error) {
 	return k8sClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 }
 
-func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error) {
+func GetNode(k8sClient *kubernetes.Clientset, nodeName, cloudProviderName string) (*v1.Node, error) {
 	var listErr error
 	for retries := 0; retries < MaxRetries; retries++ {
 		logrus.Debugf("Checking node list for node [%v], try #%v", nodeName, retries+1)
@@ -55,6 +56,14 @@ func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error)
 			if strings.ToLower(node.Labels[HostnameLabel]) == strings.ToLower(nodeName) {
 				return &node, nil
 			}
+			if cloudProviderName == ExternalAWSCloudProviderName {
+				logrus.Debugf("Checking hostname address for node [%v], cloud provider: %v", nodeName, cloudProviderName)
+				for _, addr := range node.Status.Addresses {
+					if addr.Type == v1.NodeHostName && strings.ToLower(node.Labels[HostnameLabel]) == addr.Address {
+						return &node, nil
+					}
+				}
+			}
 		}
 		time.Sleep(time.Second * RetryInterval)
 	}
@@ -64,10 +73,10 @@ func GetNode(k8sClient *kubernetes.Clientset, nodeName string) (*v1.Node, error)
 	return nil, apierrors.NewNotFound(schema.GroupResource{}, nodeName)
 }
 
-func CordonUncordon(k8sClient *kubernetes.Clientset, nodeName string, cordoned bool) error {
+func CordonUncordon(k8sClient *kubernetes.Clientset, nodeName string, cloudProviderName string, cordoned bool) error {
 	updated := false
 	for retries := 0; retries < MaxRetries; retries++ {
-		node, err := GetNode(k8sClient, nodeName)
+		node, err := GetNode(k8sClient, nodeName, cloudProviderName)
 		if err != nil {
 			logrus.Debugf("Error getting node %s: %v", nodeName, err)
 			// no need to retry here since GetNode already retries
@@ -100,45 +109,6 @@ func IsNodeReady(node v1.Node) bool {
 		}
 	}
 	return false
-}
-
-func RemoveTaintFromNodeByKey(k8sClient *kubernetes.Clientset, nodeName, taintKey string) error {
-	updated := false
-	var err error
-	var node *v1.Node
-	for retries := 0; retries <= 5; retries++ {
-		node, err = GetNode(k8sClient, nodeName)
-		if err != nil {
-			if apierrors.IsNotFound(err) {
-				logrus.Debugf("[hosts] Can't find node by name [%s]", nodeName)
-				return nil
-			}
-			return err
-		}
-		foundTaint := false
-		for i, taint := range node.Spec.Taints {
-			if taint.Key == taintKey {
-				foundTaint = true
-				node.Spec.Taints = append(node.Spec.Taints[:i], node.Spec.Taints[i+1:]...)
-				break
-			}
-		}
-		if !foundTaint {
-			return nil
-		}
-		_, err = k8sClient.CoreV1().Nodes().Update(context.TODO(), node, metav1.UpdateOptions{})
-		if err != nil {
-			logrus.Debugf("Error updating node [%s] with new set of taints: %v", node.Name, err)
-			time.Sleep(time.Second * 5)
-			continue
-		}
-		updated = true
-		break
-	}
-	if !updated {
-		return fmt.Errorf("Timeout waiting for node [%s] to be updated with new set of taints: %v", node.Name, err)
-	}
-	return nil
 }
 
 func SyncNodeLabels(node *v1.Node, toAddLabels, toDelLabels map[string]string) {
