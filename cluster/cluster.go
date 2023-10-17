@@ -709,12 +709,14 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 		return nil, err
 	}
 
+	// Calico FelixConfigurationSpec is a 3rd party type that doesn't unmarshall properly
+	// so we need to parse it manually and inject the parsed struct
+	// into the final rkeConfig
 	var felixConfig calico.FelixConfigurationSpec
 	clusterFile, err = resolveFelixConfiguration(clusterFile, &felixConfig)
 	if err != nil {
 		return nil, err
 	}
-	logrus.Infof("felixConfig is: %v", felixConfig)
 
 	if err := yaml.Unmarshal([]byte(clusterFile), &rkeConfig); err != nil {
 		return nil, err
@@ -742,6 +744,7 @@ func ParseConfig(clusterFile string) (*v3.RancherKubernetesEngineConfig, error) 
 		return &rkeConfig, fmt.Errorf("error parsing addon config: %v", err)
 	}
 
+	// inject manually parsed FelixConfigurationSpec for calico network plugin
 	if rkeConfig.Network.Plugin == "calico" {
 		if rkeConfig.Network.CalicoNetworkProvider == nil {
 			var calicoNetworkProvider v3.CalicoNetworkProvider
