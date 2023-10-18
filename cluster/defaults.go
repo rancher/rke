@@ -9,6 +9,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/rancher/rke/cloudprovider"
+	"github.com/rancher/rke/cloudprovider/aws"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
@@ -1022,11 +1023,25 @@ func (c *Cluster) setCloudProvider() error {
 	if p != nil {
 		c.CloudConfigFile, err = p.GenerateCloudConfigFile()
 		if err != nil {
-			return fmt.Errorf("Failed to parse cloud config file: %v", err)
+			return fmt.Errorf("failed to parse cloud config file: %v", err)
 		}
 		c.CloudProvider.Name = p.GetName()
 		if c.CloudProvider.Name == "" {
-			return fmt.Errorf("Name of the cloud provider is not defined for custom provider")
+			return fmt.Errorf("name of the cloud provider is not defined for custom provider")
+		}
+		if c.CloudProvider.Name == aws.AWSCloudProviderName {
+			clusterVersion, err := getClusterVersion(c.Version)
+			if err != nil {
+				return fmt.Errorf("failed to get cluster version for checking cloud provider: %v", err)
+			}
+			// cloud provider must be external or external-aws for >=1.27
+			defaultExternalAwsRange, err := semver.ParseRange(">=1.27.0-rancher0")
+			if err != nil {
+				return fmt.Errorf("failed to parse semver range for checking cloud provider %v", err)
+			}
+			if defaultExternalAwsRange(clusterVersion) {
+				return fmt.Errorf(fmt.Sprintf("Cloud provider %s is invalid for [%s]", aws.AWSCloudProviderName, c.Version))
+			}
 		}
 	}
 	return nil

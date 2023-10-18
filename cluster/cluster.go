@@ -189,7 +189,7 @@ func (c *Cluster) UpgradeControlPlane(ctx context.Context, kubeClient *kubernete
 			continue
 		}
 		// find existing nodes that are in NotReady state
-		if err := services.CheckNodeReady(kubeClient, host, services.ControlRole); err != nil {
+		if err := services.CheckNodeReady(kubeClient, host, services.ControlRole, c.CloudProvider.Name); err != nil {
 			logrus.Debugf("Found node %v in NotReady state", host.HostnameOverride)
 			notReadyHosts = append(notReadyHosts, host)
 			notReadyHostNames = append(notReadyHostNames, host.HostnameOverride)
@@ -223,7 +223,7 @@ func (c *Cluster) UpgradeControlPlane(ctx context.Context, kubeClient *kubernete
 		}
 		// Calling CheckNodeReady wil give some time for nodes to get in Ready state
 		for _, host := range notReadyHosts {
-			err = services.CheckNodeReady(kubeClient, host, services.ControlRole)
+			err = services.CheckNodeReady(kubeClient, host, services.ControlRole, c.CloudProvider.Name)
 			if err != nil {
 				logrus.Errorf("Host %v failed to report Ready status with error: %v", host.HostnameOverride, err)
 			}
@@ -236,7 +236,8 @@ func (c *Cluster) UpgradeControlPlane(ctx context.Context, kubeClient *kubernete
 		cpNodePlanMap,
 		c.UpdateWorkersOnly,
 		c.SystemImages.Alpine,
-		c.Certificates, c.UpgradeStrategy, c.NewHosts, inactiveHosts, c.MaxUnavailableForControlNodes, c.Version)
+		c.Certificates, c.UpgradeStrategy, c.NewHosts, inactiveHosts, c.MaxUnavailableForControlNodes,
+		c.Version, c.CloudProvider.Name)
 	if err != nil {
 		return "", fmt.Errorf("[controlPlane] Failed to upgrade Control Plane: %v", err)
 	}
@@ -310,7 +311,7 @@ func (c *Cluster) UpgradeWorkerPlane(ctx context.Context, kubeClient *kubernetes
 			continue
 		}
 		// find existing nodes that are in NotReady state
-		if err := services.CheckNodeReady(kubeClient, host, services.WorkerRole); err != nil {
+		if err := services.CheckNodeReady(kubeClient, host, services.WorkerRole, c.CloudProvider.Name); err != nil {
 			logrus.Debugf("Found node %v in NotReady state", host.HostnameOverride)
 			notReadyHosts = append(notReadyHosts, host)
 			notReadyHostNames = append(notReadyHostNames, host.HostnameOverride)
@@ -332,7 +333,7 @@ func (c *Cluster) UpgradeWorkerPlane(ctx context.Context, kubeClient *kubernetes
 		}
 		// Calling CheckNodeReady wil give some time for nodes to get in Ready state
 		for _, host := range notReadyHosts {
-			err = services.CheckNodeReady(kubeClient, host, services.WorkerRole)
+			err = services.CheckNodeReady(kubeClient, host, services.WorkerRole, c.CloudProvider.Name)
 			if err != nil {
 				logrus.Errorf("Host %v failed to report Ready status with error: %v", host.HostnameOverride, err)
 			}
@@ -349,7 +350,8 @@ func (c *Cluster) UpgradeWorkerPlane(ctx context.Context, kubeClient *kubernetes
 		c.UpgradeStrategy,
 		c.NewHosts,
 		c.MaxUnavailableForWorkerNodes,
-		c.Version)
+		c.Version,
+		c.CloudProvider.Name)
 	if err != nil {
 		return "", fmt.Errorf("[workerPlane] Failed to upgrade Worker Plane: %v", err)
 	}
@@ -994,7 +996,7 @@ func (c *Cluster) SyncLabelsAndTaints(ctx context.Context, currentCluster *Clust
 				var errs []error
 				for host := range hostQueue {
 					logrus.Debugf("worker [%d] starting sync for node [%s]", w, host.HostnameOverride)
-					if err := setNodeAnnotationsLabelsTaints(k8sClient, host); err != nil {
+					if err := setNodeAnnotationsLabelsTaints(k8sClient, host, c.CloudProvider.Name); err != nil {
 						errs = append(errs, err)
 					}
 				}
@@ -1012,11 +1014,11 @@ func (c *Cluster) SyncLabelsAndTaints(ctx context.Context, currentCluster *Clust
 	return nil
 }
 
-func setNodeAnnotationsLabelsTaints(k8sClient *kubernetes.Clientset, host *hosts.Host) error {
+func setNodeAnnotationsLabelsTaints(k8sClient *kubernetes.Clientset, host *hosts.Host, cloudProviderName string) error {
 	node := &v1.Node{}
 	var err error
 	for retries := 0; retries <= 5; retries++ {
-		node, err = k8s.GetNode(k8sClient, host.HostnameOverride)
+		node, err = k8s.GetNode(k8sClient, host.HostnameOverride, cloudProviderName)
 		if err != nil {
 			logrus.Debugf("[hosts] Can't find node by name [%s], error: %v", host.HostnameOverride, err)
 			time.Sleep(2 * time.Second)
