@@ -5,7 +5,7 @@ function kubectlinstall {
     k8sversion=$1
     if [ ! -f "/usr/local/bin/kubectl-${k8sversion}" ]; then
         echo_with_time "Downloading kubectl ${k8sversion}"
-        curl -sL -o "/usr/local/bin/kubectl-${k8sversion}" "https://storage.googleapis.com/kubernetes-release/release/${k8sversion}/bin/linux/amd64/kubectl"
+        curl -sL -o "/usr/local/bin/kubectl-${k8sversion}" "https://dl.k8s.io/release/${k8sversion}/bin/linux/amd64/kubectl"
         chmod +x "/usr/local/bin/kubectl-${k8sversion}"
     fi
 }
