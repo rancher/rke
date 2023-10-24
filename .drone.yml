@@ -7,6 +7,24 @@ platform:
   arch: amd64
 
 steps:
+- name: skipfiles
+  image: plugins/git
+  commands:
+  - export NAME=$(test $DRONE_BUILD_EVENT = pull_request && echo remotes/origin/${DRONE_COMMIT_BRANCH} || echo ${DRONE_COMMIT_SHA}~)
+  - export DIFF=$(git --no-pager diff --name-only $NAME | grep -v -f .droneignore);
+  - if [ -z "$DIFF" ]; then
+        echo "All files in PR are on ignore list";
+        exit 78;
+    else
+        echo "Some files in PR are not ignored, $DIFF";
+    fi;
+  when:
+    ref:
+      include:
+        - refs/heads/master
+        - refs/heads/release/v*
+        - refs/pull/**
+
 - name: ci
   pull: default
   image: rancher/dapper:v0.6.0
@@ -23,6 +41,19 @@ steps:
     event:
     - pull_request
     - tag
+
+- name: integration-ci
+  pull: default
+  image: rancher/dapper:v0.6.0
+  commands:
+  - dapper integration-ci
+  privileged: true
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
 
 - name: github_binary_prerelease
   pull: default
@@ -115,7 +146,6 @@ steps:
   when:
     event:
     - pull_request
-    - tag
 
 - name: integration-flannel
   pull: default
@@ -129,7 +159,6 @@ steps:
   when:
     event:
     - pull_request
-    - tag
 
 - name: integration-calico
   pull: default
@@ -143,7 +172,6 @@ steps:
   when:
     event:
     - pull_request
-    - tag
 
 - name: integration-weave
   pull: default
@@ -157,7 +185,6 @@ steps:
   when:
     event:
     - pull_request
-    - tag
 
 volumes:
 - name: socket
