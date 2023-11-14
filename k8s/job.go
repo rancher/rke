@@ -71,6 +71,7 @@ func ApplyK8sSystemJob(jobYaml, kubeConfigPath string, k8sWrapTransport transpor
 		return err
 	}
 	logrus.Debugf("[k8s] waiting for job %s to complete..", job.Name)
+	logrus.Debugf("[k8s] this is the timeout %v", timeout)
 	return retryToWithTimeout(ensureJobCompleted, k8sClient, job, timeout)
 }
 

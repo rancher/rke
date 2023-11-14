@@ -178,3 +178,48 @@ steps:
     when:
       instance:
         - drone-publish.rancher.io
+
+---
+kind: pipeline
+name: holaLuis
+
+platform:
+  os: linux
+  arch: amd64
+
+node:
+  rancher_enterprise: true
+
+steps:
+- name: build
+  pull: default
+  image: rancher/dapper:v0.6.0
+  commands:
+  - dapper build
+  privileged: true
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
+
+- name: testing-ginkgo
+  pull: default
+  image: rancher/dapper:v0.6.0
+  commands:
+  - go test -v -timeout=20m ./tests/startup/...
+  privileged: true
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
+
+volumes:
+- name: socket
+  host:
+    path: /var/run/docker.sock
