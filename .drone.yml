@@ -102,6 +102,9 @@ platform:
   os: linux
   arch: amd64
 
+node:
+  rancher_enterprise: true
+
 steps:
 - name: build
   pull: default
