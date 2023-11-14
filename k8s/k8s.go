@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/transport"
 
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
@@ -49,6 +50,7 @@ func retryToWithTimeout(runFunc k8sCall, k8sClient *kubernetes.Clientset, resour
 		if err = runFunc(k8sClient, resource); err != nil {
 			time.Sleep(time.Second * time.Duration(DefaultSleepSeconds))
 			timePassed += DefaultSleepSeconds
+			logrus.Debugf("MANU - This is the time passed: %v", timePassed)
 			continue
 		}
 		return nil

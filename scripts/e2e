@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Cleanup VMs running, happens if a previous test panics
+# Cleanup inactive domains, happens if previous test is canceled
+VMS=$(virsh list --name | grep '_server-\|_agent-' || true)
+if [ -n "$VMS" ]; then
+  for vm in $VMS
+    do
+      virsh destroy $vm
+      virsh undefine $vm --remove-all-storage
+    done
+  fi
+VMS=$(virsh list --name --inactive | grep '_server-\|_agent-' || true)
+if [ -n "$VMS" ]; then
+  for vm in $VMS
+    do
+      virsh undefine $vm
+    done
+fi
+
+go test -v -timeout=20m ./tests/startup/...
+

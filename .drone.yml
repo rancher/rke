@@ -178,3 +178,73 @@ steps:
     when:
       instance:
         - drone-publish.rancher.io
+
+---
+kind: pipeline
+name: holaLuis
+
+platform:
+  os: linux
+  arch: amd64
+
+node:
+  rancher_enterprise: true
+
+steps:
+- name: build-rke-binary
+  pull: default
+  image: rancher/dapper:v0.6.0
+  commands:
+  - dapper build
+  privileged: true
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
+  when:
+    event:
+    - pull_request
+    - tag
+
+- name: build-e2e-image
+  pull: default
+  image: rancher/dapper:v0.6.0
+  commands:
+  # TODO: Unify things with dapper image
+  - DOCKER_BUILDKIT=1 docker build -f Dockerfile.test -t test-e2e .
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
+  - name: cache
+    path: /tmp/artifacts
+  when:
+    event:
+    - pull_request
+    - tag
+
+- name: testing-ginkgo
+  pull: never
+  image: test-e2e
+  commands:
+  - ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N ""
+  - go test -v -timeout=20m ./tests/startup/...
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
+  - name: libvirt
+    path: /var/run/libvirt
+  - name: cache
+    path: /tmp/artifacts
+  when:
+    event:
+    - pull_request
+    - tag
+
+volumes:
+- name: socket
+  host:
+    path: /var/run/docker.sock
+- name: libvirt
+  host:
+    path: /var/run/libvirt/
+- name: cache
+  temp: {}
