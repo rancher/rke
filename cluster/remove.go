@@ -11,6 +11,7 @@ import (
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
 	"golang.org/x/sync/errgroup"
+	v1 "k8s.io/api/core/v1"
 )
 
 func (c *Cluster) ClusterRemove(ctx context.Context) error {
@@ -92,7 +93,13 @@ func (c *Cluster) RemoveOldNodes(ctx context.Context) error {
 		host := &hosts.Host{}
 		host.HostnameOverride = node.Name
 		if !hosts.IsNodeInList(host, uniqueHosts) {
-			if err := k8s.DeleteNode(kubeClient, node.Name, c.CloudProvider.Name); err != nil {
+			nodeAddress := ""
+			for _, addr := range node.Status.Addresses {
+				if addr.Type == v1.NodeInternalIP {
+					nodeAddress = addr.Address
+				}
+			}
+			if err := k8s.DeleteNode(kubeClient, node.Name, nodeAddress, c.CloudProvider.Name); err != nil {
 				log.Warnf(ctx, "Failed to delete old node [%s] from kubernetes")
 			}
 		}

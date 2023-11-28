@@ -1018,13 +1018,12 @@ func setNodeAnnotationsLabelsTaints(k8sClient *kubernetes.Clientset, host *hosts
 	node := &v1.Node{}
 	var err error
 	for retries := 0; retries <= 5; retries++ {
-		node, err = k8s.GetNode(k8sClient, host.HostnameOverride, cloudProviderName)
+		node, err = k8s.GetNode(k8sClient, host.HostnameOverride, host.InternalAddress, cloudProviderName)
 		if err != nil {
 			logrus.Debugf("[hosts] Can't find node by name [%s], error: %v", host.HostnameOverride, err)
 			time.Sleep(2 * time.Second)
 			continue
 		}
-
 		oldNode := node.DeepCopy()
 		k8s.SetNodeAddressesAnnotations(node, host.InternalAddress, host.Address)
 		k8s.SyncNodeLabels(node, host.ToAddLabels, host.ToDelLabels)
