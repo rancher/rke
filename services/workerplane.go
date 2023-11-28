@@ -87,7 +87,7 @@ func UpgradeWorkerPlaneForWorkerAndEtcdNodes(ctx context.Context, kubeClient *ku
 
 func updateNewHostsList(kubeClient *kubernetes.Clientset, allHosts []*hosts.Host, newHosts map[string]bool, cloudProviderName string) {
 	for _, h := range allHosts {
-		_, err := k8s.GetNode(kubeClient, h.HostnameOverride, cloudProviderName)
+		_, err := k8s.GetNode(kubeClient, h.HostnameOverride, h.InternalAddress, cloudProviderName)
 		if err != nil && apierrors.IsNotFound(err) {
 			// this host could have been added to cluster state upon successful controlplane upgrade but isn't a node yet.
 			newHosts[h.HostnameOverride] = true
@@ -167,7 +167,7 @@ func processWorkerPlaneForUpgrade(ctx context.Context, kubeClient *kubernetes.Cl
 				}
 				if !upgradable {
 					logrus.Infof("[workerplane] Upgrade not required for worker components of host %v", runHost.HostnameOverride)
-					if err := k8s.CordonUncordon(kubeClient, runHost.HostnameOverride, cloudProviderName, false); err != nil {
+					if err := k8s.CordonUncordon(kubeClient, runHost.HostnameOverride, runHost.InternalAddress, cloudProviderName, false); err != nil {
 						// This node didn't undergo an upgrade, so RKE will only log any error after uncordoning it and won't count this in maxUnavailable
 						logrus.Errorf("[workerplane] Failed to uncordon node %v, error: %v", runHost.HostnameOverride, err)
 					}
@@ -211,7 +211,7 @@ func upgradeWorkerHost(ctx context.Context, kubeClient *kubernetes.Clientset, ru
 		return err
 	}
 	// uncordon node
-	return k8s.CordonUncordon(kubeClient, runHost.HostnameOverride, cloudProviderName, false)
+	return k8s.CordonUncordon(kubeClient, runHost.HostnameOverride, runHost.InternalAddress, cloudProviderName, false)
 }
 
 func doDeployWorkerPlaneHost(ctx context.Context, host *hosts.Host, localConnDialerFactory hosts.DialerFactory, prsMap map[string]v3.PrivateRegistry, processMap map[string]v3.Process, certMap map[string]pki.CertificatePKI, updateWorkersOnly bool, alpineImage, k8sVersion string) error {

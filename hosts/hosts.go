@@ -197,7 +197,7 @@ func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.
 		return nil
 	}
 	log.Infof(ctx, "[hosts] Cordoning host [%s]", toDeleteHost.Address)
-	if _, err := k8s.GetNode(kubeClient, toDeleteHost.HostnameOverride, cloudProviderName); err != nil {
+	if _, err := k8s.GetNode(kubeClient, toDeleteHost.HostnameOverride, toDeleteHost.InternalAddress, cloudProviderName); err != nil {
 		if apierrors.IsNotFound(err) {
 			log.Warnf(ctx, "[hosts] Can't find node by name [%s]", toDeleteHost.Address)
 			return nil
@@ -205,11 +205,11 @@ func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.
 		return err
 
 	}
-	if err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, cloudProviderName, true); err != nil {
+	if err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, toDeleteHost.InternalAddress, cloudProviderName, true); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[hosts] Deleting host [%s] from the cluster", toDeleteHost.Address)
-	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride, cloudProviderName); err != nil {
+	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride, toDeleteHost.InternalAddress, cloudProviderName); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[hosts] Successfully deleted host [%s] from the cluster", toDeleteHost.Address)

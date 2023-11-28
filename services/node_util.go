@@ -20,7 +20,7 @@ import (
 func CheckNodeReady(kubeClient *kubernetes.Clientset, runHost *hosts.Host, component, cloudProviderName string) error {
 	for retries := 0; retries < k8s.MaxRetries; retries++ {
 		logrus.Infof("[%s] Now checking status of node %v, try #%v", component, runHost.HostnameOverride, retries+1)
-		k8sNode, err := k8s.GetNode(kubeClient, runHost.HostnameOverride, cloudProviderName)
+		k8sNode, err := k8s.GetNode(kubeClient, runHost.HostnameOverride, runHost.InternalAddress, cloudProviderName)
 		if err != nil {
 			return fmt.Errorf("[%s] Error getting node %v: %v", component, runHost.HostnameOverride, err)
 		}
@@ -35,7 +35,7 @@ func CheckNodeReady(kubeClient *kubernetes.Clientset, runHost *hosts.Host, compo
 
 func cordonAndDrainNode(kubeClient *kubernetes.Clientset, host *hosts.Host, drainNode bool, drainHelper drain.Helper, component, cloudProviderName string) error {
 	logrus.Debugf("[%s] Cordoning node %v", component, host.HostnameOverride)
-	if err := k8s.CordonUncordon(kubeClient, host.HostnameOverride, cloudProviderName, true); err != nil {
+	if err := k8s.CordonUncordon(kubeClient, host.HostnameOverride, host.InternalAddress, cloudProviderName, true); err != nil {
 		return err
 	}
 	if !drainNode {
