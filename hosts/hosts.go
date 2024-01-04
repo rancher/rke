@@ -191,13 +191,13 @@ func (h *Host) ProcessFilter(processes map[string]v3.Process) map[string]v3.Proc
 	return processes
 }
 
-func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.Clientset, hasAnotherRole bool, cloudProvider string) error {
+func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.Clientset, hasAnotherRole bool, cloudProviderName string) error {
 	if hasAnotherRole {
 		log.Infof(ctx, "[hosts] host [%s] has another role, skipping delete from kubernetes cluster", toDeleteHost.Address)
 		return nil
 	}
 	log.Infof(ctx, "[hosts] Cordoning host [%s]", toDeleteHost.Address)
-	if _, err := k8s.GetNode(kubeClient, toDeleteHost.HostnameOverride); err != nil {
+	if _, err := k8s.GetNode(kubeClient, toDeleteHost.HostnameOverride, toDeleteHost.InternalAddress, cloudProviderName); err != nil {
 		if apierrors.IsNotFound(err) {
 			log.Warnf(ctx, "[hosts] Can't find node by name [%s]", toDeleteHost.Address)
 			return nil
@@ -205,23 +205,14 @@ func DeleteNode(ctx context.Context, toDeleteHost *Host, kubeClient *kubernetes.
 		return err
 
 	}
-	if err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, true); err != nil {
+	if err := k8s.CordonUncordon(kubeClient, toDeleteHost.HostnameOverride, toDeleteHost.InternalAddress, cloudProviderName, true); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[hosts] Deleting host [%s] from the cluster", toDeleteHost.Address)
-	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride, cloudProvider); err != nil {
+	if err := k8s.DeleteNode(kubeClient, toDeleteHost.HostnameOverride, toDeleteHost.InternalAddress, cloudProviderName); err != nil {
 		return err
 	}
 	log.Infof(ctx, "[hosts] Successfully deleted host [%s] from the cluster", toDeleteHost.Address)
-	return nil
-}
-
-func RemoveTaintFromHost(ctx context.Context, host *Host, taintKey string, kubeClient *kubernetes.Clientset) error {
-	log.Infof(ctx, "[hosts] removing taint [%s] from host [%s]", taintKey, host.Address)
-	if err := k8s.RemoveTaintFromNodeByKey(kubeClient, host.HostnameOverride, taintKey); err != nil {
-		return err
-	}
-	log.Infof(ctx, "[hosts] Successfully deleted taint [%s] from host [%s]", taintKey, host.Address)
 	return nil
 }
 

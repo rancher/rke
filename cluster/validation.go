@@ -217,6 +217,13 @@ func validateNetworkOptions(c *Cluster) error {
 	if c.Network.Plugin == FlannelNetworkPlugin && c.Network.MTU != 0 {
 		return fmt.Errorf("Network plugin [%s] does not support configuring MTU", FlannelNetworkPlugin)
 	}
+
+	if c.Network.Plugin == WeaveNetworkPlugin {
+		if err := warnWeaveDeprecation(c.Version); err != nil {
+			return fmt.Errorf("Error while printing Weave deprecation message: %w", err)
+		}
+	}
+
 	dualStack := false
 	serviceClusterRanges := strings.Split(c.Services.KubeAPI.ServiceClusterIPRange, ",")
 	if len(serviceClusterRanges) > 1 {
@@ -730,4 +737,20 @@ func getClusterVersion(version string) (semver.Version, error) {
 		return parsedVersion, fmt.Errorf("%s is not valid semver", version)
 	}
 	return parsedVersion, nil
+}
+
+// warnWeaveDeprecation prints a deprecation warning if version is higher than 1.27
+func warnWeaveDeprecation(k8sVersion string) error {
+	version, err := util.StrToSemVer(k8sVersion)
+	if err != nil {
+		return fmt.Errorf("error while parsing cluster version [%s]: %w", k8sVersion, err)
+	}
+	version127, err := util.StrToSemVer("v1.27.0")
+	if err != nil {
+		return fmt.Errorf("failed to translate v1.27.0 to semver notation: %w", err)
+	}
+	if !version.LessThan(*version127) {
+		logrus.Warn("Weave CNI plugin is deprecated starting with Kubernetes v1.27 and will be removed in Kubernetes v1.30")
+	}
+	return nil
 }
