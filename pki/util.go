@@ -682,7 +682,7 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 	for certName, cert := range certBundle {
 		if cert.CertificatePEM != "" {
 			certificatePath := filepath.Join(certDirPath, certName+".pem")
-			if err := os.WriteFile(certificatePath, []byte(cert.CertificatePEM), 0640); err != nil {
+			if err := os.WriteFile(certificatePath, []byte(cert.CertificatePEM), 0600); err != nil {
 				return fmt.Errorf("Failed to write certificate to path %v: %v", certificatePath, err)
 			}
 			logrus.Debugf("Successfully Deployed certificate file at [%s]", certificatePath)
@@ -690,7 +690,7 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 
 		if cert.KeyPEM != "" {
 			keyPath := filepath.Join(certDirPath, certName+"-key.pem")
-			if err := os.WriteFile(keyPath, []byte(cert.KeyPEM), 0640); err != nil {
+			if err := os.WriteFile(keyPath, []byte(cert.KeyPEM), 0600); err != nil {
 				return fmt.Errorf("Failed to write key to path %v: %v", keyPath, err)
 			}
 			logrus.Debugf("Successfully Deployed key file at [%s]", keyPath)
@@ -698,7 +698,7 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 
 		if cert.CSRPEM != "" {
 			csrPath := filepath.Join(certDirPath, certName+"-csr.pem")
-			if err := os.WriteFile(csrPath, []byte(cert.CSRPEM), 0640); err != nil {
+			if err := os.WriteFile(csrPath, []byte(cert.CSRPEM), 0600); err != nil {
 				return fmt.Errorf("Failed to write csr to path %v: %v", csrPath, err)
 			}
 			logrus.Debugf("Successfully Deployed csr file at [%s]", csrPath)
