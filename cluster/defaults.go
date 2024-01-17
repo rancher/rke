@@ -125,7 +125,6 @@ const (
 	DefaultAciOpflexAgentOpflexAsyncjsonEnabled      = "false"
 	DefaultAciOpflexAgentOvsAsyncjsonEnabled         = "false"
 	DefaultAciOpflexAgentPolicyRetryDelayTimer       = "10"
-	DefaultAciOpflexDeviceReconnectWaitTimeout       = "5"
 	DefaultAciAciMultipod                            = "false"
 	DefaultAciAciMultipodUbuntu                      = "false"
 	DefaultAciDhcpRenewMaxRetryCount                 = "0"
@@ -133,6 +132,11 @@ const (
 	DefaultAciUseSystemNodePriorityClass             = "false"
 	DefaultAciAciContainersMemoryLimit               = "3Gi"
 	DefaultAciAciContainersMemoryRequest             = "128Mi"
+	DefaultAciOpflexAgentStatistics                  = "true"
+	DefaultAciAddExternalContractToDefaultEpg        = "false"
+	DefaultAciEnableOpflexAgentReconnect             = "false"
+	DefaultAciOpflexOpensslCompat                    = "false"
+	DefaultAciTolerationSeconds                      = "600"
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
 
@@ -830,7 +834,6 @@ func (c *Cluster) setClusterNetworkDefaults() {
 			AciOpflexAgentOvsAsyncjsonEnabled:    DefaultAciOpflexAgentOvsAsyncjsonEnabled,
 			AciOpflexAgentPolicyRetryDelayTimer:  DefaultAciOpflexAgentPolicyRetryDelayTimer,
 			AciAciMultipod:                       DefaultAciAciMultipod,
-			AciOpflexDeviceReconnectWaitTimeout:  DefaultAciOpflexDeviceReconnectWaitTimeout,
 			AciAciMultipodUbuntu:                 DefaultAciAciMultipodUbuntu,
 			AciDhcpRenewMaxRetryCount:            DefaultAciDhcpRenewMaxRetryCount,
 			AciDhcpDelay:                         DefaultAciDhcpDelay,
@@ -903,13 +906,17 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentOvsAsyncjsonEnabled, DefaultAciOpflexAgentOvsAsyncjsonEnabled)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentPolicyRetryDelayTimer, DefaultAciOpflexAgentPolicyRetryDelayTimer)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AciMultipod, DefaultAciAciMultipod)
-		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexDeviceReconnectWaitTimeout, DefaultAciOpflexDeviceReconnectWaitTimeout)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AciMultipodUbuntu, DefaultAciAciMultipodUbuntu)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DhcpRenewMaxRetryCount, DefaultAciDhcpRenewMaxRetryCount)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DhcpDelay, DefaultAciDhcpDelay)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.UseSystemNodePriorityClass, DefaultAciUseSystemNodePriorityClass)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AciContainersMemoryLimit, DefaultAciAciContainersMemoryLimit)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AciContainersMemoryRequest, DefaultAciAciContainersMemoryRequest)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexAgentStatistics, DefaultAciOpflexAgentStatistics)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.AddExternalContractToDefaultEpg, DefaultAciAddExternalContractToDefaultEpg)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EnableOpflexAgentReconnect, DefaultAciEnableOpflexAgentReconnect)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexOpensslCompat, DefaultAciOpflexOpensslCompat)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.TolerationSeconds, DefaultAciTolerationSeconds)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciOVSMemoryRequest] = c.Network.AciNetworkProvider.OVSMemoryRequest
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
@@ -997,20 +1004,21 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciGbpPodSubnet] = c.Network.AciNetworkProvider.GbpPodSubnet
 		networkPluginConfigDefaultsMap[AciOpflexServerPort] = c.Network.AciNetworkProvider.OpflexServerPort
 		networkPluginConfigDefaultsMap[AciUseSystemNodePriorityClass] = c.Network.AciNetworkProvider.UseSystemNodePriorityClass
-		networkPluginConfigDefaultsMap[AciAccProvisionOperatorMemoryRequest] = c.Network.AciNetworkProvider.AccProvisionOperatorMemoryRequest
-		networkPluginConfigDefaultsMap[AciAccProvisionOperatorMemoryLimit] = c.Network.AciNetworkProvider.AccProvisionOperatorMemoryLimit
 		networkPluginConfigDefaultsMap[AciAciContainersControllerMemoryRequest] = c.Network.AciNetworkProvider.AciContainersControllerMemoryRequest
 		networkPluginConfigDefaultsMap[AciAciContainersControllerMemoryLimit] = c.Network.AciNetworkProvider.AciContainersControllerMemoryLimit
 		networkPluginConfigDefaultsMap[AciAciContainersHostMemoryRequest] = c.Network.AciNetworkProvider.AciContainersHostMemoryRequest
 		networkPluginConfigDefaultsMap[AciAciContainersHostMemoryLimit] = c.Network.AciNetworkProvider.AciContainersHostMemoryLimit
-		networkPluginConfigDefaultsMap[AciAciContainersOperatorMemoryRequest] = c.Network.AciNetworkProvider.AciContainersOperatorMemoryRequest
-		networkPluginConfigDefaultsMap[AciAciContainersOperatorMemoryLimit] = c.Network.AciNetworkProvider.AciContainersOperatorMemoryLimit
 		networkPluginConfigDefaultsMap[AciMcastDaemonMemoryRequest] = c.Network.AciNetworkProvider.McastDaemonMemoryRequest
 		networkPluginConfigDefaultsMap[AciMcastDaemonMemoryLimit] = c.Network.AciNetworkProvider.McastDaemonMemoryLimit
 		networkPluginConfigDefaultsMap[AciOpflexAgentMemoryRequest] = c.Network.AciNetworkProvider.OpflexAgentMemoryRequest
 		networkPluginConfigDefaultsMap[AciOpflexAgentMemoryLimit] = c.Network.AciNetworkProvider.OpflexAgentMemoryLimit
 		networkPluginConfigDefaultsMap[AciAciContainersMemoryRequest] = c.Network.AciNetworkProvider.AciContainersMemoryRequest
 		networkPluginConfigDefaultsMap[AciAciContainersMemoryLimit] = c.Network.AciNetworkProvider.AciContainersMemoryLimit
+		networkPluginConfigDefaultsMap[AciOpflexAgentStatistics] = c.Network.AciNetworkProvider.OpflexAgentStatistics
+		networkPluginConfigDefaultsMap[AciAddExternalContractToDefaultEpg] = c.Network.AciNetworkProvider.AddExternalContractToDefaultEpg
+		networkPluginConfigDefaultsMap[AciEnableOpflexAgentReconnect] = c.Network.AciNetworkProvider.EnableOpflexAgentReconnect
+		networkPluginConfigDefaultsMap[AciOpflexOpensslCompat] = c.Network.AciNetworkProvider.OpflexOpensslCompat
+		networkPluginConfigDefaultsMap[AciTolerationSeconds] = c.Network.AciNetworkProvider.TolerationSeconds
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
