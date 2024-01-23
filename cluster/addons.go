@@ -492,7 +492,7 @@ func (c *Cluster) doAddonDeploy(ctx context.Context, addonYaml, resourceName str
 	if err != nil {
 		return &addonError{fmt.Sprintf("%v", err), isCritical}
 	}
-	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride)
+	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride, c.ControlPlaneHosts[0].InternalAddress, c.CloudProvider.Name)
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}
@@ -513,7 +513,7 @@ func (c *Cluster) doAddonDelete(ctx context.Context, resourceName string, isCrit
 	if err != nil {
 		return &addonError{fmt.Sprintf("%v", err), isCritical}
 	}
-	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride)
+	node, err := k8s.GetNode(k8sClient, c.ControlPlaneHosts[0].HostnameOverride, c.ControlPlaneHosts[0].InternalAddress, c.CloudProvider.Name)
 	if err != nil {
 		return &addonError{fmt.Sprintf("Failed to get Node [%s]: %v", c.ControlPlaneHosts[0].HostnameOverride, err), isCritical}
 	}

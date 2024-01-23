@@ -13,6 +13,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/docker/docker/api/types"
+	"github.com/rancher/rke/cloudprovider/aws"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/k8s"
@@ -69,6 +70,7 @@ var (
 	parsedRangeAtLeast123       = semver.MustParseRange(">= 1.23.0-rancher0")
 	parsedRangeAtLeast124       = semver.MustParseRange(">= 1.24.0-rancher0")
 	parsedRangeAtLeast125       = semver.MustParseRange(">= 1.25.0-rancher0")
+	parsedRangeBelow127         = semver.MustParseRange("< 1.27.0-rancher0")
 	parsedRange123              = semver.MustParseRange(">=1.23.0-rancher0 <=1.23.99-rancher-0")
 	parsedRange124              = semver.MustParseRange(">=1.24.0-rancher0 <=1.24.99-rancher-0")
 )
@@ -179,7 +181,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	CommandArgs := map[string]string{
 		"admission-control-config-file": DefaultKubeAPIArgAdmissionControlConfigFileValue,
 		"client-ca-file":                pki.GetCertPath(pki.CACertName),
-		"cloud-provider":                c.CloudProvider.Name,
+		"cloud-provider":                getCloudProviderName(c.CloudProvider.Name),
 		"etcd-cafile":                   etcdCAClientCert,
 		"etcd-certfile":                 etcdClientCert,
 		"etcd-keyfile":                  etcdClientKey,
@@ -344,7 +346,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 func (c *Cluster) BuildKubeControllerProcess(host *hosts.Host, serviceOptions v3.KubernetesServicesOptions) v3.Process {
 	Command := c.getRKEToolsEntryPoint(host.OS(), "kube-controller-manager")
 	CommandArgs := map[string]string{
-		"cloud-provider":                   c.CloudProvider.Name,
+		"cloud-provider":                   getCloudProviderName(c.CloudProvider.Name),
 		"cluster-cidr":                     c.ClusterCIDR,
 		"kubeconfig":                       pki.GetConfigPath(pki.KubeControllerCertName),
 		"root-ca-file":                     pki.GetCertPath(pki.CACertName),
@@ -463,7 +465,7 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	Command := c.getRKEToolsEntryPoint(host.OS(), "kubelet")
 	CommandArgs := map[string]string{
 		"client-ca-file": pki.GetCertPath(pki.CACertName),
-		"cloud-provider": c.CloudProvider.Name,
+		"cloud-provider": getCloudProviderName(c.CloudProvider.Name),
 		"cluster-dns":    c.ClusterDNSServer,
 		"cluster-domain": c.ClusterDomain,
 		"fail-swap-on":   strconv.FormatBool(kubelet.FailSwapOn),
@@ -495,6 +497,11 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		if host.IsWindows() { // compatible with Windows
 			CommandArgs["cloud-config"] = path.Join(host.PrefixPath, cloudConfigFileName)
 		}
+
+		if c.CloudProvider.Name == k8s.ExternalAWSCloudProviderName && c.CloudProvider.UseInstanceMetadataHostname != nil && *c.CloudProvider.UseInstanceMetadataHostname {
+			// rke-tools will inject hostname-override from ec2 instance metadata to match with the spec.nodeName set by cloud provider https://github.com/rancher/rke-tools/blob/3eab4f07aa97a8aeeaaef55b1b7bbc82e2a3374a/entrypoint.sh#L17
+			delete(CommandArgs, "hostname-override")
+		}
 	}
 
 	if c.IsKubeletGenerateServingCertificateEnabled() {
@@ -505,12 +512,14 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 	var Binds []string
 
 	if c.IsCRIDockerdEnabled() {
-		CommandArgs["container-runtime"] = "remote"
-		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
 		parsedVersion, err := getClusterVersion(c.Version)
 		if err != nil {
 			logrus.Debugf("Error while parsing cluster version: %s", err)
 		}
+		if parsedRangeBelow127(parsedVersion) {
+			CommandArgs["container-runtime"] = "remote" // This flag has been removed from v1.27 https://v1-26.docs.kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
+		}
+		CommandArgs["container-runtime-endpoint"] = "/var/run/dockershim.sock"
 		// cri-dockerd must be enabled if the cluster version is 1.24 and higher
 		if parsedRangeAtLeast124(parsedVersion) {
 			CommandArgs["container-runtime-endpoint"] = "unix:///var/run/cri-dockerd.sock"
@@ -692,7 +701,8 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		} else {
 			CommandArgs["bind-address"] = host.Address
 		}
-		if c.CloudProvider.Name == k8s.AWSCloudProvider && c.CloudProvider.UseInstanceMetadataHostname != nil && *c.CloudProvider.UseInstanceMetadataHostname {
+		if (c.CloudProvider.Name == k8s.ExternalAWSCloudProviderName || c.CloudProvider.Name == aws.AWSCloudProviderName) &&
+			c.CloudProvider.UseInstanceMetadataHostname != nil && *c.CloudProvider.UseInstanceMetadataHostname {
 			// rke-tools will inject hostname-override from ec2 instance metadata to match with the spec.nodeName set by cloud provider https://github.com/rancher/rke-tools/blob/3eab4f07aa97a8aeeaaef55b1b7bbc82e2a3374a/entrypoint.sh#L17
 			delete(CommandArgs, "hostname-override")
 		}
@@ -1285,4 +1295,11 @@ func (c *Cluster) IsCRIDockerdEnabled() bool {
 		return true
 	}
 	return false
+}
+
+func getCloudProviderName(name string) string {
+	if name == k8s.ExternalAWSCloudProviderName {
+		return "external"
+	}
+	return name
 }
