@@ -381,11 +381,11 @@ func RestartContainer(ctx context.Context, dClient *client.Client, hostname, con
 		return fmt.Errorf("Failed to restart container: docker client is nil for container [%s] on host [%s]", containerName, hostname)
 	}
 	var err error
-	restartTimeout := RestartTimeout
+	restartTimeout := RestartTimeout * time.Second
 	// Retry up to RetryCount times to see if image exists
 	for i := 1; i <= RetryCount; i++ {
 		logrus.Infof("Restarting container [%s] on host [%s], try #%d", containerName, hostname, i)
-		err = dClient.ContainerRestart(ctx, containerName, container.StopOptions{Timeout: &restartTimeout})
+		err = dClient.ContainerRestart(ctx, containerName, &restartTimeout)
 		if err != nil {
 			logrus.Warningf("Can't restart Docker container [%s] for host [%s]: %v", containerName, hostname, err)
 			continue
@@ -400,11 +400,11 @@ func StopContainer(ctx context.Context, dClient *client.Client, hostname string,
 	}
 	var err error
 	// define the stop timeout
-	stopTimeout := StopTimeout
+	stopTimeoutDuration := StopTimeout * time.Second
 	// Retry up to RetryCount times to see if image exists
 	for i := 1; i <= RetryCount; i++ {
-		logrus.Infof("Stopping container [%s] on host [%s] with stopTimeout [%d], try #%d", containerName, hostname, stopTimeout, i)
-		err = dClient.ContainerStop(ctx, containerName, container.StopOptions{Timeout: &stopTimeout})
+		logrus.Infof("Stopping container [%s] on host [%s] with stopTimeoutDuration [%s], try #%d", containerName, hostname, stopTimeoutDuration, i)
+		err = dClient.ContainerStop(ctx, containerName, &stopTimeoutDuration)
 		if err != nil {
 			logrus.Warningf("Can't stop Docker container [%s] for host [%s]: %v", containerName, hostname, err)
 			continue
@@ -453,11 +453,11 @@ func StartContainer(ctx context.Context, dClient *client.Client, hostname string
 	return err
 }
 
-func CreateContainer(ctx context.Context, dClient *client.Client, hostname string, containerName string, imageCfg *container.Config, hostCfg *container.HostConfig) (container.CreateResponse, error) {
+func CreateContainer(ctx context.Context, dClient *client.Client, hostname string, containerName string, imageCfg *container.Config, hostCfg *container.HostConfig) (container.ContainerCreateCreatedBody, error) {
 	if dClient == nil {
-		return container.CreateResponse{}, fmt.Errorf("Failed to create container: docker client is nil for container [%s] on host [%s]", containerName, hostname)
+		return container.ContainerCreateCreatedBody{}, fmt.Errorf("Failed to create container: docker client is nil for container [%s] on host [%s]", containerName, hostname)
 	}
-	var created container.CreateResponse
+	var created container.ContainerCreateCreatedBody
 	var err error
 	// Retry up to RetryCount times to see if image exists
 	for i := 1; i <= RetryCount; i++ {
@@ -468,7 +468,7 @@ func CreateContainer(ctx context.Context, dClient *client.Client, hostname strin
 		}
 		return created, nil
 	}
-	return container.CreateResponse{}, fmt.Errorf("Failed to create Docker container [%s] on host [%s]: %v", containerName, hostname, err)
+	return container.ContainerCreateCreatedBody{}, fmt.Errorf("Failed to create Docker container [%s] on host [%s]: %v", containerName, hostname, err)
 }
 
 func InspectContainer(ctx context.Context, dClient *client.Client, hostname string, containerName string) (types.ContainerJSON, error) {
