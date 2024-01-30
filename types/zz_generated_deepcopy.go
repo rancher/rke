@@ -85,6 +85,19 @@ func (in *AciNetworkProvider) DeepCopyInto(out *AciNetworkProvider) {
 			}
 		}
 	}
+	if in.NodeSnatRedirectExclude != nil {
+		in, out := &in.NodeSnatRedirectExclude, &out.NodeSnatRedirectExclude
+		*out = make([]map[string]string, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = make(map[string]string, len(*in))
+				for key, val := range *in {
+					(*out)[key] = val
+				}
+			}
+		}
+	}
 	return
 }
 

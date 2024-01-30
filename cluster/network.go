@@ -162,20 +162,21 @@ const (
 	AciDhcpRenewMaxRetryCount               = "aci_dhcp_renew_max_retry_count"
 	AciDhcpDelay                            = "aci_dhcp_delay"
 	AciUseSystemNodePriorityClass           = "aci_use_system_node_priority_class"
-	AciAccProvisionOperatorMemoryRequest    = "aci_acc_provision_operator_memory_request"
-	AciAccProvisionOperatorMemoryLimit      = "aci_acc_provision_operator_memory_limit"
 	AciAciContainersControllerMemoryRequest = "aci_aci_containers_controller_memory_request"
 	AciAciContainersControllerMemoryLimit   = "aci_aci_containers_controller_memory_limit"
 	AciAciContainersHostMemoryRequest       = "aci_aci_containers_host_memory_request"
 	AciAciContainersHostMemoryLimit         = "aci_aci_containers_host_memory_limit"
-	AciAciContainersOperatorMemoryRequest   = "aci_aci_containers_operator_memory_request"
-	AciAciContainersOperatorMemoryLimit     = "aci_aci_containers_operator_memory_limit"
 	AciMcastDaemonMemoryRequest             = "aci_mcast_daemon_memory_request"
 	AciMcastDaemonMemoryLimit               = "aci_mcast_daemon_memory_limit"
 	AciOpflexAgentMemoryRequest             = "aci_opflex_agent_memory_request"
 	AciOpflexAgentMemoryLimit               = "aci_opflex_agent_memory_limit"
 	AciAciContainersMemoryRequest           = "aci_aci_containers_memory_request"
 	AciAciContainersMemoryLimit             = "aci_aci_containers_memory_limit"
+	AciOpflexAgentStatistics                = "aci_opflex_agent_statistics"
+	AciAddExternalContractToDefaultEpg      = "aci_add_external_contract_to_default_epg"
+	AciEnableOpflexAgentReconnect           = "aci_enable_opflex_agent_reconnect"
+	AciOpflexOpensslCompat                  = "aci_opflex_openssl_compat"
+	AciTolerationSeconds                    = "aci_toleration_seconds"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -331,20 +332,22 @@ const (
 	UpdateStrategy                         = "UpdateStrategy"
 	Tolerations                            = "Tolerations"
 	UseSystemNodePriorityClass             = "UseSystemNodePriorityClass"
-	AccProvisionOperatorMemoryRequest      = "AccProvisionOperatorMemoryRequest"
-	AccProvisionOperatorMemoryLimit        = "AccProvisionOperatorMemoryLimit"
 	AciContainersControllerMemoryRequest   = "AciContainersControllerMemoryRequest"
 	AciContainersControllerMemoryLimit     = "AciContainersControllerMemoryLimit"
 	AciContainersHostMemoryRequest         = "AciContainersHostMemoryRequest"
 	AciContainersHostMemoryLimit           = "AciContainersHostMemoryLimit"
-	AciContainersOperatorMemoryRequest     = "AciContainersOperatorMemoryRequest"
-	AciContainersOperatorMemoryLimit       = "AciContainersOperatorMemoryLimit"
 	McastDaemonMemoryRequest               = "McastDaemonMemoryRequest"
 	McastDaemonMemoryLimit                 = "McastDaemonMemoryLimit"
 	OpflexAgentMemoryRequest               = "OpflexAgentMemoryRequest"
 	OpflexAgentMemoryLimit                 = "OpflexAgentMemoryLimit"
 	AciContainersMemoryRequest             = "AciContainersMemoryRequest"
 	AciContainersMemoryLimit               = "AciContainersMemoryLimit"
+	OpflexAgentStatistics                  = "OpflexAgentStatistics"
+	AddExternalContractToDefaultEpg        = "AddExternalContractToDefaultEpg"
+	EnableOpflexAgentReconnect             = "EnableOpflexAgentReconnect"
+	OpflexOpensslCompat                    = "OpflexOpensslCompat"
+	NodeSnatRedirectExclude                = "NodeSnatRedirectExclude"
+	TolerationSeconds                      = "TolerationSeconds"
 )
 
 type IPPool struct {
@@ -694,20 +697,22 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		DhcpRenewMaxRetryCount:               c.Network.Options[AciDhcpRenewMaxRetryCount],
 		DhcpDelay:                            c.Network.Options[AciDhcpDelay],
 		UseSystemNodePriorityClass:           c.Network.Options[AciUseSystemNodePriorityClass],
-		AccProvisionOperatorMemoryRequest:    c.Network.Options[AciAccProvisionOperatorMemoryRequest],
-		AccProvisionOperatorMemoryLimit:      c.Network.Options[AciAccProvisionOperatorMemoryLimit],
 		AciContainersControllerMemoryRequest: c.Network.Options[AciAciContainersControllerMemoryRequest],
 		AciContainersControllerMemoryLimit:   c.Network.Options[AciAciContainersControllerMemoryLimit],
 		AciContainersHostMemoryRequest:       c.Network.Options[AciAciContainersHostMemoryRequest],
 		AciContainersHostMemoryLimit:         c.Network.Options[AciAciContainersHostMemoryLimit],
-		AciContainersOperatorMemoryRequest:   c.Network.Options[AciAciContainersOperatorMemoryRequest],
-		AciContainersOperatorMemoryLimit:     c.Network.Options[AciAciContainersOperatorMemoryLimit],
 		McastDaemonMemoryRequest:             c.Network.Options[AciMcastDaemonMemoryRequest],
 		McastDaemonMemoryLimit:               c.Network.Options[AciMcastDaemonMemoryLimit],
 		OpflexAgentMemoryRequest:             c.Network.Options[AciOpflexAgentMemoryRequest],
 		OpflexAgentMemoryLimit:               c.Network.Options[AciOpflexAgentMemoryLimit],
 		AciContainersMemoryRequest:           c.Network.Options[AciAciContainersMemoryRequest],
 		AciContainersMemoryLimit:             c.Network.Options[AciAciContainersMemoryLimit],
+		OpflexAgentStatistics:                c.Network.Options[AciOpflexAgentStatistics],
+		AddExternalContractToDefaultEpg:      c.Network.Options[AciAddExternalContractToDefaultEpg],
+		EnableOpflexAgentReconnect:           c.Network.Options[AciEnableOpflexAgentReconnect],
+		OpflexOpensslCompat:                  c.Network.Options[AciOpflexOpensslCompat],
+		TolerationSeconds:                    c.Network.Options[AciTolerationSeconds],
+		NodeSnatRedirectExclude:              c.Network.AciNetworkProvider.NodeSnatRedirectExclude,
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                   c.SystemImages.AciOpflexContainer,

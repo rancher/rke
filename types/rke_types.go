@@ -682,20 +682,22 @@ type AciNetworkProvider struct {
 	DhcpRenewMaxRetryCount               string              `yaml:"dhcp_renew_max_retry_count,omitempty" json:"dhcpRenewMaxRetryCount,omitempty"`
 	DhcpDelay                            string              `yaml:"dhcp_delay,omitempty" json:"dhcpDelay,omitempty"`
 	UseSystemNodePriorityClass           string              `yaml:"use_system_node_priority_class,omitempty" json:"useSystemNodePriorityClass,omitempty"`
-	AccProvisionOperatorMemoryRequest    string              `yaml:"acc_provision_operator_memory_request,omitempty" json:"accProvisionOperatorMemoryRequest,omitempty"`
-	AccProvisionOperatorMemoryLimit      string              `yaml:"acc_provision_operator_memory_limit,omitempty" json:"accProvisionOperatorMemoryLimit,omitempty"`
 	AciContainersControllerMemoryRequest string              `yaml:"aci_containers_controller_memory_request,omitempty" json:"aciContainersControllerMemoryRequest,omitempty"`
 	AciContainersControllerMemoryLimit   string              `yaml:"aci_containers_controller_memory_limit,omitempty" json:"aciContainersControllerMemoryLimit,omitempty"`
 	AciContainersHostMemoryRequest       string              `yaml:"aci_containers_host_memory_request,omitempty" json:"aciContainersHostMemoryRequest,omitempty"`
 	AciContainersHostMemoryLimit         string              `yaml:"aci_containers_host_memory_limit,omitempty" json:"aciContainersHostMemoryLimit,omitempty"`
-	AciContainersOperatorMemoryRequest   string              `yaml:"aci_containers_operator_memory_request,omitempty" json:"aciContainersOperatorMemoryRequest,omitempty"`
-	AciContainersOperatorMemoryLimit     string              `yaml:"aci_containers_operator_memory_limit,omitempty" json:"aciContainersOperatorMemoryLimit,omitempty"`
 	McastDaemonMemoryRequest             string              `yaml:"mcast_daemon_memory_request,omitempty" json:"mcastDaemonMemoryRequest,omitempty"`
 	McastDaemonMemoryLimit               string              `yaml:"mcast_daemon_memory_limit,omitempty" json:"mcastDaemonMemoryLimit,omitempty"`
 	OpflexAgentMemoryRequest             string              `yaml:"opflex_agent_memory_request,omitempty" json:"opflexAgentMemoryRequest,omitempty"`
 	OpflexAgentMemoryLimit               string              `yaml:"opflex_agent_memory_limit,omitempty" json:"opflexAgentMemoryLimit,omitempty"`
 	AciContainersMemoryRequest           string              `yaml:"aci_containers_memory_request,omitempty" json:"aciContainersMemoryRequest,omitempty"`
 	AciContainersMemoryLimit             string              `yaml:"aci_containers_memory_limit,omitempty" json:"aciContainersMemoryLimit,omitempty"`
+	OpflexAgentStatistics                string              `yaml:"opflex_agent_statistics,omitempty" json:"opflexAgentStatistics,omitempty"`
+	AddExternalContractToDefaultEpg      string              `yaml:"add_external_contract_to_default_epg,omitempty" json:"addExternalContractToDefaultEpg,omitempty"`
+	EnableOpflexAgentReconnect           string              `yaml:"enable_opflex_agent_reconnect,omitempty" json:"enableOpflexAgentReconnect,omitempty"`
+	OpflexOpensslCompat                  string              `yaml:"opflex_openssl_compat,omitempty" json:"opflexOpensslCompat,omitempty"`
+	NodeSnatRedirectExclude              []map[string]string `yaml:"node_snat_redirect_exclude,omitempty" json:"nodeSnatRedirectExclude,omitempty"`
+	TolerationSeconds                    string              `yaml:"toleration_seconds,omitempty" json:"tolerationSeconds,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
