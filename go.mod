@@ -28,7 +28,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/coreos/go-semver v0.3.1
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/docker/docker v20.10.25+incompatible
+	github.com/docker/docker v20.10.27+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
@@ -52,7 +52,7 @@ require (
 	k8s.io/client-go v0.28.6
 	k8s.io/gengo v0.0.0-20230306165830-ab3349d207d4
 	k8s.io/kubectl v0.28.6
-	k8s.io/kubernetes v1.28.6
+	k8s.io/kubernetes v1.15.0-alpha.0
 	k8s.io/pod-security-admission v0.28.6
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	sigs.k8s.io/yaml v1.3.0

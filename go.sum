@@ -269,8 +269,8 @@ github.com/docker/distribution v2.7.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4Kfc
 github.com/docker/distribution v2.8.2+incompatible h1:T3de5rq0dB1j30rp0sA2rER+m322EBzniBPB6ZIzuh8=
 github.com/docker/distribution v2.8.2+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/docker v1.4.2-0.20190924003213-a8608b5b67c7/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
-github.com/docker/docker v20.10.25+incompatible h1:URiHXOEOlhi6FS5U+YUE8YnsnZjIV3R+TFezL2ngdW0=
-github.com/docker/docker v20.10.25+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
+github.com/docker/docker v20.10.27+incompatible h1:Id/ZooynV4ZlD6xX20RCd3SR0Ikn7r4QZDa2ECK2TgA=
+github.com/docker/docker v20.10.27+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker-credential-helpers v0.6.3/go.mod h1:WRaJzqw3CTB9bk10avuGsjVBZsD05qeibJ1/TYlvc0Y=
 github.com/docker/go-connections v0.4.0 h1:El9xVISelRB7BuFusrZozjnkIM5YnzCViNKohAFqRJQ=
 github.com/docker/go-connections v0.4.0/go.mod h1:Gbd7IOopHjR8Iph03tsViu4nIes5XhDvyHbTtUxmeec=
@@ -1273,8 +1273,8 @@ k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9/go.mod h1:wZK2AVp1uHCp4Va
 k8s.io/kubectl v0.28.6 h1:46O3gGJYlpqy7wtwYlggieemyIcuZqmflnQVDci3MgY=
 k8s.io/kubectl v0.28.6/go.mod h1:FS5ugZhi3kywpMQSCnp8MN+gctdFHJACzC6mH3fZ6lc=
 k8s.io/kubernetes v1.13.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
-k8s.io/kubernetes v1.28.6 h1:Nn2fXNjaqmKyXeFq6verbdqzlj1aqUpBcyeC1OhRFa4=
-k8s.io/kubernetes v1.28.6/go.mod h1:0qpyGJTR3blkbQOmZA3Z0u1VDZJNxJM8ifLUVNJN0X8=
+k8s.io/kubernetes v1.15.0-alpha.0 h1:gIwzzIgt0BX8fznDZRxdZv2837cEmVetI54aUfzkPk8=
+k8s.io/kubernetes v1.15.0-alpha.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/pod-security-admission v0.28.6 h1:EkObQaDPU7y+b4ODafwKIZlK9M6P8Ss23D77TZ+8hqs=
 k8s.io/pod-security-admission v0.28.6/go.mod h1:TYNCxTgViyOELpDYOMn81PQsa+hd9Co00HTQI9c6qXk=
 k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
