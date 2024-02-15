@@ -52,7 +52,7 @@ require (
 	k8s.io/client-go v0.28.6
 	k8s.io/gengo v0.0.0-20230306165830-ab3349d207d4
 	k8s.io/kubectl v0.28.6
-	k8s.io/kubernetes v1.28.6
+	k8s.io/kubernetes v1.15.0-alpha.0
 	k8s.io/pod-security-admission v0.28.6
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	sigs.k8s.io/yaml v1.3.0
@@ -117,7 +117,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
-	github.com/opencontainers/runc v1.1.9 // indirect
+	github.com/opencontainers/runc v1.1.12 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
