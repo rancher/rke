@@ -698,6 +698,10 @@ type AciNetworkProvider struct {
 	OpflexOpensslCompat                  string              `yaml:"opflex_openssl_compat,omitempty" json:"opflexOpensslCompat,omitempty"`
 	NodeSnatRedirectExclude              []map[string]string `yaml:"node_snat_redirect_exclude,omitempty" json:"nodeSnatRedirectExclude,omitempty"`
 	TolerationSeconds                    string              `yaml:"toleration_seconds,omitempty" json:"tolerationSeconds,omitempty"`
+	DisableHppRendering                  string              `yaml:"disable_hpp_rendering,omitempty" json:"disableHppRendering,omitempty"`
+	ApicConnectionRetryLimit             string              `yaml:"apic_connection_retry_limit,omitempty" json:"apicConnectionRetryLimit,omitempty"`
+	TaintNotReadyNode                    string              `yaml:"taint_not_ready_node,omitempty" json:"taintNotReadyNode,omitempty"`
+	DropLogDisableEvents                 string              `yaml:"drop_log_disable_events,omitempty" json:"dropLogDisableEvents,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
