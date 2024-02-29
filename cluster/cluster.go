@@ -687,8 +687,13 @@ func parseNodeDrainInput(clusterFile string, rkeConfig *v3.RancherKubernetesEngi
 		nodeDrainInput.GracePeriod = DefaultNodeDrainGracePeriod
 		update = true
 	} else {
-		// TODO: ghodssyaml.Marshal is losing the user provided value for GracePeriod, investigate why, till then assign the provided value explicitly
+		// add back user's value because ghodssyaml.Marshal drops the value due to the same field has different names in YAML tag and JSON tag
 		nodeDrainInput.GracePeriod = int(providedGracePeriod)
+	}
+
+	// add back user's value because ghodssyaml.Marshal drops the value due to the same field has different names in YAML tag and JSON tag
+	if val, ok := nodeDrainInputMap["delete_local_data"].(bool); ok {
+		nodeDrainInput.DeleteLocalData = val
 	}
 
 	if update {
