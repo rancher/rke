@@ -177,6 +177,10 @@ const (
 	AciEnableOpflexAgentReconnect           = "aci_enable_opflex_agent_reconnect"
 	AciOpflexOpensslCompat                  = "aci_opflex_openssl_compat"
 	AciTolerationSeconds                    = "aci_toleration_seconds"
+	AciDisableHppRendering                  = "aci_disable_hpp_rendering"
+	AciApicConnectionRetryLimit             = "aci_apic_connection_retry_limit"
+	AciTaintNotReadyNode                    = "aci_taint_not_ready_node"
+	AciDropLogDisableEvents                 = "aci_drop_log_disable_events"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -348,6 +352,10 @@ const (
 	OpflexOpensslCompat                    = "OpflexOpensslCompat"
 	NodeSnatRedirectExclude                = "NodeSnatRedirectExclude"
 	TolerationSeconds                      = "TolerationSeconds"
+	DisableHppRendering                    = "DisableHppRendering"
+	ApicConnectionRetryLimit               = "ApicConnectionRetryLimit"
+	TaintNotReadyNode                      = "TaintNotReadyNode"
+	DropLogDisableEvents                   = "DropLogDisableEvents"
 )
 
 type IPPool struct {
@@ -712,6 +720,10 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		EnableOpflexAgentReconnect:           c.Network.Options[AciEnableOpflexAgentReconnect],
 		OpflexOpensslCompat:                  c.Network.Options[AciOpflexOpensslCompat],
 		TolerationSeconds:                    c.Network.Options[AciTolerationSeconds],
+		DisableHppRendering:                  c.Network.Options[AciDisableHppRendering],
+		ApicConnectionRetryLimit:             c.Network.Options[AciApicConnectionRetryLimit],
+		TaintNotReadyNode:                    c.Network.Options[AciTaintNotReadyNode],
+		DropLogDisableEvents:                 c.Network.Options[AciDropLogDisableEvents],
 		NodeSnatRedirectExclude:              c.Network.AciNetworkProvider.NodeSnatRedirectExclude,
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
