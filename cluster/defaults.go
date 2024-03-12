@@ -137,6 +137,10 @@ const (
 	DefaultAciEnableOpflexAgentReconnect             = "false"
 	DefaultAciOpflexOpensslCompat                    = "false"
 	DefaultAciTolerationSeconds                      = "600"
+	DefaultAciDisableHppRendering                    = "false"
+	DefaultAciApicConnectionRetryLimit               = "5"
+	DefaultAciTaintNotReadyNode                      = "false"
+	DefaultAciDropLogDisableEvents                   = "false"
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
 
@@ -917,6 +921,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EnableOpflexAgentReconnect, DefaultAciEnableOpflexAgentReconnect)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexOpensslCompat, DefaultAciOpflexOpensslCompat)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.TolerationSeconds, DefaultAciTolerationSeconds)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DisableHppRendering, DefaultAciDisableHppRendering)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicConnectionRetryLimit, DefaultAciApicConnectionRetryLimit)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.TaintNotReadyNode, DefaultAciTaintNotReadyNode)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DropLogDisableEvents, DefaultAciDropLogDisableEvents)
 		networkPluginConfigDefaultsMap[AciOVSMemoryLimit] = c.Network.AciNetworkProvider.OVSMemoryLimit
 		networkPluginConfigDefaultsMap[AciOVSMemoryRequest] = c.Network.AciNetworkProvider.OVSMemoryRequest
 		networkPluginConfigDefaultsMap[AciImagePullPolicy] = c.Network.AciNetworkProvider.ImagePullPolicy
@@ -1019,6 +1027,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciEnableOpflexAgentReconnect] = c.Network.AciNetworkProvider.EnableOpflexAgentReconnect
 		networkPluginConfigDefaultsMap[AciOpflexOpensslCompat] = c.Network.AciNetworkProvider.OpflexOpensslCompat
 		networkPluginConfigDefaultsMap[AciTolerationSeconds] = c.Network.AciNetworkProvider.TolerationSeconds
+		networkPluginConfigDefaultsMap[AciDisableHppRendering] = c.Network.AciNetworkProvider.DisableHppRendering
+		networkPluginConfigDefaultsMap[AciApicConnectionRetryLimit] = c.Network.AciNetworkProvider.ApicConnectionRetryLimit
+		networkPluginConfigDefaultsMap[AciTaintNotReadyNode] = c.Network.AciNetworkProvider.TaintNotReadyNode
+		networkPluginConfigDefaultsMap[AciDropLogDisableEvents] = c.Network.AciNetworkProvider.DropLogDisableEvents
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
