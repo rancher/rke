@@ -40,10 +40,11 @@ const (
 
 	NetworkConfigurationEnv = "RKE_NETWORK_CONFIGURATION"
 
-	EtcdPathPrefix       = "/registry"
-	CloudConfigSumEnv    = "RKE_CLOUD_CONFIG_CHECKSUM"
-	CloudProviderNameEnv = "RKE_CLOUD_PROVIDER_NAME"
-	AuditLogConfigSumEnv = "RKE_AUDITLOG_CONFIG_CHECKSUM"
+	EtcdPathPrefix        = "/registry"
+	CloudConfigSumEnv     = "RKE_CLOUD_CONFIG_CHECKSUM"
+	CloudProviderNameEnv  = "RKE_CLOUD_PROVIDER_NAME"
+	AuditLogConfigSumEnv  = "RKE_AUDITLOG_CONFIG_CHECKSUM"
+	AdmissionConfigSumEnv = "RKE_ADMISSION_CONFIG_CHECKSUM"
 
 	DefaultToolsEntrypoint        = "/opt/rke-tools/entrypoint.sh"
 	DefaultToolsEntrypointVersion = "0.1.13"
@@ -202,6 +203,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		"tls-private-key-file":          pki.GetKeyPath(pki.KubeAPICertName),
 	}
 	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
+	Env := make([]string, len(c.Services.KubeAPI.ExtraEnv))
 
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = cloudConfigFileName
@@ -211,9 +213,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		CommandArgs["authentication-token-webhook-cache-ttl"] = c.Authentication.Webhook.CacheTimeout
 	}
 	if len(c.CloudProvider.Name) > 0 {
-		c.Services.KubeAPI.ExtraEnv = append(
-			c.Services.KubeAPI.ExtraEnv,
-			fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
+		Env = append(Env, fmt.Sprintf("%s=%s", CloudConfigSumEnv, getStringChecksum(c.CloudConfigFile)))
 	}
 	if c.EncryptionConfig.EncryptionProviderFile != "" {
 		CommandArgs[EncryptionProviderConfigArgument] = EncryptionProviderFilePath
@@ -286,16 +286,24 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		fmt.Sprintf("%s:/etc/kubernetes:z", path.Join(host.PrefixPath, "/etc/kubernetes")),
 	}
 
+	if _, ok := c.Services.KubeAPI.ExtraArgs[KubeAPIArgAdmissionControlConfigFile]; !ok {
+		admissionConfig, err := c.getConsolidatedAdmissionConfiguration()
+		if err != nil {
+			logrus.Warnf("Error while getting consolidated admission configuration: %v", err)
+		}
+		bytes, err := yaml.Marshal(admissionConfig)
+		if err != nil {
+			logrus.Warnf("Error while marshalling admission configuration: %v", err)
+		}
+		Env = append(Env, fmt.Sprintf("%s=%s", AdmissionConfigSumEnv, getStringChecksum(string(bytes))))
+	}
 	if c.Services.KubeAPI.AuditLog != nil && c.Services.KubeAPI.AuditLog.Enabled {
 		Binds = append(Binds, fmt.Sprintf("%s:/var/log/kube-audit", path.Join(host.PrefixPath, "/var/log/kube-audit")))
 		bytes, err := yaml.Marshal(c.Services.KubeAPI.AuditLog.Configuration.Policy)
 		if err != nil {
 			logrus.Warnf("Error while marshalling auditlog policy: %v", err)
 		}
-
-		c.Services.KubeAPI.ExtraEnv = append(
-			c.Services.KubeAPI.ExtraEnv,
-			fmt.Sprintf("%s=%s", AuditLogConfigSumEnv, getStringChecksum(string(bytes))))
+		Env = append(Env, fmt.Sprintf("%s=%s", AuditLogConfigSumEnv, getStringChecksum(string(bytes))))
 	}
 
 	matchedRange, err := util.SemVerMatchRange(c.Version, util.SemVerK8sVersion122OrHigher)
@@ -328,12 +336,14 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	}
 	registryAuthConfig, _, _ := docker.GetImageRegistryConfig(c.Services.KubeAPI.Image, c.PrivateRegistriesMap)
 
+	Env = append(Env, c.Services.KubeAPI.ExtraEnv...)
+
 	return v3.Process{
 		Name:                    services.KubeAPIContainerName,
 		Command:                 Command,
 		VolumesFrom:             VolumesFrom,
 		Binds:                   getUniqStringList(Binds),
-		Env:                     getUniqStringList(c.Services.KubeAPI.ExtraEnv),
+		Env:                     getUniqStringList(Env),
 		NetworkMode:             "host",
 		RestartPolicy:           "always",
 		Image:                   c.Services.KubeAPI.Image,
