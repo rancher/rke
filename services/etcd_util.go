@@ -56,6 +56,7 @@ func getEtcdClientV3(ctx context.Context, etcdHost *hosts.Host, localConnDialerF
 		Endpoints:   []string{"https://" + etcdHost.InternalAddress + ":2379"},
 		TLS:         tlsConfig,
 		DialOptions: []grpc.DialOption{grpc.WithContextDialer(wrapper(dialer))},
+		DialTimeout: 5 * time.Second,
 	}
 
 	return etcdclientv3.New(cfg)
