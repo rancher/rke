@@ -36,5 +36,7 @@ const (
 	KubeAdminCertName         = "kube-admin"
 	KubeAdminOrganizationName = "system:masters"
 	KubeAdminConfigPrefix     = "kube_config_"
-	duration365d              = time.Hour * 24 * 365
+
+	duration1d   = time.Hour * 24
+	duration365d = duration1d * 365
 )

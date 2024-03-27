@@ -40,7 +40,7 @@ func GenerateKubeAPICertificate(ctx context.Context, certs map[string]Certificat
 	if !rotate {
 		serviceKey = certs[KubeAPICertName].Key
 	}
-	kubeAPICrt, kubeAPIKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, KubeAPICertName, kubeAPIAltNames, serviceKey, nil)
+	kubeAPICrt, kubeAPIKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, KubeAPICertName, kubeAPIAltNames, serviceKey, nil, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func GenerateKubeControllerCertificate(ctx context.Context, certs map[string]Cer
 	if !rotate {
 		serviceKey = certs[KubeControllerCertName].Key
 	}
-	kubeControllerCrt, kubeControllerKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, getDefaultCN(KubeControllerCertName), nil, serviceKey, nil)
+	kubeControllerCrt, kubeControllerKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, getDefaultCN(KubeControllerCertName), nil, serviceKey, nil, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func GenerateKubeSchedulerCertificate(ctx context.Context, certs map[string]Cert
 	if !rotate {
 		serviceKey = certs[KubeSchedulerCertName].Key
 	}
-	kubeSchedulerCrt, kubeSchedulerKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, getDefaultCN(KubeSchedulerCertName), nil, serviceKey, nil)
+	kubeSchedulerCrt, kubeSchedulerKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, getDefaultCN(KubeSchedulerCertName), nil, serviceKey, nil, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func GenerateKubeProxyCertificate(ctx context.Context, certs map[string]Certific
 	if !rotate {
 		serviceKey = certs[KubeProxyCertName].Key
 	}
-	kubeProxyCrt, kubeProxyKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, getDefaultCN(KubeProxyCertName), nil, serviceKey, nil)
+	kubeProxyCrt, kubeProxyKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, getDefaultCN(KubeProxyCertName), nil, serviceKey, nil, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func GenerateKubeNodeCertificate(ctx context.Context, certs map[string]Certifica
 	if !rotate {
 		serviceKey = certs[KubeProxyCertName].Key
 	}
-	nodeCrt, nodeKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, KubeNodeCommonName, nil, serviceKey, []string{KubeNodeOrganizationName})
+	nodeCrt, nodeKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, KubeNodeCommonName, nil, serviceKey, []string{KubeNodeOrganizationName}, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,7 @@ func GenerateKubeAdminCertificate(ctx context.Context, certs map[string]Certific
 	if !rotate {
 		serviceKey = certs[KubeAdminCertName].Key
 	}
-	kubeAdminCrt, kubeAdminKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, KubeAdminCertName, nil, serviceKey, []string{KubeAdminOrganizationName})
+	kubeAdminCrt, kubeAdminKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, KubeAdminCertName, nil, serviceKey, []string{KubeAdminOrganizationName}, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func GenerateAPIProxyClientCertificate(ctx context.Context, certs map[string]Cer
 	if !rotate {
 		serviceKey = certs[APIProxyClientCertName].Key
 	}
-	apiserverProxyClientCrt, apiserverProxyClientKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, APIProxyClientCertName, nil, serviceKey, nil)
+	apiserverProxyClientCrt, apiserverProxyClientKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, APIProxyClientCertName, nil, serviceKey, nil, rkeConfig.CertificateLifetime)
 	if err != nil {
 		return err
 	}
@@ -398,7 +398,7 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 			serviceKey = certs[etcdName].Key
 		}
 		logrus.Infof("[certificates] Generating %s certificate and key", etcdName)
-		etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, serviceKey, nil)
+		etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, serviceKey, nil, rkeConfig.CertificateLifetime)
 		if err != nil {
 			return err
 		}
@@ -451,7 +451,7 @@ func GenerateServiceTokenKey(ctx context.Context, certs map[string]CertificatePK
 	if certs[ServiceAccountTokenKeyName].Key == nil {
 		privateAPIKey = certs[KubeAPICertName].Key
 	}
-	tokenCrt, tokenKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, ServiceAccountTokenKeyName, nil, privateAPIKey, nil)
+	tokenCrt, tokenKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, ServiceAccountTokenKeyName, nil, privateAPIKey, nil, 0)
 	if err != nil {
 		return fmt.Errorf("Failed to generate private key for service account token: %v", err)
 	}
@@ -515,7 +515,7 @@ func GenerateKubeletCertificate(ctx context.Context, certs map[string]Certificat
 			serviceKey = certs[kubeletName].Key
 		}
 		log.Debugf(ctx, "[certificates] Generating %s certificate and key", kubeletName)
-		kubeletCrt, kubeletKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, kubeletName, kubeletAltNames, serviceKey, nil)
+		kubeletCrt, kubeletKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, kubeletName, kubeletAltNames, serviceKey, nil, rkeConfig.CertificateLifetime)
 		if err != nil {
 			return err
 		}

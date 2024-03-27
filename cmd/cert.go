@@ -250,6 +250,10 @@ func rotateRKECertificates(ctx context.Context, kubeCluster *cluster.Cluster, fl
 		if _, err := caCert.Verify(x509.VerifyOptions{Roots: certPool, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}); err != nil {
 			return nil, fmt.Errorf("Failed to rotate certificates: CA certificate is invalid, please use the --rotate-ca flag to rotate CA certificate, error: %v", err)
 		}
+		// Update the current-state cert-lifetime to the desired state for rotation.
+		if kubeCluster.CertificateLifetime != 0 {
+			currentCluster.CertificateLifetime = kubeCluster.CertificateLifetime
+		}
 	}
 	if err := cluster.RotateRKECertificates(ctx, currentCluster, flags, rkeFullState); err != nil {
 		return nil, err
