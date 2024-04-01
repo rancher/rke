@@ -73,7 +73,7 @@ func (c *Cluster) DeployRestoreCerts(ctx context.Context, clusterCerts map[strin
 	var errgrp errgroup.Group
 	hostsQueue := util.GetObjectQueue(c.EtcdHosts)
 	restoreCerts := map[string]pki.CertificatePKI{}
-	for _, n := range []string{pki.CACertName, pki.KubeNodeCertName, pki.KubeNodeCertName} {
+	for _, n := range []string{pki.EtcdCACertName, pki.EtcdClientCertName} {
 		restoreCerts[n] = clusterCerts[n]
 	}
 	for w := 0; w < WorkerThreads; w++ {

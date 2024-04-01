@@ -39,6 +39,7 @@ func TestPKI(t *testing.T) {
 		t.Fatalf("Failed To generate certificates: %v", err)
 	}
 	assertEqual(t, certificateMap[CACertName].Certificate.IsCA, true, "")
+	assertEqual(t, certificateMap[EtcdCACertName].Certificate.IsCA, true, "")
 	roots := x509.NewCertPool()
 	roots.AddCert(certificateMap[CACertName].Certificate)
 

@@ -350,8 +350,8 @@ func GenerateExternalEtcdCertificates(ctx context.Context, certs map[string]Cert
 }
 
 func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificatePKI, rkeConfig v3.RancherKubernetesEngineConfig, configPath, configDir string, rotate bool) error {
-	caCrt := certs[CACertName].Certificate
-	caKey := certs[CACertName].Key
+	caCrt := certs[EtcdCACertName].Certificate
+	caKey := certs[EtcdCACertName].Key
 	if caCrt == nil || caKey == nil {
 		return fmt.Errorf("CA Certificate or Key is empty")
 	}
@@ -404,6 +404,19 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 		}
 		certs[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey, nil)
 	}
+
+	// generate etcd client cert
+	var clientCertKey *rsa.PrivateKey
+	if !rotate {
+		clientCertKey = certs[EtcdClientCertName].Key
+	}
+
+	etcdClientCert, etcdClientKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, EtcdClientCertName, &cert.AltNames{}, clientCertKey, nil)
+	if err != nil {
+		return err
+	}
+	certs[EtcdClientCertName] = ToCertObject(EtcdClientCertName, "", "", etcdClientCert, etcdClientKey, nil)
+
 	deleteUnusedCerts(ctx, certs, EtcdCertName, etcdHosts)
 	return nil
 }
@@ -463,6 +476,11 @@ func GenerateRKECACerts(ctx context.Context, certs map[string]CertificatePKI, co
 	if err := GenerateRKEMasterCACert(ctx, certs, configPath, configDir); err != nil {
 		return err
 	}
+
+	if err := GenerateRKEEtcdCACert(ctx, certs, configPath, configDir); err != nil {
+		return err
+	}
+
 	return GenerateRKERequestHeaderCACert(ctx, certs, configPath, configDir)
 }
 
@@ -475,6 +493,18 @@ func GenerateRKEMasterCACert(ctx context.Context, certs map[string]CertificatePK
 		return err
 	}
 	certs[CACertName] = ToCertObject(CACertName, "", "", caCrt, caKey, nil)
+	return nil
+}
+
+func GenerateRKEEtcdCACert(ctx context.Context, certs map[string]CertificatePKI, configPath, configDir string) error {
+	// generate kubernetes CA certificate and key
+	logrus.Info("[certificates] Generating Etcd CA kubernetes certificates")
+
+	caCrt, caKey, err := GenerateCACertAndKey(EtcdCACertName, nil)
+	if err != nil {
+		return err
+	}
+	certs[EtcdCACertName] = ToCertObject(EtcdCACertName, "", "", caCrt, caKey, nil)
 	return nil
 }
 
@@ -609,7 +639,7 @@ func deleteUnusedCerts(ctx context.Context, certs map[string]CertificatePKI, cer
 	logrus.Tracef("Checking and deleting unused certificates with prefix [%s] for the following [%d] node(s): %s", certName, len(hostAddresses), strings.Join(hostAddresses, ","))
 	unusedCerts := make(map[string]bool)
 	for k := range certs {
-		if strings.HasPrefix(k, certName) {
+		if strings.HasPrefix(k, certName) && k != EtcdCACertName && k != EtcdClientCertName {
 			unusedCerts[k] = true
 		}
 	}

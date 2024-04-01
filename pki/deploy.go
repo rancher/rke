@@ -231,6 +231,8 @@ func FetchCertificatesFromHost(ctx context.Context, extraHosts []*hosts.Host, ho
 
 	crtList := map[string]bool{
 		CACertName:              false,
+		EtcdCACertName:          false,
+		EtcdClientCertName:      false,
 		KubeAPICertName:         false,
 		KubeControllerCertName:  true,
 		KubeSchedulerCertName:   true,

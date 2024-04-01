@@ -32,6 +32,8 @@ func GetClusterCertsFromKubernetes(ctx context.Context, kubeCluster *Cluster) (m
 	}
 	certificatesNames := []string{
 		pki.CACertName,
+		pki.EtcdCACertName,
+		pki.EtcdClientCertName,
 		pki.KubeAPICertName,
 		pki.KubeNodeCertName,
 		pki.KubeProxyCertName,

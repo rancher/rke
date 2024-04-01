@@ -167,9 +167,9 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	// check if external etcd is used
 	etcdConnectionString := services.GetEtcdConnString(c.EtcdHosts, host.InternalAddress)
 	etcdPathPrefix := EtcdPathPrefix
-	etcdClientCert := pki.GetCertPath(pki.KubeNodeCertName)
-	etcdClientKey := pki.GetKeyPath(pki.KubeNodeCertName)
-	etcdCAClientCert := pki.GetCertPath(pki.CACertName)
+	etcdClientCert := pki.GetCertPath(pki.EtcdClientCertName)
+	etcdClientKey := pki.GetKeyPath(pki.EtcdClientCertName)
+	etcdCAClientCert := pki.GetCertPath(pki.EtcdCACertName)
 
 	if len(c.Services.Etcd.ExternalURLs) > 0 {
 		etcdConnectionString = strings.Join(c.Services.Etcd.ExternalURLs, ",")
@@ -1031,8 +1031,8 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 		"initial-cluster-token":       "etcd-cluster-1",
 		"initial-cluster":             initCluster,
 		"initial-cluster-state":       clusterState,
-		"trusted-ca-file":             pki.GetCertPath(pki.CACertName),
-		"peer-trusted-ca-file":        pki.GetCertPath(pki.CACertName),
+		"trusted-ca-file":             pki.GetCertPath(pki.EtcdCACertName),
+		"peer-trusted-ca-file":        pki.GetCertPath(pki.EtcdCACertName),
 		"cert-file":                   pki.GetCertPath(nodeName),
 		"key-file":                    pki.GetKeyPath(nodeName),
 		"peer-cert-file":              pki.GetCertPath(nodeName),
@@ -1135,7 +1135,7 @@ func (c *Cluster) BuildEtcdProcess(host *hosts.Host, etcdHosts []*hosts.Host, se
 	// Configure default etcdctl environment variables
 	Env := []string{}
 	Env = append(Env, "ETCDCTL_API=3")
-	Env = append(Env, fmt.Sprintf("ETCDCTL_CACERT=%s", pki.GetCertPath(pki.CACertName)))
+	Env = append(Env, fmt.Sprintf("ETCDCTL_CACERT=%s", pki.GetCertPath(pki.EtcdCACertName)))
 	Env = append(Env, fmt.Sprintf("ETCDCTL_CERT=%s", pki.GetCertPath(nodeName)))
 	Env = append(Env, fmt.Sprintf("ETCDCTL_KEY=%s", pki.GetKeyPath(nodeName)))
 

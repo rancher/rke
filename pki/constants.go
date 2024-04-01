@@ -25,6 +25,7 @@ const (
 	KubeNodeCertName           = "kube-node"
 	KubeletCertName            = "kube-kubelet"
 	EtcdCertName               = "kube-etcd"
+	EtcdCACertName             = "kube-etcd-ca"
 	EtcdClientCACertName       = "kube-etcd-client-ca"
 	EtcdClientCertName         = "kube-etcd-client"
 	APIProxyClientCertName     = "kube-apiserver-proxy-client"

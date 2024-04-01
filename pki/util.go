@@ -296,6 +296,9 @@ func ToCertObject(componentName, commonName, ouName string, certificate *x509.Ce
 	envName := getEnvFromName(componentName)
 	keyEnvName := getKeyEnvFromEnv(envName)
 	caCertPath := GetCertPath(CACertName)
+	if strings.Contains(componentName, EtcdCertName) {
+		caCertPath = GetCertPath(EtcdCACertName)
+	}
 	path := GetCertPath(componentName)
 	keyPath := GetKeyPath(componentName)
 	if certificate != nil {
@@ -353,6 +356,7 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 	}
 	// etcd
 	if nodeRole == etcdRole {
+		certList = append(certList, EtcdCACertName)
 		etcdHosts := hosts.NodesToHosts(rkeNodes, nodeRole)
 		for _, host := range etcdHosts {
 			certList = append(certList, GetCrtNameForHost(host, EtcdCertName))
@@ -366,6 +370,7 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 			ServiceAccountTokenKeyName,
 			KubeControllerCertName,
 			KubeSchedulerCertName,
+			EtcdCACertName,
 			EtcdClientCertName,
 			EtcdClientCACertName,
 			RequestHeaderCACertName,
@@ -412,6 +417,10 @@ func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string,
 	certs := make(map[string]CertificatePKI)
 	// CACert
 	certs[CACertName] = ToCertObject(CACertName, "", "", tmpCerts[CACertName].Certificate, tmpCerts[CACertName].Key, nil)
+	// EtcdCACert
+	certs[EtcdCACertName] = ToCertObject(EtcdCACertName, "", "", tmpCerts[EtcdCACertName].Certificate, tmpCerts[EtcdCACertName].Key, nil)
+	// EtcdClientCert
+	certs[EtcdClientCertName] = ToCertObject(EtcdClientCertName, "", "", tmpCerts[EtcdClientCertName].Certificate, tmpCerts[EtcdClientCertName].Key, nil)
 	// KubeAPI
 	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", tmpCerts[KubeAPICertName].Certificate, tmpCerts[KubeAPICertName].Key, nil)
 	// kubeController
@@ -714,6 +723,9 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 	if certBundle[CACertName].Certificate == nil {
 		return fmt.Errorf("Failed to find master CA certificate")
 	}
+	if certBundle[EtcdCACertName].Certificate == nil {
+		return fmt.Errorf("Failed to find etcd CA certificate")
+	}
 	if certBundle[RequestHeaderCACertName].Certificate == nil {
 		logrus.Warnf("Failed to find RequestHeader CA certificate, using master CA certificate")
 		certBundle[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, RequestHeaderCACertName, "", certBundle[CACertName].Certificate, nil, nil)
@@ -739,6 +751,9 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 		if certBundle[etcdName].Certificate == nil || certBundle[etcdName].Key == nil {
 			return fmt.Errorf("Failed to find etcd [%s] Certificate or Key", etcdName)
 		}
+	}
+	if certBundle[EtcdClientCertName].Certificate == nil {
+		return fmt.Errorf("Failed to find etcd client certificate")
 	}
 	// Configure kubeconfig
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
@@ -770,16 +785,30 @@ func validateCAIssuer(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle ma
 		KubeNodeCertName,
 		KubeAdminCertName,
 	}
-	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
-	for _, host := range etcdHosts {
-		etcdName := GetCrtNameForHost(host, EtcdCertName)
-		ComponentsCerts = append(ComponentsCerts, etcdName)
-	}
 	for _, componentCert := range ComponentsCerts {
 		if certBundle[componentCert].Certificate.Issuer.CommonName != caCert.Subject.CommonName {
 			return fmt.Errorf("Component [%s] is not signed by the custom CA certificate", componentCert)
 		}
 	}
+
+	etcdCerts := []string{}
+	etcdCaCert := certBundle[EtcdCACertName].Certificate
+	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
+	for _, host := range etcdHosts {
+		etcdName := GetCrtNameForHost(host, EtcdCertName)
+		etcdCerts = append(etcdCerts, etcdName)
+	}
+
+	for _, etcdCert := range etcdCerts {
+		if certBundle[etcdCert].Certificate.Issuer.CommonName != etcdCaCert.Subject.CommonName {
+			return fmt.Errorf("Component [%s] is not signed by the custom etcd CA certificate", etcdCert)
+		}
+	}
+
+	if certBundle[EtcdClientCertName].Certificate.Issuer.CommonName != etcdCaCert.Subject.CommonName {
+		return fmt.Errorf("Component [%s] is not signed by the custom etcd CA certificate", EtcdClientCertName)
+	}
+
 	requestHeaderCACert := certBundle[RequestHeaderCACertName].Certificate
 	if certBundle[APIProxyClientCertName].Certificate.Issuer.CommonName != requestHeaderCACert.Subject.CommonName {
 		return fmt.Errorf("Component [%s] is not signed by the custom Request Header CA certificate", APIProxyClientCertName)
