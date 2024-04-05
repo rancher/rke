@@ -56,7 +56,7 @@ func DeployCertificatesOnPlaneHost(
 		rkeConfig.Services.Etcd.GID != 0 {
 		env = append(env,
 			[]string{fmt.Sprintf("ETCD_UID=%d", rkeConfig.Services.Etcd.UID),
-				fmt.Sprintf("ETCD_GID=%d", rkeConfig.Services.Etcd.GID)}...)
+				fmt.Sprintf("ETCD_GID=%d", rkeConfig.Services.Etcd.GID), "SKIP_PERMISSION_UPDATE=true"}...)
 	}
 
 	return doRunDeployer(ctx, host, env, certDownloaderImage, prsMap, k8sVersion)
