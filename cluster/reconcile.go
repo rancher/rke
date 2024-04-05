@@ -172,8 +172,8 @@ func reconcileHost(ctx context.Context, toDeleteHost *hosts.Host, worker, etcd b
 func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, kubeClient *kubernetes.Clientset, svcOptionData map[string]*v3.KubernetesServicesOptions) error {
 	etcdToDelete := hosts.GetToDeleteHosts(currentCluster.EtcdHosts, kubeCluster.EtcdHosts, kubeCluster.InactiveHosts, false)
 	etcdToAdd := hosts.GetToAddHosts(currentCluster.EtcdHosts, kubeCluster.EtcdHosts)
-	clientCert := cert.EncodeCertPEM(currentCluster.Certificates[pki.EtcdClientCertName].Certificate)
-	clientKey := cert.EncodePrivateKeyPEM(currentCluster.Certificates[pki.EtcdClientCertName].Key)
+	clientCert := cert.EncodeCertPEM(currentCluster.Certificates[pki.KubeAPIEtcdClientCertName].Certificate)
+	clientKey := cert.EncodePrivateKeyPEM(currentCluster.Certificates[pki.KubeAPIEtcdClientCertName].Key)
 
 	// check if the whole etcd plane is replaced
 	if isEtcdPlaneReplaced(ctx, currentCluster, kubeCluster) {
@@ -334,8 +334,8 @@ func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeC
 		pki.RequestHeaderCACertName:    false,
 		pki.CACertName:                 false,
 		pki.EtcdCACertName:             false,
-		pki.EtcdClientCertName:         false,
 		pki.ServiceAccountTokenKeyName: false,
+		pki.KubeAPIEtcdClientCertName:  false,
 		pki.APIProxyClientCertName:     false,
 		pki.KubeControllerCertName:     false,
 		pki.KubeSchedulerCertName:      false,
@@ -348,7 +348,7 @@ func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeC
 	AllCertsFuncMap := map[string][]services.RestartFunc{
 		pki.CACertName:                 []services.RestartFunc{services.RestartKubeAPI, services.RestartKubeController, services.RestartKubelet},
 		pki.EtcdCACertName:             []services.RestartFunc{services.RestartKubeAPI},
-		pki.EtcdClientCertName:         []services.RestartFunc{services.RestartKubeAPI},
+		pki.KubeAPIEtcdClientCertName:  []services.RestartFunc{services.RestartKubeAPI},
 		pki.KubeAPICertName:            []services.RestartFunc{services.RestartKubeAPI, services.RestartKubeController},
 		pki.RequestHeaderCACertName:    []services.RestartFunc{services.RestartKubeAPI},
 		pki.ServiceAccountTokenKeyName: []services.RestartFunc{services.RestartKubeAPI, services.RestartKubeController},
@@ -372,7 +372,7 @@ func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeC
 			etcdCertName: false,
 		}
 		checkCertificateChanges(ctx, currentCluster, kubeCluster, certMap)
-		if certMap[etcdCertName] || AllCertsMap[pki.EtcdCACertName] || AllCertsMap[pki.EtcdClientCertName] {
+		if certMap[etcdCertName] || AllCertsMap[pki.EtcdCACertName] {
 			if err := docker.DoRestartContainer(ctx, host.DClient, services.EtcdContainerName, host.HostnameOverride); err != nil {
 				return err
 			}

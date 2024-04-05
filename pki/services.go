@@ -408,14 +408,14 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 	// generate etcd client cert
 	var clientCertKey *rsa.PrivateKey
 	if !rotate {
-		clientCertKey = certs[EtcdClientCertName].Key
+		clientCertKey = certs[KubeAPIEtcdClientCertName].Key
 	}
 
-	etcdClientCert, etcdClientKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, EtcdClientCertName, &cert.AltNames{}, clientCertKey, nil)
+	kubeAPIEtcdClientCert, kubeAPIEtcdClientKey, err := GenerateSignedCertAndKey(caCrt, caKey, false, KubeAPIEtcdClientCertName, &cert.AltNames{}, clientCertKey, nil)
 	if err != nil {
 		return err
 	}
-	certs[EtcdClientCertName] = ToCertObject(EtcdClientCertName, "", "", etcdClientCert, etcdClientKey, nil)
+	certs[KubeAPIEtcdClientCertName] = ToCertObject(KubeAPIEtcdClientCertName, "", "", kubeAPIEtcdClientCert, kubeAPIEtcdClientKey, nil)
 
 	deleteUnusedCerts(ctx, certs, EtcdCertName, etcdHosts)
 	return nil
@@ -639,7 +639,7 @@ func deleteUnusedCerts(ctx context.Context, certs map[string]CertificatePKI, cer
 	logrus.Tracef("Checking and deleting unused certificates with prefix [%s] for the following [%d] node(s): %s", certName, len(hostAddresses), strings.Join(hostAddresses, ","))
 	unusedCerts := make(map[string]bool)
 	for k := range certs {
-		if strings.HasPrefix(k, certName) && k != EtcdCACertName && k != EtcdClientCertName {
+		if strings.HasPrefix(k, certName) && k != EtcdCACertName {
 			unusedCerts[k] = true
 		}
 	}

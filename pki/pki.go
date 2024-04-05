@@ -86,8 +86,8 @@ func RegenerateEtcdCertificate(
 
 	etcdName := GetCrtNameForHost(etcdHost, EtcdCertName)
 	log.Infof(ctx, "[certificates] Regenerating new %s certificate and key", etcdName)
-	caCrt := crtMap[EtcdCACertName].Certificate
-	caKey := crtMap[EtcdCACertName].Key
+	caCrt := crtMap[CACertName].Certificate
+	caKey := crtMap[CACertName].Key
 	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, KubernetesServiceIP, []string{})
 
 	etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, nil, nil)

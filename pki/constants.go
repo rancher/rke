@@ -19,6 +19,7 @@ const (
 	CACertName                 = "kube-ca"
 	RequestHeaderCACertName    = "kube-apiserver-requestheader-ca"
 	KubeAPICertName            = "kube-apiserver"
+	KubeAPIEtcdClientCertName  = "kube-apiserver-etcd-client"
 	KubeControllerCertName     = "kube-controller-manager"
 	KubeSchedulerCertName      = "kube-scheduler"
 	KubeProxyCertName          = "kube-proxy"

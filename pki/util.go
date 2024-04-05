@@ -296,7 +296,7 @@ func ToCertObject(componentName, commonName, ouName string, certificate *x509.Ce
 	envName := getEnvFromName(componentName)
 	keyEnvName := getKeyEnvFromEnv(envName)
 	caCertPath := GetCertPath(CACertName)
-	if strings.Contains(componentName, EtcdCertName) {
+	if strings.HasPrefix(componentName, EtcdCertName) || componentName == KubeAPIEtcdClientCertName {
 		caCertPath = GetCertPath(EtcdCACertName)
 	}
 	path := GetCertPath(componentName)
@@ -367,6 +367,7 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 	if nodeRole == controlRole {
 		controlCertList := []string{
 			KubeAPICertName,
+			KubeAPIEtcdClientCertName,
 			ServiceAccountTokenKeyName,
 			KubeControllerCertName,
 			KubeSchedulerCertName,
@@ -419,8 +420,8 @@ func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string,
 	certs[CACertName] = ToCertObject(CACertName, "", "", tmpCerts[CACertName].Certificate, tmpCerts[CACertName].Key, nil)
 	// EtcdCACert
 	certs[EtcdCACertName] = ToCertObject(EtcdCACertName, "", "", tmpCerts[EtcdCACertName].Certificate, tmpCerts[EtcdCACertName].Key, nil)
-	// EtcdClientCert
-	certs[EtcdClientCertName] = ToCertObject(EtcdClientCertName, "", "", tmpCerts[EtcdClientCertName].Certificate, tmpCerts[EtcdClientCertName].Key, nil)
+	// KubeAPIEtcdClient
+	certs[KubeAPIEtcdClientCertName] = ToCertObject(KubeAPIEtcdClientCertName, "", "", tmpCerts[KubeAPIEtcdClientCertName].Certificate, tmpCerts[KubeAPIEtcdClientCertName].Key, nil)
 	// KubeAPI
 	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", tmpCerts[KubeAPICertName].Certificate, tmpCerts[KubeAPICertName].Key, nil)
 	// kubeController
@@ -733,6 +734,7 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 	// make sure all components exists
 	ComponentsCerts := []string{
 		KubeAPICertName,
+		KubeAPIEtcdClientCertName,
 		KubeControllerCertName,
 		KubeSchedulerCertName,
 		KubeProxyCertName,
@@ -752,9 +754,7 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 			return fmt.Errorf("Failed to find etcd [%s] Certificate or Key", etcdName)
 		}
 	}
-	if certBundle[EtcdClientCertName].Certificate == nil {
-		return fmt.Errorf("Failed to find etcd client certificate")
-	}
+
 	// Configure kubeconfig
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
 	localKubeConfigPath := GetLocalKubeConfig(configPath, configDir)
@@ -791,7 +791,7 @@ func validateCAIssuer(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle ma
 		}
 	}
 
-	etcdCerts := []string{}
+	etcdCerts := []string{KubeAPIEtcdClientCertName}
 	etcdCaCert := certBundle[EtcdCACertName].Certificate
 	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
 	for _, host := range etcdHosts {
@@ -803,10 +803,6 @@ func validateCAIssuer(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle ma
 		if certBundle[etcdCert].Certificate.Issuer.CommonName != etcdCaCert.Subject.CommonName {
 			return fmt.Errorf("Component [%s] is not signed by the custom etcd CA certificate", etcdCert)
 		}
-	}
-
-	if certBundle[EtcdClientCertName].Certificate.Issuer.CommonName != etcdCaCert.Subject.CommonName {
-		return fmt.Errorf("Component [%s] is not signed by the custom etcd CA certificate", EtcdClientCertName)
 	}
 
 	requestHeaderCACert := certBundle[RequestHeaderCACertName].Certificate

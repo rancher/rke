@@ -83,8 +83,8 @@ func RunEtcdPlane(
 		}
 	}
 	log.Infof(ctx, "[%s] Successfully started etcd plane.. Checking etcd cluster health", ETCDRole)
-	clientCert := cert.EncodeCertPEM(certMap[pki.EtcdClientCertName].Certificate)
-	clientKey := cert.EncodePrivateKeyPEM(certMap[pki.EtcdClientCertName].Key)
+	clientCert := cert.EncodeCertPEM(certMap[pki.KubeAPIEtcdClientCertName].Certificate)
+	clientKey := cert.EncodePrivateKeyPEM(certMap[pki.KubeAPIEtcdClientCertName].Key)
 	var healthError error
 	var hosts []string
 	for _, host := range etcdHosts {
