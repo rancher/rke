@@ -353,7 +353,7 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 	caCrt := certs[EtcdCACertName].Certificate
 	caKey := certs[EtcdCACertName].Key
 	if caCrt == nil || caKey == nil {
-		return fmt.Errorf("CA Certificate or Key is empty")
+		return fmt.Errorf("Etcd CA Certificate or Key is empty")
 	}
 	kubernetesServiceIP, err := GetKubernetesServiceIP(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {

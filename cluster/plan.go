@@ -167,8 +167,8 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 	// check if external etcd is used
 	etcdConnectionString := services.GetEtcdConnString(c.EtcdHosts, host.InternalAddress)
 	etcdPathPrefix := EtcdPathPrefix
-	etcdClientCert := pki.GetCertPath(pki.KubeAPICertName)
-	etcdClientKey := pki.GetKeyPath(pki.KubeAPICertName)
+	etcdClientCert := pki.GetCertPath(pki.KubeAPIEtcdClientCertName)
+	etcdClientKey := pki.GetKeyPath(pki.KubeAPIEtcdClientCertName)
 	etcdCAClientCert := pki.GetCertPath(pki.EtcdCACertName)
 
 	if len(c.Services.Etcd.ExternalURLs) > 0 {

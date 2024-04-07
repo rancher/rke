@@ -72,11 +72,11 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 func (c *Cluster) DeployRestoreCerts(ctx context.Context, clusterCerts map[string]pki.CertificatePKI) error {
 	var errgrp errgroup.Group
 	hostsQueue := util.GetObjectQueue(c.EtcdHosts)
-	restoreCerts := map[string]pki.CertificatePKI{}
 
 	for w := 0; w < WorkerThreads; w++ {
 		errgrp.Go(func() error {
 			var errList []error
+			restoreCerts := map[string]pki.CertificatePKI{}
 			for host := range hostsQueue {
 				h := host.(*hosts.Host)
 
