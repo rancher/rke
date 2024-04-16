@@ -560,7 +560,7 @@ func (c *Cluster) StoreAddonConfigMap(ctx context.Context, addonYaml string, add
 	select {
 	case <-timeout:
 		return updated, nil
-	case <-time.After(time.Second * UpdateStateTimeout):
+	case <-time.After(UpdateStateTimeout):
 		return updated, fmt.Errorf("[addons] Timeout waiting for kubernetes to be ready")
 	}
 }
