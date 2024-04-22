@@ -51,12 +51,21 @@ func DeployCertificatesOnPlaneHost(
 	if forceDeploy {
 		env = append(env, "FORCE_DEPLOY=true")
 	}
+
+	match, err := util.IsK8sVersion1290OrHigher(k8sVersion)
+	if err != nil {
+		return util.ErrorK8sVersion1290Check(k8sVersion)
+	}
+
 	if host.IsEtcd &&
 		rkeConfig.Services.Etcd.UID != 0 &&
 		rkeConfig.Services.Etcd.GID != 0 {
 		env = append(env,
 			[]string{fmt.Sprintf("ETCD_UID=%d", rkeConfig.Services.Etcd.UID),
 				fmt.Sprintf("ETCD_GID=%d", rkeConfig.Services.Etcd.GID)}...)
+		if match {
+			env = append(env, "SKIP_PERMISSION_UPDATE=true")
+		}
 	}
 
 	return doRunDeployer(ctx, host, env, certDownloaderImage, prsMap, k8sVersion)

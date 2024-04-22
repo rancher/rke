@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
-	"net"
 	"path"
 
 	"github.com/docker/docker/api/types/container"
@@ -76,28 +75,28 @@ func GenerateRKENodeCerts(ctx context.Context, rkeConfig v3.RancherKubernetesEng
 	return crtMap
 }
 
-func RegenerateEtcdCertificate(
-	ctx context.Context,
-	crtMap map[string]CertificatePKI,
-	etcdHost *hosts.Host,
-	etcdHosts []*hosts.Host,
-	clusterDomain string,
-	KubernetesServiceIP []net.IP) (map[string]CertificatePKI, error) {
+// func RegenerateEtcdCertificate(
+// 	ctx context.Context,
+// 	crtMap map[string]CertificatePKI,
+// 	etcdHost *hosts.Host,
+// 	etcdHosts []*hosts.Host,
+// 	clusterDomain string,
+// 	KubernetesServiceIP []net.IP) (map[string]CertificatePKI, error) {
 
-	etcdName := GetCrtNameForHost(etcdHost, EtcdCertName)
-	log.Infof(ctx, "[certificates] Regenerating new %s certificate and key", etcdName)
-	caCrt := crtMap[CACertName].Certificate
-	caKey := crtMap[CACertName].Key
-	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, KubernetesServiceIP, []string{})
+// 	etcdName := GetCrtNameForHost(etcdHost, EtcdCertName)
+// 	log.Infof(ctx, "[certificates] Regenerating new %s certificate and key", etcdName)
+// 	caCrt := crtMap[CACertName].Certificate
+// 	caKey := crtMap[CACertName].Key
+// 	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, KubernetesServiceIP, []string{})
 
-	etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	crtMap[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey, nil)
-	log.Infof(ctx, "[certificates] Successfully generated new %s certificate and key", etcdName)
-	return crtMap, nil
-}
+// 	etcdCrt, etcdKey, err := GenerateSignedCertAndKey(caCrt, caKey, true, EtcdCertName, etcdAltNames, nil, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	crtMap[etcdName] = ToCertObject(etcdName, "", "", etcdCrt, etcdKey, nil)
+// 	log.Infof(ctx, "[certificates] Successfully generated new %s certificate and key", etcdName)
+// 	return crtMap, nil
+// }
 
 func SaveBackupBundleOnHost(ctx context.Context, host *hosts.Host, alpineSystemImage, etcdSnapshotPath string, prsMap map[string]v3.PrivateRegistry, k8sVersion string) error {
 	imageCfg := &container.Config{

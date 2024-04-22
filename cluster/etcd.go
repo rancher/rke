@@ -72,15 +72,29 @@ func (c *Cluster) SnapshotEtcd(ctx context.Context, snapshotName string) error {
 func (c *Cluster) DeployRestoreCerts(ctx context.Context, clusterCerts map[string]pki.CertificatePKI) error {
 	var errgrp errgroup.Group
 	hostsQueue := util.GetObjectQueue(c.EtcdHosts)
-	restoreCerts := map[string]pki.CertificatePKI{}
-	for _, n := range []string{pki.CACertName, pki.KubeNodeCertName, pki.KubeNodeCertName} {
-		restoreCerts[n] = clusterCerts[n]
+
+	match, err := util.IsK8sVersion1290OrHigher(c.Version)
+	if err != nil {
+		return util.ErrorK8sVersion1290Check(c.Version)
 	}
+
 	for w := 0; w < WorkerThreads; w++ {
 		errgrp.Go(func() error {
 			var errList []error
+			restoreCerts := map[string]pki.CertificatePKI{}
 			for host := range hostsQueue {
 				h := host.(*hosts.Host)
+
+				if match {
+					restoreCerts[pki.EtcdCACertName] = clusterCerts[pki.EtcdCACertName]
+					etcdNodeCert := pki.GetCrtNameForHost(h, pki.EtcdCertName)
+					restoreCerts[etcdNodeCert] = clusterCerts[etcdNodeCert]
+				} else {
+					for _, n := range []string{pki.CACertName, pki.KubeNodeCertName, pki.KubeNodeCertName} {
+						restoreCerts[n] = clusterCerts[n]
+					}
+				}
+
 				var env []string
 				if h.IsWindows() {
 					env = c.getWindowsEnv(h)

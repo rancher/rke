@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultURL = "https://releases.rancher.com/kontainer-driver-metadata/dev-v2.8/data.json"
+	defaultURL = "https://raw.githubusercontent.com/vardhaman22/rancher-kontainer-driver-metadata/update-default-version/data/data.json"
 	dataFile   = "data/data.json"
 )
 

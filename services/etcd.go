@@ -85,6 +85,18 @@ func RunEtcdPlane(
 	log.Infof(ctx, "[%s] Successfully started etcd plane.. Checking etcd cluster health", ETCDRole)
 	clientCert := cert.EncodeCertPEM(certMap[pki.KubeNodeCertName].Certificate)
 	clientKey := cert.EncodePrivateKeyPEM(certMap[pki.KubeNodeCertName].Key)
+
+	match, err := util.IsK8sVersion1290OrHigher(k8sVersion)
+	if err != nil {
+		return util.
+			ErrorK8sVersion1290Check(k8sVersion)
+	}
+
+	if match {
+		clientCert = cert.EncodeCertPEM(certMap[pki.KubeAPIEtcdClientCertName].Certificate)
+		clientKey = cert.EncodePrivateKeyPEM(certMap[pki.KubeAPIEtcdClientCertName].Key)
+	}
+
 	var healthError error
 	var hosts []string
 	for _, host := range etcdHosts {
@@ -393,14 +405,32 @@ func IsEtcdMember(ctx context.Context, etcdHost *hosts.Host, etcdHosts []*hosts.
 func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage string, name string, once bool, es v3.ETCDService, k8sVersion string) error {
 	backupCmd := "etcd-backup"
 	restartPolicy := "always"
+	nodeName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
+
+	cacert := pki.GetCertPath(pki.CACertName)
+	cert := pki.GetCertPath(pki.KubeNodeCertName)
+	key := pki.GetKeyPath(pki.KubeNodeCertName)
+
+	match, err := util.IsK8sVersion1290OrHigher(k8sVersion)
+	if err != nil {
+		return util.
+			ErrorK8sVersion1290Check(k8sVersion)
+	}
+
+	if match {
+		cacert = pki.GetCertPath(pki.EtcdCACertName)
+		cert = pki.GetCertPath(nodeName)
+		key = pki.GetKeyPath(nodeName)
+	}
+
 	imageCfg := &container.Config{
 		Cmd: []string{
 			"/opt/rke-tools/rke-etcd-backup",
 			backupCmd,
 			"save",
-			"--cacert", pki.GetCertPath(pki.CACertName),
-			"--cert", pki.GetCertPath(pki.KubeNodeCertName),
-			"--key", pki.GetKeyPath(pki.KubeNodeCertName),
+			"--cacert", cacert,
+			"--cert", cert,
+			"--key", key,
 			"--name", name,
 			"--endpoints=" + etcdHost.InternalAddress + ":2379",
 		},
@@ -648,6 +678,17 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	nodeName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
 	snapshotPath := fmt.Sprintf("%s%s", EtcdSnapshotPath, snapshotName)
 
+	match, err := util.IsK8sVersion1290OrHigher(k8sVersion)
+	if err != nil {
+		return util.
+			ErrorK8sVersion1290Check(k8sVersion)
+	}
+
+	cacert := pki.GetCertPath(pki.CACertName)
+	if match {
+		cacert = pki.GetCertPath(pki.EtcdCACertName)
+	}
+
 	// make sure that restore path is empty otherwise etcd restore will fail
 	imageCfg := &container.Config{
 		Cmd: []string{
@@ -655,7 +696,7 @@ func RestoreEtcdSnapshot(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 				"rm -rf", EtcdRestorePath,
 				"&& /usr/local/bin/etcdctl",
 				fmt.Sprintf("--endpoints=[%s:2379]", etcdHost.InternalAddress),
-				"--cacert", pki.GetCertPath(pki.CACertName),
+				"--cacert", cacert,
 				"--cert", pki.GetCertPath(nodeName),
 				"--key", pki.GetKeyPath(nodeName),
 				"snapshot", "restore", snapshotPath,
@@ -902,15 +943,33 @@ func configS3BackupImgCmd(ctx context.Context, imageCfg *container.Config, bc *v
 func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage, name, k8sVersion string) error {
 	log.Infof(ctx, "[etcd] starting backup server on host [%s]", etcdHost.Address)
 
+	nodeName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
+
+	cacert := pki.GetCertPath(pki.CACertName)
+	cert := pki.GetCertPath(pki.KubeNodeCertName)
+	key := pki.GetKeyPath(pki.KubeNodeCertName)
+
+	match, err := util.IsK8sVersion1290OrHigher(k8sVersion)
+	if err != nil {
+		return util.
+			ErrorK8sVersion1290Check(k8sVersion)
+	}
+
+	if match {
+		cacert = pki.GetCertPath(pki.EtcdCACertName)
+		cert = pki.GetCertPath(nodeName)
+		key = pki.GetKeyPath(nodeName)
+	}
+
 	imageCfg := &container.Config{
 		Cmd: []string{
 			"/opt/rke-tools/rke-etcd-backup",
 			"etcd-backup",
 			"serve",
 			"--name", name,
-			"--cacert", pki.GetCertPath(pki.CACertName),
-			"--cert", pki.GetCertPath(pki.KubeNodeCertName),
-			"--key", pki.GetKeyPath(pki.KubeNodeCertName),
+			"--cacert", cacert,
+			"--cert", cert,
+			"--key", key,
 		},
 		Image: etcdSnapshotImage,
 	}
@@ -964,6 +1023,25 @@ func StartBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[str
 
 func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.Host, prsMap map[string]v3.PrivateRegistry, etcdSnapshotImage, name string, backupServer *hosts.Host, k8sVersion string) error {
 	log.Infof(ctx, "[etcd] Get snapshot [%s] on host [%s]", name, etcdHost.Address)
+
+	nodeName := pki.GetCrtNameForHost(etcdHost, pki.EtcdCertName)
+
+	cacert := pki.GetCertPath(pki.CACertName)
+	cert := pki.GetCertPath(pki.KubeNodeCertName)
+	key := pki.GetKeyPath(pki.KubeNodeCertName)
+
+	match, err := util.IsK8sVersion1290OrHigher(k8sVersion)
+	if err != nil {
+		return util.
+			ErrorK8sVersion1290Check(k8sVersion)
+	}
+
+	if match {
+		cacert = pki.GetCertPath(pki.EtcdCACertName)
+		cert = pki.GetCertPath(nodeName)
+		key = pki.GetKeyPath(nodeName)
+	}
+
 	imageCfg := &container.Config{
 		Cmd: []string{
 			"/opt/rke-tools/rke-etcd-backup",
@@ -971,9 +1049,9 @@ func DownloadEtcdSnapshotFromBackupServer(ctx context.Context, etcdHost *hosts.H
 			"download",
 			"--name", name,
 			"--local-endpoint", backupServer.InternalAddress,
-			"--cacert", pki.GetCertPath(pki.CACertName),
-			"--cert", pki.GetCertPath(pki.KubeNodeCertName),
-			"--key", pki.GetKeyPath(pki.KubeNodeCertName),
+			"--cacert", cacert,
+			"--cert", cert,
+			"--key", key,
 		},
 		Image: etcdSnapshotImage,
 	}

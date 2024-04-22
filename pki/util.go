@@ -21,6 +21,7 @@ import (
 	"github.com/rancher/rke/hosts"
 	"github.com/rancher/rke/pki/cert"
 	v3 "github.com/rancher/rke/types"
+	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -311,7 +312,7 @@ func ToCertObject(componentName, commonName, ouName string, certificate *x509.Ce
 		})
 	}
 
-	if componentName != CACertName && componentName != KubeAPICertName && !strings.Contains(componentName, EtcdCertName) && !strings.Contains(componentName, KubeletCertName) && componentName != ServiceAccountTokenKeyName {
+	if componentName != CACertName && componentName != KubeAPICertName && !strings.Contains(componentName, EtcdCertName) && !strings.Contains(componentName, KubeletCertName) && componentName != ServiceAccountTokenKeyName && componentName != KubeAPIEtcdClientCertName {
 		config = getKubeConfigX509("https://127.0.0.1:6443", "local", componentName, caCertPath, path, keyPath)
 		configPath = GetConfigPath(componentName)
 		configEnvName = getConfigEnvFromEnv(envName)
@@ -345,6 +346,12 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 	// static certificates each node needs
 	certList := []string{CACertName, KubeProxyCertName, KubeNodeCertName}
 	allHosts := hosts.NodesToHosts(rkeNodes, "")
+
+	match, err := util.IsK8sVersion1290OrHigher(rkeConfig.Version)
+	if err != nil {
+		logrus.Warn(util.ErrorK8sVersion1290Check(rkeConfig.Version))
+	}
+
 	if IsKubeletGenerateServingCertificateEnabledinConfig(rkeConfig) {
 		for _, host := range allHosts {
 			// Add per node kubelet certificates (used for kube-api -> kubelet connection)
@@ -353,6 +360,9 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 	}
 	// etcd
 	if nodeRole == etcdRole {
+		if match {
+			certList = append(certList, EtcdCACertName)
+		}
 		etcdHosts := hosts.NodesToHosts(rkeNodes, nodeRole)
 		for _, host := range etcdHosts {
 			certList = append(certList, GetCrtNameForHost(host, EtcdCertName))
@@ -372,6 +382,9 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 			APIProxyClientCertName,
 		}
 		certList = append(certList, controlCertList...)
+		if match {
+			certList = append(certList, KubeAPIEtcdClientCertName, EtcdCACertName)
+		}
 		return certList
 	}
 	// worker
@@ -412,6 +425,16 @@ func populateCertMap(tmpCerts map[string]CertificatePKI, localConfigPath string,
 	certs := make(map[string]CertificatePKI)
 	// CACert
 	certs[CACertName] = ToCertObject(CACertName, "", "", tmpCerts[CACertName].Certificate, tmpCerts[CACertName].Key, nil)
+
+	// EtcdCACert
+	if certs[EtcdCACertName].Certificate != nil {
+		certs[EtcdCACertName] = ToCertObject(EtcdCACertName, "", "", tmpCerts[EtcdCACertName].Certificate, tmpCerts[EtcdCACertName].Key, nil)
+	}
+	// KubeAPIEtcdClient
+	if certs[KubeAPIEtcdClientCertName].Certificate != nil {
+		certs[KubeAPIEtcdClientCertName] = ToCertObject(KubeAPIEtcdClientCertName, "", "", tmpCerts[KubeAPIEtcdClientCertName].Certificate, tmpCerts[KubeAPIEtcdClientCertName].Key, nil)
+	}
+
 	// KubeAPI
 	certs[KubeAPICertName] = ToCertObject(KubeAPICertName, "", "", tmpCerts[KubeAPICertName].Certificate, tmpCerts[KubeAPICertName].Key, nil)
 	// kubeController
@@ -711,9 +734,20 @@ func WriteCertificates(certDirPath string, certBundle map[string]CertificatePKI)
 func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle map[string]CertificatePKI, configPath, configDir string) error {
 	// ensure all needed certs exists
 	// make sure all CA Certs exist
+
+	match, err := util.IsK8sVersion1290OrHigher(rkeConfig.Version)
+	if err != nil {
+		return util.ErrorK8sVersion1290Check(rkeConfig.Version)
+	}
+
 	if certBundle[CACertName].Certificate == nil {
 		return fmt.Errorf("Failed to find master CA certificate")
 	}
+
+	if match && certBundle[EtcdCACertName].Certificate == nil {
+		return fmt.Errorf("Failed to find etcd CA certificate")
+	}
+
 	if certBundle[RequestHeaderCACertName].Certificate == nil {
 		logrus.Warnf("Failed to find RequestHeader CA certificate, using master CA certificate")
 		certBundle[RequestHeaderCACertName] = ToCertObject(RequestHeaderCACertName, RequestHeaderCACertName, "", certBundle[CACertName].Certificate, nil, nil)
@@ -728,11 +762,17 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 		KubeAdminCertName,
 		APIProxyClientCertName,
 	}
+
+	if match {
+		ComponentsCerts = append(ComponentsCerts, KubeAPIEtcdClientCertName)
+	}
+
 	for _, certName := range ComponentsCerts {
 		if certBundle[certName].Certificate == nil || certBundle[certName].Key == nil {
 			return fmt.Errorf("Failed to find [%s] Certificate or Key", certName)
 		}
 	}
+
 	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
 	for _, host := range etcdHosts {
 		etcdName := GetCrtNameForHost(host, EtcdCertName)
@@ -740,6 +780,7 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 			return fmt.Errorf("Failed to find etcd [%s] Certificate or Key", etcdName)
 		}
 	}
+
 	// Configure kubeconfig
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
 	localKubeConfigPath := GetLocalKubeConfig(configPath, configDir)
@@ -760,6 +801,12 @@ func ValidateBundleContent(rkeConfig *v3.RancherKubernetesEngineConfig, certBund
 }
 
 func validateCAIssuer(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle map[string]CertificatePKI) error {
+
+	match, err := util.IsK8sVersion1290OrHigher(rkeConfig.Version)
+	if err != nil {
+		return util.ErrorK8sVersion1290Check(rkeConfig.Version)
+	}
+
 	// make sure all certs are signed by CA cert
 	caCert := certBundle[CACertName].Certificate
 	ComponentsCerts := []string{
@@ -770,16 +817,35 @@ func validateCAIssuer(rkeConfig *v3.RancherKubernetesEngineConfig, certBundle ma
 		KubeNodeCertName,
 		KubeAdminCertName,
 	}
-	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
-	for _, host := range etcdHosts {
-		etcdName := GetCrtNameForHost(host, EtcdCertName)
-		ComponentsCerts = append(ComponentsCerts, etcdName)
-	}
 	for _, componentCert := range ComponentsCerts {
 		if certBundle[componentCert].Certificate.Issuer.CommonName != caCert.Subject.CommonName {
 			return fmt.Errorf("Component [%s] is not signed by the custom CA certificate", componentCert)
 		}
 	}
+
+	etcdCerts := []string{}
+
+	if match {
+		etcdCerts = []string{KubeAPIEtcdClientCertName}
+	}
+
+	etcdCaCert := certBundle[CACertName].Certificate
+
+	if match {
+		etcdCaCert = certBundle[EtcdCACertName].Certificate
+	}
+	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
+	for _, host := range etcdHosts {
+		etcdName := GetCrtNameForHost(host, EtcdCertName)
+		etcdCerts = append(etcdCerts, etcdName)
+	}
+
+	for _, etcdCert := range etcdCerts {
+		if certBundle[etcdCert].Certificate.Issuer.CommonName != etcdCaCert.Subject.CommonName {
+			return fmt.Errorf("Component [%s] is not signed by the custom etcd CA certificate", etcdCert)
+		}
+	}
+
 	requestHeaderCACert := certBundle[RequestHeaderCACertName].Certificate
 	if certBundle[APIProxyClientCertName].Certificate.Issuer.CommonName != requestHeaderCACert.Subject.CommonName {
 		return fmt.Errorf("Component [%s] is not signed by the custom Request Header CA certificate", APIProxyClientCertName)

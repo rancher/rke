@@ -17,6 +17,7 @@ const (
 
 func TestPKI(t *testing.T) {
 	rkeConfig := v3.RancherKubernetesEngineConfig{
+		Version: "v1.28.0-rancher1-1",
 		Nodes: []v3.RKEConfigNode{
 			v3.RKEConfigNode{
 				Address:          "1.1.1.1",
@@ -39,6 +40,7 @@ func TestPKI(t *testing.T) {
 		t.Fatalf("Failed To generate certificates: %v", err)
 	}
 	assertEqual(t, certificateMap[CACertName].Certificate.IsCA, true, "")
+	assertEqual(t, certificateMap[EtcdCACertName].Certificate.IsCA, true, "")
 	roots := x509.NewCertPool()
 	roots.AddCert(certificateMap[CACertName].Certificate)
 

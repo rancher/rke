@@ -19,6 +19,8 @@ import (
 const (
 	WorkerThreads               = 50
 	SemVerK8sVersion122OrHigher = ">=1.22.0-rancher0"
+	// TODO: the value set to v1.28 for testing only
+	SemVerK8sVersion129OrHigher = ">=1.28.0-rancher0"
 )
 
 var ProxyEnvVars = [3]string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}
@@ -295,4 +297,13 @@ func CopyFileWithPrefix(originalFile, prefixDestFile string) error {
 	}
 	logrus.Infof("Copied file [%s] to new location [%s] as back-up", originalFile, destFile.Name())
 	return nil
+}
+
+func IsK8sVersion1290OrHigher(k8sVersion string) (bool, error) {
+	logrus.Debugf("checking if k8s version(%s) is >=v1.29.0", k8sVersion)
+	return SemVerMatchRange(k8sVersion, SemVerK8sVersion129OrHigher)
+}
+
+func ErrorK8sVersion1290Check(k8sVersion string) error {
+	return fmt.Errorf("Error while matching cluster version [%s] with range [%s]", k8sVersion, SemVerK8sVersion129OrHigher)
 }

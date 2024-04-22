@@ -13,6 +13,7 @@ import (
 	"github.com/rancher/rke/pki/cert"
 	"github.com/rancher/rke/services"
 	v3 "github.com/rancher/rke/types"
+	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -236,6 +237,12 @@ func rotateRKECertificates(ctx context.Context, kubeCluster *cluster.Cluster, fl
 		return nil, fmt.Errorf("Failed to rotate certificates: can't find old certificates")
 	}
 	currentCluster.RotateCertificates = kubeCluster.RotateCertificates
+
+	match, err := util.IsK8sVersion1290OrHigher(kubeCluster.Version)
+	if err != nil {
+		return nil, util.ErrorK8sVersion1290Check(kubeCluster.Version)
+	}
+
 	if !kubeCluster.RotateCertificates.CACertificates {
 		caCertPKI, ok := rkeFullState.CurrentState.CertificatesBundle[pki.CACertName]
 		if !ok {
@@ -249,6 +256,22 @@ func rotateRKECertificates(ctx context.Context, kubeCluster *cluster.Cluster, fl
 		certPool.AddCert(caCert)
 		if _, err := caCert.Verify(x509.VerifyOptions{Roots: certPool, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}); err != nil {
 			return nil, fmt.Errorf("Failed to rotate certificates: CA certificate is invalid, please use the --rotate-ca flag to rotate CA certificate, error: %v", err)
+		}
+
+		if match {
+			etcdCaCertPKI, ok := rkeFullState.CurrentState.CertificatesBundle[pki.EtcdCACertName]
+			if !ok {
+				return nil, fmt.Errorf("Failed to rotate certificates: can't find etcd CA certificate")
+			}
+			etcdCaCert := etcdCaCertPKI.Certificate
+			if etcdCaCert == nil {
+				return nil, fmt.Errorf("Failed to rotate certificates: etcd CA certificate is nil")
+			}
+			etcdCertPool := x509.NewCertPool()
+			etcdCertPool.AddCert(etcdCaCert)
+			if _, err := etcdCaCert.Verify(x509.VerifyOptions{Roots: etcdCertPool, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}); err != nil {
+				return nil, fmt.Errorf("Failed to rotate certificates: etcd CA certificate is invalid, please use the --rotate-ca flag to rotate CA certificate, error: %v", err)
+			}
 		}
 	}
 	if err := cluster.RotateRKECertificates(ctx, currentCluster, flags, rkeFullState); err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/rancher/rke/pki/cert"
 	"github.com/rancher/rke/services"
 	v3 "github.com/rancher/rke/types"
+	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -174,6 +175,16 @@ func reconcileEtcd(ctx context.Context, currentCluster, kubeCluster *Cluster, ku
 	clientCert := cert.EncodeCertPEM(currentCluster.Certificates[pki.KubeNodeCertName].Certificate)
 	clientKey := cert.EncodePrivateKeyPEM(currentCluster.Certificates[pki.KubeNodeCertName].Key)
 
+	match, err := util.IsK8sVersion1290OrHigher(kubeCluster.Version)
+	if err != nil {
+		return util.ErrorK8sVersion1290Check(kubeCluster.Version)
+	}
+
+	if match {
+		clientCert = cert.EncodeCertPEM(kubeCluster.Certificates[pki.KubeAPIEtcdClientCertName].Certificate)
+		clientKey = cert.EncodePrivateKeyPEM(kubeCluster.Certificates[pki.KubeAPIEtcdClientCertName].Key)
+	}
+
 	// check if the whole etcd plane is replaced
 	if isEtcdPlaneReplaced(ctx, currentCluster, kubeCluster) {
 		return fmt.Errorf("%v", EtcdPlaneNodesReplacedErr)
@@ -327,6 +338,12 @@ func cleanControlNode(ctx context.Context, kubeCluster, currentCluster *Cluster,
 }
 
 func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeCluster *Cluster) error {
+
+	match, err := util.IsK8sVersion1290OrHigher(kubeCluster.Version)
+	if err != nil {
+		return util.ErrorK8sVersion1290Check(kubeCluster.Version)
+	}
+
 	AllCertsMap := map[string]bool{
 		pki.KubeAPICertName:            false,
 		pki.RequestHeaderCACertName:    false,
@@ -338,11 +355,19 @@ func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeC
 		pki.KubeProxyCertName:          false,
 		pki.KubeNodeCertName:           false,
 	}
+
+	if match {
+		AllCertsMap[pki.EtcdCACertName] = false
+		AllCertsMap[pki.KubeAPIEtcdClientCertName] = false
+	}
+
 	checkCertificateChanges(ctx, currentCluster, kubeCluster, AllCertsMap)
 	// check Restart Function
 	allHosts := hosts.GetUniqueHostList(kubeCluster.EtcdHosts, kubeCluster.ControlPlaneHosts, kubeCluster.WorkerHosts)
 	AllCertsFuncMap := map[string][]services.RestartFunc{
 		pki.CACertName:                 []services.RestartFunc{services.RestartKubeAPI, services.RestartKubeController, services.RestartKubelet},
+		pki.EtcdCACertName:             []services.RestartFunc{services.RestartKubeAPI},
+		pki.KubeAPIEtcdClientCertName:  []services.RestartFunc{services.RestartKubeAPI},
 		pki.KubeAPICertName:            []services.RestartFunc{services.RestartKubeAPI, services.RestartKubeController},
 		pki.RequestHeaderCACertName:    []services.RestartFunc{services.RestartKubeAPI},
 		pki.ServiceAccountTokenKeyName: []services.RestartFunc{services.RestartKubeAPI, services.RestartKubeController},
@@ -366,7 +391,7 @@ func restartComponentsWhenCertChanges(ctx context.Context, currentCluster, kubeC
 			etcdCertName: false,
 		}
 		checkCertificateChanges(ctx, currentCluster, kubeCluster, certMap)
-		if certMap[etcdCertName] || AllCertsMap[pki.CACertName] {
+		if certMap[etcdCertName] || AllCertsMap[pki.EtcdCACertName] {
 			if err := docker.DoRestartContainer(ctx, host.DClient, services.EtcdContainerName, host.HostnameOverride); err != nil {
 				return err
 			}
@@ -390,7 +415,7 @@ func checkCertificateChanges(ctx context.Context, currentCluster, kubeCluster *C
 			certMap[certName] = true
 			continue
 		}
-		if !(certName == pki.RequestHeaderCACertName || certName == pki.CACertName) {
+		if !(certName == pki.RequestHeaderCACertName || certName == pki.CACertName || certName == pki.EtcdCACertName) {
 			if currentCluster.Certificates[certName].KeyPEM != kubeCluster.Certificates[certName].KeyPEM {
 				certMap[certName] = true
 			}
