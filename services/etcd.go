@@ -225,7 +225,7 @@ func etcdClientV3Range(k8sVersion string) bool {
 func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory,
 	k8sVersion string, cert, key []byte, etcdNodePlanMap map[string]v3.RKEConfigNodePlan) error {
 	log.Infof(ctx, "[remove/%s] Removing member [etcd-%s] from etcd cluster", ETCDRole, toDeleteEtcdHost.HostnameOverride)
-	var mIDv3 uint64
+	var mIDv3 *uint64
 	var mIDv2 string
 	removed := false
 	for _, host := range etcdHosts {
@@ -242,14 +242,19 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 			}
 			for _, member := range members.Members {
 				if member.Name == fmt.Sprintf("etcd-%s", toDeleteEtcdHost.HostnameOverride) {
-					mIDv3 = member.ID
+					mIDv3 = &member.ID
 					break
 				}
 			}
-			if _, err := etcdClient.MemberRemove(ctx, mIDv3); err != nil {
+			if mIDv3 == nil {
+				logrus.Debugf("Failed to find host [%s] within etcd members", host.Address)
+				// if a member was removed unexpectedly (either in a previous iteration or with an error) we still want to ensure
+				// the etcd cluster is healthy
+			} else if _, err := etcdClient.MemberRemove(ctx, *mIDv3); err != nil {
 				logrus.Debugf("Failed to list etcd members from host [%s]: %v", host.Address, err)
 				continue
 			}
+
 		} else {
 			etcdClient, err := getEtcdClientV2(ctx, host, localConnDialerFactory, cert, key)
 			if err != nil {
@@ -268,7 +273,11 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 					break
 				}
 			}
-			if err := memAPI.Remove(ctx, mIDv2); err != nil {
+			if mIDv2 == "" {
+				logrus.Debugf("Failed to find host [%s] within etcd members", host.Address)
+				// if a member was removed unexpectedly (either in a previous iteration or with an error) we still want to ensure
+				// the etcd cluster is healthy
+			} else if err := memAPI.Remove(ctx, mIDv2); err != nil {
 				logrus.Debugf("Failed to list etcd members from host [%s]: %v", host.Address, err)
 				continue
 			}
