@@ -1,0 +1,153 @@
+name: CI workflow
+
+on:
+  push: 
+    branches:
+      - 'release/v*'
+    tags:
+      - '*'
+    paths-ignore:
+      - '**.md'
+      - 'CODEOWNERS'
+      - 'LICENSE'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - 'release/v*'
+    paths-ignore:
+      - '**.md'
+      - 'CODEOWNERS'
+      - 'LICENSE'
+      - 'docs/**'
+
+jobs:
+  ci:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container: 
+      image: rancher/dapper:v0.6.0
+      options: --privileged
+    steps:
+      - name: Force Install GIT latest
+        run: |
+          apk add git --update-cache
+          git --version
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run CI
+        run: |
+          dapper ci
+          ls -lR build/bin
+        env:
+          CROSS: 1
+      - name: Upload rke bin artifacts
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
+          path: build/bin/rke*
+          if-no-files-found: error
+          retention-days: 1
+
+  integration-ci:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container: 
+      image: rancher/dapper:v0.6.0
+      options: --privileged
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Force Install GIT latest
+        run: |
+          apk add git --update-cache
+          git --version
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set 8.8.8.8 as dns server
+        run: |
+          sed -i 's/192.168.1.1/8.8.8.8/g' /etc/resolv.conf
+          systemctl daemon-reload
+          systemctl restart systemd-networkd
+          systemctl restart systemd-resolved
+      - name: Run CI
+        run: |
+          dapper integration-ci
+
+  github-pre-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [ci, integration-ci]
+    if: github.event_name == 'push' && github.ref_type == 'tag' && (contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download rke bin artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
+          path: build/bin
+      - name: Create pre-release
+        run: |
+          gh release create ${{ github.ref_name }} -p --verify-tag --title "Pre-release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt
+
+  github-release:
+    permissions:
+      contents: write
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [ci, integration-ci]
+    if: github.event_name == 'push' && github.ref_type == 'tag' && !(contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download rke bin artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
+          path: build/bin
+      - name: Create release
+        run: |
+          gh release create ${{ github.ref_name }} --verify-tag --title "Release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt
+
+  dispatch:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [ci, integration-ci]
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Retrieve token from vault
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/github-token/credentials token | PAT_TOKEN ;
+      - name: Run dispatch
+        run: |
+          case ${{ github.ref_name }} in           
+            "v1.4"*)
+              ACTION_TARGET_BRANCH="release/v2.7"
+              ;;
+            "v1.5"*)
+              ACTION_TARGET_BRANCH="release/v2.8"
+              ;;
+            "v1.6"*)
+              ACTION_TARGET_BRANCH="release/v2.9"
+              ;;
+            *)
+              echo "Not a valid tag, not dispatching event"
+              exit 0
+          esac
+          echo "Running on $ACTION_TARGET_BRANCH"
+          echo ${{ env.PAT_TOKEN }} | gh auth login --with-token
+          gh workflow run "Go get" --repo rancher/rancher --ref $ACTION_TARGET_BRANCH -F goget_module=github.com/rancher/rke -F goget_version=${{ github.ref_name }} -F source_author=${{ github.actor }}

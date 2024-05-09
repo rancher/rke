@@ -1,6 +1,0 @@
-^.*\.md$
-^\.droneignore$
-^\.github\/.*$
-^CODEOWNERS$
-^LICENSE$
-^docs/.*$

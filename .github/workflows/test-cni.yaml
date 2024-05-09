@@ -1,0 +1,28 @@
+name: Test CNI
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  integration-cni-tests:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container: 
+      image: rancher/dapper:v0.6.0
+      options: --privileged
+    strategy:
+      matrix:
+        cni: [flannel, calico, weave]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run build
+        run: |
+          dapper build
+      - name: Run ${{ matrix.cni }} check
+        run: |
+          dapper integration ${{ matrix.cni }}
