@@ -1,4 +1,4 @@
-//go:generate go run k8s.io/gengo/examples/deepcopy-gen --go-header-file ./scripts/boilerplate.go.txt --input-dirs ./types --input-dirs ./types/kdm --output-file-base zz_generated_deepcopy
+//go:generate go run k8s.io/code-generator/cmd/deepcopy-gen --go-header-file ./scripts/boilerplate.go.txt --output-file zz_generated_deepcopy.go ./types ./types/kdm
 //go:generate go run ./codegen/codegen.go
 //go:generate go run github.com/go-bindata/go-bindata/go-bindata -o ./data/bindata.go -ignore bindata.go -pkg data -modtime 1557785965 -mode 0644 ./data/
 package main

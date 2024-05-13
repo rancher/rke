@@ -26,7 +26,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	v1 "k8s.io/apiserver/pkg/apis/audit/v1"
-	configv1 "k8s.io/apiserver/pkg/apis/config/v1"
 	eventratelimit "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit"
 )
 
@@ -1815,7 +1814,7 @@ func (in *SecretsEncryptionConfig) DeepCopyInto(out *SecretsEncryptionConfig) {
 	*out = *in
 	if in.CustomConfig != nil {
 		in, out := &in.CustomConfig, &out.CustomConfig
-		*out = new(configv1.EncryptionConfiguration)
+		*out = new(apiserverv1.EncryptionConfiguration)
 		(*in).DeepCopyInto(*out)
 	}
 	return

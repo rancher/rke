@@ -5,7 +5,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
-	configv1 "k8s.io/apiserver/pkg/apis/config/v1"
 	eventratelimitapi "k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit"
 )
 
@@ -1053,7 +1052,7 @@ type SecretsEncryptionConfig struct {
 	// Enable/disable secrets encryption provider config
 	Enabled bool `yaml:"enabled" json:"enabled,omitempty"`
 	// Custom Encryption Provider configuration object
-	CustomConfig *configv1.EncryptionConfiguration `yaml:"custom_config" json:"customConfig,omitempty"`
+	CustomConfig *apiserverv1.EncryptionConfiguration `yaml:"custom_config" json:"customConfig,omitempty"`
 }
 
 type File struct {
