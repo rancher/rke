@@ -251,7 +251,7 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 				// if a member was removed unexpectedly (either in a previous iteration or with an error) we still want to ensure
 				// the etcd cluster is healthy
 			} else if _, err := etcdClient.MemberRemove(ctx, *mIDv3); err != nil {
-				logrus.Debugf("Failed to list etcd members from host [%s]: %v", host.Address, err)
+				logrus.Debugf("Failed to remove etcd member [%s] from host [%s]: %v", toDeleteEtcdHost.HostnameOverride, host.Address, err)
 				continue
 			}
 
@@ -264,7 +264,7 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 			memAPI := etcdclientv2.NewMembersAPI(etcdClient)
 			members, err := memAPI.List(ctx)
 			if err != nil {
-				logrus.Debugf("Failed to list etcd members from host [%s]: %v", host.Address, err)
+				logrus.Debugf("Failed to list etcd member from host [%s]: %v", host.Address, err)
 				continue
 			}
 			for _, member := range members {
@@ -278,7 +278,7 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 				// if a member was removed unexpectedly (either in a previous iteration or with an error) we still want to ensure
 				// the etcd cluster is healthy
 			} else if err := memAPI.Remove(ctx, mIDv2); err != nil {
-				logrus.Debugf("Failed to list etcd members from host [%s]: %v", host.Address, err)
+				logrus.Debugf("Failed to remove etcd member [%s] from host [%s]: %v", toDeleteEtcdHost.HostnameOverride, host.Address, err)
 				continue
 			}
 		}
