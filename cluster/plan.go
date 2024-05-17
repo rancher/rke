@@ -254,11 +254,6 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		}
 	}
 
-	if c.Services.KubeAPI.PodSecurityPolicy {
-		CommandArgs["runtime-config"] = "policy/v1beta1/podsecuritypolicy=true"
-		CommandArgs[admissionControlOptionName] = CommandArgs[admissionControlOptionName] + ",PodSecurityPolicy"
-	}
-
 	if c.Services.KubeAPI.AlwaysPullImages {
 		CommandArgs[admissionControlOptionName] = CommandArgs[admissionControlOptionName] + ",AlwaysPullImages"
 	}

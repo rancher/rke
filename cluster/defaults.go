@@ -12,9 +12,7 @@ import (
 	"github.com/rancher/rke/cloudprovider/aws"
 	"github.com/rancher/rke/docker"
 	"github.com/rancher/rke/k8s"
-	"github.com/rancher/rke/log"
 	"github.com/rancher/rke/metadata"
-	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/templates"
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/util"
@@ -254,10 +252,6 @@ func (c *Cluster) setClusterDefaults(ctx context.Context, flags ExternalFlags) e
 
 	if len(c.Authorization.Mode) == 0 {
 		c.Authorization.Mode = DefaultAuthorizationMode
-	}
-	if c.Services.KubeAPI.PodSecurityPolicy && c.Authorization.Mode != services.RBACAuthorizationMode {
-		log.Warnf(ctx, "PodSecurityPolicy can't be enabled with RBAC support disabled")
-		c.Services.KubeAPI.PodSecurityPolicy = false
 	}
 	if len(c.Ingress.Provider) == 0 {
 		c.Ingress.Provider = DefaultIngressController

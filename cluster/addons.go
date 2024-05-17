@@ -13,10 +13,8 @@ import (
 	"time"
 
 	"github.com/rancher/rke/addons"
-	"github.com/rancher/rke/authz"
 	"github.com/rancher/rke/k8s"
 	"github.com/rancher/rke/log"
-	"github.com/rancher/rke/services"
 	"github.com/rancher/rke/templates"
 	v3 "github.com/rancher/rke/types"
 	"github.com/rancher/rke/types/kdm"
@@ -673,12 +671,6 @@ func (c *Cluster) deployIngress(ctx context.Context, data map[string]interface{}
 	}
 	if err := c.doAddonDeploy(ctx, ingressYaml, IngressAddonResourceName, true); err != nil {
 		return err
-	}
-	// ingress runs in it's own namespace, so it needs it's own role/rolebinding for PSP
-	if c.Authorization.Mode == services.RBACAuthorizationMode && c.Services.KubeAPI.PodSecurityPolicy {
-		if err := authz.ApplyDefaultPodSecurityPolicyRole(ctx, c.LocalKubeConfigPath, NginxIngressAddonAppName, c.K8sWrapTransport); err != nil {
-			return fmt.Errorf("Failed to apply default PodSecurityPolicy ClusterRole and ClusterRoleBinding: %v", err)
-		}
 	}
 
 	// After deployment of the new ingress controller based on the update strategy, remove the default backend as requested.
