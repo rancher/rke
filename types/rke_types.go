@@ -293,8 +293,6 @@ type KubeAPIService struct {
 	ServiceClusterIPRange string `yaml:"service_cluster_ip_range" json:"serviceClusterIpRange,omitempty"`
 	// Port range for services defined with NodePort type
 	ServiceNodePortRange string `yaml:"service_node_port_range" json:"serviceNodePortRange,omitempty" norman:"default=30000-32767"`
-	// Enabled/Disable PodSecurityPolicy
-	PodSecurityPolicy bool `yaml:"pod_security_policy" json:"podSecurityPolicy,omitempty"`
 	// setting the default configuration for PodSecurityAdmission
 	PodSecurityConfiguration string `yaml:"pod_security_configuration" json:"podSecurityConfiguration,omitempty"`
 	// Enable/Disable AlwaysPullImages admissions plugin

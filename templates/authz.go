@@ -67,35 +67,6 @@ subjects:
   namespace: kube-system
   name: rke-job-deployer`
 
-	DefaultPodSecurityPolicy = `
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: default-psp
-  annotations:
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
-spec:
-  privileged: true
-  allowPrivilegeEscalation: true
-  allowedCapabilities:
-  - '*'
-  volumes:
-  - '*'
-  hostNetwork: true
-  hostPorts:
-  - min: 0
-    max: 65535
-  hostIPC: true
-  hostPID: true
-  runAsUser:
-    rule: 'RunAsAny'
-  seLinux:
-    rule: 'RunAsAny'
-  supplementalGroups:
-    rule: 'RunAsAny'
-  fsGroup:
-    rule: 'RunAsAny'`
-
 	DefaultPodSecurityRole = `
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
