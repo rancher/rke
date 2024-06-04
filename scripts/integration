@@ -90,6 +90,25 @@ nodes:
 - address: rke-node-${node}
   role: [etcd, controlplane, worker]
   user: ubuntu
+services:
+  etcd:
+    extra_env:
+      - TEST_VAR=etcd
+  kubeproxy:
+    extra_env:
+      - TEST_VAR=kube-proxy
+  scheduler:
+    extra_env:
+      - TEST_VAR=scheduler
+  kubelet:
+    extra_env:
+      - TEST_VAR=kubelet
+  kube-controller:
+    extra_env:
+      - TEST_VAR=kube-controller
+  kube-api:
+    extra_env:
+    - TEST_VAR=kube-api
 EOF
 
     if [ "x${NETWORK_PLUGIN}" != "x" ]; then
