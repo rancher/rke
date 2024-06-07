@@ -203,7 +203,7 @@ func (c *Cluster) BuildKubeAPIProcess(host *hosts.Host, serviceOptions v3.Kubern
 		"tls-private-key-file":          pki.GetKeyPath(pki.KubeAPICertName),
 	}
 	CommandArrayArgs := make(map[string][]string, len(c.Services.KubeAPI.ExtraArgsArray))
-	Env := make([]string, len(c.Services.KubeAPI.ExtraEnv))
+	var Env []string
 
 	if len(c.CloudProvider.Name) > 0 {
 		CommandArgs["cloud-config"] = cloudConfigFileName
@@ -1272,6 +1272,10 @@ func getUniqStringList(l []string) []string {
 	m := map[string]bool{}
 	ul := []string{}
 	for _, k := range l {
+		k = strings.TrimSpace(k)
+		if k == "" {
+			continue
+		}
 		if _, ok := m[k]; !ok {
 			m[k] = true
 			ul = append(ul, k)
