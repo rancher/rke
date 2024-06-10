@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/rancher/rke/cluster"
@@ -121,20 +120,19 @@ func getStateFile(ctx *cli.Context) error {
 
 		return nil
 	}
+
 	logrus.Infof("Successfully connected to server using kubeconfig, retrieved server version [%s]", serverVersion)
-	// Retrieve full-cluster-state configmap
+
 	k8sClient, err := k8s.NewClient(localKubeConfig, nil)
 	if err != nil {
 		return err
 	}
-	cfgMap, err := k8s.GetConfigMap(k8sClient, cluster.FullStateConfigMapName)
+
+	// Try fetch full cluster state from a secret. In older versions of RKE, this was stored in a configmap, but it
+	// is now a secret.
+	rkeFullState, err := cluster.GetFullStateFromK8s(context.Background(), k8sClient)
 	if err != nil {
-		return err
-	}
-	clusterData := cfgMap.Data[cluster.FullStateConfigMapName]
-	rkeFullState := &cluster.FullState{}
-	if err = json.Unmarshal([]byte(clusterData), rkeFullState); err != nil {
-		return err
+		return fmt.Errorf("error getting full cluster state from secret: %w", err)
 	}
 
 	// Move current state file
