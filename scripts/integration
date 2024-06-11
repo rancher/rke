@@ -18,7 +18,7 @@ function cleanup {
     echo ""
     echo_with_time "---- Clean Up RKE ----"
     for i in ./bin/cluster-*.yml; do
-        ./bin/rke remove --dind --force --config $i 2>&1 >/dev/null
+       ./bin/rke remove --dind --force --config $i
     done
     rm -f ./bin/*.rkestate ./bin/*.yml
 }

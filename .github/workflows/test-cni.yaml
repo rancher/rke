@@ -1,0 +1,27 @@
+name: Test CNI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  integration-cni-tests:
+    permissions:
+      contents: read
+    runs-on: runs-on,runner=4cpu-linux-x64,run-id=${{ github.run_id }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        cni: [flannel, calico, weave]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Run ${{ matrix.cni }} check
+        run: |
+          ./scripts/build
+          ./scripts/integration ${{ matrix.cni }}
