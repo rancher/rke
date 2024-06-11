@@ -86,8 +86,9 @@ const (
 	AuthnWebhookProvider   = "webhook"
 	StateConfigMapName     = "cluster-state"
 	FullStateConfigMapName = "full-cluster-state"
-	UpdateStateTimeout     = 30
-	GetStateTimeout        = 30
+	FullStateSecretName    = "full-cluster-state"
+	UpdateStateTimeout     = time.Second * 30
+	GetStateTimeout        = time.Second * 30
 	RewriteWorkers         = 5
 	SyncWorkers            = 10
 	NoneAuthorizationMode  = "none"

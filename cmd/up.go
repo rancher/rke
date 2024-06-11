@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
 
 	"github.com/rancher/rke/cluster"
@@ -219,7 +220,12 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
 
-	err = cluster.SaveFullStateToKubernetes(ctx, kubeCluster, clusterState)
+	k8sClient, err := k8s.NewClient(kubeCluster.LocalKubeConfigPath, kubeCluster.K8sWrapTransport)
+	if err != nil {
+		return APIURL, caCrt, clientCert, clientKey, nil, fmt.Errorf("failed to create Kubernetes Client: %w", err)
+	}
+
+	err = cluster.SaveFullStateToK8s(ctx, k8sClient, clusterState)
 	if err != nil {
 		return APIURL, caCrt, clientCert, clientKey, nil, err
 	}
