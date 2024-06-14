@@ -74,7 +74,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [ci, integration-ci]
+    needs: ci
     if: github.event_name == 'push' && github.ref_type == 'tag' && (contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha'))
     steps:
       - name: Checkout code
@@ -93,7 +93,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [ci, integration-ci]
+    needs: ci
     if: github.event_name == 'push' && github.ref_type == 'tag' && !(contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha'))
     steps:
       - name: Checkout code
@@ -113,7 +113,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [ci, integration-ci]
+    needs: ci
     if: github.event_name == 'push' && github.ref_type == 'tag'
     steps:
       - name: Checkout code
