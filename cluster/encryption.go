@@ -23,8 +23,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiserverconfig "k8s.io/apiserver/pkg/apis/config"
-	apiserverconfigv1 "k8s.io/apiserver/pkg/apis/config/v1"
+	"k8s.io/apiserver/pkg/apis/apiserver"
+	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/retry"
 	sigsyaml "sigs.k8s.io/yaml"
@@ -380,7 +380,7 @@ func (c *Cluster) getEncryptionProviderFile() (string, error) {
 }
 
 func (c *Cluster) extractActiveKey(s string) (*encryptionKey, error) {
-	config := apiserverconfig.EncryptionConfiguration{}
+	config := apiserver.EncryptionConfiguration{}
 	if err := k8s.DecodeYamlResource(&config, c.EncryptionConfig.EncryptionProviderFile); err != nil {
 		return nil, err
 	}
@@ -393,14 +393,14 @@ func (c *Cluster) extractActiveKey(s string) (*encryptionKey, error) {
 }
 
 func (c *Cluster) generateDisabledCustomEncryptionProviderFile() (string, error) {
-	config := apiserverconfigv1.EncryptionConfiguration{}
+	config := apiserverv1.EncryptionConfiguration{}
 	if err := k8s.DecodeYamlResource(&config, c.EncryptionConfig.EncryptionProviderFile); err != nil {
 		return "", err
 	}
 
 	// 1. Prepend custom config providers with ignore provider
-	updatedProviders := []apiserverconfigv1.ProviderConfiguration{{
-		Identity: &apiserverconfigv1.IdentityConfiguration{},
+	updatedProviders := []apiserverv1.ProviderConfiguration{{
+		Identity: &apiserverv1.IdentityConfiguration{},
 	}}
 
 	for _, provider := range config.Resources[0].Providers {
@@ -514,7 +514,7 @@ func (c *Cluster) readEncryptionCustomConfig() (string, error) {
 		struct{ CustomConfig string }{CustomConfig: string(yamlConfig)})
 }
 
-func resolveCustomEncryptionConfig(clusterFile string) (string, *apiserverconfigv1.EncryptionConfiguration, error) {
+func resolveCustomEncryptionConfig(clusterFile string) (string, *apiserverv1.EncryptionConfiguration, error) {
 	var err error
 	var r map[string]interface{}
 	err = ghodssyaml.Unmarshal([]byte(clusterFile), &r)
@@ -547,7 +547,7 @@ func resolveCustomEncryptionConfig(clusterFile string) (string, *apiserverconfig
 	return clusterFile, nil, nil
 }
 
-func parseCustomConfig(customConfig map[string]interface{}) (*apiserverconfigv1.EncryptionConfiguration, error) {
+func parseCustomConfig(customConfig map[string]interface{}) (*apiserverv1.EncryptionConfiguration, error) {
 	var err error
 
 	data, err := json.Marshal(customConfig)
@@ -556,7 +556,7 @@ func parseCustomConfig(customConfig map[string]interface{}) (*apiserverconfigv1.
 	}
 
 	// apiserverconfigv1.EncryptionConfiguration struct has json tags defined, using JSON Unmarshal instead of runtime serializer
-	decodedConfig := &apiserverconfigv1.EncryptionConfiguration{}
+	decodedConfig := &apiserverv1.EncryptionConfiguration{}
 	err = json.Unmarshal(data, decodedConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling: %v", err)
