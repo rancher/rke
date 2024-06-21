@@ -3,6 +3,7 @@ package dind
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	DINDImage           = "docker:19.03.12-dind"
+	DINDImage           = "docker:24.0.9-dind"
 	DINDContainerPrefix = "rke-dind"
 	DINDPlane           = "dind"
 	DINDNetwork         = "dind-network"
@@ -66,7 +67,7 @@ func StartUpDindContainer(ctx context.Context, dindAddress, dindNetwork, dindSto
 				"mount --make-shared / && " +
 					"mount --make-shared /sys && " +
 					"mount --make-shared /var/lib/docker && " +
-					"dockerd-entrypoint.sh --storage-driver=" + storageDriver,
+					"dockerd-entrypoint.sh --tls=false --storage-driver=" + storageDriver,
 			},
 			Hostname: dindAddress,
 			Env:      []string{"DOCKER_TLS_CERTDIR="},
@@ -120,6 +121,15 @@ func RmoveDindContainer(ctx context.Context, dindAddress string) error {
 			return nil
 		}
 	}
+
+	timeout := 2 * time.Minute
+	if err := cli.ContainerStop(ctx, containerName, &timeout); err != nil {
+		return fmt.Errorf("Failed to stop dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
+	}
+
+	logrus.Infof("waiting 1 minute before removing container [%s] on host [%s]", containerName, cli.DaemonHost())
+	time.Sleep(1 * time.Minute)
+
 	if err := cli.ContainerRemove(ctx, containerName, types.ContainerRemoveOptions{
 		Force:         true,
 		RemoveVolumes: true}); err != nil {
