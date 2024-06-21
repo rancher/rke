@@ -134,13 +134,14 @@ func GetTagMajorVersion(tag string) string {
 }
 
 func IsFileExists(filePath string) (bool, error) {
-	if _, err := os.Stat(filePath); err == nil {
+	var err error
+	if _, err = os.Stat(filePath); err == nil {
 		return true, nil
-	} else if os.IsNotExist(err) {
-		return false, nil
-	} else {
-		return false, err
 	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
 
 func GetDefaultRKETools(image string) (string, error) {
