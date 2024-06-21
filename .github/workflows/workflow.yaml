@@ -87,6 +87,8 @@ jobs:
       - name: Create pre-release
         run: |
           gh release create ${{ github.ref_name }} -p --verify-tag --title "Pre-release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt build/bin/rke*
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   github-release:
     permissions:
@@ -106,6 +108,8 @@ jobs:
       - name: Create release
         run: |
           gh release create ${{ github.ref_name }} --verify-tag --title "Release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt build/bin/rke*
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   dispatch:
     permissions:
@@ -140,5 +144,6 @@ jobs:
               exit 0
           esac
           echo "Running on $ACTION_TARGET_BRANCH"
-          echo ${{ env.PAT_TOKEN }} | gh auth login --with-token
           gh workflow run "Go get" --repo rancher/rancher --ref $ACTION_TARGET_BRANCH -F goget_module=github.com/rancher/rke -F goget_version=${{ github.ref_name }} -F source_author=${{ github.actor }}
+        env:
+          GH_TOKEN: ${{ env.PAT_TOKEN }}
