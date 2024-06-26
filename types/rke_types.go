@@ -699,6 +699,11 @@ type AciNetworkProvider struct {
 	ApicConnectionRetryLimit             string              `yaml:"apic_connection_retry_limit,omitempty" json:"apicConnectionRetryLimit,omitempty"`
 	TaintNotReadyNode                    string              `yaml:"taint_not_ready_node,omitempty" json:"taintNotReadyNode,omitempty"`
 	DropLogDisableEvents                 string              `yaml:"drop_log_disable_events,omitempty" json:"dropLogDisableEvents,omitempty"`
+	OpflexStartupEnabled                 string              `yaml:"opflex_startup_enabled,omitempty" json:"opflexStartupEnabled,omitempty"`
+	OpflexStartupPolicyDuration          string              `yaml:"opflex_startup_policy_duration,omitempty" json:"opflexStartupPolicyDuration,omitempty"`
+	OpflexStartupResolveAftConn          string              `yaml:"opflex_startup_resolve_aft_conn,omitempty" json:"opflexStartupResolveAftConn,omitempty"`
+	OpflexSwitchSyncDelay                string              `yaml:"opflex_switch_sync_delay,omitempty" json:"opflexSwitchSyncDelay,omitempty"`
+	OpflexSwitchSyncDynamic              string              `yaml:"opflex_switch_sync_dynamic,omitempty" json:"opflexSwitchSyncDynamic,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
