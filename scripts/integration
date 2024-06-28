@@ -82,6 +82,12 @@ for ver in "${!versions_to_test[@]}"; do
     version_to_test=${versions_to_test["${ver}"]}
     echo_with_time "Testing version ${version_to_test}"
 
+    MINOR_VERSION=$(echo ${version_to_test} | cut -d. -f2)
+    if [ ${MINOR_VERSION} -ge 30 ] && [ "${NETWORK_PLUGIN}" == "weave" ]; then
+        echo "Skipping weave testing with ${version_to_test} since weave is not supported for version >=1.30.0"
+        continue
+    fi
+
     # Create cluster yaml with random node names
     node=$(cat /dev/urandom | tr -dc a-z | head -c8)
     cat << EOF > "./bin/cluster-${version_to_test}.yml"
@@ -222,6 +228,12 @@ for ver in "${!versions_to_test[@]}"; do
     # This gets the next version in the list
     # Example $all_versions: "v1.16.15-rancher1-2 v1.17.12-rancher1-1 v1.18.9-rancher1-1 v1.19.2-rancher1-1"
     upgrade_to_version=$(echo $all_versions | grep -oP '(?<='"${versions_to_test["${ver}"]}"' )[^ ]*')
+
+    MINOR_VERSION=$(echo ${upgrade_to_version} | cut -d. -f2)
+    if [ ${MINOR_VERSION} -ge 30 ] && [ "${NETWORK_PLUGIN}" == "weave" ]; then
+        echo "Skipping cluster upgrade testing to ${upgrade_to_version} with weave since weave is not supported for version >=1.30.0"
+        continue
+    fi
 
     if [ "${upgrade_to_version}" = "" ]; then
         echo_with_time "No newer version found for ${versions_to_test["${ver}"]} to upgrade to"
