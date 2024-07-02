@@ -20,6 +20,7 @@ import (
 	"github.com/rancher/rke/util"
 	"github.com/sirupsen/logrus"
 	etcdclientv2 "go.etcd.io/etcd/client/v2"
+	etcdclientv3 "go.etcd.io/etcd/client/v3"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -29,6 +30,7 @@ const (
 	EtcdDataDir              = "/var/lib/rancher/etcd/"
 	EtcdInitWaitTime         = 10
 	EtcdSnapshotWaitTime     = 5
+	EtcdRequestWaitTimeout   = 10
 	EtcdPermFixContainerName = "etcd-fix-perm"
 )
 
@@ -169,6 +171,14 @@ func RemoveEtcdPlane(ctx context.Context, etcdHosts []*hosts.Host, force bool) e
 	return nil
 }
 
+func memberAdd(ctx context.Context, etcdClient *etcdclientv3.Client, peerURL string) error {
+	ctxTimeout, cancel := context.WithTimeout(ctx, EtcdRequestWaitTimeout*time.Second)
+	_, err := etcdClient.MemberAdd(ctxTimeout, []string{peerURL})
+	cancel()
+	_ = etcdClient.Close()
+	return err
+}
+
 func AddEtcdMember(ctx context.Context, toAddEtcdHost *hosts.Host, etcdHosts []*hosts.Host, localConnDialerFactory hosts.DialerFactory,
 	k8sVersion string, cert, key []byte) error {
 	log.Infof(ctx, "[add/%s] Adding member [etcd-%s] to etcd cluster", ETCDRole, toAddEtcdHost.HostnameOverride)
@@ -184,7 +194,7 @@ func AddEtcdMember(ctx context.Context, toAddEtcdHost *hosts.Host, etcdHosts []*
 				logrus.Debugf("Failed to create etcd client for host [%s]: %v", host.Address, err)
 				continue
 			}
-			if _, err := etcdClient.MemberAdd(ctx, []string{peerURL}); err != nil {
+			if err := memberAdd(ctx, etcdClient, peerURL); err != nil {
 				logrus.Debugf("Failed to Add etcd member [%s] from host: %v", host.Address, err)
 				continue
 			}
@@ -240,6 +250,7 @@ func RemoveEtcdMember(ctx context.Context, toDeleteEtcdHost *hosts.Host, etcdHos
 				logrus.Debugf("Failed to list etcd members from host [%s]: %v", host.Address, err)
 				continue
 			}
+			_ = etcdClient.Close()
 			for _, member := range members.Members {
 				if member.Name == fmt.Sprintf("etcd-%s", toDeleteEtcdHost.HostnameOverride) {
 					mIDv3 = member.ID
@@ -347,6 +358,7 @@ func IsEtcdMember(ctx context.Context, etcdHost *hosts.Host, etcdHosts []*hosts.
 				continue
 			}
 			members, err := etcdClient.MemberList(ctx)
+			_ = etcdClient.Close()
 			if err != nil {
 				listErr = errors.Wrapf(err, "Failed to create etcd client for host [%s]", host.Address)
 				logrus.Debugf("Failed to list etcd cluster members [%s]: %v", etcdHost.Address, err)
