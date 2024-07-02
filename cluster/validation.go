@@ -215,6 +215,16 @@ func validateNetworkOptions(c *Cluster) error {
 	}
 
 	if c.Network.Plugin == WeaveNetworkPlugin {
+		supported, err := isWeaveSupportedK8sVersion(c.Version)
+		if err != nil {
+			return fmt.Errorf("error while checking weave support for cluster version: %w", err)
+		}
+
+		if !supported {
+			logrus.Errorf("weave CNI support is removed for k8s version >=1.30.0")
+			return fmt.Errorf("weave CNI support is removed for k8s version >=1.30.0")
+		}
+
 		if err := warnWeaveDeprecation(c.Version); err != nil {
 			return fmt.Errorf("Error while printing Weave deprecation message: %w", err)
 		}
@@ -731,4 +741,9 @@ func warnWeaveDeprecation(k8sVersion string) error {
 		logrus.Warn("Weave CNI plugin is deprecated starting with Kubernetes v1.27 and will be removed in Kubernetes v1.30")
 	}
 	return nil
+}
+
+// isWeaveSupportedK8sVersion checks if weave CNI is supported for a given kubernetes version
+func isWeaveSupportedK8sVersion(k8sVersion string) (bool, error) {
+	return util.SemVerMatchRange(k8sVersion, "<1.30.0-rancher0")
 }
