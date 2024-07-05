@@ -181,6 +181,11 @@ const (
 	AciApicConnectionRetryLimit             = "aci_apic_connection_retry_limit"
 	AciTaintNotReadyNode                    = "aci_taint_not_ready_node"
 	AciDropLogDisableEvents                 = "aci_drop_log_disable_events"
+	AciOpflexStartupEnabled                 = "aci_opflex_startup_enabled"
+	AciOpflexStartupPolicyDuration          = "aci_opflex_startup_policy_duration"
+	AciOpflexStartupResolveAftConn          = "aci_opflex_startup_resolve_aft_conn"
+	AciOpflexSwitchSyncDelay                = "aci_opflex_switch_sync_delay"
+	AciOpflexSwitchSyncDynamic              = "aci_opflex_switch_sync_dynamic"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -356,6 +361,11 @@ const (
 	ApicConnectionRetryLimit               = "ApicConnectionRetryLimit"
 	TaintNotReadyNode                      = "TaintNotReadyNode"
 	DropLogDisableEvents                   = "DropLogDisableEvents"
+	OpflexStartupEnabled                   = "OpflexStartupEnabled"
+	OpflexStartupPolicyDuration            = "OpflexStartupPolicyDuration"
+	OpflexStartupResolveAftConn            = "OpflexStartupResolveAftConn"
+	OpflexSwitchSyncDelay                  = "OpflexSwitchSyncDelay"
+	OpflexSwitchSyncDynamic                = "OpflexSwitchSyncDynamic"
 )
 
 type IPPool struct {
@@ -724,6 +734,11 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		ApicConnectionRetryLimit:             c.Network.Options[AciApicConnectionRetryLimit],
 		TaintNotReadyNode:                    c.Network.Options[AciTaintNotReadyNode],
 		DropLogDisableEvents:                 c.Network.Options[AciDropLogDisableEvents],
+		OpflexStartupEnabled:                 c.Network.Options[AciOpflexStartupEnabled],
+		OpflexStartupPolicyDuration:          c.Network.Options[AciOpflexStartupPolicyDuration],
+		OpflexStartupResolveAftConn:          c.Network.Options[AciOpflexStartupResolveAftConn],
+		OpflexSwitchSyncDelay:                c.Network.Options[AciOpflexSwitchSyncDelay],
+		OpflexSwitchSyncDynamic:              c.Network.Options[AciOpflexSwitchSyncDynamic],
 		NodeSnatRedirectExclude:              c.Network.AciNetworkProvider.NodeSnatRedirectExclude,
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
