@@ -43,12 +43,23 @@ jobs:
           ls -lR build/bin
         env:
           CROSS: 1
+      - name: Generate sha256 file for release
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          upload_folder="./build/bin"
+          for filename in $upload_folder/*; do
+            sum_file=$(sha256sum $filename)
+            sum=$(echo $sum_file | awk '{print $1}')
+            file_path=$(echo $sum_file | awk '{print $2}')
+            file=${file_path#"$upload_folder/"}
+            echo "$sum $file" >> ./build/bin/sha256sum.txt
+          done
       - name: Upload rke bin artifacts
         if: github.event_name == 'push' && github.ref_type == 'tag'
         uses: actions/upload-artifact@v4
         with:
           name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
-          path: build/bin/rke*
+          path: build/bin/*
           if-no-files-found: error
           retention-days: 1
 
@@ -86,7 +97,7 @@ jobs:
           path: build/bin
       - name: Create pre-release
         run: |
-          gh release create ${{ github.ref_name }} -p --verify-tag --title "Pre-release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt build/bin/rke*
+          gh release create ${{ github.ref_name }} -p --verify-tag --title "Pre-release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt build/bin/*
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -107,7 +118,7 @@ jobs:
           path: build/bin
       - name: Create release
         run: |
-          gh release create ${{ github.ref_name }} --verify-tag --title "Release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt build/bin/rke*
+          gh release create ${{ github.ref_name }} --verify-tag --title "Release ${{ github.ref_name }}" --notes-file build/bin/rke-k8sversions.txt build/bin/*
         env:
           GH_TOKEN: ${{ github.token }}
 
