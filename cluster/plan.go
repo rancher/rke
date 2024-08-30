@@ -64,8 +64,10 @@ const (
 
 	EncryptionProviderConfigArgument = "encryption-provider-config"
 
-	KubeletCRIDockerdNameEnv = "RKE_KUBELET_CRIDOCKERD"
-	KubeletDualStackNameEnv  = "RKE_KUBELET_CRIDOCKERD_DUALSTACK"
+	KubeletCRIDockerdNameEnv         = "RKE_KUBELET_CRIDOCKERD"
+	KubeletDualStackNameEnv          = "RKE_KUBELET_CRIDOCKERD_DUALSTACK"
+	CRIDockerdStreamServerAddressEnv = "CRIDOCKERD_STREAM_SERVER_ADDRESS"
+	CRIDockerdStreamServerPortEnv    = "CRIDOCKERD_STREAM_SERVER_PORT"
 )
 
 var (
@@ -618,6 +620,15 @@ func (c *Cluster) BuildKubeletProcess(host *hosts.Host, serviceOptions v3.Kubern
 		Env = append(Env,
 			// Enable running cri-dockerd
 			fmt.Sprintf("%s=%s", KubeletCRIDockerdNameEnv, "true"))
+
+		if c.CRIDockerdStreamServerAddress != "" {
+			Env = append(Env, fmt.Sprintf("%s=%s", CRIDockerdStreamServerAddressEnv, c.CRIDockerdStreamServerAddress))
+		}
+
+		if c.CRIDockerdStreamServerPort != "" {
+			Env = append(Env, fmt.Sprintf("%s=%s", CRIDockerdStreamServerPortEnv, c.CRIDockerdStreamServerPort))
+		}
+
 		if c.multipleCIDRsConfigured() {
 			Env = append(Env,
 				// Enable cri-dockerd flag for dual-stack

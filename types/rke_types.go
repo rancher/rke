@@ -65,6 +65,10 @@ type RancherKubernetesEngineConfig struct {
 	DNS *DNSConfig `yaml:"dns" json:"dns,omitempty"`
 	// Upgrade Strategy for the cluster
 	UpgradeStrategy *NodeUpgradeStrategy `yaml:"upgrade_strategy,omitempty" json:"upgradeStrategy,omitempty"`
+	// Stream Server Address for cri-dockerd
+	CRIDockerdStreamServerAddress string `yaml:"cri_dockerd_stream_server_address" json:"criDockerdStreamServerAddress,omitempty"`
+	// Stream Server Port for cri-dockerd
+	CRIDockerdStreamServerPort string `yaml:"cri_dockerd_stream_server_port" json:"criDockerdStreamServerPort,omitempty"`
 }
 
 func (r *RancherKubernetesEngineConfig) ObjClusterName() string {
