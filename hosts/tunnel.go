@@ -87,9 +87,14 @@ func parsePrivateKey(keyBuff string) (ssh.Signer, error) {
 
 func getSSHConfig(username, sshPrivateKeyString string, sshCertificateString string, useAgentAuth bool) (*ssh.ClientConfig, error) {
 	config := &ssh.ClientConfig{
-		User:            username,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		User: username,
 	}
+
+	signer, err := parsePrivateKey(sshPrivateKeyString)
+	if err != nil {
+		return config, err
+	}
+	config.HostKeyCallback = ssh.FixedHostKey(signer.PublicKey())
 
 	// Kind of a double check now.
 	if useAgentAuth {
@@ -104,11 +109,6 @@ func getSSHConfig(username, sshPrivateKeyString string, sshCertificateString str
 			logrus.Debugf("using %q SSH_AUTH_SOCK", sshAgentSock)
 			return config, nil
 		}
-	}
-
-	signer, err := parsePrivateKey(sshPrivateKeyString)
-	if err != nil {
-		return config, err
 	}
 
 	if len(sshCertificateString) > 0 {
