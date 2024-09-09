@@ -711,6 +711,7 @@ type AciNetworkProvider struct {
 	OpflexStartupResolveAftConn          string              `yaml:"opflex_startup_resolve_aft_conn,omitempty" json:"opflexStartupResolveAftConn,omitempty"`
 	OpflexSwitchSyncDelay                string              `yaml:"opflex_switch_sync_delay,omitempty" json:"opflexSwitchSyncDelay,omitempty"`
 	OpflexSwitchSyncDynamic              string              `yaml:"opflex_switch_sync_dynamic,omitempty" json:"opflexSwitchSyncDynamic,omitempty"`
+	UnknownMacUnicastAction              string              `yaml:"unknown_mac_unicast_action,omitempty" json:"unknownMacUnicastAction,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
