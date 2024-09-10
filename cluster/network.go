@@ -186,6 +186,7 @@ const (
 	AciOpflexStartupResolveAftConn          = "aci_opflex_startup_resolve_aft_conn"
 	AciOpflexSwitchSyncDelay                = "aci_opflex_switch_sync_delay"
 	AciOpflexSwitchSyncDynamic              = "aci_opflex_switch_sync_dynamic"
+	AciUnknownMacUnicastAction              = "aci_unknown_mac_unicast_action"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -366,6 +367,7 @@ const (
 	OpflexStartupResolveAftConn            = "OpflexStartupResolveAftConn"
 	OpflexSwitchSyncDelay                  = "OpflexSwitchSyncDelay"
 	OpflexSwitchSyncDynamic                = "OpflexSwitchSyncDynamic"
+	UnknownMacUnicastAction                = "UnknownMacUnicastAction"
 )
 
 type IPPool struct {
@@ -740,6 +742,7 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		OpflexStartupResolveAftConn:          c.Network.Options[AciOpflexStartupResolveAftConn],
 		OpflexSwitchSyncDelay:                c.Network.Options[AciOpflexSwitchSyncDelay],
 		OpflexSwitchSyncDynamic:              c.Network.Options[AciOpflexSwitchSyncDynamic],
+		UnknownMacUnicastAction:              c.Network.Options[AciUnknownMacUnicastAction],
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                   c.SystemImages.AciOpflexContainer,
