@@ -884,6 +884,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicRefreshTime, DefaultAciApicRefreshTime)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ServiceMonitorInterval, DefaultAciServiceMonitorInterval)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.NoPriorityClass, DefaultAciNoPriorityClass)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.UseAciCniPriorityClass, DefaultAciUseAciCniPriorityClass)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.MaxNodesSvcGraph, DefaultAciMaxNodesSvcGraph)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.SnatContractScope, DefaultAciSnatContractScope)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.PodSubnetChunkSize, DefaultAciPodSubnetChunkSize)
@@ -952,6 +953,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciOpflexAgentLogLevel] = c.Network.AciNetworkProvider.OpflexAgentLogLevel
 		networkPluginConfigDefaultsMap[AciApicRefreshTime] = c.Network.AciNetworkProvider.ApicRefreshTime
 		networkPluginConfigDefaultsMap[AciServiceMonitorInterval] = c.Network.AciNetworkProvider.ServiceMonitorInterval
+		networkPluginConfigDefaultsMap[AciUseAciCniPriorityClass] = c.Network.AciNetworkProvider.UseAciCniPriorityClass
 		networkPluginConfigDefaultsMap[AciNoPriorityClass] = c.Network.AciNetworkProvider.NoPriorityClass
 		networkPluginConfigDefaultsMap[AciMaxNodesSvcGraph] = c.Network.AciNetworkProvider.MaxNodesSvcGraph
 		networkPluginConfigDefaultsMap[AciSnatContractScope] = c.Network.AciNetworkProvider.SnatContractScope
@@ -1051,6 +1053,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciOpflexStartupResolveAftConn] = c.Network.AciNetworkProvider.OpflexStartupResolveAftConn
 		networkPluginConfigDefaultsMap[AciOpflexSwitchSyncDelay] = c.Network.AciNetworkProvider.OpflexSwitchSyncDelay
 		networkPluginConfigDefaultsMap[AciOpflexSwitchSyncDynamic] = c.Network.AciNetworkProvider.OpflexSwitchSyncDynamic
+		networkPluginConfigDefaultsMap[AciUnknownMacUnicastAction] = c.Network.AciNetworkProvider.UnknownMacUnicastAction
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
