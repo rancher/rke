@@ -187,6 +187,8 @@ const (
 	AciOpflexSwitchSyncDelay                = "aci_opflex_switch_sync_delay"
 	AciOpflexSwitchSyncDynamic              = "aci_opflex_switch_sync_dynamic"
 	AciUnknownMacUnicastAction              = "aci_unknown_mac_unicast_action"
+	AciEnableHppDirect                      = "aci_enable_hpp_direct"
+	AciOpflexAgentResetWaitDelay            = "aci_opflex_agent_reset_wait_delay"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -368,6 +370,8 @@ const (
 	OpflexSwitchSyncDelay                  = "OpflexSwitchSyncDelay"
 	OpflexSwitchSyncDynamic                = "OpflexSwitchSyncDynamic"
 	UnknownMacUnicastAction                = "UnknownMacUnicastAction"
+	EnableHppDirect                        = "EnableHppDirect"
+	OpflexAgentResetWaitDelay              = "OpflexAgentResetWaitDelay"
 )
 
 type IPPool struct {
@@ -742,6 +746,8 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		OpflexSwitchSyncDelay:                c.Network.Options[AciOpflexSwitchSyncDelay],
 		OpflexSwitchSyncDynamic:              c.Network.Options[AciOpflexSwitchSyncDynamic],
 		UnknownMacUnicastAction:              c.Network.Options[AciUnknownMacUnicastAction],
+		EnableHppDirect:                      c.Network.Options[AciEnableHppDirect],
+		OpflexAgentResetWaitDelay:            c.Network.Options[AciOpflexAgentResetWaitDelay],
 		NodeSnatRedirectExclude:              c.Network.AciNetworkProvider.NodeSnatRedirectExclude,
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
