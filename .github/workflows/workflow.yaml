@@ -151,6 +151,9 @@ jobs:
             "v1.6"*)
               ACTION_TARGET_BRANCH="release/v2.9"
               ;;
+            "v1.7"*)
+              ACTION_TARGET_BRANCH="release/v2.10"
+              ;;
             *)
               echo "Not a valid tag, not dispatching event"
               exit 0
