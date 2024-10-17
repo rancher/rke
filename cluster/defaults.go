@@ -144,6 +144,7 @@ const (
 	DefaultAciOpflexStartupResolveAftConn            = "false"
 	DefaultAciOpflexSwitchSyncDelay                  = "5"
 	DefaultAciOpflexSwitchSyncDynamic                = "10"
+	DefaultAciEnableHppDirect                        = "false"
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
 
@@ -929,6 +930,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DisableHppRendering, DefaultAciDisableHppRendering)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicConnectionRetryLimit, DefaultAciApicConnectionRetryLimit)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.TaintNotReadyNode, DefaultAciTaintNotReadyNode)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EnableHppDirect, DefaultAciEnableHppDirect)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DropLogDisableEvents, DefaultAciDropLogDisableEvents)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexStartupEnabled, DefaultAciOpflexStartupEnabled)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexStartupPolicyDuration, DefaultAciOpflexStartupPolicyDuration)
@@ -1048,6 +1050,8 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciOpflexSwitchSyncDelay] = c.Network.AciNetworkProvider.OpflexSwitchSyncDelay
 		networkPluginConfigDefaultsMap[AciOpflexSwitchSyncDynamic] = c.Network.AciNetworkProvider.OpflexSwitchSyncDynamic
 		networkPluginConfigDefaultsMap[AciUnknownMacUnicastAction] = c.Network.AciNetworkProvider.UnknownMacUnicastAction
+		networkPluginConfigDefaultsMap[AciEnableHppDirect] = c.Network.AciNetworkProvider.EnableHppDirect
+		networkPluginConfigDefaultsMap[AciOpflexAgentResetWaitDelay] = c.Network.AciNetworkProvider.OpflexAgentResetWaitDelay
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
