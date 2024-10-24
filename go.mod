@@ -2,7 +2,7 @@ module github.com/rancher/rke
 
 go 1.22.0
 
-toolchain go1.22.3
+toolchain go1.22.8
 
 replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
