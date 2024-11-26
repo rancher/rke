@@ -1052,6 +1052,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciUnknownMacUnicastAction] = c.Network.AciNetworkProvider.UnknownMacUnicastAction
 		networkPluginConfigDefaultsMap[AciEnableHppDirect] = c.Network.AciNetworkProvider.EnableHppDirect
 		networkPluginConfigDefaultsMap[AciOpflexAgentResetWaitDelay] = c.Network.AciNetworkProvider.OpflexAgentResetWaitDelay
+		networkPluginConfigDefaultsMap[AciDropLogOpflexRedirectDropLogs] = c.Network.AciNetworkProvider.DropLogOpflexRedirectDropLogs
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
