@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Run go-generate to fetch data.json
         run: make go-generate
       - name: Check for repository changes
@@ -54,7 +54,7 @@ jobs:
       - name: Create Pull Request
         if: ${{ env.changes_exist == 'true' }}
         id: cpr
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v7
         env:
           SOURCE_BRANCH: ${{ steps.branch.outputs.branch }}
         with:
