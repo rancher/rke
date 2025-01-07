@@ -190,6 +190,7 @@ const (
 	AciUnknownMacUnicastAction              = "aci_unknown_mac_unicast_action"
 	AciEnableHppDirect                      = "aci_enable_hpp_direct"
 	AciOpflexAgentResetWaitDelay            = "aci_opflex_agent_reset_wait_delay"
+	AciProactiveConf                        = "aci_proactive_conf"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -374,6 +375,7 @@ const (
 	UnknownMacUnicastAction                = "UnknownMacUnicastAction"
 	EnableHppDirect                        = "EnableHppDirect"
 	OpflexAgentResetWaitDelay              = "OpflexAgentResetWaitDelay"
+	ProactiveConf                          = "ProactiveConf"
 )
 
 type IPPool struct {
@@ -752,6 +754,7 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		UnknownMacUnicastAction:              c.Network.Options[AciUnknownMacUnicastAction],
 		EnableHppDirect:                      c.Network.Options[AciEnableHppDirect],
 		OpflexAgentResetWaitDelay:            c.Network.Options[AciOpflexAgentResetWaitDelay],
+		ProactiveConf:                        c.Network.Options[AciProactiveConf],
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                   c.SystemImages.AciOpflexContainer,

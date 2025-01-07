@@ -712,6 +712,7 @@ type AciNetworkProvider struct {
 	UnknownMacUnicastAction              string              `yaml:"unknown_mac_unicast_action,omitempty" json:"unknownMacUnicastAction,omitempty"`
 	EnableHppDirect                      string              `yaml:"enable_hpp_direct,omitempty" json:"enableHppDirect,omitempty"`
 	OpflexAgentResetWaitDelay            string              `yaml:"opflex_agent_reset_wait_delay,omitempty" json:"opflexAgentResetWaitDelay,omitempty"`
+	ProactiveConf                        string              `yaml:"proactive_conf,omitempty" json:"proactiveConf,omitempty"`
 }
 
 type KubernetesServicesOptions struct {

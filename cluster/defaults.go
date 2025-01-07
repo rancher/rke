@@ -145,6 +145,7 @@ const (
 	DefaultAciOpflexSwitchSyncDelay                  = "5"
 	DefaultAciOpflexSwitchSyncDynamic                = "10"
 	DefaultAciEnableHppDirect                        = "false"
+	DefaultAciProactiveConf                          = "false"
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
 
@@ -931,6 +932,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicConnectionRetryLimit, DefaultAciApicConnectionRetryLimit)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.TaintNotReadyNode, DefaultAciTaintNotReadyNode)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EnableHppDirect, DefaultAciEnableHppDirect)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ProactiveConf, DefaultAciProactiveConf)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DropLogDisableEvents, DefaultAciDropLogDisableEvents)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexStartupEnabled, DefaultAciOpflexStartupEnabled)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexStartupPolicyDuration, DefaultAciOpflexStartupPolicyDuration)
@@ -1053,6 +1055,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciEnableHppDirect] = c.Network.AciNetworkProvider.EnableHppDirect
 		networkPluginConfigDefaultsMap[AciOpflexAgentResetWaitDelay] = c.Network.AciNetworkProvider.OpflexAgentResetWaitDelay
 		networkPluginConfigDefaultsMap[AciDropLogOpflexRedirectDropLogs] = c.Network.AciNetworkProvider.DropLogOpflexRedirectDropLogs
+		networkPluginConfigDefaultsMap[AciProactiveConf] = c.Network.AciNetworkProvider.ProactiveConf
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)
