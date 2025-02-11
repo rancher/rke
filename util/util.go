@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	WorkerThreads               = 50
-	SemVerK8sVersion122OrHigher = ">=1.22.0-rancher0"
+	WorkerThreads                = 50
+	SemVerK8sVersion122OrHigher  = ">=1.22.0-rancher0"
+	SemVerK8sVersion1316OrHigher = ">=1.31.6-rancher0"
 )
 
 var ProxyEnvVars = [3]string{"HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"}
