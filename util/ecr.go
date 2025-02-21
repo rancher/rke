@@ -36,7 +36,7 @@ func ECRCredentialPlugin(plugin *v3.ECRCredentialPlugin, pr string) (authConfig 
 	if len(matches) == 0 {
 		return authConfig, fmt.Errorf("Not a valid ECR registry")
 	} else if len(matches) < 3 {
-		return authConfig, fmt.Errorf(pr + "is not a valid repository URI for Amazon Elastic Container Registry.")
+		return authConfig, fmt.Errorf("%s is not a valid repository URI for Amazon Elastic Container Registry", pr)
 	}
 
 	config := &aws.Config{

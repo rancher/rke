@@ -259,7 +259,7 @@ func ClusterUp(ctx context.Context, dialersOptions hosts.DialersOptions, flags c
 	}
 
 	if errMsgMaxUnavailableNotFailedCtrl != "" || errMsgMaxUnavailableNotFailedWrkr != "" {
-		return APIURL, caCrt, clientCert, clientKey, nil, fmt.Errorf(errMsgMaxUnavailableNotFailedCtrl + errMsgMaxUnavailableNotFailedWrkr)
+		return APIURL, caCrt, clientCert, clientKey, nil, fmt.Errorf("%s%s", errMsgMaxUnavailableNotFailedCtrl, errMsgMaxUnavailableNotFailedWrkr)
 	}
 	log.Infof(ctx, "Finished building Kubernetes cluster successfully")
 	return APIURL, caCrt, clientCert, clientKey, kubeCluster.Certificates, nil

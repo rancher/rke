@@ -1116,7 +1116,7 @@ func (c *Cluster) setCloudProvider() error {
 				return fmt.Errorf("failed to parse semver range for checking cloud provider %v", err)
 			}
 			if defaultExternalAwsRange(clusterVersion) {
-				return fmt.Errorf(fmt.Sprintf("Cloud provider %s is invalid for [%s]", aws.AWSCloudProviderName, c.Version))
+				return fmt.Errorf("Cloud provider %s is invalid for [%s]", aws.AWSCloudProviderName, c.Version)
 			}
 		}
 	}
