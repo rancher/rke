@@ -1267,6 +1267,11 @@ func (in *NetworkConfig) DeepCopyInto(out *NetworkConfig) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.EnableBrNetfilter != nil {
+		in, out := &in.EnableBrNetfilter, &out.EnableBrNetfilter
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
