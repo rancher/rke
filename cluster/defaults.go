@@ -762,6 +762,12 @@ func (c *Cluster) setClusterDNSDefaults() error {
 func (c *Cluster) setClusterNetworkDefaults() {
 	setDefaultIfEmpty(&c.Network.Plugin, DefaultNetworkPlugin)
 
+	// set enable_br_netfilter to true by default since it is required for network plugins
+	if c.Network.EnableBrNetfilter == nil {
+		enableBrNetfilter := true
+		c.Network.EnableBrNetfilter = &enableBrNetfilter
+	}
+
 	if c.Network.Options == nil {
 		// don't break if the user didn't define options
 		c.Network.Options = make(map[string]string)
