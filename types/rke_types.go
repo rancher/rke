@@ -409,6 +409,8 @@ type NetworkConfig struct {
 	UpdateStrategy *DaemonSetUpdateStrategy `yaml:"update_strategy" json:"updateStrategy,omitempty"`
 	// Tolerations for Deployments
 	Tolerations []v1.Toleration `yaml:"tolerations" json:"tolerations,omitempty"`
+	// Enable/Disable br_netfilter on nodes
+	EnableBrNetfilter *bool `yaml:"enable_br_netfilter" json:"enableBrNetfilter" norman:"default=true"`
 }
 
 type AuthWebhookConfig struct {
