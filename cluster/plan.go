@@ -68,6 +68,7 @@ const (
 	KubeletDualStackNameEnv          = "RKE_KUBELET_CRIDOCKERD_DUALSTACK"
 	CRIDockerdStreamServerAddressEnv = "CRIDOCKERD_STREAM_SERVER_ADDRESS"
 	CRIDockerdStreamServerPortEnv    = "CRIDOCKERD_STREAM_SERVER_PORT"
+	KubeProxyBrNetfilterNameEnv      = "RKE_KUBE_PROXY_BR_NETFILTER"
 )
 
 var (
@@ -775,6 +776,10 @@ func (c *Cluster) BuildKubeProxyProcess(host *hosts.Host, serviceOptions v3.Kube
 		Env = append(Env, c.getWindowsEnv(host)...)
 	}
 
+	if c.EnableBrNetfilter() {
+		Env = append(Env, fmt.Sprintf("%s=%s", KubeProxyBrNetfilterNameEnv, "true"))
+	}
+
 	for arg, value := range host.GetExtraArgs(kubeproxy.BaseService) {
 		CommandArgs[arg] = value
 	}
@@ -1319,6 +1324,16 @@ func (c *Cluster) IsCRIDockerdEnabled() bool {
 		return false
 	}
 	if c.EnableCRIDockerd != nil && *c.EnableCRIDockerd {
+		return true
+	}
+	return false
+}
+
+func (c *Cluster) EnableBrNetfilter() bool {
+	if c == nil {
+		return false
+	}
+	if c.Network.EnableBrNetfilter != nil && *c.Network.EnableBrNetfilter {
 		return true
 	}
 	return false
