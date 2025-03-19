@@ -1,7 +1,7 @@
 name: CI workflow
 
 on:
-  push: 
+  push:
     branches:
       - 'release/v*'
     tags:
@@ -156,7 +156,7 @@ jobs:
               ACTION_TARGET_BRANCH="release/v2.10"
               ;;
             "v1.8"*)
-              ACTION_TARGET_BRANCH="main"
+              ACTION_TARGET_BRANCH="release/v2.11"
               ;;
             *)
               echo "Not a valid tag, not dispatching event"
