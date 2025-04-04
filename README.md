@@ -4,11 +4,17 @@
 
 Rancher Kubernetes Engine, an extremely simple, lightning fast Kubernetes installer that works everywhere.
 
+## 🚨 Important Notice: RKE End of Life Announcement
+
+> Rancher Kubernetes Engine (RKE) is reaching its **end of life**. **Version 1.8** will be the final release in the RKE 1.x series. We strongly recommend migrating to Rancher's newer Kubernetes distribution, RKE2, to stay supported, secure, and take advantage of the latest features and updates. For more details, please refer to the official [SUSE EOL article](https://www.suse.com/support/kb/doc/?id=000021513).
+
 ## Latest Release
-* v1.5
-  * v1.5.8 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.5.8).
-* v1.4
-  * v1.4.17 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.4.17).
+* v1.8
+  * v1.8.1 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.8.1).
+* v1.7
+  * v1.7.5 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.7.5).
+* v1.6
+  * v1.6.9 - Read the full release [notes](https://github.com/rancher/rke/releases/tag/v1.6.9).
 
 ## Download
 
@@ -57,7 +63,7 @@ RANCHER_METADATA_URL=${./local/data.json} rke [commands] [options]
     
 ## License
 
-Copyright © 2017 - 2023 SUSE LLC
+Copyright © 2017 - 2025 SUSE LLC
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
