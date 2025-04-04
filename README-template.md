@@ -4,6 +4,10 @@
 
 Rancher Kubernetes Engine, an extremely simple, lightning fast Kubernetes installer that works everywhere.
 
+## 🚨 Important Notice: RKE End of Life Announcement
+
+> Rancher Kubernetes Engine (RKE) is reaching its **end of life**. **Version 1.8** will be the final release in the RKE 1.x series. We strongly recommend migrating to Rancher's newer Kubernetes distribution, RKE2, to stay supported, secure, and take advantage of the latest features and updates. For more details, please refer to the official [SUSE EOL article](https://www.suse.com/support/kb/doc/?id=000021513).
+
 ## Latest Release
 
 ## Download
