@@ -45,7 +45,7 @@ require (
 	github.com/urfave/cli v1.22.14
 	go.etcd.io/etcd/client/v2 v2.305.16
 	go.etcd.io/etcd/client/v3 v3.5.16
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/sync v0.11.0
 	google.golang.org/grpc v1.65.0
 	gopkg.in/yaml.v2 v2.4.0
