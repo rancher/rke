@@ -146,6 +146,10 @@ const (
 	DefaultAciOpflexSwitchSyncDynamic                = "10"
 	DefaultAciEnableHppDirect                        = "false"
 	DefaultAciProactiveConf                          = "false"
+	DefaultAciEpgResolvePrioritize                   = "true"
+	DefaultAciForceEpUndeclares                      = "true"
+	DefaultAciEnableApicRequestRetryDelay            = "true"
+	DefaultAciApicRequestRetryDelay                  = "2"
 	KubeAPIArgAdmissionControlConfigFile             = "admission-control-config-file"
 	DefaultKubeAPIArgAdmissionControlConfigFileValue = "/etc/kubernetes/admission.yaml"
 
@@ -939,6 +943,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.TaintNotReadyNode, DefaultAciTaintNotReadyNode)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EnableHppDirect, DefaultAciEnableHppDirect)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ProactiveConf, DefaultAciProactiveConf)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EpgResolvePrioritize, DefaultAciEpgResolvePrioritize)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ForceEpUndeclares, DefaultAciForceEpUndeclares)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.EnableApicRequestRetryDelay, DefaultAciEnableApicRequestRetryDelay)
+		setDefaultIfEmpty(&c.Network.AciNetworkProvider.ApicRequestRetryDelay, DefaultAciApicRequestRetryDelay)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.DropLogDisableEvents, DefaultAciDropLogDisableEvents)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexStartupEnabled, DefaultAciOpflexStartupEnabled)
 		setDefaultIfEmpty(&c.Network.AciNetworkProvider.OpflexStartupPolicyDuration, DefaultAciOpflexStartupPolicyDuration)
@@ -1062,6 +1070,10 @@ func (c *Cluster) setClusterNetworkDefaults() {
 		networkPluginConfigDefaultsMap[AciOpflexAgentResetWaitDelay] = c.Network.AciNetworkProvider.OpflexAgentResetWaitDelay
 		networkPluginConfigDefaultsMap[AciDropLogOpflexRedirectDropLogs] = c.Network.AciNetworkProvider.DropLogOpflexRedirectDropLogs
 		networkPluginConfigDefaultsMap[AciProactiveConf] = c.Network.AciNetworkProvider.ProactiveConf
+		networkPluginConfigDefaultsMap[AciEpgResolvePrioritize] = c.Network.AciNetworkProvider.EpgResolvePrioritize
+		networkPluginConfigDefaultsMap[AciForceEpUndeclares] = c.Network.AciNetworkProvider.ForceEpUndeclares
+		networkPluginConfigDefaultsMap[AciEnableApicRequestRetryDelay] = c.Network.AciNetworkProvider.EnableApicRequestRetryDelay
+		networkPluginConfigDefaultsMap[AciApicRequestRetryDelay] = c.Network.AciNetworkProvider.ApicRequestRetryDelay
 	}
 	for k, v := range networkPluginConfigDefaultsMap {
 		setDefaultIfEmptyMapValue(c.Network.Options, k, v)

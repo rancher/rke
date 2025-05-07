@@ -715,6 +715,10 @@ type AciNetworkProvider struct {
 	EnableHppDirect                      string              `yaml:"enable_hpp_direct,omitempty" json:"enableHppDirect,omitempty"`
 	OpflexAgentResetWaitDelay            string              `yaml:"opflex_agent_reset_wait_delay,omitempty" json:"opflexAgentResetWaitDelay,omitempty"`
 	ProactiveConf                        string              `yaml:"proactive_conf,omitempty" json:"proactiveConf,omitempty"`
+	EpgResolvePrioritize                 string              `yaml:"epg_resolve_prioritize,omitempty" json:"epgResolvePrioritize,omitempty"`
+	ForceEpUndeclares                    string              `yaml:"force_ep_undeclares,omitempty" json:"forceEpUndeclares,omitempty"`
+	EnableApicRequestRetryDelay          string              `yaml:"enable_apic_request_retry_delay,omitempty" json:"enableApicRequestRetryDelay,omitempty"`
+	ApicRequestRetryDelay                string              `yaml:"apic_request_retry_delay,omitempty" json:"apicRequestRetryDelay,omitempty"`
 }
 
 type KubernetesServicesOptions struct {
