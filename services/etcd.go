@@ -454,9 +454,14 @@ func RunEtcdSnapshotSave(ctx context.Context, etcdHost *hosts.Host, prsMap map[s
 	if es.BackupConfig != nil {
 		imageCfg = configS3BackupImgCmd(ctx, imageCfg, es.BackupConfig)
 	}
+	restartPolicyMode := container.RestartPolicyMode(restartPolicy)
+	if restartPolicyMode == "" {
+		restartPolicyMode = container.RestartPolicyAlways
+	}
+
 	hostCfg := &container.HostConfig{
 		NetworkMode:   container.NetworkMode("host"),
-		RestartPolicy: container.RestartPolicy{Name: restartPolicy},
+		RestartPolicy: container.RestartPolicy{Name: restartPolicyMode},
 	}
 
 	binds := []string{

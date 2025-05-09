@@ -125,7 +125,12 @@ func GetProcessConfig(process v3.Process, host *hosts.Host, k8sVersion string) (
 		PortBindings: portBindings,
 	}
 	if len(process.RestartPolicy) > 0 {
-		hostCfg.RestartPolicy = container.RestartPolicy{Name: process.RestartPolicy}
+		restartPolicyMode := container.RestartPolicyMode(process.RestartPolicy)
+		if restartPolicyMode == "" {
+			restartPolicyMode = container.RestartPolicyAlways
+		}
+
+		hostCfg.RestartPolicy = container.RestartPolicy{Name: restartPolicyMode}
 	}
 	// The MCS label only needs to be applied when container is not running privileged, and running privileged negates need for applying the label
 	// If Docker is configured with selinux-enabled:true, we need to specify MCS label to allow files from service-sidekick to be shared between containers

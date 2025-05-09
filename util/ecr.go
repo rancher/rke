@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/registry"
 	v3 "github.com/rancher/rke/types"
 )
 
@@ -21,7 +21,7 @@ const proxyEndpointScheme = "https://"
 var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
 
 // ECRCredentialPlugin is a wrapper to generate ECR token using the AWS Credentials
-func ECRCredentialPlugin(plugin *v3.ECRCredentialPlugin, pr string) (authConfig types.AuthConfig, err error) {
+func ECRCredentialPlugin(plugin *v3.ECRCredentialPlugin, pr string) (authConfig registry.AuthConfig, err error) {
 	if plugin == nil {
 		err = fmt.Errorf("ECRCredentialPlugin: ECRCredentialPlugin called with nil plugin data")
 		return authConfig, err
@@ -78,7 +78,7 @@ func ECRCredentialPlugin(plugin *v3.ECRCredentialPlugin, pr string) (authConfig 
 	return authConfig, err
 }
 
-func extractToken(token string) (authConfig types.AuthConfig, err error) {
+func extractToken(token string) (authConfig registry.AuthConfig, err error) {
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
 		return authConfig, fmt.Errorf("Invalid token: %v", err)
@@ -89,7 +89,7 @@ func extractToken(token string) (authConfig types.AuthConfig, err error) {
 		return authConfig, fmt.Errorf("Invalid token: expected two parts, got %d", len(parts))
 	}
 
-	authConfig = types.AuthConfig{
+	authConfig = registry.AuthConfig{
 		Username: parts[0],
 		Password: parts[1],
 	}

@@ -123,8 +123,12 @@ func RmoveDindContainer(ctx context.Context, dindAddress string) error {
 	}
 
 	timeout := 2 * time.Minute
-	if err := cli.ContainerStop(ctx, containerName, &timeout); err != nil {
-		return fmt.Errorf("Failed to stop dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
+	timeoutSeconds := int(timeout.Seconds())
+
+	if err := cli.ContainerStop(ctx, containerName, container.StopOptions{
+		Timeout: &timeoutSeconds,
+	}); err != nil {
+		return fmt.Errorf("failed to stop dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
 	}
 
 	logrus.Infof("waiting 1 minute before removing container [%s] on host [%s]", containerName, cli.DaemonHost())
@@ -137,7 +141,7 @@ func RmoveDindContainer(ctx context.Context, dindAddress string) error {
 			logrus.Debugf("[remove/%s] Container doesn't exist on host [%s]", containerName, cli.DaemonHost())
 			return nil
 		}
-		return fmt.Errorf("Failed to remove dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
+		return fmt.Errorf("failed to remove dind container [%s] on host [%s]: %v", containerName, cli.DaemonHost(), err)
 	}
 	logrus.Infof("[%s] Successfully Removed dind container [%s] on host [%s]", DINDPlane, containerName, cli.DaemonHost())
 	return nil
