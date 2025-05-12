@@ -26,9 +26,4 @@ resources:
         secret: {{ $v.Secret -}}
 {{end}}
   - identity: {}`
-
-	CustomEncryptionProviderFile = `apiVersion: apiserver.config.k8s.io/v1
-kind: EncryptionConfiguration
-{{.CustomConfig}}
-`
 )
