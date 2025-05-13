@@ -191,6 +191,10 @@ const (
 	AciEnableHppDirect                      = "aci_enable_hpp_direct"
 	AciOpflexAgentResetWaitDelay            = "aci_opflex_agent_reset_wait_delay"
 	AciProactiveConf                        = "aci_proactive_conf"
+	AciEpgResolvePrioritize                 = "aci_epg_resolve_prioritize"
+	AciForceEpUndeclares                    = "aci_force_ep_undeclares"
+	AciEnableApicRequestRetryDelay          = "aci_enable_apic_request_retry_delay"
+	AciApicRequestRetryDelay                = "aci_apic_request_retry_delay"
 	// List of map keys to be used with network templates
 
 	// EtcdEndpoints is the server address for Etcd, used by calico
@@ -376,6 +380,10 @@ const (
 	EnableHppDirect                        = "EnableHppDirect"
 	OpflexAgentResetWaitDelay              = "OpflexAgentResetWaitDelay"
 	ProactiveConf                          = "ProactiveConf"
+	EpgResolvePrioritize                   = "EpgResolvePrioritize"
+	ForceEpUndeclares                      = "ForceEpUndeclares"
+	EnableApicRequestRetryDelay            = "EnableApicRequestRetryDelay"
+	ApicRequestRetryDelay                  = "ApicRequestRetryDelay"
 )
 
 type IPPool struct {
@@ -755,6 +763,10 @@ func (c *Cluster) doAciDeploy(ctx context.Context, data map[string]interface{}) 
 		EnableHppDirect:                      c.Network.Options[AciEnableHppDirect],
 		OpflexAgentResetWaitDelay:            c.Network.Options[AciOpflexAgentResetWaitDelay],
 		ProactiveConf:                        c.Network.Options[AciProactiveConf],
+		EpgResolvePrioritize:                 c.Network.Options[AciEpgResolvePrioritize],
+		ForceEpUndeclares:                    c.Network.Options[AciForceEpUndeclares],
+		EnableApicRequestRetryDelay:          c.Network.Options[AciEnableApicRequestRetryDelay],
+		ApicRequestRetryDelay:                c.Network.Options[AciApicRequestRetryDelay],
 		AciCniDeployContainer:                c.SystemImages.AciCniDeployContainer,
 		AciHostContainer:                     c.SystemImages.AciHostContainer,
 		AciOpflexContainer:                   c.SystemImages.AciOpflexContainer,
