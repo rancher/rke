@@ -905,7 +905,7 @@ func (c *Cluster) deployListener(ctx context.Context, host *hosts.Host, portList
 
 	logrus.Debugf("[network] Starting deployListener [%s] on host [%s]", containerName, host.Address)
 	if err := docker.DoRunContainer(ctx, host.DClient, imageCfg, hostCfg, containerName, host.Address, "network", c.PrivateRegistriesMap); err != nil {
-		if strings.Contains(err.Error(), "bind: address already in use") {
+		if strings.Contains(err.Error(), ": address already in use") {
 			logrus.Debugf("[network] Service is already up on host [%s]", host.Address)
 			return nil
 		}
