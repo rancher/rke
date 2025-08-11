@@ -93,7 +93,6 @@ for ver in "${!versions_to_test[@]}"; do
     cat << EOF > "./bin/cluster-${version_to_test}.yml"
 kubernetes_version: ${version_to_test}
 nodes:
-- address: rke-node-${node}
   role: [etcd, controlplane, worker]
   user: ubuntu
 services:
@@ -115,6 +114,11 @@ services:
   kube-api:
     extra_env:
     - TEST_VAR=kube-api
+private_registries:
+     - url: ${STAGE_REGISTRY_ENDPOINT}
+       user: ${STAGE_REGISTRY_USERNAME}
+       password: ${STAGE_REGISTRY_PASSWORD}
+       is_default: true
 EOF
 
     if [ "x${NETWORK_PLUGIN}" != "x" ]; then
