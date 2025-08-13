@@ -68,12 +68,20 @@ jobs:
   integration-ci:
     permissions:
       contents: read
+      id-token: write 
     runs-on: runs-on,runner=4cpu-linux-x64,run-id=${{ github.run_id }}
     timeout-minutes: 30
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Retrieve Stage Registry Credentials from Vault
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/stage-registry/rancher/rke-extended-life/credentials endpoint | STAGE_REGISTRY_ENDPOINT ;
+            secret/data/github/repo/${{ github.repository }}/stage-registry/rancher/rke-extended-life/credentials username | STAGE_REGISTRY_USERNAME ;
+            secret/data/github/repo/${{ github.repository }}/stage-registry/rancher/rke-extended-life/credentials password | STAGE_REGISTRY_PASSWORD
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -81,7 +89,6 @@ jobs:
       - name: Run CI
         run: |
           ./scripts/integration-ci
-
   github-pre-release:
     permissions:
       contents: write
