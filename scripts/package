@@ -10,3 +10,4 @@ SUFFIX=""
 [ "${ARCH}" != "amd64" ] && SUFFIX="_${ARCH}"
 
 ./scripts/create-releasenote.sh
+./scripts/create-imageslist.sh
