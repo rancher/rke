@@ -583,7 +583,8 @@ type CalicoNetworkProvider struct {
 
 type FlannelNetworkProvider struct {
 	// Alternate cloud interface for flannel
-	Iface string `json:"iface"`
+	Iface          string `json:"iface"`
+	BlackholeRoute bool   `yaml:"blackhole_route" json:"blackholeRoute,omitempty"`
 }
 
 type CanalNetworkProvider struct {

@@ -446,6 +446,10 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 	if err != nil {
 		return err
 	}
+	blackholeRoute := false
+	if c.Network.FlannelNetworkProvider != nil {
+		blackholeRoute = c.Network.FlannelNetworkProvider.BlackholeRoute
+	}
 
 	flannelConfig := map[string]interface{}{
 		ClusterCIDR:      c.ClusterCIDR,
@@ -465,6 +469,7 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
 		KubeFlannelPriorityClassName: c.Network.Options[KubeFlannelPriorityClassNameKeyName],
+		"BlackholeRoute":             blackholeRoute,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(flannelConfig, data)
 	if err != nil {
@@ -513,6 +518,10 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 	if err != nil {
 		return err
 	}
+	blackholeRoute := false
+	if c.Network.CanalNetworkProvider != nil {
+		blackholeRoute = c.Network.CanalNetworkProvider.BlackholeRoute
+	}
 
 	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName)
 	canalConfig := map[string]interface{}{
@@ -544,6 +553,8 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 		FlexVolPluginDir:                       c.Network.Options[CanalFlexVolPluginDirectory],
 		CanalPriorityClassName:                 c.Network.Options[CanalPriorityClassNameKeyName],
 		CalicoKubeControllersPriorityClassName: c.Network.Options[CalicoKubeControllersPriorityClassNameKeyName],
+
+		"BlackholeRoute": blackholeRoute,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(canalConfig, data)
 	if err != nil {
