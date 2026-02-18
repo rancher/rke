@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultDevURL     = "https://releases.rancher.com/kontainer-driver-metadata/dev-v2.11-rke-extended-life/data.json"
+	defaultDevURL     = "https://raw.githubusercontent.com/vardhaman22/rancher-kontainer-driver-metadata/refs/heads/rke-feb-patches/data/data.json"
 	defaultReleaseURL = "https://releases.rancher.com/kontainer-driver-metadata/release-v2.11-rke-extended-life/data.json"
 	dataFile          = "data/data.json"
 )
