@@ -48,7 +48,7 @@ const (
 	FlannelNetworkPlugin  = "flannel"
 	FlannelIface          = "flannel_iface"
 	FlannelBlackholeRoute = "flannel_blackhole_route"
-	BlackholeRoute        = "blackhole_route"
+	BlackholeRoute        = "BlackholeRoute"
 	FlannelBackendType    = "flannel_backend_type"
 	// FlannelBackendPort must be 4789 if using VxLan mode in the cluster with Windows nodes
 	FlannelBackendPort = "flannel_backend_port"
@@ -451,7 +451,7 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 	}
 
 	blackholeRoute := false
-	if c.Network.FlannelNetworkProvider != nil && c.Network.FlannelNetworkProvider.BlackholeRoute == "true" {
+	if c.Network.Options[FlannelBlackholeRoute] != "" && c.Network.Options[FlannelBlackholeRoute] == "true" {
 		if blackholeCompatibleToFlannelVersion(c.SystemImages.Flannel) {
 			blackholeRoute = true
 		} else {
