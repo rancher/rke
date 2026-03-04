@@ -9,6 +9,7 @@ import (
 	"time"
 
 	cidr "github.com/apparentlymart/go-cidr/cidr"
+	"github.com/blang/semver"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/rancher/rke/docker"
@@ -44,9 +45,11 @@ const (
 
 	NoNetworkPlugin = "none"
 
-	FlannelNetworkPlugin = "flannel"
-	FlannelIface         = "flannel_iface"
-	FlannelBackendType   = "flannel_backend_type"
+	FlannelNetworkPlugin  = "flannel"
+	FlannelIface          = "flannel_iface"
+	FlannelBlackholeRoute = "flannel_blackhole_route"
+	BlackholeRoute        = "blackhole_route"
+	FlannelBackendType    = "flannel_backend_type"
 	// FlannelBackendPort must be 4789 if using VxLan mode in the cluster with Windows nodes
 	FlannelBackendPort = "flannel_backend_port"
 	// FlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using VxLan mode in the cluster with Windows nodes
@@ -447,6 +450,15 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 		return err
 	}
 
+	blackholeRoute := false
+	if c.Network.FlannelNetworkProvider != nil && c.Network.FlannelNetworkProvider.BlackholeRoute == "true" {
+		if blackholeCompatibleToFlannelVersion(c.SystemImages.Flannel) {
+			blackholeRoute = true
+		} else {
+			logrus.Warnf("Blackhole route requires Flannel version >= v0.28.1, disabling it for image [%s]", c.SystemImages.Flannel)
+		}
+	}
+
 	flannelConfig := map[string]interface{}{
 		ClusterCIDR:      c.ClusterCIDR,
 		Image:            c.SystemImages.Flannel,
@@ -465,6 +477,7 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
 		KubeFlannelPriorityClassName: c.Network.Options[KubeFlannelPriorityClassNameKeyName],
+		BlackholeRoute:               blackholeRoute,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(flannelConfig, data)
 	if err != nil {
@@ -1100,4 +1113,30 @@ func atoiWithDefault(val string, defaultVal int) (int, error) {
 	}
 
 	return ret, nil
+}
+
+func blackholeCompatibleToFlannelVersion(image string) bool {
+	if image == "" {
+		return false
+	}
+	parts := strings.Split(image, ":")
+	tag := parts[len(parts)-1]
+
+	versionStr := tag
+	if strings.HasPrefix(tag, "v") {
+		versionStr = tag[1:]
+	}
+
+	toMatch, err := semver.Make(versionStr)
+	if err != nil {
+		logrus.Debugf("Flannel image tag [%s] cannot be parsed as semver, assuming valid", tag)
+		return true
+	}
+
+	validRange, err := semver.ParseRange(">=0.28.1-0")
+	if err != nil {
+		return false
+	}
+
+	return validRange(toMatch)
 }

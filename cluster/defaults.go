@@ -868,7 +868,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	}
 	if c.Network.FlannelNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[FlannelIface] = c.Network.FlannelNetworkProvider.Iface
-
+		networkPluginConfigDefaultsMap[FlannelBlackholeRoute] = c.Network.FlannelNetworkProvider.BlackholeRoute
 	}
 	if c.Network.CanalNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[CanalIface] = c.Network.CanalNetworkProvider.Iface
