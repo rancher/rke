@@ -872,6 +872,7 @@ func (c *Cluster) setClusterNetworkDefaults() {
 	}
 	if c.Network.CanalNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[CanalIface] = c.Network.CanalNetworkProvider.Iface
+		networkPluginConfigDefaultsMap[CanalBlackholeRoute] = c.Network.CanalNetworkProvider.BlackholeRoute
 	}
 	if c.Network.WeaveNetworkProvider != nil {
 		networkPluginConfigDefaultsMap[WeavePassword] = c.Network.WeaveNetworkProvider.Password

@@ -66,6 +66,7 @@ const (
 
 	CanalNetworkPlugin      = "canal"
 	CanalIface              = "canal_iface"
+	CanalBlackholeRoute     = "canal_blackhole_route"
 	CanalFlannelBackendType = "canal_flannel_backend_type"
 	// CanalFlannelBackendPort must be 4789 if using Flannel VxLan mode in the cluster with Windows nodes
 	CanalFlannelBackendPort = "canal_flannel_backend_port"
@@ -527,6 +528,15 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 		return err
 	}
 
+	blackholeRoute := false
+	if c.Network.Options[CanalBlackholeRoute] != "" && c.Network.Options[CanalBlackholeRoute] == "true" {
+		if blackholeCompatibleToFlannelVersion(c.SystemImages.CanalFlannel) {
+			blackholeRoute = true
+		} else {
+			logrus.Warnf("Blackhole route requires Flannel version >= v0.28.1, disabling it for image [%s]", c.SystemImages.CanalFlannel)
+		}
+	}
+
 	clientConfig := pki.GetConfigPath(pki.KubeNodeCertName)
 	canalConfig := map[string]interface{}{
 		ClientCertPath:   pki.GetCertPath(pki.KubeNodeCertName),
@@ -557,6 +567,7 @@ func (c *Cluster) doCanalDeploy(ctx context.Context, data map[string]interface{}
 		FlexVolPluginDir:                       c.Network.Options[CanalFlexVolPluginDirectory],
 		CanalPriorityClassName:                 c.Network.Options[CanalPriorityClassNameKeyName],
 		CalicoKubeControllersPriorityClassName: c.Network.Options[CalicoKubeControllersPriorityClassNameKeyName],
+		BlackholeRoute:                         blackholeRoute,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(canalConfig, data)
 	if err != nil {
