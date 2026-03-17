@@ -45,11 +45,10 @@ const (
 
 	NoNetworkPlugin = "none"
 
-	FlannelNetworkPlugin  = "flannel"
-	FlannelIface          = "flannel_iface"
-	FlannelBlackholeRoute = "flannel_blackhole_route"
-	BlackholeRoute        = "BlackholeRoute"
-	FlannelBackendType    = "flannel_backend_type"
+	FlannelNetworkPlugin = "flannel"
+	FlannelIface         = "flannel_iface"
+	BlackholeRoute       = "BlackholeRoute"
+	FlannelBackendType   = "flannel_backend_type"
 	// FlannelBackendPort must be 4789 if using VxLan mode in the cluster with Windows nodes
 	FlannelBackendPort = "flannel_backend_port"
 	// FlannelBackendVxLanNetworkIdentify should be greater than or equal to 4096 if using VxLan mode in the cluster with Windows nodes
@@ -451,15 +450,6 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 		return err
 	}
 
-	blackholeRoute := false
-	if c.Network.Options[FlannelBlackholeRoute] != "" && c.Network.Options[FlannelBlackholeRoute] == "true" {
-		if blackholeCompatibleToFlannelVersion(c.SystemImages.Flannel) {
-			blackholeRoute = true
-		} else {
-			logrus.Warnf("Blackhole route requires Flannel version >= v0.28.1, disabling it for image [%s]", c.SystemImages.Flannel)
-		}
-	}
-
 	flannelConfig := map[string]interface{}{
 		ClusterCIDR:      c.ClusterCIDR,
 		Image:            c.SystemImages.Flannel,
@@ -478,7 +468,6 @@ func (c *Cluster) doFlannelDeploy(ctx context.Context, data map[string]interface
 			RollingUpdate: c.Network.UpdateStrategy.RollingUpdate,
 		},
 		KubeFlannelPriorityClassName: c.Network.Options[KubeFlannelPriorityClassNameKeyName],
-		BlackholeRoute:               blackholeRoute,
 	}
 	pluginYaml, err := c.getNetworkPluginManifest(flannelConfig, data)
 	if err != nil {
