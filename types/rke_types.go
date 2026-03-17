@@ -583,12 +583,12 @@ type CalicoNetworkProvider struct {
 
 type FlannelNetworkProvider struct {
 	// Alternate cloud interface for flannel
-	Iface          string `json:"iface"`
-	BlackholeRoute string `yaml:"blackhole_route" json:"blackholeRoute,omitempty"`
+	Iface string `json:"iface"`
 }
 
 type CanalNetworkProvider struct {
 	FlannelNetworkProvider `yaml:",inline" json:",inline"`
+	BlackholeRoute         string `yaml:"blackhole_route" json:"blackholeRoute,omitempty"`
 }
 
 type WeaveNetworkProvider struct {
