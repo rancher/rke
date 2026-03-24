@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Run go-generate to fetch data.json
         run: make go-generate
       - name: Check for repository changes
@@ -47,14 +47,14 @@ jobs:
           git commit -a -m 'go generate'
           git push origin "$BRANCH"
       - name: Retrieve token from vault
-        uses: rancher-eio/read-vault-secrets@main
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/github-token/credentials token | PAT_TOKEN ;
       - name: Create Pull Request
         if: ${{ env.changes_exist == 'true' }}
         id: cpr
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           SOURCE_BRANCH: ${{ steps.branch.outputs.branch }}
         with:

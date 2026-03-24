@@ -28,13 +28,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: 'go.mod'
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6
         with:
           version: v1.63.4
           verify: false
@@ -58,7 +58,7 @@ jobs:
           done
       - name: Upload rke bin artifacts
         if: github.event_name == 'push' && github.ref_type == 'tag'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
           path: build/bin/*
@@ -74,16 +74,16 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Retrieve Stage Registry Credentials from Vault
-        uses: rancher-eio/read-vault-secrets@main
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/stage-registry/rancher/rke-extended-life/credentials endpoint | STAGE_REGISTRY_ENDPOINT ;
             secret/data/github/repo/${{ github.repository }}/stage-registry/rancher/rke-extended-life/credentials username | STAGE_REGISTRY_USERNAME ;
             secret/data/github/repo/${{ github.repository }}/stage-registry/rancher/rke-extended-life/credentials password | STAGE_REGISTRY_PASSWORD
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: 'go.mod'
       - name: Run CI
@@ -98,9 +98,9 @@ jobs:
     if: github.event_name == 'push' && github.ref_type == 'tag' && (contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha'))
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Download rke bin artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
           path: build/bin
@@ -119,9 +119,9 @@ jobs:
     if: github.event_name == 'push' && github.ref_type == 'tag' && !(contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha'))
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Download rke bin artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: rke-binaries-${{ github.run_number }}-${{ github.run_attempt }}
           path: build/bin
@@ -141,9 +141,9 @@ jobs:
     if: github.event_name == 'push' && github.ref_type == 'tag'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Retrieve token from vault
-        uses: rancher-eio/read-vault-secrets@main
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
         with:
           secrets: |
             secret/data/github/repo/${{ github.repository }}/github-token/credentials token | PAT_TOKEN ;
