@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultDevURL     = "https://releases.rancher.com/kontainer-driver-metadata/dev-v2.11-rke-extended-life/data.json"
+	defaultDevURL     = "https://raw.githubusercontent.com/bhartigautam156/kontainer-driver-metadata/refs/heads/ingress-nginx-1.14.5-rancher2/data/data.json"
 	defaultReleaseURL = "https://releases.rancher.com/kontainer-driver-metadata/release-v2.11-rke-extended-life/data.json"
 	dataFile          = "data/data.json"
 )
