@@ -1,0 +1,57 @@
+name: Renovate
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Override default log level"
+        required: false
+        default: info
+        type: choice
+        options:
+          - info
+          - debug
+      overrideSchedule:
+        description: "Override all schedules"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      configMigration:
+        description: "Toggle PRs for config migration"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      renovateConfig:
+        description: "Define a custom renovate config file"
+        required: false
+        default: ".github/renovate.json"
+        type: string
+      minimumReleaseAge:
+        description: "Override minimumReleaseAge for a one-time run (e.g., '0 days' to disable delay)"
+        required: false
+        default: "null"
+        type: string
+
+  schedule:
+    - cron: '30 4,6 * * 1-5'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  call-workflow:
+    uses: rancher/renovate-config/.github/workflows/renovate-vault.yml@922c8e762a46f551a064c44539923a3216b245be # v1.0.5
+    with:
+      configMigration: ${{ inputs.configMigration || 'true' }}
+      logLevel: ${{ inputs.logLevel || 'info' }}
+      overrideSchedule: ${{ github.event.inputs.overrideSchedule == 'true' && '{''schedule'':null}' || '' }}
+      renovateConfig: ${{ inputs.renovateConfig || '.github/renovate.json' }}
+      minimumReleaseAge: ${{ inputs.minimumReleaseAge || 'null' }}
+    secrets:
+      override-token: "${{ secrets.RENOVATE_FORK_GH_TOKEN || '' }}"
